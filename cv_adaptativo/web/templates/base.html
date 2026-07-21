@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block titulo %}CV Adaptativo{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='estilo.css') }}">
+</head>
+<body>
+  <header class="cabecera">
+    <div class="ancho">
+      <a class="marca" href="{{ url_for('cv_adaptativo.ver_perfil') }}">CV Adaptativo</a>
+      <nav class="nav">
+        <a href="{{ url_for('cv_adaptativo.ver_perfil') }}" class="{{ 'activo' if request.endpoint == 'cv_adaptativo.ver_perfil' else '' }}">Mi perfil</a>
+        <a href="{{ url_for('cv_adaptativo.adaptar') }}" class="{{ 'activo' if request.endpoint == 'cv_adaptativo.adaptar' else '' }}">Adaptar</a>
+        <a href="{{ url_for('cv_adaptativo.ver_propuesta') }}" class="{{ 'activo' if request.endpoint == 'cv_adaptativo.ver_propuesta' else '' }}">Propuesta</a>
+        <a href="{{ url_for('cv_adaptativo.listar_cvs') }}" class="{{ 'activo' if request.endpoint in ('cv_adaptativo.listar_cvs', 'cv_adaptativo.ver_cv') else '' }}">Mis CVs</a>
+        <a href="{{ url_for('cv_adaptativo.ver_ajustes') }}" class="{{ 'activo' if request.endpoint == 'cv_adaptativo.ver_ajustes' else '' }}">Ajustes</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="ancho contenido">
+    {% with mensajes = get_flashed_messages() %}
+      {% if mensajes %}
+        <ul class="avisos">
+          {% for mensaje in mensajes %}
+            <li class="aviso">{{ mensaje }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+
+    {% block contenido %}{% endblock %}
+  </main>
+
+  <footer class="pie ancho">
+    <p>Corre en tu ordenador. Tus datos no salen de aquí.</p>
+  </footer>
+
+  <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>

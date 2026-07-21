@@ -23,10 +23,14 @@ candidaturas crece con ella.
 | Modelo de datos e interfaces | ✅ |
 | Almacén del perfil (YAML) | ⬜ |
 | Motor de selección | ⬜ |
-| Interfaz web | ⬜ |
+| Interfaz web | ✅ |
 | Archivo de CVs | ⬜ |
 | Importar desde un CV existente | ⬜ |
 | Soporte y plantillas | ⬜ |
+
+La interfaz web está construida contra el contrato de `almacen`, `motor` y `archivo`
+tal cual está definido, pero esos tres todavía lanzan `NotImplementedError`: no se
+podrá adaptar un CV de verdad hasta que esas piezas estén listas y se integren.
 
 ## Roadmap
 
@@ -41,6 +45,7 @@ candidaturas crece con ella.
 ```bash
 pip install -r requirements.txt
 python -m pytest tests/ -q
+python run.py  # sirve la web en http://127.0.0.1:5000
 ```
 
 ## Licencia

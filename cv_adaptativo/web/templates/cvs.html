@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block titulo %}Mis CVs — CV Adaptativo{% endblock %}
+{% block contenido %}
+  <h1>Mis CVs</h1>
+  <p class="ayuda">El archivo de todas las adaptaciones que has guardado.</p>
+
+  {% if cvs %}
+    <div class="lista-tarjetas">
+      {% for cv in cvs %}
+        <div class="tarjeta">
+          <div class="fila-tarjeta">
+            <div>
+              <h3><a href="{{ url_for('cv_adaptativo.ver_cv', id_=cv.id) }}">{{ cv.empresa }}{% if cv.puesto %} — {{ cv.puesto }}{% endif %}</a></h3>
+              <p class="ayuda">{{ cv.fecha }} · {{ "Español" if cv.propuesta.idioma == "es" else "Inglés" }}</p>
+            </div>
+            <span class="insignia insignia-{{ cv.estado.value }}">{{ etiquetas_estado[cv.estado] }}</span>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p class="vacio">Todavía no has guardado ningún CV. Empieza en <a href="{{ url_for('cv_adaptativo.adaptar') }}">Adaptar</a>.</p>
+  {% endif %}
+{% endblock %}
