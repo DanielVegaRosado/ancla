@@ -282,6 +282,23 @@ def test_un_zip_con_rutas_que_se_escapan_no_se_importa(tmp_path: Path):
     assert not (tmp_path.parent / "robado.yaml").exists()
 
 
+def test_una_exportacion_que_falla_no_deja_un_respaldo_a_medias(tmp_path: Path, monkeypatch):
+    """Un respaldo truncado aparenta estar entero, y eso solo se descubre el día
+    que hace falta restaurarlo."""
+    origen = tmp_path / "perfil"
+    almacen.guardar_skill(origen, _skill())
+
+    def _falla_a_media_escritura(_self, *_args, **_kwargs):
+        raise OSError(28, "No queda espacio en el disco")
+
+    monkeypatch.setattr(zipfile.ZipFile, "write", _falla_a_media_escritura)
+
+    with pytest.raises(ErrorPerfil, match="respaldo"):
+        almacen.exportar_zip(origen, tmp_path / "respaldo.zip")
+
+    assert list(tmp_path.glob("respaldo*")) == []
+
+
 def test_importar_algo_que_no_es_un_zip_se_explica(tmp_path: Path):
     falso = tmp_path / "respaldo.zip"
     falso.write_text("esto no es un zip", encoding="utf-8")

@@ -231,14 +231,20 @@ def exportar_zip(raiz: Path, destino: Path) -> Path:
         destino = destino.with_name(destino.name + ".zip")
     destino.parent.mkdir(parents=True, exist_ok=True)
 
+    # Se arma en un temporal y se coloca de golpe, igual que al guardar un YAML:
+    # un respaldo a medias que aparenta estar entero es peor que no tenerlo, y
+    # solo se descubre el día que hace falta restaurarlo.
+    temporal = destino.with_name(destino.name + ".tmp")
     # Si el respaldo se guarda dentro del propio perfil, no debe meterse a sí mismo.
-    salida = destino.resolve()
+    excluidos = {destino.resolve(), temporal.resolve()}
     try:
-        with zipfile.ZipFile(destino, "w", zipfile.ZIP_DEFLATED) as zip_:
+        with zipfile.ZipFile(temporal, "w", zipfile.ZIP_DEFLATED) as zip_:
             for ruta in sorted(raiz.rglob("*")):
-                if ruta.is_file() and ruta.resolve() != salida:
+                if ruta.is_file() and ruta.resolve() not in excluidos:
                     zip_.write(ruta, ruta.relative_to(raiz).as_posix())
+        os.replace(temporal, destino)
     except OSError as exc:
+        temporal.unlink(missing_ok=True)
         raise ErrorPerfil(f"No se pudo crear el respaldo: {exc.strerror}.") from exc
     return destino
 

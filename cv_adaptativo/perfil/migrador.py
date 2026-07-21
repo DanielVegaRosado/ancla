@@ -29,7 +29,6 @@ from __future__ import annotations
 import argparse
 import re
 import sys
-from collections.abc import Callable
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -118,10 +117,14 @@ def _migrar_experiencias(
             keywords=_palabras(campos.get("KEYWORDS", "")),
             estado=campos.get("ESTADO", "").strip(),
         )
-        ruta = _ruta_o_aviso(
-            lambda: almacen.ruta_experiencia(destino, experiencia.id), fichero, informe
-        )
-        if ruta is None or not _libre(ruta, sobrescribir, informe, fichero):
+        try:
+            ruta = almacen.ruta_experiencia(destino, experiencia.id)
+        except almacen.ErrorPerfil as exc:
+            # Un id que no sirve tumba ese elemento, no la migración entera: los
+            # otros doce ficheros no tienen la culpa.
+            informe.avisos.append(f"{fichero.name} → {exc}")
+            continue
+        if not _libre(ruta, sobrescribir, informe, fichero):
             continue
 
         almacen.guardar_experiencia(destino, experiencia)
@@ -146,10 +149,12 @@ def _migrar_skills(
             categoria=campos.get("CATEGORIA", "").strip(),
             keywords=_palabras(campos.get("KEYWORDS", "")),
         )
-        ruta = _ruta_o_aviso(
-            lambda: almacen.ruta_skill(destino, skill.id), fichero, informe
-        )
-        if ruta is None or not _libre(ruta, sobrescribir, informe, fichero):
+        try:
+            ruta = almacen.ruta_skill(destino, skill.id)
+        except almacen.ErrorPerfil as exc:
+            informe.avisos.append(f"{fichero.name} → {exc}")
+            continue
+        if not _libre(ruta, sobrescribir, informe, fichero):
             continue
 
         almacen.guardar_skill(destino, skill)
@@ -242,8 +247,8 @@ def _lista(campos: dict[str, str], campo: str) -> list[str]:
     """Las líneas `- ...` de un bloque de bullets, tal cual las escribió el
     usuario. No se reescribe ni se recorta nada: esa es la regla del producto."""
     elementos: list[str] = []
-    for linea in campos.get(campo, "").splitlines():
-        linea = linea.strip()
+    for cruda in campos.get(campo, "").splitlines():
+        linea = cruda.strip()
         if not linea:
             continue
         if linea.startswith("- "):
@@ -258,18 +263,6 @@ def _lista(campos: dict[str, str], campo: str) -> list[str]:
 
 def _palabras(bruto: str) -> list[str]:
     return [palabra.strip() for palabra in bruto.split(",") if palabra.strip()]
-
-
-def _ruta_o_aviso(
-    calcular: Callable[[], Path], fichero: Path, informe: InformeMigracion
-) -> Path | None:
-    """Un id que no sirve como nombre de fichero para ese elemento, no la migración
-    entera: los otros catorce ficheros no tienen la culpa."""
-    try:
-        return calcular()
-    except almacen.ErrorPerfil as exc:
-        informe.avisos.append(f"{fichero.name} → {exc}")
-        return None
 
 
 def _libre(
