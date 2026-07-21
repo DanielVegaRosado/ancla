@@ -1,0 +1,32 @@
+{
+  "_comentario": [
+    "Casos de evaluación del motor de selección.",
+    "Añade aquí vacantes REALES a las que hayas aplicado: son las que dicen si la",
+    "herramienta sirve. Las de ejemplo solo están para que el banco arranque.",
+    "Conviene que cubran situaciones distintas: una que encaje de lleno con el perfil,",
+    "una que pida cosas que NO tienes (para ver si los huecos salen bien), una vaga,",
+    "y una en inglés."
+  ],
+  "casos": [
+    {
+      "nombre": "Encaje directo — Data Engineer junior",
+      "idioma": "es",
+      "vacante": "Data Engineer Junior — Madrid (híbrido)\n\nBuscamos una persona para incorporarse a nuestro equipo de datos.\n\nRequisitos:\n- Python\n- SQL y bases de datos relacionales\n- Experiencia construyendo pipelines de datos (ETL)\n- Se valorará conocimiento de Linux\n\nOfrecemos incorporación a un equipo joven y formación continua."
+    },
+    {
+      "nombre": "Con huecos claros — Backend Java + Kubernetes",
+      "idioma": "es",
+      "vacante": "Desarrollador Backend — Valladolid\n\nRequisitos:\n- Java 17 y Spring Boot\n- Kubernetes y Docker en producción\n- Bases de datos SQL\n- Experiencia con AWS (EKS, S3)\n\nImprescindible experiencia previa desplegando en Kubernetes."
+    },
+    {
+      "nombre": "Vacante vaga — perfil IA genérico",
+      "idioma": "es",
+      "vacante": "Únete a nuestro equipo de innovación\n\nBuscamos gente con ganas, curiosa y con interés por la inteligencia artificial. Trabajarás en proyectos punteros con tecnología de última generación en un ambiente dinámico. Valoramos la actitud por encima de la experiencia."
+    },
+    {
+      "nombre": "En inglés — ML Engineer internship",
+      "idioma": "en",
+      "vacante": "Machine Learning Engineer Intern — Remote (EU)\n\nWhat you'll do:\n- Build and evaluate classification models\n- Work with scikit-learn and pandas on real datasets\n- Run hyperparameter optimisation experiments\n\nRequirements:\n- Strong Python\n- Familiarity with machine learning fundamentals\n- Currently enrolled in a Computer Science or related degree"
+    }
+  ]
+}
