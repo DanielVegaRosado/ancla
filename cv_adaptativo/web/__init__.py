@@ -3,6 +3,11 @@
 Cinco pantallas: Mi perfil, Adaptar, Propuesta, Mis CVs y Ajustes. Todo en
 español. Corre en local; no hay cuentas ni autenticación porque solo la usa
 el dueño del ordenador donde vive el perfil.
+
+Cada pantalla es un módulo en `cv_adaptativo/web/vistas/`, con sus rutas
+registradas en el único `Blueprint` de `cv_adaptativo/web/blueprint.py`. Esta
+fábrica solo monta la app: configuración, filtros de plantilla y manejo de
+errores — no sabe nada de ninguna pantalla en concreto.
 """
 from __future__ import annotations
 
@@ -17,8 +22,11 @@ RAIZ_PERFIL_POR_DEFECTO = RAIZ_APP / "perfil"
 
 def crear_app(raiz_perfil: Path | None = None, ruta_ajustes: Path | None = None) -> Flask:
     from cv_adaptativo.perfil.errores import ErrorPerfil
+    from cv_adaptativo.perfil.modelo import IDIOMAS
     from cv_adaptativo.web import ajustes as modulo_ajustes
-    from cv_adaptativo.web.rutas import bp
+    from cv_adaptativo.web import vistas  # noqa: F401 — registra las rutas en bp al importarse
+    from cv_adaptativo.web.blueprint import bp
+    from cv_adaptativo.web.presentacion import ETIQUETAS_ESTADO
     from cv_adaptativo.web.util import lista_a_csv, lista_a_lineas
 
     app = Flask(__name__)
@@ -28,6 +36,10 @@ def crear_app(raiz_perfil: Path | None = None, ruta_ajustes: Path | None = None)
     app.register_blueprint(bp)
     app.jinja_env.filters["lista_a_lineas"] = lista_a_lineas
     app.jinja_env.filters["lista_a_csv"] = lista_a_csv
+
+    @app.context_processor
+    def _inyectar_globales():
+        return {"idiomas": IDIOMAS, "etiquetas_estado": ETIQUETAS_ESTADO}
 
     @app.errorhandler(404)
     def _pagina_no_encontrada(_error):
