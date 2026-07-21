@@ -21,12 +21,16 @@ candidaturas crece con ella.
 | Pieza | Estado |
 |---|---|
 | Modelo de datos e interfaces | ✅ |
-| Almacén del perfil (YAML) | ⬜ |
-| Motor de selección | ⬜ |
-| Interfaz web | ⬜ |
-| Archivo de CVs | ⬜ |
+| Almacén del perfil (YAML) | ✅ |
+| Motor de selección | ✅ |
+| Interfaz web | ✅ |
+| Archivo de CVs | ✅ |
 | Importar desde un CV existente | ⬜ |
-| Soporte y plantillas | ⬜ |
+| Soporte y plantillas | ✅ |
+
+Probado en local de punta a punta: crear experiencia y skills, definir la plantilla
+de «Sobre mí», pegar una vacante y generar la propuesta con una clave de Groq real.
+Solo falta el importador desde un CV existente (`perfil/importador.py`) para cerrar V1.
 
 ## Roadmap
 
@@ -41,6 +45,7 @@ candidaturas crece con ella.
 ```bash
 pip install -r requirements.txt
 python -m pytest tests/ -q
+python run.py  # sirve la web en http://127.0.0.1:5000
 ```
 
 ## Licencia

@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block titulo %}{{ "Nueva skill" if nueva else "Editar skill" }} — CV Adaptativo{% endblock %}
+{% block contenido %}
+  <h1>{{ "Nueva skill" if nueva else "Editar skill" }}</h1>
+
+  {% if errores %}
+    <div class="errores">
+      <ul>{% for error in errores %}<li>{{ error }}</li>{% endfor %}</ul>
+    </div>
+  {% endif %}
+
+  <form class="pila" method="post">
+    {% if nueva %}
+      <div class="campo">
+        <label for="nombre_es">Nombre (ES)</label>
+        <input type="text" id="nombre_es" name="nombre_es" data-fuente-id="id" required
+               value="{{ skill.nombre['es'] if skill else '' }}">
+      </div>
+      <div class="campo">
+        <label for="id">Identificador</label>
+        <input type="text" id="id" name="id" data-id-manual placeholder="se genera del nombre si lo dejas vacío"
+               value="{{ skill.id if skill else '' }}">
+        <p class="ayuda">Se usa como referencia estable en el archivo de CVs: no se puede cambiar después.</p>
+      </div>
+    {% else %}
+      <div class="campo">
+        <label for="nombre_es">Nombre (ES)</label>
+        <input type="text" id="nombre_es" name="nombre_es" required value="{{ skill.nombre['es'] }}">
+      </div>
+      <p class="ayuda">Identificador: {{ skill.id }} (fijo)</p>
+    {% endif %}
+
+    <div class="campo">
+      <label for="nombre_en">Nombre (EN)</label>
+      <input type="text" id="nombre_en" name="nombre_en" required value="{{ skill.nombre['en'] if skill else '' }}">
+    </div>
+
+    <div class="campo">
+      <label for="categoria">Categoría</label>
+      <input type="text" id="categoria" name="categoria" placeholder="lenguaje, cloud, dato..."
+             value="{{ skill.categoria if skill else '' }}">
+    </div>
+
+    <div class="campo">
+      <label for="keywords">Keywords (separadas por comas)</label>
+      <input type="text" id="keywords" name="keywords" value="{{ skill.keywords|lista_a_csv if skill else '' }}">
+      <p class="ayuda">Se usan para emparejar esta skill con los requisitos de una vacante.</p>
+    </div>
+
+    <div class="barra-acciones">
+      <button type="submit" class="boton-primario">Guardar</button>
+      <a class="boton" href="{{ url_for('cv_adaptativo.ver_perfil') }}">Cancelar</a>
+    </div>
+  </form>
+{% endblock %}

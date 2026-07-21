@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block titulo %}Ajustes — CV Adaptativo{% endblock %}
+{% block contenido %}
+  <h1>Ajustes</h1>
+  <p class="ayuda">
+    La clave es siempre tuya y se guarda solo en este ordenador, fuera del repositorio.
+    Groq tiene nivel gratuito: crea una cuenta y pega aquí tu clave.
+  </p>
+
+  <form class="pila tarjeta" method="post">
+    <div class="campo">
+      <label for="proveedor">Proveedor de IA</label>
+      <select id="proveedor" name="proveedor">
+        <option value="groq" {{ "selected" if ajustes.proveedor == "groq" else "" }}>Groq</option>
+      </select>
+    </div>
+
+    <div class="campo">
+      <label for="clave_api">Clave de API</label>
+      <input type="password" id="clave_api" name="clave_api" autocomplete="off"
+             value="{{ ajustes.clave_api }}" placeholder="gsk_...">
+      <p class="ayuda">
+        {% if ajustes.configurado() %}Ya tienes una clave guardada.{% else %}Todavía no has configurado ninguna clave.{% endif %}
+      </p>
+    </div>
+
+    <div class="barra-acciones">
+      <button type="submit" class="boton-primario">Guardar ajustes</button>
+    </div>
+  </form>
+{% endblock %}
