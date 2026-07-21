@@ -42,9 +42,21 @@
     </div>
 
     <div class="campo">
-      <label for="keywords">Keywords (separadas por comas)</label>
+      <label for="keywords">Keywords</label>
       <input type="text" id="keywords" name="keywords" value="{{ skill.keywords|lista_a_csv if skill else '' }}">
-      <p class="ayuda">Se usan para emparejar esta skill con los requisitos de una vacante.</p>
+      <p class="ayuda">
+        Las propone la IA a partir del nombre y la categoría. No salen nunca en tu CV:
+        sirven para reconocer esta skill cuando una oferta la nombre de otra forma.
+        Revísalas y añade las que falten.
+      </p>
+      <div class="barra-acciones">
+        <button type="button" class="boton"
+                data-sugerir-keywords
+                data-tipo="skill"
+                data-campos="nombre_es,nombre_en,categoria"
+                data-destino="keywords">Proponer con IA</button>
+      </div>
+      <p class="ayuda" data-aviso-keywords hidden></p>
     </div>
 
     <div class="barra-acciones">

@@ -41,3 +41,50 @@ document.addEventListener("input", (evento) => {
     evento.target.dataset.tocado = "1";
   }
 });
+
+// Proponer keywords con IA. Se AÑADEN a las que ya haya escritas, nunca las
+// sustituyen: lo que el usuario escribió manda sobre lo que sugiera el modelo.
+document.addEventListener("click", async (evento) => {
+  const boton = evento.target.closest("[data-sugerir-keywords]");
+  if (!boton) return;
+
+  const destino = document.getElementById(boton.getAttribute("data-destino"));
+  const aviso = boton.closest(".campo").querySelector("[data-aviso-keywords]");
+  if (!destino) return;
+
+  const cuerpo = { tipo: boton.getAttribute("data-tipo") };
+  for (const par of boton.getAttribute("data-campos").split(",")) {
+    const [campo, clave] = par.includes(":") ? par.split(":") : [par, par];
+    cuerpo[clave] = (document.getElementById(campo) || {}).value || "";
+  }
+
+  const original = boton.textContent;
+  boton.textContent = "Pensando…";
+  boton.disabled = true;
+  aviso.hidden = true;
+
+  try {
+    const respuesta = await fetch("/perfil/keywords", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(cuerpo),
+    });
+    const datos = await respuesta.json();
+
+    const yaEstaban = destino.value.split(",").map((k) => k.trim()).filter(Boolean);
+    const conocidas = new Set(yaEstaban.map((k) => k.toLowerCase()));
+    const nuevas = (datos.keywords || []).filter((k) => !conocidas.has(k.toLowerCase()));
+    destino.value = yaEstaban.concat(nuevas).join(", ");
+
+    if (datos.aviso) {
+      aviso.textContent = datos.aviso;
+      aviso.hidden = false;
+    }
+  } catch (error) {
+    aviso.textContent = "No se han podido proponer keywords.";
+    aviso.hidden = false;
+  } finally {
+    boton.textContent = original;
+    boton.disabled = false;
+  }
+});

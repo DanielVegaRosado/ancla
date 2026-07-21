@@ -1,12 +1,14 @@
 """Pantalla Mi perfil: editar experiencias, skills y la plantilla del Sobre mí."""
 from __future__ import annotations
 
-from flask import flash, redirect, render_template, request, url_for
+from flask import flash, jsonify, redirect, render_template, request, url_for
 
-from cv_adaptativo.perfil import almacen, validacion
+from cv_adaptativo.perfil import almacen, keywords, validacion
 from cv_adaptativo.perfil.modelo import Bilingue, Experiencia, Skill, SobreMi
+from cv_adaptativo.web import ajustes as modulo_ajustes
 from cv_adaptativo.web import contexto
 from cv_adaptativo.web.blueprint import bp
+from cv_adaptativo.web.proveedores import crear_cliente
 from cv_adaptativo.web.util import csv_a_lista, lineas_a_lista, slugificar
 
 
@@ -81,6 +83,49 @@ def borrar_experiencia(id_: str):
     almacen.borrar_experiencia(contexto.raiz(), id_)
     flash("Experiencia borrada.")
     return redirect(url_for("cv_adaptativo.ver_perfil"))
+
+
+@bp.route("/perfil/keywords", methods=["POST"])
+def sugerir_keywords():
+    """Propone keywords para la skill o experiencia que se está escribiendo.
+
+    Devuelve siempre 200 con una lista (vacía si no se pudo): es una ayuda del
+    formulario, y un error aquí no debe interrumpir a quien está escribiendo.
+    El usuario revisa y amplía lo que se le propone — nunca se guarda solo.
+    """
+    datos = request.get_json(silent=True) or {}
+    ajustes = modulo_ajustes.cargar_ajustes(contexto.ruta_ajustes())
+    if not ajustes.configurado():
+        return jsonify(
+            {
+                "keywords": [],
+                "aviso": "Configura tu clave de API en Ajustes para que la IA "
+                "te proponga keywords. Mientras tanto, escríbelas a mano.",
+            }
+        )
+
+    try:
+        cliente = crear_cliente(ajustes.proveedor, ajustes.clave_api)
+    except Exception:
+        return jsonify({"keywords": [], "aviso": "No se pudo contactar con el proveedor."})
+
+    if datos.get("tipo") == "experiencia":
+        sugeridas = keywords.sugerir_para_experiencia(
+            cliente,
+            titulo=datos.get("titulo", ""),
+            bullets=lineas_a_lista(datos.get("bullets", "")),
+            stack=datos.get("stack", ""),
+        )
+    else:
+        sugeridas = keywords.sugerir_para_skill(
+            cliente,
+            nombre_es=datos.get("nombre_es", ""),
+            nombre_en=datos.get("nombre_en", ""),
+            categoria=datos.get("categoria", ""),
+        )
+
+    aviso = "" if sugeridas else "No se han podido proponer keywords. Inténtalo otra vez."
+    return jsonify({"keywords": sugeridas, "aviso": aviso})
 
 
 def _skill_desde_formulario(id_: str) -> Skill:

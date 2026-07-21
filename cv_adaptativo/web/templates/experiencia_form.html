@@ -69,9 +69,21 @@
     </div>
 
     <div class="campo">
-      <label for="keywords">Keywords (separadas por comas)</label>
+      <label for="keywords">Keywords</label>
       <input type="text" id="keywords" name="keywords" value="{{ experiencia.keywords|lista_a_csv if experiencia else '' }}">
-      <p class="ayuda">Se usan para emparejar esta experiencia con los requisitos de una vacante.</p>
+      <p class="ayuda">
+        Las propone la IA a partir del título, el stack y lo que hiciste. No salen nunca
+        en tu CV: sirven para reconocer esta experiencia cuando una oferta use otras
+        palabras. Revísalas y añade las que falten.
+      </p>
+      <div class="barra-acciones">
+        <button type="button" class="boton"
+                data-sugerir-keywords
+                data-tipo="experiencia"
+                data-campos="titulo_es:titulo,stack_es:stack,bullets_es:bullets"
+                data-destino="keywords">Proponer con IA</button>
+      </div>
+      <p class="ayuda" data-aviso-keywords hidden></p>
     </div>
 
     <div class="campo">
