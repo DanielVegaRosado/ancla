@@ -6,6 +6,10 @@ perfil/
 .env
 ajustes.json
 
+# Ajustes locales de las herramientas de agentes: son de la máquina de quien
+# desarrolla, no del producto, y este repo es público.
+.claude/
+
 __pycache__/
 *.py[cod]
 .venv/
