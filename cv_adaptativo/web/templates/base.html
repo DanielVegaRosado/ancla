@@ -35,7 +35,10 @@
   </main>
 
   <footer class="pie ancho">
-    <p>Corre en tu ordenador. Tus datos no salen de aquí.</p>
+    <p>
+      Corre en tu ordenador. Tus datos no salen de aquí.
+      · <a href="{{ url_for('cv_adaptativo.soporte') }}">¿Algo no funciona? Contactar soporte</a>
+    </p>
   </footer>
 
   <script src="{{ url_for('static', filename='app.js') }}"></script>

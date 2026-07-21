@@ -1,7 +1,7 @@
 {% extends "base.html" %}
-{% block titulo %}{{ "Editar skill" if skill else "Nueva skill" }} — CV Adaptativo{% endblock %}
+{% block titulo %}{{ "Nueva skill" if nueva else "Editar skill" }} — CV Adaptativo{% endblock %}
 {% block contenido %}
-  <h1>{{ "Editar skill" if skill else "Nueva skill" }}</h1>
+  <h1>{{ "Nueva skill" if nueva else "Editar skill" }}</h1>
 
   {% if errores %}
     <div class="errores">

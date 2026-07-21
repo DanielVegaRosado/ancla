@@ -5,6 +5,8 @@ Groq, pero la lista crece en v1.1 sin tocar el resto de la app.
 """
 from __future__ import annotations
 
+import os
+
 from cv_adaptativo.ia.cliente import ClienteIA, ErrorIA
 
 NOMBRES = {"groq": "Groq"}
@@ -18,6 +20,8 @@ def crear_cliente(proveedor: str, clave_api: str) -> ClienteIA:
             raise ErrorIA(
                 "El proveedor Groq todavía no está disponible en esta instalación."
             ) from error
-        return ClienteGroq(clave_api)
+        # Los Ajustes de la app mandan; GROQ_API_KEY es solo un atajo para
+        # quien desarrolla y no quiere pegar la clave en la interfaz.
+        return ClienteGroq(clave_api or os.environ.get("GROQ_API_KEY", ""))
 
     raise ErrorIA(f"Proveedor de IA desconocido: «{proveedor}».")

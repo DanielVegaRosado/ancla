@@ -174,3 +174,41 @@ def test_pagina_inexistente_da_404_en_espanol(cliente_web):
     respuesta = cliente_web.get("/esto-no-existe")
     assert respuesta.status_code == 404
     assert "Página no encontrada".encode("utf-8") in respuesta.data
+
+
+# --------------------------------------------------------------------------
+# Soporte (usa el módulo real de Agente D, ya implementado)
+# --------------------------------------------------------------------------
+
+
+def test_ver_soporte(cliente_web):
+    respuesta = cliente_web.get("/soporte")
+    assert respuesta.status_code == 200
+    assert "Soporte".encode("utf-8") in respuesta.data
+
+
+def test_soporte_sin_mensaje_no_lo_envia(cliente_web):
+    respuesta = cliente_web.post("/soporte", data={"asunto": "", "mensaje": ""})
+    assert respuesta.status_code == 200
+    assert "Rellena el asunto".encode("utf-8") in respuesta.data
+
+
+def test_soporte_guarda_en_local_antes_de_redirigir(cliente_web, tmp_path: Path):
+    respuesta = cliente_web.post(
+        "/soporte",
+        data={"asunto": "El botón de copiar no funciona", "mensaje": "Detalle del problema", "destino": "github"},
+    )
+    assert respuesta.status_code == 302
+    assert respuesta.location.startswith("https://github.com/")
+
+    guardados = list((tmp_path / "perfil" / "soporte").glob("*.yaml"))
+    assert len(guardados) == 1
+
+
+def test_soporte_por_correo_redirige_a_mailto(cliente_web):
+    respuesta = cliente_web.post(
+        "/soporte",
+        data={"asunto": "Duda", "mensaje": "Un mensaje cualquiera", "destino": "correo"},
+    )
+    assert respuesta.status_code == 302
+    assert respuesta.location.startswith("mailto:")

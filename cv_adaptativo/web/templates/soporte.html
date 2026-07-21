@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block titulo %}Soporte — CV Adaptativo{% endblock %}
+{% block contenido %}
+  <h1>Soporte</h1>
+  <p class="ayuda">
+    Tu mensaje se guarda primero en tu ordenador, en <code>perfil/soporte/</code>. Después eliges
+    cómo enviarlo: como incidencia pública en GitHub o por correo. Nunca se adjuntan datos de tu
+    perfil, solo diagnóstico técnico (versión, sistema, proveedor de IA).
+  </p>
+
+  <form class="pila tarjeta" method="post">
+    <div class="campo">
+      <label for="asunto">Asunto</label>
+      <input type="text" id="asunto" name="asunto" required placeholder="Resumen breve del problema">
+    </div>
+    <div class="campo">
+      <label for="mensaje">Mensaje</label>
+      <textarea id="mensaje" name="mensaje" class="alta" required placeholder="Qué esperabas que pasara y qué ha pasado en su lugar"></textarea>
+    </div>
+
+    <div class="barra-acciones">
+      <button type="submit" name="destino" value="github" class="boton-primario">Abrir incidencia en GitHub</button>
+      <button type="submit" name="destino" value="correo" class="boton">Enviar por correo</button>
+    </div>
+  </form>
+{% endblock %}

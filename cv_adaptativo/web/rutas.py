@@ -32,6 +32,7 @@ from cv_adaptativo.perfil.modelo import (
 )
 from cv_adaptativo.propuesta.formato import a_markdown, a_texto, texto_experiencia
 from cv_adaptativo.seleccion import motor
+from cv_adaptativo.soporte import mensajes as modulo_soporte
 from cv_adaptativo.vacante import analisis
 from cv_adaptativo.web import ajustes as modulo_ajustes
 from cv_adaptativo.web import borrador as modulo_borrador
@@ -266,12 +267,16 @@ def adaptar():
             )
 
     ajustes = modulo_ajustes.cargar_ajustes(_ruta_ajustes())
-    if not ajustes.configurado():
+    try:
+        cliente = crear_cliente(ajustes.proveedor, ajustes.clave_api)
+    except ErrorIA as error:
+        flash(str(error))
+        return render_template("adaptar.html", vacante=vacante_texto, idioma=idioma)
+    if not cliente.disponible():
         flash("Configura tu clave de API en Ajustes antes de generar una propuesta.")
         return redirect(url_for("cv_adaptativo.ver_ajustes"))
 
     try:
-        cliente = crear_cliente(ajustes.proveedor, ajustes.clave_api)
         propuesta = motor.adaptar(perfil, vacante_texto, idioma, cliente, N_EXPERIENCIAS, N_SKILLS)
     except ErrorIA as error:
         flash(str(error))
@@ -423,12 +428,16 @@ def regenerar_seccion(seccion: str):
         return redirect(url_for("cv_adaptativo.ver_propuesta"))
 
     ajustes = modulo_ajustes.cargar_ajustes(_ruta_ajustes())
-    if not ajustes.configurado():
+    try:
+        cliente = crear_cliente(ajustes.proveedor, ajustes.clave_api)
+    except ErrorIA as error:
+        flash(str(error))
+        return redirect(url_for("cv_adaptativo.ver_propuesta"))
+    if not cliente.disponible():
         flash("Configura tu clave de API en Ajustes antes de regenerar.")
         return redirect(url_for("cv_adaptativo.ver_ajustes"))
 
     try:
-        cliente = crear_cliente(ajustes.proveedor, ajustes.clave_api)
         nueva_propuesta = motor.adaptar(
             _perfil(), borrador.vacante, borrador.propuesta.idioma, cliente, N_EXPERIENCIAS, N_SKILLS
         )
@@ -468,7 +477,7 @@ def guardar_propuesta():
     puesto = request.form.get("puesto", "").strip() or borrador.puesto
     notas = request.form.get("notas", "").strip()
     hoy = date.today()
-    id_ = f"{hoy.isoformat()}_{slugificar(empresa)}_{slugificar(puesto)}"
+    id_ = archivo.nuevo_id(_raiz(), hoy, empresa, puesto)
 
     cv = CVGuardado(
         id=id_,
@@ -560,3 +569,29 @@ def ver_ajustes():
     modulo_ajustes.guardar_ajustes(nuevos, _ruta_ajustes())
     flash("Ajustes guardados.")
     return redirect(url_for("cv_adaptativo.ver_ajustes"))
+
+
+# --------------------------------------------------------------------------
+# Soporte
+# --------------------------------------------------------------------------
+
+
+@bp.route("/soporte", methods=["GET", "POST"])
+def soporte():
+    if request.method == "GET":
+        return render_template("soporte.html")
+
+    asunto = request.form.get("asunto", "").strip()
+    mensaje = request.form.get("mensaje", "").strip()
+    destino = request.form.get("destino", "github")
+    if not asunto or not mensaje:
+        flash("Rellena el asunto y el mensaje antes de enviarlo.")
+        return render_template("soporte.html")
+
+    ajustes = modulo_ajustes.cargar_ajustes(_ruta_ajustes())
+    diagnostico = modulo_soporte.recoger(proveedor=ajustes.proveedor)
+    modulo_soporte.guardar_mensaje(_raiz(), asunto, mensaje, diagnostico)
+
+    if destino == "correo":
+        return redirect(modulo_soporte.url_correo(asunto, mensaje, diagnostico))
+    return redirect(modulo_soporte.url_incidencia(asunto, mensaje, diagnostico))
