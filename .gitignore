@@ -1,0 +1,14 @@
+# Datos del usuario: NUNCA se suben. Contienen su experiencia, sus CV y sus
+# candidaturas. La app es local precisamente para que esto no salga de su PC.
+perfil/
+
+# Claves de API (siempre del usuario, nunca del repo)
+.env
+ajustes.json
+
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.DS_Store

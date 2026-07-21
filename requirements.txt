@@ -1,0 +1,4 @@
+flask>=3.0
+pyyaml>=6.0
+groq>=0.11
+pytest>=8.0
