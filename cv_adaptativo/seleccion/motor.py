@@ -40,7 +40,7 @@ from cv_adaptativo.perfil.modelo import (
     Skill,
 )
 from cv_adaptativo.seleccion.prompt import construir_mensajes
-from cv_adaptativo.texto import normalizar
+from cv_adaptativo.texto import a_texto, normalizar
 
 # Textos que ve el usuario cuando el modelo se deja algo a medias. Se dicen en
 # claro en vez de disimularlos: la propuesta está para revisarla, no para
@@ -165,10 +165,6 @@ def _lista(valor: Any) -> list[Any]:
     return valor if isinstance(valor, list) else []
 
 
-def _texto(valor: Any) -> str:
-    return valor.strip() if isinstance(valor, str) else ""
-
-
 # --------------------------------------------------------------------------
 # Selección: lo que el modelo eligió, filtrado contra el perfil
 # --------------------------------------------------------------------------
@@ -217,7 +213,7 @@ def _elegir_skills(
             continue
         elegidas.append(id_skill)
 
-    motivo = _texto(datos.get("motivo_skills")) or MOTIVO_AUSENTE
+    motivo = a_texto(datos.get("motivo_skills")) or MOTIVO_AUSENTE
     completadas = [
         skill.id
         for skill in _por_relevancia(perfil.skills, vacante)
@@ -238,7 +234,7 @@ def _id_y_motivo(elemento: Any) -> tuple[str, str]:
     if isinstance(elemento, str):
         return elemento.strip(), ""
     if isinstance(elemento, dict):
-        return _texto(elemento.get("id")), _texto(elemento.get("motivo"))
+        return a_texto(elemento.get("id")), a_texto(elemento.get("motivo"))
     return "", ""
 
 
@@ -300,7 +296,7 @@ def _componer_sobre_mi(
     grupo_a = _nombres(reparto.completar(propuestas_a), idioma)
     grupo_b = _nombres(reparto.completar(propuestas_b), idioma)
 
-    motivo = _texto(bruto.get("motivo")) or MOTIVO_AUSENTE
+    motivo = a_texto(bruto.get("motivo")) or MOTIVO_AUSENTE
     if len(grupo_a) == N_GRUPO_SOBRE_MI and len(grupo_b) == N_GRUPO_SOBRE_MI:
         texto = perfil.sobre_mi.render(grupo_a, grupo_b, idioma)
     else:
@@ -337,7 +333,7 @@ class _RepartoSobreMi:
         Lo que no resuelve contra una skill real, se cae: es la regla 1
         aplicada a la única sección donde el sistema compone texto.
         """
-        return self._tomar([], (_texto(valor) for valor in _lista(valores)))
+        return self._tomar([], (a_texto(valor) for valor in _lista(valores)))
 
     def completar(self, elegidas: list[Skill]) -> list[Skill]:
         """Rellena el grupo desde la reserva, sin tocar la lista que recibe."""
@@ -398,7 +394,7 @@ def _depurar_huecos(datos: dict[str, Any], perfil: Perfil) -> list[str]:
     huecos: list[str] = []
     vistos: set[str] = set()
     for valor in _lista(datos.get("huecos")):
-        hueco = _texto(valor)
+        hueco = a_texto(valor)
         clave = normalizar(hueco)
         if not clave or clave in vistos or _skill_por_nombre(hueco, perfil) is not None:
             continue

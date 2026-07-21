@@ -126,7 +126,7 @@ class ClienteGroq:
             return _AYUDA_CLAVE
         if codigo == 429 or "rate limit" in texto or "quota" in texto:
             return _AYUDA_CUOTA
-        if codigo == 404 or "model" in texto and "not found" in texto:
+        if codigo == 404 or ("model" in texto and "not found" in texto):
             return (
                 f"El modelo «{MODELO_POR_DEFECTO}» ya no está disponible en Groq. "
                 "Elige otro en Ajustes."

@@ -11,29 +11,36 @@ De la propuesta solo se guardan **referencias por id** al perfil, igual que en
 memoria. Corregir un bullet arregla todos los CV que lo usan. La excepción es
 el texto del "Sobre mí", que se guarda ya compuesto porque es literalmente lo
 que el usuario copió y pegó ese día.
+
+Este módulo sabe de **carpetas, rutas y adjuntos**; qué forma tiene el fichero
+por dentro es cosa de `serializacion`. Misma frontera que en `perfil/`.
 """
 from __future__ import annotations
 
+import dataclasses
 import re
 import shutil
 import unicodedata
 from datetime import date
 from pathlib import Path
-from typing import Any
 
-from cv_adaptativo.perfil import almacen, serializacion
+from cv_adaptativo.archivo import serializacion
+from cv_adaptativo.perfil import almacen
+from cv_adaptativo.perfil import serializacion as serializacion_perfil
 from cv_adaptativo.perfil.errores import ErrorPerfil
-from cv_adaptativo.perfil.modelo import (
-    CVGuardado,
-    EstadoCV,
-    ExperienciaSeleccionada,
-    Propuesta,
-    SeleccionSobreMi,
-)
+from cv_adaptativo.perfil.modelo import CVGuardado, EstadoCV
 from cv_adaptativo.texto import normalizar
 
 CARPETA_CVS = "cvs"
 CARPETA_ADJUNTOS = "adjuntos"
+
+EXTENSIONES = (".yaml", ".yml")
+
+# Un id acaba siendo un nombre de fichero: sin esto, un `../` escribiría fuera
+# de la carpeta del perfil.
+_ID_VALIDO = re.compile(r"^[a-z0-9][a-z0-9._-]*$", re.IGNORECASE)
+
+MAX_TROZO_ID = 40
 
 _CABECERA = (
     "CV generado por CV Adaptativo. Se puede editar a mano.\n"
@@ -49,29 +56,9 @@ _CABECERA = (
 
 def guardar(raiz: Path, cv: CVGuardado) -> None:
     """Escribe `cvs/<id>.yaml`."""
-    almacen.escribir_yaml(_ruta(raiz, cv.id), _volcar(cv), comentario=_CABECERA)
-
-
-def listar(raiz: Path) -> list[CVGuardado]:
-    """Todos los CV archivados, del más reciente al más antiguo.
-
-    Un fichero ilegible no puede tumbar la pantalla del archivo: se omite y el
-    resto se enseña. Es distinto del perfil, donde saltarse una experiencia en
-    silencio falsearía el CV — aquí lo que se pierde es una fila de una lista.
-    """
-    carpeta = Path(raiz) / CARPETA_CVS
-    if not carpeta.is_dir():
-        return []
-
-    cvs: list[CVGuardado] = []
-    for ruta in sorted(carpeta.iterdir()):
-        if not ruta.is_file() or ruta.suffix.lower() not in (".yaml", ".yml"):
-            continue
-        try:
-            cvs.append(leer(ruta))
-        except ErrorPerfil:
-            continue
-    return sorted(cvs, key=lambda cv: (cv.fecha, cv.id), reverse=True)
+    almacen.escribir_yaml(
+        _ruta(raiz, cv.id), serializacion.de_cv(cv), comentario=_CABECERA
+    )
 
 
 def leer(ruta: Path) -> CVGuardado:
@@ -81,7 +68,24 @@ def leer(ruta: Path) -> CVGuardado:
         texto = ruta.read_text(encoding="utf-8")
     except OSError as exc:
         raise ErrorPerfil(f"No se pudo leer «{ruta.name}»: {exc.strerror}.") from exc
-    return _cargar(serializacion.leer_datos(texto, ruta.name), ruta.stem)
+    datos = serializacion_perfil.leer_datos(texto, ruta.name)
+    return serializacion.a_cv(datos, ruta.stem)
+
+
+def listar(raiz: Path) -> list[CVGuardado]:
+    """Todos los CV archivados, del más reciente al más antiguo.
+
+    Un fichero ilegible no puede tumbar la pantalla del archivo: se omite y el
+    resto se enseña. Es distinto del perfil, donde saltarse una experiencia en
+    silencio falsearía el CV — aquí lo que se pierde es una fila de una lista.
+    """
+    cvs: list[CVGuardado] = []
+    for ruta in _ficheros(Path(raiz) / CARPETA_CVS):
+        try:
+            cvs.append(leer(ruta))
+        except ErrorPerfil:
+            continue
+    return sorted(cvs, key=lambda cv: (cv.fecha, cv.id), reverse=True)
 
 
 def buscar_por_empresa(raiz: Path, empresa: str) -> list[CVGuardado]:
@@ -98,9 +102,8 @@ def buscar_por_empresa(raiz: Path, empresa: str) -> list[CVGuardado]:
 
 
 def cambiar_estado(raiz: Path, id: str, estado: EstadoCV) -> None:
-    ruta = _ruta(raiz, id)
-    cv = leer(ruta)
-    guardar(raiz, _con(cv, estado=EstadoCV(estado)))
+    cv = leer(_ruta(raiz, id))
+    guardar(raiz, dataclasses.replace(cv, estado=EstadoCV(estado)))
 
 
 def adjuntar(raiz: Path, id: str, archivo: Path) -> Path:
@@ -116,7 +119,7 @@ def adjuntar(raiz: Path, id: str, archivo: Path) -> Path:
         raise ErrorPerfil(f"No existe el archivo «{archivo}».")
 
     cv = leer(_ruta(raiz, id))
-    destino = Path(raiz) / CARPETA_CVS / CARPETA_ADJUNTOS / f"{id}{archivo.suffix.lower()}"
+    destino = _ruta_adjunto(raiz, id, archivo.suffix)
     try:
         destino.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(archivo, destino)
@@ -125,12 +128,12 @@ def adjuntar(raiz: Path, id: str, archivo: Path) -> Path:
             f"No se pudo guardar el adjunto «{archivo.name}»: {exc.strerror}."
         ) from exc
 
-    guardar(raiz, _con(cv, adjunto=destino.name))
+    guardar(raiz, dataclasses.replace(cv, adjunto=destino.name))
     return destino
 
 
 # --------------------------------------------------------------------------
-# Identificador
+# Rutas e identificadores
 # --------------------------------------------------------------------------
 
 
@@ -146,141 +149,41 @@ def nuevo_id(raiz: Path, fecha: date, empresa: str, puesto: str) -> str:
         partes.append(puesto_slug)
 
     base = "_".join(partes)
-    candidato, n = base, 2
+    candidato, siguiente = base, 2
     while _ruta(raiz, candidato).exists():
-        candidato = f"{base}_{n}"
-        n += 1
+        candidato = f"{base}_{siguiente}"
+        siguiente += 1
     return candidato
 
 
 def _trozo(valor: str) -> str:
-    sin_acentos = "".join(
-        c
-        for c in unicodedata.normalize("NFKD", valor or "")
-        if not unicodedata.combining(c)
-    )
-    return re.sub(r"[^a-z0-9]+", "-", sin_acentos.lower()).strip("-")[:40]
+    """Un texto libre convertido en algo que valga como nombre de fichero."""
+    descompuesto = unicodedata.normalize("NFKD", valor or "")
+    sin_acentos = "".join(c for c in descompuesto if not unicodedata.combining(c))
+    return re.sub(r"[^a-z0-9]+", "-", sin_acentos.lower()).strip("-")[:MAX_TROZO_ID]
 
 
 def _ruta(raiz: Path, id: str) -> Path:
-    if not re.fullmatch(r"[a-z0-9][a-z0-9._-]*", id or "", re.IGNORECASE):
-        # Un id acaba siendo un nombre de fichero: sin esto, un `../` escribiría
-        # fuera de la carpeta del perfil.
+    return Path(raiz) / CARPETA_CVS / f"{_validar_id(id)}.yaml"
+
+
+def _ruta_adjunto(raiz: Path, id: str, extension: str) -> Path:
+    nombre = f"{_validar_id(id)}{extension.lower()}"
+    return Path(raiz) / CARPETA_CVS / CARPETA_ADJUNTOS / nombre
+
+
+def _validar_id(id: str) -> str:
+    if not _ID_VALIDO.fullmatch(id or ""):
         raise ErrorPerfil(f"El identificador «{id}» no es válido para un CV guardado.")
-    return Path(raiz) / CARPETA_CVS / f"{id}.yaml"
+    return id
 
 
-def _con(cv: CVGuardado, **cambios: Any) -> CVGuardado:
-    """`CVGuardado` es inmutable; esto devuelve una copia con lo cambiado."""
-    campos = {
-        "id": cv.id,
-        "fecha": cv.fecha,
-        "empresa": cv.empresa,
-        "puesto": cv.puesto,
-        "vacante": cv.vacante,
-        "propuesta": cv.propuesta,
-        "estado": cv.estado,
-        "adjunto": cv.adjunto,
-        "notas": cv.notas,
-    }
-    return CVGuardado(**{**campos, **cambios})
-
-
-# --------------------------------------------------------------------------
-# Serialización
-# --------------------------------------------------------------------------
-
-
-def _volcar(cv: CVGuardado) -> dict[str, Any]:
-    return {
-        "fecha": cv.fecha.isoformat(),
-        "empresa": cv.empresa,
-        "puesto": cv.puesto,
-        "estado": cv.estado.value,
-        "adjunto": cv.adjunto or "",
-        "notas": cv.notas,
-        "vacante": cv.vacante,
-        "propuesta": {
-            "idioma": cv.propuesta.idioma,
-            "sobre_mi": {
-                "grupo_a": list(cv.propuesta.sobre_mi.grupo_a),
-                "grupo_b": list(cv.propuesta.sobre_mi.grupo_b),
-                "texto": cv.propuesta.sobre_mi.texto,
-                "motivo": cv.propuesta.sobre_mi.motivo,
-            },
-            "skills": list(cv.propuesta.skills),
-            "motivo_skills": cv.propuesta.motivo_skills,
-            "experiencias": [
-                {"id": exp.id, "motivo": exp.motivo} for exp in cv.propuesta.experiencias
-            ],
-            "huecos": list(cv.propuesta.huecos),
-        },
-    }
-
-
-def _cargar(datos: dict[str, Any], id: str) -> CVGuardado:
-    propuesta = datos.get("propuesta") or {}
-    if not isinstance(propuesta, dict):
-        propuesta = {}
-    sobre_mi = propuesta.get("sobre_mi") or {}
-    if not isinstance(sobre_mi, dict):
-        sobre_mi = {}
-
-    return CVGuardado(
-        id=id,
-        fecha=_fecha(datos.get("fecha"), id),
-        empresa=_texto(datos.get("empresa")),
-        puesto=_texto(datos.get("puesto")),
-        vacante=_texto(datos.get("vacante")),
-        estado=_estado(datos.get("estado")),
-        adjunto=_texto(datos.get("adjunto")) or None,
-        notas=_texto(datos.get("notas")),
-        propuesta=Propuesta(
-            idioma="en" if _texto(propuesta.get("idioma")) == "en" else "es",
-            sobre_mi=SeleccionSobreMi(
-                grupo_a=_textos(sobre_mi.get("grupo_a")),
-                grupo_b=_textos(sobre_mi.get("grupo_b")),
-                texto=_texto(sobre_mi.get("texto")),
-                motivo=_texto(sobre_mi.get("motivo")),
-            ),
-            skills=_textos(propuesta.get("skills")),
-            motivo_skills=_texto(propuesta.get("motivo_skills")),
-            experiencias=[
-                ExperienciaSeleccionada(
-                    id=_texto(elemento.get("id")), motivo=_texto(elemento.get("motivo"))
-                )
-                for elemento in propuesta.get("experiencias") or []
-                if isinstance(elemento, dict) and _texto(elemento.get("id"))
-            ],
-            huecos=_textos(propuesta.get("huecos")),
-        ),
-    )
-
-
-def _fecha(valor: Any, id: str) -> date:
-    if isinstance(valor, date):
-        return valor
-    try:
-        return date.fromisoformat(str(valor))
-    except (TypeError, ValueError) as exc:
-        raise ErrorPerfil(
-            f"El CV «{id}» no tiene una fecha válida (esperaba algo como 2026-07-24)."
-        ) from exc
-
-
-def _estado(valor: Any) -> EstadoCV:
-    """Un estado desconocido no invalida el CV: se trata como borrador."""
-    try:
-        return EstadoCV(_texto(valor))
-    except ValueError:
-        return EstadoCV.BORRADOR
-
-
-def _texto(valor: Any) -> str:
-    return valor.strip() if isinstance(valor, str) else ""
-
-
-def _textos(valor: Any) -> list[str]:
-    if not isinstance(valor, list):
+def _ficheros(carpeta: Path) -> list[Path]:
+    """Los YAML de la carpeta, en orden estable. Si no existe, ninguno."""
+    if not carpeta.is_dir():
         return []
-    return [elemento.strip() for elemento in valor if isinstance(elemento, str) and elemento.strip()]
+    return sorted(
+        ruta
+        for ruta in carpeta.iterdir()
+        if ruta.is_file() and ruta.suffix.lower() in EXTENSIONES
+    )

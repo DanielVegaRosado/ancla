@@ -9,6 +9,24 @@ from __future__ import annotations
 
 import re
 import unicodedata
+from typing import Any
+
+
+def a_texto(valor: Any) -> str:
+    """Un texto limpio, o cadena vacía si lo que venía no era un texto.
+
+    Todo lo que se lee de fuera —la respuesta del modelo, un YAML editado a
+    mano— puede traer un número, `None` o una lista donde se esperaba texto.
+    Aquí se decide una vez que eso significa "vacío" y no una excepción.
+    """
+    return valor.strip() if isinstance(valor, str) else ""
+
+
+def a_textos(valor: Any) -> list[str]:
+    """Una lista de textos no vacíos, descartando lo que no lo sea."""
+    if not isinstance(valor, list):
+        return []
+    return [limpio for elemento in valor if (limpio := a_texto(elemento))]
 
 
 def normalizar(texto: str) -> str:
