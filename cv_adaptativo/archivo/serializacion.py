@@ -11,7 +11,7 @@ ordena el archivo entero.
 """
 from __future__ import annotations
 
-from datetime import date
+from datetime import date, time
 from typing import Any
 
 from cv_adaptativo.perfil.errores import ErrorPerfil
@@ -29,6 +29,7 @@ def de_cv(cv: CVGuardado) -> dict[str, Any]:
     """El CV como diccionario, listo para volcar a YAML."""
     return {
         "fecha": cv.fecha.isoformat(),
+        "hora": cv.hora.isoformat(timespec="seconds") if cv.hora else "",
         "empresa": cv.empresa,
         "puesto": cv.puesto,
         "estado": cv.estado.value,
@@ -44,6 +45,7 @@ def a_cv(datos: dict[str, Any], id: str) -> CVGuardado:
     return CVGuardado(
         id=id,
         fecha=_a_fecha(datos.get("fecha"), id),
+        hora=_a_hora(datos.get("hora")),
         empresa=a_texto(datos.get("empresa")),
         puesto=a_texto(datos.get("puesto")),
         vacante=a_texto(datos.get("vacante")),
@@ -114,6 +116,19 @@ def _a_fecha(valor: Any, id: str) -> date:
         raise ErrorPerfil(
             f"El CV «{id}» no tiene una fecha válida (esperaba algo como 2026-07-24)."
         ) from exc
+
+
+def _a_hora(valor: Any) -> time | None:
+    """Sin hora es válido: los CV guardados antes de este campo no la tienen,
+    y eso no es un fichero roto, solo un dato que no se capturó entonces."""
+    if not isinstance(valor, time):
+        if not isinstance(valor, str) or not valor.strip():
+            return None
+        try:
+            return time.fromisoformat(valor.strip())
+        except ValueError:
+            return None
+    return valor
 
 
 def _a_estado(valor: Any) -> EstadoCV:

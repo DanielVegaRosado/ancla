@@ -4,7 +4,8 @@
   <p><a href="{{ url_for('cv_adaptativo.listar_cvs') }}">← Mis CVs</a></p>
   <h1>{{ cv.empresa }}{% if cv.puesto %} — {{ cv.puesto }}{% endif %}</h1>
   <p class="ayuda">
-    {{ cv.fecha }} · {{ "Español" if cv.propuesta.idioma == "es" else "Inglés" }}
+    {{ cv.fecha }}{% if cv.hora %} · {{ cv.hora.strftime('%H:%M') }}{% endif %}
+    · {{ "Español" if cv.propuesta.idioma == "es" else "Inglés" }}
     · <span class="insignia insignia-{{ cv.estado.value }}">{{ etiquetas_estado[cv.estado] }}</span>
   </p>
 

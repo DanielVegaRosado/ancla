@@ -1,12 +1,12 @@
 """Tests del archivo de CVs, del cliente de Groq y del soporte."""
 from __future__ import annotations
 
-from datetime import date
+from datetime import date, time
 from pathlib import Path
 
 import pytest
 
-from cv_adaptativo.archivo import repositorio
+from cv_adaptativo.archivo import repositorio, serializacion
 from cv_adaptativo.ia.cliente import ErrorIA
 from cv_adaptativo.ia.groq import ClienteGroq
 from cv_adaptativo.perfil.errores import ErrorPerfil
@@ -58,6 +58,46 @@ def test_guardar_y_leer_conserva_la_propuesta(tmp_path: Path):
     assert recuperado.propuesta.skills == ["python", "sql"]
     assert recuperado.propuesta.experiencias[0].motivo == "Encaja."
     assert recuperado.propuesta.huecos == ["Kubernetes"]
+
+
+def test_guardar_y_leer_conserva_la_hora(tmp_path: Path):
+    repositorio.guardar(tmp_path, _cv(hora=time(14, 32, 5)))
+    recuperado = repositorio.listar(tmp_path)[0]
+    assert recuperado.hora == time(14, 32, 5)
+
+
+def test_un_cv_sin_hora_guardada_no_es_un_error():
+    """Los CV guardados antes de que existiera este campo no tienen `hora` en
+    el fichero: hay que seguir leyéndolos, no romper con ellos."""
+    datos_sin_hora = {
+        "fecha": "2026-07-22",
+        "empresa": "Marvell",
+        "puesto": "Software Engineer",
+        "estado": "borrador",
+        "adjunto": "",
+        "notas": "",
+        "vacante": "texto",
+        "propuesta": {
+            "idioma": "es",
+            "sobre_mi": {"grupo_a": [], "grupo_b": [], "texto": "x", "motivo": ""},
+            "skills": [],
+            "motivo_skills": "",
+            "experiencias": [],
+            "huecos": [],
+        },
+    }
+    cv = serializacion.a_cv(datos_sin_hora, "2026-07-22_marvell_software-engineer")
+    assert cv.hora is None
+    assert cv.empresa == "Marvell"
+
+
+def test_una_hora_ilegible_se_ignora_en_vez_de_reventar():
+    """Si alguien edita el YAML a mano y dice «hora: 14:32:05» sin comillas,
+    PyYAML (YAML 1.1) puede leerlo como número sexagesimal, no como texto."""
+    assert serializacion._a_hora(52325) is None
+    assert serializacion._a_hora("no es una hora") is None
+    assert serializacion._a_hora("") is None
+    assert serializacion._a_hora(None) is None
 
 
 def test_el_archivo_guarda_ids_no_textos_del_perfil(tmp_path: Path):

@@ -222,3 +222,26 @@ def test_skills_personales_e_idiomas_no_aparecen_entre_las_opciones_de_ajuste_de
     # "Liderazgo" solo puede aparecer en el bloque de solo lectura de skills
     # personales, nunca dentro de un <option> del selector de ajuste.
     assert 'value="liderazgo"' not in html
+
+
+# --------------------------------------------------------------------------
+# Guardar en Mis CVs: captura la hora, no solo la fecha
+# --------------------------------------------------------------------------
+
+
+def test_guardar_la_propuesta_captura_la_hora(cliente_web, tmp_path: Path):
+    raiz = tmp_path / "perfil"
+    modulo_borrador.guardar_borrador(
+        raiz,
+        modulo_borrador.Borrador(
+            vacante="vacante", empresa="ACME", puesto="Dev", propuesta=_propuesta_de_prueba()
+        ),
+    )
+
+    cliente_web.post("/propuesta/guardar", data={"empresa": "ACME", "puesto": "Dev"})
+
+    from cv_adaptativo.archivo import repositorio
+
+    guardados = repositorio.listar(raiz)
+    assert len(guardados) == 1
+    assert guardados[0].hora is not None

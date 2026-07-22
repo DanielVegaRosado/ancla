@@ -13,7 +13,7 @@ validado. El sistema selecciona y ordena; nunca inventa contenido nuevo.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import date
+from datetime import date, time
 from enum import Enum
 from typing import Generic, Literal, TypeVar
 
@@ -224,6 +224,10 @@ class CVGuardado:
     `adjunto` es la ruta al CV final que el usuario montó por su cuenta, en el
     formato que sea (PDF, docx, imagen): la app lo copia y lo referencia, no lo
     valida ni lo convierte.
+
+    `hora` es opcional (`None` si no se conoce) para que un CV guardado antes
+    de que existiera este campo se siga leyendo sin problema: no tener la hora
+    no es un fichero roto, solo un dato que no se capturó entonces.
     """
 
     id: str
@@ -235,3 +239,4 @@ class CVGuardado:
     estado: EstadoCV = EstadoCV.BORRADOR
     adjunto: str | None = None
     notas: str = ""
+    hora: time | None = None

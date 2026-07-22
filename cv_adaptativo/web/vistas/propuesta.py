@@ -3,7 +3,7 @@ ajuste directo por elemento y regenerar por sección."""
 from __future__ import annotations
 
 from dataclasses import replace
-from datetime import date
+from datetime import date, datetime
 
 from flask import flash, redirect, render_template, request, url_for
 
@@ -216,12 +216,15 @@ def guardar_propuesta():
     empresa = request.form.get("empresa", "").strip() or borrador.empresa or "Empresa"
     puesto = request.form.get("puesto", "").strip() or borrador.puesto
     notas = request.form.get("notas", "").strip()
-    hoy = date.today()
-    id_ = archivo.nuevo_id(contexto.raiz(), hoy, empresa, puesto)
+    # Las dos salen del mismo instante para no cruzar medianoche entre una
+    # captura y la otra si se leyeran por separado.
+    ahora = datetime.now()
+    id_ = archivo.nuevo_id(contexto.raiz(), ahora.date(), empresa, puesto)
 
     cv = CVGuardado(
         id=id_,
-        fecha=hoy,
+        fecha=ahora.date(),
+        hora=ahora.time(),
         empresa=empresa,
         puesto=puesto,
         vacante=borrador.vacante,

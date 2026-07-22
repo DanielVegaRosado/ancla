@@ -11,7 +11,10 @@
           <div class="fila-tarjeta">
             <div>
               <h3><a href="{{ url_for('cv_adaptativo.ver_cv', id_=cv.id) }}">{{ cv.empresa }}{% if cv.puesto %} — {{ cv.puesto }}{% endif %}</a></h3>
-              <p class="ayuda">{{ cv.fecha }} · {{ "Español" if cv.propuesta.idioma == "es" else "Inglés" }}</p>
+              <p class="ayuda">
+                {{ cv.fecha }}{% if cv.hora %} · {{ cv.hora.strftime('%H:%M') }}{% endif %}
+                · {{ "Español" if cv.propuesta.idioma == "es" else "Inglés" }}
+              </p>
             </div>
             <span class="insignia insignia-{{ cv.estado.value }}">{{ etiquetas_estado[cv.estado] }}</span>
           </div>
