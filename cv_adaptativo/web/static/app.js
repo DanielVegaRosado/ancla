@@ -88,3 +88,15 @@ document.addEventListener("click", async (evento) => {
     boton.disabled = false;
   }
 });
+
+// Soporte: el placeholder del mensaje cambia según sea "problema" o
+// "sugerencia", para que el hueco en blanco ya sugiera qué escribir.
+document.addEventListener("change", (evento) => {
+  if (!evento.target.matches("[data-cambia-placeholder]")) return;
+
+  const mensaje = document.getElementById("mensaje");
+  if (!mensaje) return;
+  const clave = `placeholder${evento.target.value.charAt(0).toUpperCase()}${evento.target.value.slice(1)}`;
+  const nuevo = mensaje.dataset[clave];
+  if (nuevo) mensaje.placeholder = nuevo;
+});

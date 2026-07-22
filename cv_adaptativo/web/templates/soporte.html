@@ -1,26 +1,56 @@
 {% extends "base.html" %}
 {% block titulo %}Soporte — CV Adaptativo{% endblock %}
 {% block contenido %}
-  <h1>Soporte</h1>
+  <h1>Hablemos</h1>
   <p class="ayuda">
-    Tu mensaje se guarda primero en tu ordenador, en <code>perfil/soporte/</code>. Después eliges
-    cómo enviarlo: como incidencia pública en GitHub o por correo. Nunca se adjuntan datos de tu
-    perfil, solo diagnóstico técnico (versión, sistema, proveedor de IA).
+    Este proyecto es open source y se hace mejor con lo que cuentes: un fallo, una idea, o
+    simplemente algo que no te haya quedado claro. No hace falta que sea un bug para que
+    merezca la pena escribirlo — se lee todo.
   </p>
 
   <form class="pila tarjeta" method="post">
     <div class="campo">
-      <label for="asunto">Asunto</label>
-      <input type="text" id="asunto" name="asunto" required placeholder="Resumen breve del problema">
+      <label>¿Qué es esto?</label>
+      <div class="opciones-tipo">
+        {% for valor, etiqueta in tipos.items() %}
+          <label class="opcion-tipo">
+            <input type="radio" name="tipo" value="{{ valor }}"
+                   data-cambia-placeholder
+                   {{ "checked" if valor == "sugerencia" else "" }}>
+            {{ etiqueta }}
+          </label>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="campo">
+      <label for="asunto">Asunto (opcional)</label>
+      <input type="text" id="asunto" name="asunto" placeholder="Resumen breve, si quieres ponerlo">
     </div>
     <div class="campo">
       <label for="mensaje">Mensaje</label>
-      <textarea id="mensaje" name="mensaje" class="alta" required placeholder="Qué esperabas que pasara y qué ha pasado en su lugar"></textarea>
+      <textarea id="mensaje" name="mensaje" class="alta" required
+                data-placeholder-problema="Qué esperabas que pasara y qué ha pasado en su lugar. Si puedes, los pasos para reproducirlo."
+                data-placeholder-sugerencia="Qué mejorarías, qué echas en falta, o qué te ha resultado confuso. Cualquier cosa vale."
+                placeholder="Qué mejorarías, qué echas en falta, o qué te ha resultado confuso. Cualquier cosa vale."></textarea>
     </div>
 
-    <div class="barra-acciones">
-      <button type="submit" name="destino" value="github" class="boton-primario">Abrir incidencia en GitHub</button>
-      <button type="submit" name="destino" value="correo" class="boton">Enviar por correo</button>
+    <div class="campo">
+      <div class="barra-acciones">
+        <button type="submit" name="destino" value="github" class="boton-primario">Abrir incidencia en GitHub</button>
+        <button type="submit" name="destino" value="correo" class="boton">Enviar por correo</button>
+      </div>
+      <p class="ayuda">
+        <strong>GitHub</strong> es público y queda buscable — ideal si otras personas pueden tener
+        el mismo problema. <strong>El correo</strong> es privado, solo lo lee Daniel. Elige el que
+        prefieras; los dos llegan igual.
+      </p>
     </div>
   </form>
+
+  <p class="ayuda">
+    Tu mensaje se guarda primero en tu ordenador, en <code>perfil/soporte/</code>, antes de
+    intentar enviarlo a ningún sitio. Solo se adjunta diagnóstico técnico (versión, sistema,
+    proveedor de IA) — nunca datos de tu perfil.
+  </p>
 {% endblock %}

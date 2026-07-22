@@ -215,9 +215,19 @@ def test_ver_soporte(cliente_web):
 
 
 def test_soporte_sin_mensaje_no_lo_envia(cliente_web):
+    """El asunto es opcional a propósito (bajar la fricción de dejar
+    feedback); el mensaje es lo único imprescindible."""
     respuesta = cliente_web.post("/soporte", data={"asunto": "", "mensaje": ""})
     assert respuesta.status_code == 200
-    assert "Rellena el asunto".encode("utf-8") in respuesta.data
+    assert "Cuéntanos qué ha pasado".encode("utf-8") in respuesta.data
+
+
+def test_soporte_sin_asunto_pero_con_mensaje_si_se_envia(cliente_web, tmp_path: Path):
+    respuesta = cliente_web.post(
+        "/soporte", data={"asunto": "", "mensaje": "Esto podría ser más claro."}
+    )
+    assert respuesta.status_code == 302
+    assert list((tmp_path / "perfil" / "soporte").iterdir())
 
 
 def test_soporte_guarda_en_local_antes_de_redirigir(cliente_web, tmp_path: Path):
@@ -239,3 +249,48 @@ def test_soporte_por_correo_redirige_a_mailto(cliente_web):
     )
     assert respuesta.status_code == 302
     assert respuesta.location.startswith("mailto:")
+
+
+def test_soporte_ofrece_elegir_entre_problema_y_sugerencia(cliente_web):
+    """Ver una opción de «sugerencia» explícita es lo que le dice a quien no
+    tiene un bug que también puede escribir."""
+    respuesta = cliente_web.get("/soporte")
+    html = respuesta.data.decode("utf-8")
+    assert 'value="problema"' in html
+    assert 'value="sugerencia"' in html
+
+
+def test_el_tipo_elegido_se_refleja_en_el_titulo_de_la_incidencia(cliente_web):
+    respuesta = cliente_web.post(
+        "/soporte",
+        data={
+            "asunto": "El botón de copiar no responde",
+            "mensaje": "Detalle",
+            "tipo": "problema",
+            "destino": "github",
+        },
+    )
+    assert "Problema" in respuesta.location
+
+
+def test_una_sugerencia_tambien_queda_etiquetada(cliente_web):
+    respuesta = cliente_web.post(
+        "/soporte",
+        data={
+            "asunto": "",
+            "mensaje": "Estaría bien poder duplicar una experiencia.",
+            "tipo": "sugerencia",
+            "destino": "correo",
+        },
+    )
+    assert "Sugerencia" in respuesta.location
+
+
+def test_un_tipo_desconocido_no_rompe_el_envio(cliente_web):
+    """Si alguien manipula el formulario a mano, se cae al valor por defecto
+    en vez de fallar."""
+    respuesta = cliente_web.post(
+        "/soporte",
+        data={"asunto": "x", "mensaje": "x", "tipo": "algo-raro", "destino": "github"},
+    )
+    assert respuesta.status_code == 302

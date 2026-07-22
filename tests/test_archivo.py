@@ -244,3 +244,36 @@ def test_un_mensaje_larguisimo_se_recorta_avisando():
 
     assert len(cuerpo) < 20000
     assert "recortado" in cuerpo or "recort" in cuerpo
+
+
+def test_el_tipo_por_defecto_es_sugerencia():
+    """Que el proyecto reciba bien el feedback empieza en el valor por
+    defecto: invita a escribir sin tener que tener un bug primero."""
+    assert mensajes.TIPO_POR_DEFECTO == "sugerencia"
+
+
+def test_el_titulo_lleva_la_etiqueta_del_tipo(tmp_path: Path):
+    incidencia = mensajes.url_incidencia("Duplicar experiencia", "x", tipo="sugerencia")
+    correo = mensajes.url_correo("No arranca", "x", tipo="problema")
+    assert "Sugerencia" in incidencia
+    assert "Problema" in correo
+
+
+def test_sin_asunto_el_titulo_es_solo_la_etiqueta():
+    """No pide inventar un asunto: sin él, el título es solo la etiqueta del
+    tipo, y sigue siendo un título válido para la incidencia."""
+    incidencia = mensajes.url_incidencia("", "x", tipo="sugerencia")
+    assert "Sugerencia" in incidencia
+
+
+def test_un_tipo_desconocido_cae_al_por_defecto_sin_reventar():
+    """Igual que `_a_estado` en el archivo de CVs: un valor inesperado no es
+    un error, se trata como el caso normal."""
+    incidencia = mensajes.url_incidencia("x", "y", tipo="algo-que-no-existe")
+    assert "Sugerencia" in incidencia
+
+
+def test_guardar_mensaje_persiste_el_tipo_elegido(tmp_path: Path):
+    ruta = mensajes.guardar_mensaje(tmp_path, "x", "y", tipo="problema")
+    contenido = ruta.read_text("utf-8")
+    assert "tipo: problema" in contenido

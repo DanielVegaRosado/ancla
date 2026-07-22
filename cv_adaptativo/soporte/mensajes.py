@@ -14,6 +14,13 @@ aplicación sería regalarla. Por eso las dos salidas no llevan secretos:
 **Nunca se adjuntan datos del perfil.** Solo diagnóstico: versión, sistema,
 proveedor y el error. El CV de una persona no viaja a una incidencia pública
 por querer contar que un botón no funciona.
+
+El formulario distingue **problema** de **sugerencia**: es la misma tubería
+por debajo (se guarda igual, se manda igual), pero la etiqueta cambia el
+asunto que llega a GitHub o al correo — y, en la pantalla, dice explícitamente
+que una idea o un "esto no me quedó claro" es tan bienvenido como un bug. Un
+proyecto open source que solo parece escuchar quejas técnicas invita a menos
+feedback, no a más.
 """
 from __future__ import annotations
 
@@ -32,6 +39,12 @@ REPOSITORIO = "https://github.com/dvegarosado/cv-adaptativo"
 CORREO_SOPORTE = "dvegarosado@gmail.com"
 
 CARPETA_SOPORTE = "soporte"
+
+TIPOS = {
+    "problema": "🐛 Problema",
+    "sugerencia": "💡 Sugerencia",
+}
+TIPO_POR_DEFECTO = "sugerencia"
 
 # GitHub corta las URL largas y el navegador también: el cuerpo se recorta y se
 # le dice al usuario que pegue el resto, en vez de perderlo en silencio.
@@ -81,7 +94,11 @@ def recoger(proveedor: str = "", modelo: str = "", error: str = "") -> Diagnosti
 
 
 def guardar_mensaje(
-    raiz: Path, asunto: str, mensaje: str, diagnostico: Diagnostico | None = None
+    raiz: Path,
+    asunto: str,
+    mensaje: str,
+    diagnostico: Diagnostico | None = None,
+    tipo: str = TIPO_POR_DEFECTO,
 ) -> Path:
     """Deja el mensaje en `perfil/soporte/` y devuelve su ruta.
 
@@ -99,6 +116,7 @@ def guardar_mensaje(
         ruta,
         {
             "fecha": momento.isoformat(timespec="seconds"),
+            "tipo": _tipo_valido(tipo),
             "asunto": asunto.strip(),
             "mensaje": mensaje.strip(),
             "diagnostico": {
@@ -118,26 +136,41 @@ def guardar_mensaje(
     return ruta
 
 
+def _tipo_valido(tipo: str) -> str:
+    """Un tipo desconocido no es un error: se trata como el por defecto."""
+    return tipo if tipo in TIPOS else TIPO_POR_DEFECTO
+
+
+def _titulo(asunto: str, tipo: str) -> str:
+    etiqueta = TIPOS[_tipo_valido(tipo)]
+    return f"{etiqueta}: {asunto.strip()}" if asunto.strip() else etiqueta
+
+
 def url_incidencia(
-    asunto: str, mensaje: str, diagnostico: Diagnostico | None = None
+    asunto: str,
+    mensaje: str,
+    diagnostico: Diagnostico | None = None,
+    tipo: str = TIPO_POR_DEFECTO,
 ) -> str:
     """URL de GitHub con la incidencia ya rellenada. El usuario decide si la envía."""
     parametros = {
-        "title": asunto.strip() or "Problema con CV Adaptativo",
+        "title": _titulo(asunto, tipo),
         "body": _cuerpo(mensaje, diagnostico or recoger()),
     }
     return f"{REPOSITORIO}/issues/new?{urlencode(parametros)}"
 
 
 def url_correo(
-    asunto: str, mensaje: str, diagnostico: Diagnostico | None = None
+    asunto: str,
+    mensaje: str,
+    diagnostico: Diagnostico | None = None,
+    tipo: str = TIPO_POR_DEFECTO,
 ) -> str:
     """`mailto:` para quien prefiera no abrir nada público."""
-    asunto = asunto.strip() or "Problema con CV Adaptativo"
     cuerpo = _cuerpo(mensaje, diagnostico or recoger())
     return (
         f"mailto:{CORREO_SOPORTE}"
-        f"?subject={quote(f'[CV Adaptativo] {asunto}')}&body={quote(cuerpo)}"
+        f"?subject={quote(f'[CV Adaptativo] {_titulo(asunto, tipo)}')}&body={quote(cuerpo)}"
     )
 
 
