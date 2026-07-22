@@ -110,22 +110,21 @@ def sugerir_keywords():
         return jsonify({"keywords": [], "aviso": "No se pudo contactar con el proveedor."})
 
     if datos.get("tipo") == "experiencia":
-        sugeridas = keywords.sugerir_para_experiencia(
+        sugerencia = keywords.sugerir_para_experiencia(
             cliente,
             titulo=datos.get("titulo", ""),
             bullets=lineas_a_lista(datos.get("bullets", "")),
             stack=datos.get("stack", ""),
         )
     else:
-        sugeridas = keywords.sugerir_para_skill(
+        sugerencia = keywords.sugerir_para_skill(
             cliente,
             nombre_es=datos.get("nombre_es", ""),
             nombre_en=datos.get("nombre_en", ""),
             categoria=datos.get("categoria", ""),
         )
 
-    aviso = "" if sugeridas else "No se han podido proponer keywords. Inténtalo otra vez."
-    return jsonify({"keywords": sugeridas, "aviso": aviso})
+    return jsonify({"keywords": sugerencia.keywords, "aviso": sugerencia.motivo})
 
 
 def _skill_desde_formulario(id_: str) -> Skill:

@@ -15,16 +15,26 @@ demasiado generosa (poner «Kubernetes» en una skill de Docker) haría que su
 perfil se ofreciera para algo que no cubre, y eso sí erosionaría la promesa.
 
 Nunca lanza excepción: si no hay clave, si el proveedor falla o si responde
-cualquier cosa, devuelve lista vacía. Sugerir keywords es una ayuda, y una
-ayuda que rompe el formulario donde estabas escribiendo no es una ayuda.
+cualquier cosa, se devuelve un `Sugerencia` con la lista vacía y un motivo.
+Sugerir keywords es una ayuda, y una ayuda que rompe el formulario donde
+estabas escribiendo no es una ayuda — pero una ayuda que falla en silencio,
+sin decir por qué, tampoco lo es: el motivo es lo que le permite al usuario
+saber si tiene que revisar su clave en Ajustes o simplemente reintentar.
 """
 from __future__ import annotations
 
 import json
 import re
+from dataclasses import dataclass, field
 
-from cv_adaptativo.ia.cliente import ClienteIA
+from cv_adaptativo.ia.cliente import ClienteIA, ErrorIA
 from cv_adaptativo.texto import normalizar
+
+
+@dataclass(frozen=True)
+class Sugerencia:
+    keywords: list[str] = field(default_factory=list)
+    motivo: str = ""
 
 MAX_SUGERENCIAS = 10
 
@@ -47,10 +57,10 @@ Responde ÚNICAMENTE con un array JSON de cadenas, sin texto alrededor."""
 
 def sugerir_para_skill(
     cliente: ClienteIA, nombre_es: str, nombre_en: str, categoria: str = ""
-) -> list[str]:
+) -> Sugerencia:
     nombres = " / ".join(sorted({n.strip() for n in (nombre_es, nombre_en) if n.strip()}))
     if not nombres:
-        return []
+        return Sugerencia()
     peticion = f"Skill: {nombres}"
     if categoria.strip():
         peticion += f"\nCategoría: {categoria.strip()}"
@@ -59,9 +69,9 @@ def sugerir_para_skill(
 
 def sugerir_para_experiencia(
     cliente: ClienteIA, titulo: str, bullets: list[str], stack: str = ""
-) -> list[str]:
+) -> Sugerencia:
     if not titulo.strip() and not bullets:
-        return []
+        return Sugerencia()
     partes = [f"Experiencia: {titulo.strip()}"]
     if stack.strip():
         partes.append(f"Stack: {stack.strip()}")
@@ -73,16 +83,23 @@ def sugerir_para_experiencia(
 # --------------------------------------------------------------------------
 
 
-def _pedir(cliente: ClienteIA, peticion: str) -> list[str]:
+def _pedir(cliente: ClienteIA, peticion: str) -> Sugerencia:
+    if not cliente.disponible():
+        return Sugerencia(motivo="No hay ninguna clave de API configurada. Ve a Ajustes.")
     try:
-        if not cliente.disponible():
-            return []
         bruto = cliente.completar(SISTEMA, peticion)
+    except ErrorIA as exc:
+        # El mensaje de ErrorIA ya está pensado para enseñarse tal cual (lo
+        # construye cada cliente, p. ej. «tu clave de Groq no es válida»): es
+        # justo lo que el usuario necesita para saber qué revisar en Ajustes.
+        return Sugerencia(motivo=str(exc))
     except Exception:
-        # Cualquier fallo se traduce en "no hay sugerencias", nunca en un error
-        # que tire el formulario que el usuario estaba rellenando.
-        return []
-    return _limpiar(_extraer(bruto))
+        return Sugerencia(motivo="No se pudo contactar con el proveedor de IA.")
+
+    sugeridas = _limpiar(_extraer(bruto))
+    if not sugeridas:
+        return Sugerencia(motivo="El modelo no ha devuelto ninguna keyword aprovechable.")
+    return Sugerencia(keywords=sugeridas)
 
 
 def _extraer(bruto: str) -> list[str]:
