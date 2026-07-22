@@ -4,7 +4,7 @@ from __future__ import annotations
 from flask import flash, jsonify, redirect, render_template, request, url_for
 
 from cv_adaptativo.perfil import almacen, keywords, validacion
-from cv_adaptativo.perfil.modelo import Bilingue, Experiencia, Skill, SobreMi
+from cv_adaptativo.perfil.modelo import Bilingue, Experiencia, IdiomaHablado, Skill, SobreMi
 from cv_adaptativo.web import ajustes as modulo_ajustes
 from cv_adaptativo.web import contexto
 from cv_adaptativo.web.blueprint import bp
@@ -181,6 +181,123 @@ def editar_skill(id_: str):
 def borrar_skill(id_: str):
     almacen.borrar_skill(contexto.raiz(), id_)
     flash("Skill borrada.")
+    return redirect(url_for("cv_adaptativo.ver_perfil"))
+
+
+# --------------------------------------------------------------------------
+# Skills personales: mismo tipo `Skill`, carpeta y validación aparte. Nunca
+# entran al motor de selección — se muestran siempre completas en la
+# Propuesta, no las elige la IA. Ver `Perfil` en modelo.py.
+# --------------------------------------------------------------------------
+
+
+@bp.route("/perfil/skills-personales/nueva", methods=["GET", "POST"])
+def nueva_skill_personal():
+    if request.method == "GET":
+        return render_template("skill_personal_form.html", skill=None, errores=[], nueva=True)
+
+    id_ = slugificar(request.form.get("id") or request.form.get("nombre_es", ""))
+    if contexto.perfil_actual().skill_personal(id_) is not None:
+        errores = [f"Ya existe una skill personal con el identificador «{id_}»."]
+        return render_template("skill_personal_form.html", skill=None, errores=errores, nueva=True)
+
+    skill = _skill_desde_formulario(id_)
+    errores = validacion.validar_skill_personal(skill)
+    if errores:
+        return render_template("skill_personal_form.html", skill=skill, errores=errores, nueva=True)
+
+    almacen.guardar_skill_personal(contexto.raiz(), skill)
+    flash(f"Skill personal «{skill.nombre['es']}» guardada.")
+    return redirect(url_for("cv_adaptativo.ver_perfil"))
+
+
+@bp.route("/perfil/skills-personales/<id_>/editar", methods=["GET", "POST"])
+def editar_skill_personal(id_: str):
+    existente = contexto.perfil_actual().skill_personal(id_)
+    if existente is None:
+        flash(f"No existe la skill personal «{id_}».")
+        return redirect(url_for("cv_adaptativo.ver_perfil"))
+
+    if request.method == "GET":
+        return render_template("skill_personal_form.html", skill=existente, errores=[], nueva=False)
+
+    skill = _skill_desde_formulario(id_)
+    errores = validacion.validar_skill_personal(skill)
+    if errores:
+        return render_template("skill_personal_form.html", skill=skill, errores=errores, nueva=False)
+
+    almacen.guardar_skill_personal(contexto.raiz(), skill)
+    flash(f"Skill personal «{skill.nombre['es']}» actualizada.")
+    return redirect(url_for("cv_adaptativo.ver_perfil"))
+
+
+@bp.route("/perfil/skills-personales/<id_>/borrar", methods=["POST"])
+def borrar_skill_personal(id_: str):
+    almacen.borrar_skill_personal(contexto.raiz(), id_)
+    flash("Skill personal borrada.")
+    return redirect(url_for("cv_adaptativo.ver_perfil"))
+
+
+# --------------------------------------------------------------------------
+# Idiomas: mismo criterio que skills personales (catálogo aparte, siempre
+# completo en la Propuesta), con un campo extra de nivel.
+# --------------------------------------------------------------------------
+
+
+def _idioma_desde_formulario(id_: str) -> IdiomaHablado:
+    f = request.form
+    return IdiomaHablado(
+        id=id_,
+        nombre=Bilingue(es=f.get("nombre_es", "").strip(), en=f.get("nombre_en", "").strip()),
+        nivel=Bilingue(es=f.get("nivel_es", "").strip(), en=f.get("nivel_en", "").strip()),
+        keywords=csv_a_lista(f.get("keywords", "")),
+    )
+
+
+@bp.route("/perfil/idiomas/nuevo", methods=["GET", "POST"])
+def nuevo_idioma():
+    if request.method == "GET":
+        return render_template("idioma_form.html", idioma=None, errores=[], nuevo=True)
+
+    id_ = slugificar(request.form.get("id") or request.form.get("nombre_es", ""))
+    if contexto.perfil_actual().idioma(id_) is not None:
+        errores = [f"Ya existe un idioma con el identificador «{id_}»."]
+        return render_template("idioma_form.html", idioma=None, errores=errores, nuevo=True)
+
+    idioma = _idioma_desde_formulario(id_)
+    errores = validacion.validar_idioma(idioma)
+    if errores:
+        return render_template("idioma_form.html", idioma=idioma, errores=errores, nuevo=True)
+
+    almacen.guardar_idioma(contexto.raiz(), idioma)
+    flash(f"Idioma «{idioma.nombre['es']}» guardado.")
+    return redirect(url_for("cv_adaptativo.ver_perfil"))
+
+
+@bp.route("/perfil/idiomas/<id_>/editar", methods=["GET", "POST"])
+def editar_idioma(id_: str):
+    existente = contexto.perfil_actual().idioma(id_)
+    if existente is None:
+        flash(f"No existe el idioma «{id_}».")
+        return redirect(url_for("cv_adaptativo.ver_perfil"))
+
+    if request.method == "GET":
+        return render_template("idioma_form.html", idioma=existente, errores=[], nuevo=False)
+
+    idioma = _idioma_desde_formulario(id_)
+    errores = validacion.validar_idioma(idioma)
+    if errores:
+        return render_template("idioma_form.html", idioma=idioma, errores=errores, nuevo=False)
+
+    almacen.guardar_idioma(contexto.raiz(), idioma)
+    flash(f"Idioma «{idioma.nombre['es']}» actualizado.")
+    return redirect(url_for("cv_adaptativo.ver_perfil"))
+
+
+@bp.route("/perfil/idiomas/<id_>/borrar", methods=["POST"])
+def borrar_idioma(id_: str):
+    almacen.borrar_idioma(contexto.raiz(), id_)
+    flash("Idioma borrado.")
     return redirect(url_for("cv_adaptativo.ver_perfil"))
 
 

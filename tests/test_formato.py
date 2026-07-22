@@ -5,6 +5,7 @@ from cv_adaptativo.perfil.modelo import (
     Bilingue,
     Experiencia,
     ExperienciaSeleccionada,
+    IdiomaHablado,
     Perfil,
     Propuesta,
     SeleccionSobreMi,
@@ -125,3 +126,70 @@ def test_a_markdown_marca_experiencias_desaparecidas_del_perfil():
     )
     markdown = a_markdown(propuesta, _perfil())
     assert "ya no existe en el perfil" in markdown
+
+
+# --------------------------------------------------------------------------
+# Skills personales e idiomas: siempre completos, sin pasar por Propuesta
+# --------------------------------------------------------------------------
+
+
+def _perfil_con_personales_e_idiomas() -> Perfil:
+    base = _perfil()
+    return Perfil(
+        experiencias=base.experiencias,
+        skills=base.skills,
+        skills_personales=[
+            Skill(id="equipo", nombre=Bilingue(es="Trabajo en equipo", en="Teamwork")),
+            Skill(id="comunicacion", nombre=Bilingue(es="Comunicación", en="Communication")),
+        ],
+        idiomas=[
+            IdiomaHablado(
+                id="ingles",
+                nombre=Bilingue(es="Inglés", en="English"),
+                nivel=Bilingue(es="C1 — Avanzado", en="C1 — Advanced"),
+            ),
+        ],
+        sobre_mi=base.sobre_mi,
+    )
+
+
+def test_a_texto_incluye_skills_personales_e_idiomas_completos():
+    texto = a_texto(_propuesta(), _perfil_con_personales_e_idiomas())
+    assert "SKILLS PERSONALES" in texto
+    assert "Trabajo en equipo · Comunicación" in texto
+    assert "IDIOMAS" in texto
+    assert "Inglés — C1 — Avanzado" in texto
+
+
+def test_a_texto_en_ingles_traduce_encabezados_y_nombres():
+    perfil = _perfil_con_personales_e_idiomas()
+    texto = a_texto(_propuesta(idioma="en"), perfil)
+    assert "PERSONAL SKILLS" in texto
+    assert "Teamwork · Communication" in texto
+    assert "LANGUAGES" in texto
+    assert "English — C1 — Advanced" in texto
+
+
+def test_a_markdown_lista_skills_personales_e_idiomas():
+    markdown = a_markdown(_propuesta(), _perfil_con_personales_e_idiomas())
+    assert "## Skills personales" in markdown
+    assert "- Trabajo en equipo" in markdown
+    assert "## Idiomas" in markdown
+    assert "- Inglés — C1 — Avanzado" in markdown
+
+
+def test_sin_skills_personales_ni_idiomas_no_aparecen_los_bloques():
+    """Son opcionales: si el usuario no los ha rellenado, no se enseña un
+    apartado vacío."""
+    texto = a_texto(_propuesta(), _perfil())
+    assert "SKILLS PERSONALES" not in texto
+    assert "IDIOMAS" not in texto
+
+
+def test_skills_personales_e_idiomas_se_leen_del_perfil_no_de_la_propuesta():
+    """No hay selección de IA para estos dos bloques: cambiar el perfil basta,
+    no hace falta regenerar la propuesta."""
+    propuesta = _propuesta()
+    perfil_ampliado = _perfil_con_personales_e_idiomas()
+    assert "Inglés" in a_texto(propuesta, perfil_ampliado)
+    assert "Inglés" not in a_texto(propuesta, _perfil())

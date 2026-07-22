@@ -7,7 +7,14 @@ pantalla y tiene que saber qué fichero abrir.
 from __future__ import annotations
 
 from cv_adaptativo.perfil import validacion
-from cv_adaptativo.perfil.modelo import Bilingue, Experiencia, Perfil, Skill, SobreMi
+from cv_adaptativo.perfil.modelo import (
+    Bilingue,
+    Experiencia,
+    IdiomaHablado,
+    Perfil,
+    Skill,
+    SobreMi,
+)
 
 PLANTILLA = (
     "Estudiante con conocimientos en {GRUPO_A_1}, {GRUPO_A_2} y {GRUPO_A_3}. "
@@ -35,6 +42,16 @@ def _skill(**cambios) -> Skill:
         keywords=["python"],
     )
     return Skill(**{**base, **cambios})
+
+
+def _idioma(**cambios) -> IdiomaHablado:
+    base = dict(
+        id="ingles",
+        nombre=Bilingue(es="Inglés", en="English"),
+        nivel=Bilingue(es="C1 — Avanzado", en="C1 — Advanced"),
+        keywords=["advanced english"],
+    )
+    return IdiomaHablado(**{**base, **cambios})
 
 
 def _sobre_mi(es: str = PLANTILLA, en: str = PLANTILLA) -> SobreMi:
@@ -218,3 +235,78 @@ def test_falta_el_sobre_mi():
     )
 
     assert any("Falta el «Sobre mí»" in p for p in problemas)
+
+
+# --------------------------------------------------------------------------
+# Skills personales e idiomas: catálogos opcionales
+# --------------------------------------------------------------------------
+
+
+def test_una_skill_personal_completa_no_tiene_ningun_problema():
+    skill = Skill(id="equipo", nombre=Bilingue(es="Trabajo en equipo", en="Teamwork"),
+                   keywords=["team player"])
+    assert validacion.validar_skill_personal(skill) == []
+
+
+def test_una_skill_personal_no_necesita_categoria():
+    """A diferencia de una skill técnica: aquí no hay agrupación por categoría."""
+    skill = Skill(id="equipo", nombre=Bilingue(es="Trabajo en equipo", en="Teamwork"),
+                   keywords=["team player"])
+    problemas = validacion.validar_skill_personal(skill)
+    assert not any("categoría" in problema for problema in problemas)
+
+
+def test_detecta_una_skill_personal_sin_palabras_clave():
+    skill = Skill(id="equipo", nombre=Bilingue(es="Trabajo en equipo", en="Teamwork"))
+    problemas = validacion.validar_skill_personal(skill)
+    assert any("palabras clave" in problema for problema in problemas)
+
+
+def test_un_idioma_completo_no_tiene_ningun_problema():
+    assert validacion.validar_idioma(_idioma()) == []
+
+
+def test_detecta_que_falta_el_nivel_de_un_idioma():
+    idioma = _idioma(nivel=Bilingue(es="C1 — Avanzado", en=""))
+    problemas = validacion.validar_idioma(idioma)
+    assert any("nivel" in problema and "inglés" in problema for problema in problemas)
+
+
+def test_avisa_de_un_idioma_sin_palabras_clave():
+    idioma = _idioma(keywords=[])
+    problemas = validacion.validar_idioma(idioma)
+    assert any("hueco" in problema for problema in problemas)
+
+
+def test_un_perfil_sin_skills_personales_ni_idiomas_es_valido():
+    """Son opcionales: no pasarlos no es un problema del perfil."""
+    assert validacion.validar_perfil(_perfil_completo()) == []
+
+
+def test_el_perfil_valida_las_skills_personales_y_los_idiomas_que_tenga():
+    perfil = Perfil(
+        experiencias=[_experiencia()],
+        skills=[_skill()],
+        skills_personales=[Skill(id="", nombre=Bilingue(es="", en=""))],
+        idiomas=[_idioma(nivel=Bilingue(es="", en=""))],
+        sobre_mi=_sobre_mi(),
+    )
+    problemas = validacion.validar_perfil(perfil)
+    assert any("skill personal" in p.lower() for p in problemas)
+    assert any("nivel" in p for p in problemas)
+
+
+def test_detecta_ids_repetidos_en_skills_personales_e_idiomas():
+    perfil = Perfil(
+        experiencias=[_experiencia()],
+        skills=[_skill()],
+        skills_personales=[
+            Skill(id="equipo", nombre=Bilingue(es="A", en="A"), keywords=["a"]),
+            Skill(id="equipo", nombre=Bilingue(es="B", en="B"), keywords=["b"]),
+        ],
+        idiomas=[_idioma(id="fr"), _idioma(id="fr")],
+        sobre_mi=_sobre_mi(),
+    )
+    problemas = validacion.validar_perfil(perfil)
+    assert any("skills personales" in p for p in problemas)
+    assert any("idiomas" in p for p in problemas)

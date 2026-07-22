@@ -27,6 +27,7 @@ from cv_adaptativo.perfil.modelo import (
     IDIOMAS,
     Experiencia,
     Idioma,
+    IdiomaHablado,
     Perfil,
     Skill,
     SobreMi,
@@ -108,6 +109,58 @@ def validar_skill(skill: Skill) -> list[str]:
     return problemas
 
 
+def validar_skill_personal(skill: Skill) -> list[str]:
+    """Como `validar_skill`, pero sin exigir categoría: no hay agrupación por
+    categoría para skills personales, así que pedirla sería un campo sin uso."""
+    etiqueta = f"Skill personal «{skill.id}»" if skill.id else "Una skill personal"
+    problemas: list[str] = []
+
+    if not skill.id.strip():
+        problemas.append(
+            "Hay una skill personal sin identificador. El identificador es el "
+            "nombre del fichero, por ejemplo «trabajo-en-equipo.yaml»."
+        )
+    for idioma in IDIOMAS:
+        if not skill.nombre[idioma].strip():
+            problemas.append(f"{etiqueta}: falta el nombre en {_NOMBRE_IDIOMA[idioma]}.")
+    if not skill.keywords:
+        problemas.append(
+            f"{etiqueta}: no tiene palabras clave, así que puede que una vacante "
+            "la siga marcando como hueco aunque ya la tengas. Añade cómo se "
+            "nombra en las ofertas."
+        )
+    return problemas
+
+
+def validar_idioma(idioma: IdiomaHablado) -> list[str]:
+    """Igual de estricto que `validar_skill`: sin nivel, un idioma no dice nada
+    en un CV, y sin keywords casi nunca anulará un hueco falso de la vacante."""
+    etiqueta = f"Idioma «{idioma.id}»" if idioma.id else "Un idioma"
+    problemas: list[str] = []
+
+    if not idioma.id.strip():
+        problemas.append(
+            "Hay un idioma sin identificador. El identificador es el nombre del "
+            "fichero, por ejemplo «ingles.yaml»."
+        )
+    for cod in IDIOMAS:
+        nombre_cod = _NOMBRE_IDIOMA[cod]
+        if not idioma.nombre[cod].strip():
+            problemas.append(f"{etiqueta}: falta el nombre en {nombre_cod}.")
+        if not idioma.nivel[cod].strip():
+            problemas.append(
+                f"{etiqueta}: falta el nivel en {nombre_cod} (por ejemplo «C1 — "
+                "Avanzado»)."
+            )
+    if not idioma.keywords:
+        problemas.append(
+            f"{etiqueta}: no tiene palabras clave, así que puede que una vacante "
+            "lo siga marcando como hueco aunque ya lo tengas. Añade cómo se "
+            "nombra en las ofertas (p. ej. «advanced english», «fluido»)."
+        )
+    return problemas
+
+
 def validar_sobre_mi(sobre_mi: SobreMi) -> list[str]:
     """Comprueba que la plantilla tenga los 6 huecos, en ES y en EN."""
     problemas: list[str] = []
@@ -164,6 +217,10 @@ def validar_perfil(perfil: Perfil) -> list[str]:
         [experiencia.id for experiencia in perfil.experiencias], "experiencias"
     )
     problemas += _duplicados([skill.id for skill in perfil.skills], "skills")
+    problemas += _duplicados(
+        [skill.id for skill in perfil.skills_personales], "skills personales"
+    )
+    problemas += _duplicados([idioma.id for idioma in perfil.idiomas], "idiomas")
 
     if perfil.sobre_mi is None:
         problemas.append(
@@ -177,6 +234,13 @@ def validar_perfil(perfil: Perfil) -> list[str]:
         problemas += validar_experiencia(experiencia)
     for skill in perfil.skills:
         problemas += validar_skill(skill)
+    # Skills personales e idiomas son opcionales (a diferencia de las técnicas
+    # y la experiencia): no pasar ninguna no es un problema del perfil, solo
+    # significa que esos dos bloques saldrán vacíos en la Propuesta.
+    for skill in perfil.skills_personales:
+        problemas += validar_skill_personal(skill)
+    for idioma in perfil.idiomas:
+        problemas += validar_idioma(idioma)
     return problemas
 
 

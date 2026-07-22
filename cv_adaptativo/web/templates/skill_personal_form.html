@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block titulo %}{{ "Nueva skill personal" if nueva else "Editar skill personal" }} — CV Adaptativo{% endblock %}
+{% block contenido %}
+  <h1>{{ "Nueva skill personal" if nueva else "Editar skill personal" }}</h1>
+  <p class="ayuda">
+    No pasa por selección de IA: en la Propuesta se muestran siempre todas, igual que en
+    un CV real no se recorta la sección de habilidades personales según la vacante. Nunca
+    puede aparecer en "Sobre mí" ni entre las skills técnicas.
+  </p>
+
+  {% if errores %}
+    <div class="errores">
+      <ul>{% for error in errores %}<li>{{ error }}</li>{% endfor %}</ul>
+    </div>
+  {% endif %}
+
+  <form class="pila" method="post">
+    {% if nueva %}
+      <div class="campo">
+        <label for="nombre_es">Nombre (ES)</label>
+        <input type="text" id="nombre_es" name="nombre_es" data-fuente-id="id" required
+               placeholder="Trabajo en equipo" value="{{ skill.nombre['es'] if skill else '' }}">
+      </div>
+      <div class="campo">
+        <label for="id">Identificador</label>
+        <input type="text" id="id" name="id" data-id-manual placeholder="se genera del nombre si lo dejas vacío"
+               value="{{ skill.id if skill else '' }}">
+        <p class="ayuda">Se usa como referencia estable en el archivo de CVs: no se puede cambiar después.</p>
+      </div>
+    {% else %}
+      <div class="campo">
+        <label for="nombre_es">Nombre (ES)</label>
+        <input type="text" id="nombre_es" name="nombre_es" required value="{{ skill.nombre['es'] }}">
+      </div>
+      <p class="ayuda">Identificador: {{ skill.id }} (fijo)</p>
+    {% endif %}
+
+    <div class="campo">
+      <label for="nombre_en">Nombre (EN)</label>
+      <input type="text" id="nombre_en" name="nombre_en" required
+             placeholder="Teamwork" value="{{ skill.nombre['en'] if skill else '' }}">
+    </div>
+
+    <div class="campo">
+      <label for="keywords">Keywords</label>
+      <input type="text" id="keywords" name="keywords" value="{{ skill.keywords|lista_a_csv if skill else '' }}">
+      <p class="ayuda">
+        Las propone la IA a partir del nombre. No salen nunca en tu CV: sirven para que,
+        si una vacante pide esta habilidad con otras palabras, la app no la marque como
+        un hueco que ya tienes cubierto. Revísalas y añade las que falten.
+      </p>
+      <div class="barra-acciones">
+        <button type="button" class="boton"
+                data-sugerir-keywords
+                data-tipo="skill_personal"
+                data-campos="nombre_es,nombre_en"
+                data-destino="keywords">Proponer con IA</button>
+      </div>
+      <p class="ayuda" data-aviso-keywords hidden></p>
+    </div>
+
+    <div class="barra-acciones">
+      <button type="submit" class="boton-primario">Guardar</button>
+      <a class="boton" href="{{ url_for('cv_adaptativo.ver_perfil') }}">Cancelar</a>
+    </div>
+  </form>
+{% endblock %}

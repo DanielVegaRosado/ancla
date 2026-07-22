@@ -155,6 +155,42 @@
     </div>
   </section>
 
+  {% if perfil.skills_personales %}
+  <!-- Skills personales: sin selección de IA, siempre completas -->
+  <section class="tarjeta">
+    <div class="cabecera-bloque">
+      <h2>Skills personales ({{ perfil.skills_personales|length }})</h2>
+      <button type="button" class="boton boton-pequeno" data-copiar="copia-skills-personales">Copiar</button>
+    </div>
+    <textarea id="copia-skills-personales" hidden>{{ texto_skills_personales }}</textarea>
+    <p class="ayuda">
+      Se muestran siempre todas, sin selección de IA — edítalas en «Mi perfil» si quieres
+      cambiar cuáles aparecen.
+    </p>
+    <ul>
+      {% for skill in perfil.skills_personales %}<li>{{ skill.nombre[propuesta.idioma] }}</li>{% endfor %}
+    </ul>
+  </section>
+  {% endif %}
+
+  {% if perfil.idiomas %}
+  <!-- Idiomas: sin selección de IA, siempre completos -->
+  <section class="tarjeta">
+    <div class="cabecera-bloque">
+      <h2>Idiomas ({{ perfil.idiomas|length }})</h2>
+      <button type="button" class="boton boton-pequeno" data-copiar="copia-idiomas">Copiar</button>
+    </div>
+    <textarea id="copia-idiomas" hidden>{{ texto_idiomas }}</textarea>
+    <p class="ayuda">
+      Se muestran siempre todos, sin selección de IA — edítalos en «Mi perfil» si quieres
+      cambiar cuáles aparecen.
+    </p>
+    <ul>
+      {% for idioma in perfil.idiomas %}<li>{{ idioma.nombre[propuesta.idioma] }} — {{ idioma.nivel[propuesta.idioma] }}</li>{% endfor %}
+    </ul>
+  </section>
+  {% endif %}
+
   <!-- Huecos -->
   <section class="tarjeta">
     <h2>Huecos detectados</h2>

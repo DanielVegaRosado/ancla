@@ -7,9 +7,17 @@ respaldar y llevar a otro ordenador.
     perfil/
       experiencia/*.yaml
       skills/*.yaml
+      skills-personales/*.yaml
+      idiomas/*.yaml
       sobre-mi.yaml
       cvs/*.yaml
       cvs/adjuntos/
+
+`skills-personales/` e `idiomas/` son catálogos aparte, con el mismo formato
+de fichero que `skills/` (más un `nivel:` en el caso de los idiomas). No los
+toca `seleccion/motor.py`: en la Propuesta se muestran siempre completos, sin
+selección de IA — es lo que garantiza que nunca puedan colarse en "Sobre mí"
+ni entre las skills técnicas.
 
 Este módulo sabe de **carpetas, rutas y respaldos**. Cómo se escribe un perfil
 dentro de un fichero es cosa de `serializacion`, que es quien importa `yaml`:
@@ -40,7 +48,7 @@ from typing import Any
 
 from cv_adaptativo.perfil import serializacion
 from cv_adaptativo.perfil.errores import ErrorPerfil
-from cv_adaptativo.perfil.modelo import Experiencia, Perfil, Skill, SobreMi
+from cv_adaptativo.perfil.modelo import Experiencia, IdiomaHablado, Perfil, Skill, SobreMi
 
 # Se reexporta a propósito: quien guarda el perfil quiere capturar su error sin
 # tener que saber que vive en otro módulo.
@@ -48,21 +56,29 @@ __all__ = [
     "ErrorPerfil",
     "anotar",
     "borrar_experiencia",
+    "borrar_idioma",
     "borrar_skill",
+    "borrar_skill_personal",
     "cargar_perfil",
     "escribir_yaml",
     "exportar_zip",
     "guardar_experiencia",
+    "guardar_idioma",
     "guardar_skill",
+    "guardar_skill_personal",
     "guardar_sobre_mi",
     "importar_zip",
     "ruta_experiencia",
+    "ruta_idioma",
     "ruta_skill",
+    "ruta_skill_personal",
     "ruta_sobre_mi",
 ]
 
 CARPETA_EXPERIENCIA = "experiencia"
 CARPETA_SKILLS = "skills"
+CARPETA_SKILLS_PERSONALES = "skills-personales"
+CARPETA_IDIOMAS = "idiomas"
 CARPETA_CVS = "cvs"
 FICHERO_SOBRE_MI = "sobre-mi.yaml"
 
@@ -90,6 +106,14 @@ def cargar_perfil(raiz: Path) -> Perfil:
         skills=[
             serializacion.a_skill(_leer(ruta), ruta.stem, ruta.name)
             for ruta in _ficheros(raiz / CARPETA_SKILLS)
+        ],
+        skills_personales=[
+            serializacion.a_skill(_leer(ruta), ruta.stem, ruta.name)
+            for ruta in _ficheros(raiz / CARPETA_SKILLS_PERSONALES)
+        ],
+        idiomas=[
+            serializacion.a_idioma(_leer(ruta), ruta.stem, ruta.name)
+            for ruta in _ficheros(raiz / CARPETA_IDIOMAS)
         ],
         sobre_mi=_sobre_mi_desde(raiz / FICHERO_SOBRE_MI),
     )
@@ -146,6 +170,20 @@ def guardar_skill(raiz: Path, skill: Skill) -> None:
     escribir_yaml(ruta_skill(raiz, skill.id), serializacion.de_skill(skill))
 
 
+def guardar_skill_personal(raiz: Path, skill: Skill) -> None:
+    """Escribe (o sobrescribe) `skills-personales/<id>.yaml`.
+
+    Mismo tipo `Skill` que las técnicas: lo que las separa es la carpeta en la
+    que viven, no la forma del dato.
+    """
+    escribir_yaml(ruta_skill_personal(raiz, skill.id), serializacion.de_skill(skill))
+
+
+def guardar_idioma(raiz: Path, idioma: IdiomaHablado) -> None:
+    """Escribe (o sobrescribe) `idiomas/<id>.yaml`."""
+    escribir_yaml(ruta_idioma(raiz, idioma.id), serializacion.de_idioma(idioma))
+
+
 def guardar_sobre_mi(raiz: Path, sobre_mi: SobreMi) -> None:
     escribir_yaml(ruta_sobre_mi(raiz), serializacion.de_sobre_mi(sobre_mi))
 
@@ -157,6 +195,14 @@ def borrar_experiencia(raiz: Path, id: str) -> None:
 
 def borrar_skill(raiz: Path, id: str) -> None:
     _borrar(ruta_skill(raiz, id))
+
+
+def borrar_skill_personal(raiz: Path, id: str) -> None:
+    _borrar(ruta_skill_personal(raiz, id))
+
+
+def borrar_idioma(raiz: Path, id: str) -> None:
+    _borrar(ruta_idioma(raiz, id))
 
 
 def _borrar(ruta: Path) -> None:
@@ -221,6 +267,14 @@ def ruta_experiencia(raiz: Path, id: str) -> Path:
 
 def ruta_skill(raiz: Path, id: str) -> Path:
     return _ruta(Path(raiz) / CARPETA_SKILLS, id)
+
+
+def ruta_skill_personal(raiz: Path, id: str) -> Path:
+    return _ruta(Path(raiz) / CARPETA_SKILLS_PERSONALES, id)
+
+
+def ruta_idioma(raiz: Path, id: str) -> Path:
+    return _ruta(Path(raiz) / CARPETA_IDIOMAS, id)
 
 
 def ruta_sobre_mi(raiz: Path) -> Path:

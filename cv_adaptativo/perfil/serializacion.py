@@ -25,7 +25,7 @@ from typing import Any
 import yaml
 
 from cv_adaptativo.perfil.errores import ErrorPerfil
-from cv_adaptativo.perfil.modelo import Bilingue, Experiencia, Skill, SobreMi
+from cv_adaptativo.perfil.modelo import Bilingue, Experiencia, IdiomaHablado, Skill, SobreMi
 
 
 # --------------------------------------------------------------------------
@@ -102,6 +102,15 @@ def a_skill(datos: dict[str, Any], id: str, origen: str) -> Skill:
     )
 
 
+def a_idioma(datos: dict[str, Any], id: str, origen: str) -> IdiomaHablado:
+    return IdiomaHablado(
+        id=id,
+        nombre=_bilingue_texto(datos, "nombre", origen),
+        nivel=_bilingue_texto(datos, "nivel", origen),
+        keywords=_keywords(datos, origen),
+    )
+
+
 def a_sobre_mi(datos: dict[str, Any], origen: str) -> SobreMi:
     return SobreMi(plantilla=_bilingue_texto(datos, "plantilla", origen))
 
@@ -130,6 +139,14 @@ def de_skill(skill: Skill) -> dict[str, Any]:
         "nombre": _volcar_bilingue(skill.nombre),
         "categoria": skill.categoria,
         "keywords": list(skill.keywords),
+    }
+
+
+def de_idioma(idioma: IdiomaHablado) -> dict[str, Any]:
+    return {
+        "nombre": _volcar_bilingue(idioma.nombre),
+        "nivel": _volcar_bilingue(idioma.nivel),
+        "keywords": list(idioma.keywords),
     }
 
 

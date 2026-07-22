@@ -16,7 +16,13 @@ from cv_adaptativo.perfil.modelo import (
     ExperienciaSeleccionada,
     SeleccionSobreMi,
 )
-from cv_adaptativo.propuesta.formato import a_markdown, a_texto, texto_experiencia
+from cv_adaptativo.propuesta.formato import (
+    a_markdown,
+    a_texto,
+    lineas_idiomas,
+    nombres_skills_personales,
+    texto_experiencia,
+)
 from cv_adaptativo.archivo import repositorio as archivo
 from cv_adaptativo.seleccion import motor
 from cv_adaptativo.web import ajustes as modulo_ajustes
@@ -46,6 +52,12 @@ def ver_propuesta():
     skills = [(id_, perfil.skill(id_)) for id_ in propuesta.skills]
     texto_skills = " · ".join(skill.nombre[propuesta.idioma] for _, skill in skills if skill)
 
+    # Skills personales e idiomas no pasan por Propuesta ni por el borrador:
+    # se leen en vivo del perfil en cada render, porque no hay selección de
+    # IA que guardar — se muestran siempre completos.
+    texto_skills_personales = " · ".join(nombres_skills_personales(perfil, propuesta.idioma))
+    texto_idiomas = " · ".join(lineas_idiomas(perfil, propuesta.idioma))
+
     return render_template(
         "propuesta.html",
         borrador=borrador,
@@ -54,6 +66,8 @@ def ver_propuesta():
         experiencias=experiencias,
         skills=skills,
         texto_skills=texto_skills,
+        texto_skills_personales=texto_skills_personales,
+        texto_idiomas=texto_idiomas,
         texto_plano=a_texto(propuesta, perfil),
         texto_markdown=a_markdown(propuesta, perfil),
         hoy=date.today().isoformat(),

@@ -17,6 +17,7 @@ from cv_adaptativo.perfil.modelo import (
     N_GRUPO_SOBRE_MI,
     Bilingue,
     Experiencia,
+    IdiomaHablado,
     Perfil,
     Skill,
     SobreMi,
@@ -359,6 +360,92 @@ def test_descarta_un_hueco_que_el_usuario_sí_tiene():
     respuesta = _respuesta(huecos=["Kubernetes", "Python", "  ", "kubernetes"])
     propuesta, _ = _adaptar(respuesta)
     assert propuesta.huecos == ["Kubernetes"]
+
+
+def test_descarta_un_hueco_de_idioma_redactado_en_prosa():
+    """El caso real que motivó esto: el modelo no ve `perfil.idiomas` (no se le
+    envía, es lo que garantiza que nunca acabe en Sobre mí ni en Skills
+    técnicas) así que reporta el idioma como hueco casi siempre, y encima lo
+    redacta como frase («Nivel avanzado de inglés»), no como el nombre exacto
+    de la skill. Coincidencia exacta no lo habría anulado."""
+    perfil = _perfil()
+    perfil = Perfil(
+        experiencias=perfil.experiencias,
+        skills=perfil.skills,
+        idiomas=[
+            IdiomaHablado(
+                id="ingles",
+                nombre=Bilingue(es="Inglés", en="English"),
+                nivel=Bilingue(es="C1 — Avanzado", en="C1 — Advanced"),
+                keywords=["advanced english", "fluido", "ingles avanzado"],
+            )
+        ],
+        sobre_mi=perfil.sobre_mi,
+    )
+    respuesta = _respuesta(huecos=["Kubernetes", "Nivel avanzado de inglés"])
+    propuesta, _ = _adaptar(respuesta, perfil=perfil)
+    assert propuesta.huecos == ["Kubernetes"]
+
+
+def test_descarta_un_hueco_de_skill_personal_por_nombre():
+    perfil = _perfil()
+    perfil = Perfil(
+        experiencias=perfil.experiencias,
+        skills=perfil.skills,
+        skills_personales=[
+            Skill(
+                id="trabajo-equipo",
+                nombre=Bilingue(es="Trabajo en equipo", en="Teamwork"),
+                keywords=["team player", "colaboracion"],
+            )
+        ],
+        sobre_mi=perfil.sobre_mi,
+    )
+    respuesta = _respuesta(huecos=["Kubernetes", "Capacidad de trabajo en equipo"])
+    propuesta, _ = _adaptar(respuesta, perfil=perfil)
+    assert propuesta.huecos == ["Kubernetes"]
+
+
+def test_skills_personales_e_idiomas_nunca_llegan_al_modelo():
+    """La garantía tiene que ser arquitectónica: si aparecieran en el prompt,
+    dependería de que el modelo obedeciera una instrucción de no elegirlas."""
+    perfil = _perfil()
+    perfil = Perfil(
+        experiencias=perfil.experiencias,
+        skills=perfil.skills,
+        skills_personales=[
+            Skill(id="liderazgo", nombre=Bilingue(es="Liderazgo", en="Leadership"))
+        ],
+        idiomas=[
+            IdiomaHablado(
+                id="frances",
+                nombre=Bilingue(es="Francés", en="French"),
+                nivel=Bilingue(es="B2", en="B2"),
+            )
+        ],
+        sobre_mi=perfil.sobre_mi,
+    )
+    _, cliente = _adaptar(perfil=perfil)
+    _, usuario = cliente.llamadas[0]
+    assert "Liderazgo" not in usuario
+    assert "Francés" not in usuario
+
+
+def test_skills_personales_e_idiomas_nunca_pueden_salir_seleccionados():
+    """Aunque el modelo, por lo que sea, devolviera su id, el motor no puede
+    seleccionar algo que no está en `perfil.skills` — es una lista distinta."""
+    perfil = _perfil()
+    perfil = Perfil(
+        experiencias=perfil.experiencias,
+        skills=perfil.skills,
+        skills_personales=[
+            Skill(id="liderazgo", nombre=Bilingue(es="Liderazgo", en="Leadership"))
+        ],
+        sobre_mi=perfil.sobre_mi,
+    )
+    respuesta = _respuesta(skills=["python", "liderazgo"])
+    propuesta, _ = _adaptar(respuesta, perfil=perfil)
+    assert "liderazgo" not in propuesta.skills
 
 
 # --------------------------------------------------------------------------

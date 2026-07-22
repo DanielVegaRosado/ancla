@@ -31,6 +31,7 @@ from cv_adaptativo.perfil.modelo import (
     N_EXPERIENCIAS,
     N_GRUPO_SOBRE_MI,
     N_SKILLS,
+    Bilingue,
     Experiencia,
     ExperienciaSeleccionada,
     Idioma,
@@ -388,16 +389,44 @@ def _skill_por_nombre(valor: str, perfil: Perfil) -> Skill | None:
 def _depurar_huecos(datos: dict[str, Any], perfil: Perfil) -> list[str]:
     """Limpia la lista de huecos y quita los que sí están en el perfil.
 
-    Un hueco que resulta ser una skill que el usuario tiene es ruido: le hace
-    dudar de una propuesta que era correcta.
+    Un hueco que resulta ser algo que el usuario tiene es ruido: le hace dudar
+    de una propuesta que era correcta.
     """
     huecos: list[str] = []
     vistos: set[str] = set()
     for valor in _lista(datos.get("huecos")):
         hueco = a_texto(valor)
         clave = normalizar(hueco)
-        if not clave or clave in vistos or _skill_por_nombre(hueco, perfil) is not None:
+        if not clave or clave in vistos or _hueco_cubierto(hueco, perfil):
             continue
         vistos.add(clave)
         huecos.append(hueco)
     return huecos
+
+
+def _hueco_cubierto(hueco: str, perfil: Perfil) -> bool:
+    """True si el hueco reportado ya está cubierto por algo del perfil —
+    skills técnicas, skills personales o idiomas — aunque esté redactado con
+    otras palabras.
+
+    El modelo nunca ve `skills_personales` ni `idiomas` (no se le envían: es
+    lo que garantiza que nunca puedan colarse en "Sobre mí" ni en las skills
+    técnicas), así que casi siempre los reportará como hueco. Este filtro es
+    lo único que puede evitarlo, y por eso es más laxo que `_skill_por_nombre`
+    (que exige coincidencia exacta y sirve para *identificar* una skill al
+    construir el "Sobre mí"): un hueco se redacta en prosa —«nivel avanzado de
+    inglés»—, casi nunca como el nombre exacto de una skill, así que exigir
+    coincidencia exacta aquí dejaría pasar casi todos los falsos positivos.
+    """
+    clave = normalizar(hueco)
+    if not clave:
+        return False
+    candidatos = (*perfil.skills, *perfil.skills_personales, *perfil.idiomas)
+    return any(_nombre_o_keyword_en(clave, item.nombre, item.keywords) for item in candidatos)
+
+
+def _nombre_o_keyword_en(clave: str, nombre: Bilingue[str], keywords: list[str]) -> bool:
+    nombres = (normalizar(nombre["es"]), normalizar(nombre["en"]))
+    if any(n and (n in clave or clave in n) for n in nombres):
+        return True
+    return any(kw.strip() and normalizar(kw) in clave for kw in keywords)

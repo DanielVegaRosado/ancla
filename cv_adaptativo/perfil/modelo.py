@@ -77,6 +77,21 @@ class Skill:
 
 
 @dataclass(frozen=True)
+class IdiomaHablado:
+    """Un idioma que el usuario habla, con su nivel.
+
+    Distinto del tipo `Idioma` (el idioma *de salida* del CV, "es"/"en"): este
+    representa un idioma como dato del perfil — inglés, francés... — por eso
+    el nombre no coincide a propósito.
+    """
+
+    id: str
+    nombre: Bilingue[str]
+    nivel: Bilingue[str]
+    keywords: list[str] = field(default_factory=list)
+
+
+@dataclass(frozen=True)
 class SobreMi:
     """Plantilla del bloque "Sobre mí".
 
@@ -112,10 +127,21 @@ class SobreMi:
 
 @dataclass(frozen=True)
 class Perfil:
-    """Toda la base de hechos del usuario, ya cargada en memoria."""
+    """Toda la base de hechos del usuario, ya cargada en memoria.
+
+    `skills_personales` e `idiomas` son catálogos aparte, deliberadamente
+    fuera del alcance de `seleccion/motor.py`: no se envían al modelo, así que
+    no pueden acabar ni en "Sobre mí" ni entre las skills técnicas — no es un
+    filtro que se aplica después, es que la selección no tiene acceso a ellos.
+    En la Propuesta se muestran siempre completos, sin seleccionar un
+    subconjunto: a diferencia de la experiencia o las skills técnicas, en un
+    CV real no se recortan según la vacante.
+    """
 
     experiencias: list[Experiencia] = field(default_factory=list)
     skills: list[Skill] = field(default_factory=list)
+    skills_personales: list[Skill] = field(default_factory=list)
+    idiomas: list[IdiomaHablado] = field(default_factory=list)
     sobre_mi: SobreMi | None = None
 
     def experiencia(self, id: str) -> Experiencia | None:
@@ -123,6 +149,12 @@ class Perfil:
 
     def skill(self, id: str) -> Skill | None:
         return next((s for s in self.skills if s.id == id), None)
+
+    def skill_personal(self, id: str) -> Skill | None:
+        return next((s for s in self.skills_personales if s.id == id), None)
+
+    def idioma(self, id: str) -> IdiomaHablado | None:
+        return next((i for i in self.idiomas if i.id == id), None)
 
     def esta_vacio(self) -> bool:
         return not self.experiencias and not self.skills
