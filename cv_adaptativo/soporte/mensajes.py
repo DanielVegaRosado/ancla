@@ -35,14 +35,16 @@ from cv_adaptativo.perfil import almacen
 
 VERSION = "0.1.0"
 
-REPOSITORIO = "https://github.com/dvegarosado/cv-adaptativo"
+# TODO(Daniel): el nombre del repositorio ("cv-adaptativo") todavía no está
+# decidido — actualiza esto cuando lo esté. El usuario ya está confirmado.
+REPOSITORIO = "https://github.com/DanielVegaRosado/cv-adaptativo"
 CORREO_SOPORTE = "dvegarosado@gmail.com"
 
 CARPETA_SOPORTE = "soporte"
 
 TIPOS = {
-    "problema": "🐛 Problema",
-    "sugerencia": "💡 Sugerencia",
+    "problema": "Problema",
+    "sugerencia": "Sugerencia",
 }
 TIPO_POR_DEFECTO = "sugerencia"
 
