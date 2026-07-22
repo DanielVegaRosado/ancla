@@ -212,3 +212,120 @@ def test_subir_un_formato_no_soportado_muestra_el_error(cliente_web):
     )
     assert respuesta.status_code == 200
     assert "no es un formato soportado".encode("utf-8") in respuesta.data
+
+
+# --------------------------------------------------------------------------
+# De punta a punta: subir -> extraer -> analizar -> revisar -> guardar.
+#
+# Las pruebas de arriba verifican cada pieza por separado (la extracción, el
+# análisis con un ClienteIA falso, el guardado de lo marcado); esta es la
+# única que demuestra que la VISTA las conecta bien entre sí. Se sustituye
+# `crear_cliente` por un doble (sin tocar la red ni una clave real) para
+# poder probar la cadena completa sin gastar una llamada de verdad.
+# --------------------------------------------------------------------------
+
+
+class _ClienteFalsoDisponible:
+    """Siempre "disponible" y siempre devuelve la misma propuesta — no hace
+    falta variar la respuesta para demostrar que la vista sabe usarla."""
+
+    def __init__(self, respuesta: str):
+        self.respuesta = respuesta
+
+    def completar(self, sistema: str, usuario: str) -> str:
+        return self.respuesta
+
+    def disponible(self) -> bool:
+        return True
+
+
+def _respuesta_ia() -> str:
+    import json
+
+    return json.dumps(
+        {
+            "experiencias": [
+                {
+                    "titulo": {"es": "Ingeniera de Datos", "en": "Data Engineer"},
+                    "periodo": {"es": "2025 - actualidad", "en": "2025 - present"},
+                    "bullets": {
+                        "es": ["Pipeline de ingesta con Airflow"],
+                        "en": ["Ingestion pipeline with Airflow"],
+                    },
+                    "stack": {"es": "Python, Airflow", "en": "Python, Airflow"},
+                    "keywords": ["airflow", "etl"],
+                }
+            ],
+            "skills": [
+                {"nombre": {"es": "SQL", "en": "SQL"}, "categoria": "dato", "keywords": ["sql"]}
+            ],
+        },
+        ensure_ascii=False,
+    )
+
+
+def _docx_de_prueba() -> bytes:
+    import docx
+
+    documento = docx.Document()
+    documento.add_paragraph("Ana Ejemplo — Ingeniera de Datos")
+    documento.add_paragraph("2025 - actualidad: pipeline de ingesta con Airflow y Python.")
+    buffer = io.BytesIO()
+    documento.save(buffer)
+    return buffer.getvalue()
+
+
+def test_de_punta_a_punta_subir_analizar_revisar_y_guardar(cliente_web, tmp_path, monkeypatch):
+    import cv_adaptativo.web.vistas.importar as vista_importar
+
+    monkeypatch.setattr(
+        vista_importar,
+        "crear_cliente",
+        lambda proveedor, clave: _ClienteFalsoDisponible(_respuesta_ia()),
+    )
+
+    # 1) Subir un .docx real.
+    subida = cliente_web.post(
+        "/perfil/importar",
+        data={"fichero": (io.BytesIO(_docx_de_prueba()), "mi-cv.docx")},
+        content_type="multipart/form-data",
+    )
+    assert subida.status_code == 302
+    assert subida.location.endswith("/perfil/importar/revisar")
+
+    # 2) La pantalla de revisión muestra lo que devolvió el análisis, no un
+    #    placeholder ni datos de otra prueba.
+    revision = cliente_web.get("/perfil/importar/revisar")
+    html = revision.data.decode("utf-8")
+    assert "Ingeniera de Datos" in html
+    assert "Airflow" in html
+    assert "SQL" in html
+
+    # 3) Guardar solo la experiencia, descartando la skill.
+    guardar = cliente_web.post(
+        "/perfil/importar/guardar",
+        data={
+            "exp-0": "1",
+            "exp-0-titulo_es": "Ingeniera de Datos",
+            "exp-0-titulo_en": "Data Engineer",
+            "exp-0-periodo_es": "2025 - actualidad",
+            "exp-0-periodo_en": "2025 - present",
+            "exp-0-bullets_es": "Pipeline de ingesta con Airflow",
+            "exp-0-bullets_en": "Ingestion pipeline with Airflow",
+            "exp-0-stack_es": "Python, Airflow",
+            "exp-0-stack_en": "Python, Airflow",
+            # "skill-0" no se envía: queda descartada.
+        },
+    )
+    assert guardar.status_code == 302
+
+    # 4) El perfil real tiene la experiencia y NO tiene la skill descartada.
+    perfil = almacen.cargar_perfil(tmp_path / "perfil")
+    experiencias = [e for e in perfil.experiencias if e.titulo["es"] == "Ingeniera de Datos"]
+    assert len(experiencias) == 1
+    assert experiencias[0].bullets["es"] == ["Pipeline de ingesta con Airflow"]
+    assert perfil.skill("sql") is None
+
+    # 5) El borrador de importación queda limpio: no se puede volver a
+    #    "revisar" la misma tanda ni dejar basura en el perfil.
+    assert modulo_importacion.cargar_importacion(tmp_path / "perfil") is None
