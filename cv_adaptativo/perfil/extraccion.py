@@ -67,6 +67,14 @@ def extraer_texto(nombre_fichero: str, datos: bytes) -> str:
     """Extensión del fichero -> extractor. `ErrorExtraccion` si no se
     reconoce el formato, si no se puede leer, o si el resultado es
     demasiado corto para ser un CV (p. ej. un PDF escaneado sin texto real).
+
+    Un PDF o .docx real de verdad —protegido, con fuentes raras, exportado
+    por una herramienta que produce algo ligeramente distinto de lo que
+    espera la librería— puede hacer fallar `pypdf`/`python-docx` con
+    excepciones que no son las que ya se atrapan dentro de cada extractor
+    concreto. La red de seguridad va aquí, en el punto de despacho, para
+    cubrir cualquier extractor —también los que se añadan más adelante—:
+    esta función nunca debe dejar pasar nada que no sea `ErrorExtraccion`.
     """
     extension = _extension(nombre_fichero)
     extractor = _EXTRACTORES.get(extension)
@@ -76,7 +84,17 @@ def extraer_texto(nombre_fichero: str, datos: bytes) -> str:
             f"«{nombre_fichero}» no es un formato soportado. Admitidos: {formatos}."
         )
 
-    texto = extractor(datos).strip()
+    try:
+        texto = extractor(datos).strip()
+    except ErrorExtraccion:
+        raise  # Ya viene con un mensaje pensado para enseñarse tal cual.
+    except Exception as exc:
+        raise ErrorExtraccion(
+            f"No se ha podido leer «{nombre_fichero}». Puede estar dañado, protegido con "
+            "contraseña, o en una variante del formato que esta versión no reconoce. "
+            "Si puedes, pega el texto a mano en su lugar."
+        ) from exc
+
     if len(texto) < MIN_CARACTERES_UTILES:
         raise ErrorExtraccion(
             f"No se ha podido sacar texto de «{nombre_fichero}». Si es un PDF "

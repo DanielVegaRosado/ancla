@@ -95,6 +95,26 @@ def test_un_formato_no_soportado_lanza_error_claro():
         extraer_texto("cv.txt", b"cualquier cosa")
 
 
+def test_una_excepcion_no_prevista_del_extractor_no_llega_a_500(monkeypatch):
+    """El caso real que motivó esto: un PDF real (protegido, con fuentes
+    raras, exportado por una herramienta concreta) puede hacer fallar pypdf
+    con una excepción distinta de `PdfReadError` — la única que se atrapaba
+    dentro de `_texto_desde_pdf`. Como la vista solo captura `ErrorExtraccion`,
+    cualquier otra cosa subía sin control hasta Flask y salía como 500.
+    Aquí se simula ese "cualquier otra cosa" con un `RuntimeError` genérico,
+    para no depender de un PDF patológico concreto y frágil."""
+    import pypdf
+
+    class LectorRoto:
+        def __init__(self, *a, **kw):
+            raise RuntimeError("fallo interno de pypdf no relacionado con el formato")
+
+    monkeypatch.setattr(pypdf, "PdfReader", LectorRoto)
+
+    with pytest.raises(ErrorExtraccion, match="No se ha podido leer"):
+        extraer_texto("cv.pdf", b"lo que sea, no llega a importar")
+
+
 def test_un_pdf_invalido_lanza_error_en_vez_de_reventar():
     with pytest.raises(ErrorExtraccion):
         extraer_texto("cv.pdf", b"esto no es un PDF de verdad")
