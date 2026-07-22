@@ -4,14 +4,22 @@
   <h1>Ajustes</h1>
   <p class="ayuda">
     La clave es siempre tuya y se guarda solo en este ordenador, fuera del repositorio.
-    Groq tiene nivel gratuito: crea una cuenta y pega aquí tu clave.
+    <strong>Groq Cloud</strong> tiene nivel gratuito: crea una cuenta gratis y pega aquí tu
+    clave.
+    <a href="{{ url_conseguir_clave }}" target="_blank" rel="noopener">Consigue tu clave en
+    console.groq.com →</a>
+  </p>
+  <p class="ayuda">
+    ⚠️ <strong>Groq</strong> (el proveedor que usa esta app) no es lo mismo que
+    <strong>Grok</strong>, el asistente de xAI. Sus claves empiezan de forma distinta:
+    <code>gsk_...</code> es de Groq; <code>xai-...</code> es de Grok y no funcionará aquí.
   </p>
 
   <form class="pila tarjeta" method="post">
     <div class="campo">
       <label for="proveedor">Proveedor de IA</label>
       <select id="proveedor" name="proveedor">
-        <option value="groq" {{ "selected" if ajustes.proveedor == "groq" else "" }}>Groq</option>
+        <option value="groq" {{ "selected" if ajustes.proveedor == "groq" else "" }}>Groq Cloud</option>
       </select>
     </div>
 
@@ -21,6 +29,7 @@
              value="{{ ajustes.clave_api }}" placeholder="gsk_...">
       <p class="ayuda">
         {% if ajustes.configurado() %}Ya tienes una clave guardada.{% else %}Todavía no has configurado ninguna clave.{% endif %}
+        Empieza por <code>gsk_</code>.
       </p>
     </div>
 

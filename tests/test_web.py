@@ -160,6 +160,13 @@ def test_ver_ajustes_sin_configurar(cliente_web):
     assert "Todavía no has configurado ninguna clave".encode("utf-8") in respuesta.data
 
 
+def test_ajustes_enlaza_directo_a_conseguir_la_clave(cliente_web):
+    """El enlace tiene que estar aquí, antes de que alguien se equivoque —
+    no solo en el mensaje de error de después."""
+    respuesta = cliente_web.get("/ajustes")
+    assert b"console.groq.com/keys" in respuesta.data
+
+
 def test_guardar_ajustes_los_persiste(cliente_web, tmp_path: Path):
     respuesta = cliente_web.post(
         "/ajustes", data={"proveedor": "groq", "clave_api": "gsk_123"}, follow_redirects=True
@@ -168,6 +175,26 @@ def test_guardar_ajustes_los_persiste(cliente_web, tmp_path: Path):
     guardados = modulo_ajustes.cargar_ajustes(tmp_path / "ajustes.json")
     assert guardados.clave_api == "gsk_123"
     assert guardados.configurado()
+
+
+def test_guardar_una_clave_de_grok_en_vez_de_groq_avisa_pero_no_bloquea(
+    cliente_web, tmp_path: Path
+):
+    """El caso real que motivó esto: una clave de xAI (Grok, «xai-...») pegada
+    por error en vez de una de Groq («gsk_...»). Se guarda igual —no es a la
+    app a quien le toca impedirlo— pero se avisa en el momento de guardar, no
+    solo cuando falle la primera llamada."""
+    respuesta = cliente_web.post(
+        "/ajustes",
+        data={"proveedor": "groq", "clave_api": "xai-abc123"},
+        follow_redirects=True,
+    )
+    assert respuesta.status_code == 200
+    assert "no empieza por «gsk_»".encode("utf-8") in respuesta.data
+    assert "Grok".encode("utf-8") in respuesta.data
+    # Se guarda igual: no es la app quien decide si una clave es válida.
+    guardados = modulo_ajustes.cargar_ajustes(tmp_path / "ajustes.json")
+    assert guardados.clave_api == "xai-abc123"
 
 
 def test_pagina_inexistente_da_404_en_espanol(cliente_web):
