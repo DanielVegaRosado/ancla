@@ -5,6 +5,10 @@
   <p class="ayuda">
     Tu base de hechos verificados. El motor de selección elige de aquí para cada vacante;
     nunca inventa nada que no esté aquí.
+    {% if perfil.esta_vacio() %}
+      <a href="{{ url_for('cv_adaptativo.importar') }}">¿Ya tienes un CV? Impórtalo</a>
+      en vez de escribirlo todo a mano.
+    {% endif %}
   </p>
 
   <section class="tarjeta">

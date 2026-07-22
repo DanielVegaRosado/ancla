@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block titulo %}Importar CV — CV Adaptativo{% endblock %}
+{% block contenido %}
+  <h1>Importar desde un CV</h1>
+  <p class="ayuda">
+    Sube tu CV en PDF o Word, o pega el texto directamente. La IA propone qué experiencias
+    y skills añadir a tu perfil — <strong>nada se guarda todavía</strong>: en el siguiente
+    paso revisas, editas y confirmas una por una lo que quieres quedarte.
+  </p>
+
+  <form class="pila tarjeta" method="post" enctype="multipart/form-data">
+    <div class="campo">
+      <label for="fichero">Sube tu CV (PDF o .docx)</label>
+      <input type="file" id="fichero" name="fichero" accept=".pdf,.docx">
+    </div>
+
+    <div class="campo">
+      <label for="texto">O pega el texto de tu CV</label>
+      <textarea id="texto" name="texto" class="alta" placeholder="Pega aquí el contenido de tu CV si prefieres no subir un fichero"></textarea>
+    </div>
+
+    <div class="barra-acciones">
+      <button type="submit" class="boton-primario">Analizar</button>
+    </div>
+  </form>
+
+  <p class="ayuda">
+    Si tu PDF es una imagen escaneada (sin texto real dentro), no se podrá leer — usa la
+    opción de pegar el texto a mano en ese caso.
+  </p>
+{% endblock %}

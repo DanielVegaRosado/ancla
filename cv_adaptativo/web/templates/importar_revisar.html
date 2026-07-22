@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+{% block titulo %}Revisar importación — CV Adaptativo{% endblock %}
+{% block contenido %}
+  <h1>Revisa lo que se ha encontrado</h1>
+  <p class="ayuda">
+    Solo se guardará lo que dejes marcado. Corrige lo que haga falta antes de confirmar —
+    la IA ha extraído esto de tu CV, pero el criterio final es tuyo.
+  </p>
+
+  {% if importacion.avisos %}
+    <div class="errores">
+      <ul>{% for aviso in importacion.avisos %}<li>{{ aviso }}</li>{% endfor %}</ul>
+    </div>
+  {% endif %}
+
+  <form class="pila" method="post" action="{{ url_for('cv_adaptativo.guardar_importacion') }}">
+    {% if importacion.experiencias %}
+      <h2>Experiencias ({{ importacion.experiencias|length }})</h2>
+      <div class="lista-tarjetas">
+        {% for experiencia in importacion.experiencias %}
+          <div class="tarjeta">
+            <label class="opcion-tipo">
+              <input type="checkbox" name="exp-{{ loop.index0 }}" value="1" checked>
+              <strong>Guardar esta experiencia</strong>
+            </label>
+            <div class="dos-columnas">
+              <div class="campo">
+                <label>Título (ES)</label>
+                <input type="text" name="exp-{{ loop.index0 }}-titulo_es" value="{{ experiencia.titulo['es'] }}">
+              </div>
+              <div class="campo">
+                <label>Título (EN)</label>
+                <input type="text" name="exp-{{ loop.index0 }}-titulo_en" value="{{ experiencia.titulo['en'] }}">
+              </div>
+            </div>
+            <div class="dos-columnas">
+              <div class="campo">
+                <label>Periodo (ES)</label>
+                <input type="text" name="exp-{{ loop.index0 }}-periodo_es" value="{{ experiencia.periodo['es'] }}">
+              </div>
+              <div class="campo">
+                <label>Periodo (EN)</label>
+                <input type="text" name="exp-{{ loop.index0 }}-periodo_en" value="{{ experiencia.periodo['en'] }}">
+              </div>
+            </div>
+            <div class="dos-columnas">
+              <div class="campo">
+                <label>Bullets (ES, uno por línea)</label>
+                <textarea name="exp-{{ loop.index0 }}-bullets_es">{{ experiencia.bullets['es']|join('\n') }}</textarea>
+              </div>
+              <div class="campo">
+                <label>Bullets (EN, uno por línea)</label>
+                <textarea name="exp-{{ loop.index0 }}-bullets_en">{{ experiencia.bullets['en']|join('\n') }}</textarea>
+              </div>
+            </div>
+            <div class="dos-columnas">
+              <div class="campo">
+                <label>Stack (ES)</label>
+                <input type="text" name="exp-{{ loop.index0 }}-stack_es" value="{{ experiencia.stack['es'] }}">
+              </div>
+              <div class="campo">
+                <label>Stack (EN)</label>
+                <input type="text" name="exp-{{ loop.index0 }}-stack_en" value="{{ experiencia.stack['en'] }}">
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    {% if importacion.skills %}
+      <h2>Skills ({{ importacion.skills|length }})</h2>
+      <div class="lista-tarjetas">
+        {% for skill in importacion.skills %}
+          <div class="tarjeta">
+            <label class="opcion-tipo">
+              <input type="checkbox" name="skill-{{ loop.index0 }}" value="1" checked>
+              <strong>Guardar esta skill</strong>
+            </label>
+            <div class="dos-columnas">
+              <div class="campo">
+                <label>Nombre (ES)</label>
+                <input type="text" name="skill-{{ loop.index0 }}-nombre_es" value="{{ skill.nombre['es'] }}">
+              </div>
+              <div class="campo">
+                <label>Nombre (EN)</label>
+                <input type="text" name="skill-{{ loop.index0 }}-nombre_en" value="{{ skill.nombre['en'] }}">
+              </div>
+            </div>
+            <div class="campo">
+              <label>Categoría</label>
+              <input type="text" name="skill-{{ loop.index0 }}-categoria" value="{{ skill.categoria }}">
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    <div class="barra-acciones">
+      <button type="submit" class="boton-primario">Guardar lo seleccionado</button>
+    </div>
+  </form>
+
+  <form method="post" action="{{ url_for('cv_adaptativo.descartar_importacion') }}" data-confirmar="¿Descartar toda la importación? No se guardará nada de esto.">
+    <button type="submit" class="boton-peligro">Descartar todo</button>
+  </form>
+{% endblock %}

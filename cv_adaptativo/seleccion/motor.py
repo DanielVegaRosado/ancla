@@ -41,7 +41,7 @@ from cv_adaptativo.perfil.modelo import (
     Skill,
 )
 from cv_adaptativo.seleccion.prompt import construir_mensajes
-from cv_adaptativo.texto import a_texto, normalizar
+from cv_adaptativo.texto import a_texto, bloque_json, normalizar
 
 # Textos que ve el usuario cuando el modelo se deja algo a medias. Se dicen en
 # claro en vez de disimularlos: la propuesta está para revisarla, no para
@@ -108,7 +108,7 @@ def _interpretar(respuesta: str) -> dict[str, Any]:
     No se reintenta: una adaptación es una llamada. Si la respuesta no se
     entiende, el usuario vuelve a darle a generar sabiendo lo que cuesta.
     """
-    bloque = _bloque_json(respuesta or "")
+    bloque = bloque_json(respuesta or "")
     if bloque is None:
         raise ErrorIA(
             "El modelo no ha devuelto una respuesta que se pueda interpretar. "
@@ -127,39 +127,6 @@ def _interpretar(respuesta: str) -> dict[str, Any]:
             "Vuelve a generar la propuesta."
         )
     return datos
-
-
-def _bloque_json(texto: str) -> str | None:
-    """El primer objeto `{...}` equilibrado del texto.
-
-    Los modelos lo envuelven en ```json o lo preceden de una frase amable por
-    mucho que el prompt lo prohíba; recortarlo aquí sale más barato que gastar
-    otra llamada.
-    """
-    inicio = texto.find("{")
-    if inicio == -1:
-        return None
-    profundidad = 0
-    en_cadena = False
-    escapado = False
-    for pos in range(inicio, len(texto)):
-        caracter = texto[pos]
-        if en_cadena:
-            if escapado:
-                escapado = False
-            elif caracter == "\\":
-                escapado = True
-            elif caracter == '"':
-                en_cadena = False
-        elif caracter == '"':
-            en_cadena = True
-        elif caracter == "{":
-            profundidad += 1
-        elif caracter == "}":
-            profundidad -= 1
-            if profundidad == 0:
-                return texto[inicio : pos + 1]
-    return None
 
 
 def _lista(valor: Any) -> list[Any]:

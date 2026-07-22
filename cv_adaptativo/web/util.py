@@ -1,19 +1,13 @@
 """Utilidades pequeñas y sin estado para la capa web."""
 from __future__ import annotations
 
-import re
-import unicodedata
+# Reexportado a propósito: `slugificar` vive en `cv_adaptativo.texto` porque
+# también la necesita `perfil/importador.py`, y `perfil/` no puede depender
+# de `web/` (la dependencia va siempre en el otro sentido). Este módulo la
+# sigue exponiendo aquí para no tocar cada sitio que ya la importaba de aquí.
+from cv_adaptativo.texto import slugificar
 
-
-def slugificar(texto: str) -> str:
-    """Convierte un texto libre en un identificador de fichero seguro.
-
-    "Ingeniero de Datos (Backend)" -> "ingeniero-de-datos-backend"
-    """
-    sin_acentos = unicodedata.normalize("NFKD", texto).encode("ascii", "ignore").decode("ascii")
-    minusculas = sin_acentos.lower().strip()
-    con_guiones = re.sub(r"[^a-z0-9]+", "-", minusculas)
-    return con_guiones.strip("-") or "sin-titulo"
+__all__ = ["slugificar", "lineas_a_lista", "lista_a_lineas", "csv_a_lista", "lista_a_csv"]
 
 
 def lineas_a_lista(texto: str) -> list[str]:

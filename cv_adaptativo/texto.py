@@ -29,6 +29,17 @@ def a_textos(valor: Any) -> list[str]:
     return [limpio for elemento in valor if (limpio := a_texto(elemento))]
 
 
+def slugificar(texto: str) -> str:
+    """Convierte un texto libre en un identificador de fichero seguro.
+
+    "Ingeniero de Datos (Backend)" -> "ingeniero-de-datos-backend"
+    """
+    sin_acentos = unicodedata.normalize("NFKD", texto).encode("ascii", "ignore").decode("ascii")
+    minusculas = sin_acentos.lower().strip()
+    con_guiones = re.sub(r"[^a-z0-9]+", "-", minusculas)
+    return con_guiones.strip("-") or "sin-titulo"
+
+
 def normalizar(texto: str) -> str:
     """Minúsculas, sin acentos y sin espacios de más, para comparar.
 
@@ -39,3 +50,38 @@ def normalizar(texto: str) -> str:
     descompuesto = unicodedata.normalize("NFKD", texto or "")
     sin_acentos = "".join(c for c in descompuesto if not unicodedata.combining(c))
     return re.sub(r"\s+", " ", sin_acentos).strip().lower()
+
+
+def bloque_json(texto: str) -> str | None:
+    """El primer objeto `{...}` equilibrado del texto, o `None` si no hay uno.
+
+    Los modelos envuelven el JSON en ```json o lo preceden de una frase amable
+    por mucho que el prompt lo prohíba; recortarlo aquí sale más barato que
+    gastar otra llamada. Cuenta profundidad de llaves y respeta las cadenas de
+    texto (una `{` dentro de un bullet no rompe el conteo), a diferencia de
+    buscar la primera y la última llave del texto sin más.
+    """
+    inicio = (texto or "").find("{")
+    if inicio == -1:
+        return None
+    profundidad = 0
+    en_cadena = False
+    escapado = False
+    for pos in range(inicio, len(texto)):
+        caracter = texto[pos]
+        if en_cadena:
+            if escapado:
+                escapado = False
+            elif caracter == "\\":
+                escapado = True
+            elif caracter == '"':
+                en_cadena = False
+        elif caracter == '"':
+            en_cadena = True
+        elif caracter == "{":
+            profundidad += 1
+        elif caracter == "}":
+            profundidad -= 1
+            if profundidad == 0:
+                return texto[inicio : pos + 1]
+    return None
