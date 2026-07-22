@@ -22,6 +22,21 @@ MODELO_POR_DEFECTO = "openai/gpt-oss-120b"
 # ella: conviene un margen amplio.
 TIMEOUT_SEGUNDOS = 120
 
+# `gpt-oss-120b` es un modelo "razonador": antes de escribir la respuesta
+# final gasta parte de su presupuesto de tokens "pensando". Sin `max_tokens`,
+# el proveedor aplica su propio límite por defecto, y una petición que pide
+# mucho detalle (el importador puede devolver varias experiencias bilingües
+# completas) puede agotarlo a media reflexión y volver con el contenido
+# vacío — sin ningún error, solo nada.
+#
+# El valor tiene un techo real y verificado contra la API: el nivel gratuito
+# de Groq limita a 8000 tokens por minuto EN TOTAL (entrada + salida), así
+# que `max_tokens` no puede ir suelto — tiene que dejar sitio al prompt y al
+# texto que se le pase. 4000 deja margen de sobra para el resto en las dos
+# llamadas que hace la app (adaptar y analizar un CV) sin arriesgarse a que
+# Groq rechace la petición entera por pedir más tokens de los que quedan.
+MAX_TOKENS_RESPUESTA = 4000
+
 URL_CONSEGUIR_CLAVE = "https://console.groq.com/keys"
 
 # Los fallos que el usuario puede arreglar por su cuenta se cuentan en claro, y
@@ -33,6 +48,17 @@ _AYUDA_CLAVE = (
 _AYUDA_CUOTA = (
     "Has agotado la cuota gratuita de Groq por ahora. Espera un rato y vuelve a "
     "intentarlo, o usa otra clave."
+)
+# Distinto de _AYUDA_CUOTA a propósito: aquí el problema no es haber agotado
+# la cuota a base de peticiones, es que ESTA petición ya es demasiado grande
+# para el límite por minuto de una sola vez — reintentar la misma vacante,
+# CV o perfil sin recortarlos vuelve a fallar igual. Groq lo devuelve como
+# HTTP 413 con `"code": "rate_limit_exceeded"` (con guion bajo: no lo
+# confundas con el "rate limit" de _AYUDA_CUOTA, que lleva espacio).
+_AYUDA_DEMASIADO_GRANDE = (
+    "Esta petición es demasiado grande para el límite de tokens por minuto de tu "
+    "plan gratuito de Groq. Si es un CV, una vacante o un perfil muy largos, prueba "
+    "con un texto más corto."
 )
 _AYUDA_RED = (
     "No se ha podido contactar con Groq. Comprueba tu conexión a internet y "
@@ -85,6 +111,7 @@ class ClienteGroq:
             completado = cliente.chat.completions.create(
                 model=self.modelo,
                 temperature=self.temperatura,
+                max_tokens=MAX_TOKENS_RESPUESTA,
                 messages=[
                     {"role": "system", "content": sistema},
                     {"role": "user", "content": usuario},
@@ -124,6 +151,8 @@ class ClienteGroq:
 
         if codigo in (401, 403) or "api key" in texto or "unauthorized" in texto:
             return _AYUDA_CLAVE
+        if codigo == 413 or "tokens per minute" in texto or "request too large" in texto:
+            return _AYUDA_DEMASIADO_GRANDE
         if codigo == 429 or "rate limit" in texto or "quota" in texto:
             return _AYUDA_CUOTA
         if codigo == 404 or ("model" in texto and "not found" in texto):

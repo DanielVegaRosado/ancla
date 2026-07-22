@@ -33,7 +33,13 @@ from cv_adaptativo.ia.cliente import ClienteIA
 from cv_adaptativo.perfil.modelo import Bilingue, Experiencia, Perfil, Skill
 from cv_adaptativo.texto import a_texto, a_textos, bloque_json, slugificar
 
-MAX_CARACTERES_CV = 20000
+# El nivel gratuito de Groq limita a 8000 tokens por minuto (comprobado con
+# la API real). Ese presupuesto tiene que cubrir el prompt del sistema
+# (~450 tokens), este texto y la respuesta del modelo a la vez — un CV
+# demasiado largo puede dejar tan poco margen para la respuesta que Groq la
+# corte o la rechace directamente. 10.000 caracteres son de sobra para
+# cualquier CV real (1-2 páginas) y dejan margen para las tres cosas.
+MAX_CARACTERES_CV = 10000
 
 SISTEMA = """\
 Analizas el texto de un CV para ayudar a una persona a construir su base de datos \

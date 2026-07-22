@@ -206,6 +206,23 @@ def test_los_fallos_del_proveedor_se_traducen_a_algo_accionable():
     assert "vaya cosa rara" in explicar(Exception("vaya cosa rara"))
 
 
+def test_una_peticion_demasiado_grande_no_se_confunde_con_cuota_agotada():
+    """Caso real reproducido contra la API de Groq: el error viene con
+    "code": "rate_limit_exceeded" (guion bajo), que no debe confundirse con
+    el "rate limit" (con espacio) de la cuota agotada por número de
+    peticiones — son problemas distintos y el mensaje tiene que decir cuál es."""
+    explicar = ClienteGroq._explicar
+    error_real = Exception(
+        "Error code: 413 - {'error': {'message': 'Request too large for model "
+        "`openai/gpt-oss-120b` ... on tokens per minute (TPM): Limit 8000, "
+        "Requested 8751, please reduce your message size', 'type': 'tokens', "
+        "'code': 'rate_limit_exceeded'}}"
+    )
+    mensaje = explicar(error_real)
+    assert "demasiado grande" in mensaje.lower()
+    assert "cuota" not in mensaje.lower()
+
+
 # --------------------------------------------------------------------------
 # Soporte
 # --------------------------------------------------------------------------
