@@ -245,3 +245,34 @@ def test_guardar_la_propuesta_captura_la_hora(cliente_web, tmp_path: Path):
     guardados = repositorio.listar(raiz)
     assert len(guardados) == 1
     assert guardados[0].hora is not None
+
+
+# --------------------------------------------------------------------------
+# Plantillas: pantalla secundaria, enlazada desde el pie y desde Propuesta
+# --------------------------------------------------------------------------
+
+
+def test_la_pantalla_de_plantillas_enlaza_las_dos_plantillas(cliente_web):
+    from cv_adaptativo.web.vistas.plantillas import PLANTILLAS
+
+    respuesta = cliente_web.get("/plantillas")
+    assert respuesta.status_code == 200
+    html = respuesta.data.decode("utf-8")
+    for plantilla in PLANTILLAS:
+        assert plantilla.url in html
+
+
+def test_el_pie_de_cualquier_pantalla_enlaza_a_plantillas(cliente_web):
+    respuesta = cliente_web.get("/perfil")
+    assert b'href="/plantillas"' in respuesta.data
+
+
+def test_la_propuesta_enlaza_a_plantillas_junto_a_copiar_todo(cliente_web, tmp_path: Path):
+    modulo_borrador.guardar_borrador(
+        tmp_path / "perfil",
+        modulo_borrador.Borrador(
+            vacante="vacante", empresa="ACME", puesto="Dev", propuesta=_propuesta_de_prueba()
+        ),
+    )
+    respuesta = cliente_web.get("/propuesta")
+    assert b'href="/plantillas"' in respuesta.data

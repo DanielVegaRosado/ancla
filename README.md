@@ -12,7 +12,8 @@ candidaturas crece con ella.
 
 - Corre **en tu ordenador**. Tus datos no salen de ahí: sin cuentas, sin nube.
 - Usa **tu propia clave** de IA (Groq tiene nivel gratuito).
-- Te da el texto; el diseño sigue siendo tuyo (Canva u otra herramienta).
+- Te da el texto; el diseño sigue siendo tuyo (Canva u otra herramienta). Si no tienes CV
+  todavía, hay [dos plantillas de partida](plantillas/README.md).
 
 > 🚧 **En construcción.** Todavía no es usable. Ver el estado abajo.
 

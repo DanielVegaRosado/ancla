@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block titulo %}Plantillas — CV Adaptativo{% endblock %}
+{% block contenido %}
+  <h1>Plantillas de partida</h1>
+  <p class="ayuda">
+    La app no maqueta tu CV: te da el texto ya elegido, y el diseño sigue siendo tuyo en Canva.
+    Estas dos plantillas son el punto de partida si aún no tienes tu propio diseño — una página,
+    en español, y lo único que cambia entre ellas es el estilo.
+  </p>
+
+  <div class="lista-tarjetas">
+    {% for plantilla in plantillas %}
+      <div class="tarjeta">
+        <h3>{{ plantilla.nombre }}</h3>
+        <a class="boton boton-primario" href="{{ plantilla.url }}" target="_blank" rel="noopener">
+          Abrir en Canva →
+        </a>
+      </div>
+    {% endfor %}
+  </div>
+
+  <p class="ayuda">
+    Duplica la que más te guste en tu cuenta (<em>Archivo → Hacer una copia</em>) antes de
+    editarla, para no tocar el original. Luego pega el texto de tu Propuesta y exporta como PDF
+    cuando esté lista.
+  </p>
+{% endblock %}
