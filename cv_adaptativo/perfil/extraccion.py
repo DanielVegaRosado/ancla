@@ -27,8 +27,16 @@ class ErrorExtraccion(Exception):
 
 
 def _texto_desde_pdf(datos: bytes) -> str:
-    from pypdf import PdfReader
-    from pypdf.errors import PdfReadError
+    # Import perezoso, igual que `ia/groq.py`: así la app arranca y puede
+    # enseñar el mensaje de abajo aunque falte instalar la dependencia, en
+    # vez de morir al arrancar por un import a nivel de módulo.
+    try:
+        from pypdf import PdfReader
+        from pypdf.errors import PdfReadError
+    except ImportError as exc:
+        raise ErrorExtraccion(
+            "Falta la librería «pypdf». Instálala con: pip install -r requirements.txt"
+        ) from exc
 
     try:
         lector = PdfReader(io.BytesIO(datos))
@@ -40,7 +48,12 @@ def _texto_desde_pdf(datos: bytes) -> str:
 
 
 def _texto_desde_docx(datos: bytes) -> str:
-    import docx
+    try:
+        import docx
+    except ImportError as exc:
+        raise ErrorExtraccion(
+            "Falta la librería «python-docx». Instálala con: pip install -r requirements.txt"
+        ) from exc
 
     try:
         documento = docx.Document(io.BytesIO(datos))

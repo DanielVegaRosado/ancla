@@ -8,6 +8,7 @@ por el parser de verdad.
 from __future__ import annotations
 
 import io
+import sys
 
 import pytest
 
@@ -93,6 +94,27 @@ def test_extrae_texto_de_tablas_en_docx():
 def test_un_formato_no_soportado_lanza_error_claro():
     with pytest.raises(ErrorExtraccion, match="cv.txt"):
         extraer_texto("cv.txt", b"cualquier cosa")
+
+
+def test_sin_pypdf_instalado_lo_dice_en_vez_de_culpar_al_pdf(monkeypatch):
+    """El caso real que motivó esto: Daniel tenía `pypdf` instalado en un
+    entorno distinto del que ejecuta `run.py`. `ModuleNotFoundError` es una
+    `Exception` como cualquier otra, así que la red de seguridad genérica
+    la atrapaba — pero con el mensaje de "tu PDF puede estar dañado", que es
+    activamente engañoso cuando el problema real es una dependencia que
+    falta. Tiene que salir el mismo mensaje accionable que ya usa
+    `ia/groq.py` para el mismo caso con el SDK de Groq."""
+    monkeypatch.setitem(sys.modules, "pypdf", None)
+
+    with pytest.raises(ErrorExtraccion, match="pip install -r requirements.txt"):
+        extraer_texto("cv.pdf", b"lo que sea")
+
+
+def test_sin_python_docx_instalado_lo_dice_tambien(monkeypatch):
+    monkeypatch.setitem(sys.modules, "docx", None)
+
+    with pytest.raises(ErrorExtraccion, match="pip install -r requirements.txt"):
+        extraer_texto("cv.docx", b"lo que sea")
 
 
 def test_una_excepcion_no_prevista_del_extractor_no_llega_a_500(monkeypatch):
