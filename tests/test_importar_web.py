@@ -284,16 +284,18 @@ def test_un_perfil_vacio_enlaza_a_importar_desde_mi_perfil(cliente_web):
 
 def test_un_perfil_con_datos_tambien_enlaza_a_importar_desde_mi_perfil(cliente_web, tmp_path: Path):
     """Antes el enlace solo aparecía con el perfil vacío; ahora sigue ahí
-    después de la primera importación, no solo en la cabecera."""
+    después de la primera importación."""
     almacen.guardar_skill(tmp_path / "perfil", _skill())
     respuesta = cliente_web.get("/perfil")
     assert b'href="/perfil/importar"' in respuesta.data
     assert "¿Tienes otro CV que añadir?".encode("utf-8") in respuesta.data
 
 
-def test_el_encabezado_de_cualquier_pantalla_enlaza_a_importar(cliente_web):
+def test_importar_cv_no_esta_en_la_cabecera(cliente_web):
+    """Vive solo en Mi perfil, no en la navegación global — con Plantillas y
+    Soporte ya la cabecera abultaba demasiado."""
     respuesta = cliente_web.get("/ajustes")
-    assert b'href="/perfil/importar"' in respuesta.data
+    assert b'href="/perfil/importar"' not in respuesta.data
 
 
 def test_subir_un_formato_no_soportado_muestra_el_error(cliente_web):

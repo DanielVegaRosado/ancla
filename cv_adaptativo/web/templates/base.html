@@ -12,7 +12,6 @@
       <a class="marca" href="{{ url_for('cv_adaptativo.ver_perfil') }}">CV Adaptativo</a>
       <nav class="nav">
         <a href="{{ url_for('cv_adaptativo.ver_perfil') }}" class="{{ 'activo' if request.endpoint == 'cv_adaptativo.ver_perfil' else '' }}">Mi perfil</a>
-        <a href="{{ url_for('cv_adaptativo.importar') }}" class="{{ 'activo' if request.endpoint in ('cv_adaptativo.importar', 'cv_adaptativo.revisar_importacion') else '' }}">Importar CV</a>
         <a href="{{ url_for('cv_adaptativo.adaptar') }}" class="{{ 'activo' if request.endpoint == 'cv_adaptativo.adaptar' else '' }}">Adaptar</a>
         <a href="{{ url_for('cv_adaptativo.ver_propuesta') }}" class="{{ 'activo' if request.endpoint == 'cv_adaptativo.ver_propuesta' else '' }}">Propuesta</a>
         <a href="{{ url_for('cv_adaptativo.listar_cvs') }}" class="{{ 'activo' if request.endpoint in ('cv_adaptativo.listar_cvs', 'cv_adaptativo.ver_cv') else '' }}">Mis CVs</a>

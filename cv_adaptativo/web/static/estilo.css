@@ -46,6 +46,9 @@ p.ayuda, .ayuda {
 .cabecera {
   background: var(--fondo);
   border-bottom: 1px solid var(--borde);
+  position: sticky;
+  top: 0;
+  z-index: 10;
 }
 
 .cabecera .ancho {
