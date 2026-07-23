@@ -303,3 +303,27 @@ def test_un_tipo_desconocido_no_rompe_el_envio(cliente_web):
         data={"asunto": "x", "mensaje": "x", "tipo": "algo-raro", "destino": "github"},
     )
     assert respuesta.status_code == 302
+
+
+# --------------------------------------------------------------------------
+# Términos y condiciones
+# --------------------------------------------------------------------------
+
+
+def test_terminos_explica_que_los_datos_no_salen_del_ordenador(cliente_web):
+    respuesta = cliente_web.get("/terminos")
+    assert respuesta.status_code == 200
+    assert "no salen de tu ordenador".encode("utf-8") in respuesta.data
+    assert "no hay servidor de este proyecto".encode("utf-8") in respuesta.data
+
+
+def test_terminos_enlaza_al_repositorio_publico(cliente_web):
+    from cv_adaptativo.soporte.mensajes import REPOSITORIO
+
+    respuesta = cliente_web.get("/terminos")
+    assert REPOSITORIO.encode("utf-8") in respuesta.data
+
+
+def test_el_pie_de_cualquier_pantalla_enlaza_a_terminos(cliente_web):
+    respuesta = cliente_web.get("/perfil")
+    assert b'href="/terminos"' in respuesta.data
