@@ -77,6 +77,18 @@ personal, aunque el CV las liste juntas o bajo el mismo apartado. Nunca mezcles 
 8. Para cada idioma HABLADO (español, inglés, alemán...) extrae también su nivel tal \
 como aparezca (p. ej. "C1 Avanzado", "Nativo", "B2") y tradúcelo igual que el resto — no \
 inventes un nivel que no esté escrito. Un idioma hablado no es una skill técnica.
+9. Antes de dar la lista de skills técnicas por definitiva, revísala tú mismo: si dos \
+entradas nombran la misma tecnología o competencia con distinta redacción (p. ej. \
+"Machine Learning" y "Machine Learning Development", o "Data Analysis" y "Data \
+Analytics"), dejas solo una — la forma más corta y reconocible. Tampoco conviertas el \
+título o el campo de una experiencia en una skill aparte (de un puesto "Data Engineer" \
+no propongas la skill "Data Engineering"; de un proyecto de "Quantum Computing" no \
+propongas esa etiqueta como skill): ese campo ya queda representado por la propia \
+experiencia. Esto NO afecta a las tecnologías concretas que se mencionen dentro de una \
+experiencia (lenguajes, librerías, herramientas del stack) — esas sí son skills \
+aparte aunque no estén en una lista de skills separada, y ante la duda de si una \
+tecnología concreta cuenta o no, inclúyela: es preferible algo de redundancia a que \
+falte una tecnología real que sí se menciona.
 
 Responde ÚNICAMENTE con este JSON, sin texto alrededor ni bloques de código:
 {
