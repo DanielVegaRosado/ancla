@@ -46,9 +46,9 @@ from cv_adaptativo.texto import a_texto, bloque_json, normalizar
 # Textos que ve el usuario cuando el modelo se deja algo a medias. Se dicen en
 # claro en vez de disimularlos: la propuesta está para revisarla, no para
 # firmarla a ciegas.
-MOTIVO_AUSENTE = "El modelo no explicó esta elección; revísala antes de usarla."
+MOTIVO_AUSENTE = "El modelo no explicó esta elección, revísala antes de usarla."
 AVISO_SOBRE_MI_INCOMPLETO = (
-    "Tu perfil no tiene suficientes skills para rellenar el «Sobre mí»: hacen "
+    "Tu perfil no tiene suficientes skills para rellenar el «Sobre mí». Hacen "
     f"falta {N_GRUPO_SOBRE_MI} por grupo. El texto se queda con sus huecos a la "
     "vista hasta que añadas más."
 )
