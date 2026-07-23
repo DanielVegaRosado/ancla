@@ -13,7 +13,7 @@ import json
 
 from cv_adaptativo.ia.cliente import ErrorIA
 from cv_adaptativo.perfil.importador import analizar_cv
-from cv_adaptativo.perfil.modelo import Bilingue, IdiomaHablado, Perfil, Skill
+from cv_adaptativo.perfil.modelo import Bilingue, Experiencia, IdiomaHablado, Perfil, Skill
 
 
 class ClienteFalso:
@@ -77,14 +77,18 @@ def test_nada_se_guarda_aqui():
 
 
 def test_los_ids_de_las_candidatas_no_chocan_con_el_perfil():
-    perfil = Perfil(skills=[Skill(id="python", nombre=Bilingue(es="Python", en="Python"))])
-    cliente = ClienteFalso(_respuesta())
-    resultado = analizar_cv(cliente, "texto", perfil)
-    assert resultado.skills[0].id != "python"
-    assert resultado.skills[0].id.startswith("python")
+    """"C++" y "C#" son skills distintas (no se deduplican por nombre), pero
+    slugifican al mismo id "c" — no deberían pisarse el fichero el uno al otro."""
+    perfil = Perfil(skills=[Skill(id="c", nombre=Bilingue(es="C++", en="C++"))])
+    respuesta = _respuesta(
+        skills=[{"nombre": {"es": "C#", "en": "C#"}, "categoria": "", "keywords": []}]
+    )
+    resultado = analizar_cv(ClienteFalso(respuesta), "texto", perfil)
+    assert resultado.skills[0].id != "c"
+    assert resultado.skills[0].id.startswith("c")
 
 
-def test_dos_candidatas_del_mismo_lote_tampoco_chocan_entre_si():
+def test_dos_candidatas_del_mismo_lote_con_el_mismo_nombre_se_fusionan_en_una():
     respuesta = _respuesta(
         skills=[
             {"nombre": {"es": "Python", "en": "Python"}, "categoria": "", "keywords": []},
@@ -92,8 +96,50 @@ def test_dos_candidatas_del_mismo_lote_tampoco_chocan_entre_si():
         ]
     )
     resultado = analizar_cv(ClienteFalso(respuesta), "texto", Perfil())
-    ids = [skill.id for skill in resultado.skills]
-    assert len(ids) == len(set(ids))
+    assert len(resultado.skills) == 1
+
+
+def test_una_skill_que_ya_esta_en_el_perfil_no_se_vuelve_a_proponer():
+    """El caso real que motivó esto: importar el CV en inglés después del CV
+    en español no debe duplicar lo que el español ya guardó."""
+    perfil = Perfil(skills=[Skill(id="python", nombre=Bilingue(es="Python", en="Python"))])
+    resultado = analizar_cv(ClienteFalso(_respuesta()), "texto", perfil)
+    assert resultado.skills == []
+    assert "1 elemento(s)" in resultado.avisos[0]
+
+
+def test_una_skill_que_ya_esta_en_el_perfil_solo_en_ingles_tampoco_se_repite():
+    """El nombre puede coincidir en cualquiera de los dos idiomas — el CV que
+    se importa ahora puede estar en el idioma que le faltaba al perfil."""
+    perfil = Perfil(skills=[Skill(id="python", nombre=Bilingue(es="", en="Python"))])
+    resultado = analizar_cv(ClienteFalso(_respuesta()), "texto", perfil)
+    assert resultado.skills == []
+
+
+def test_una_experiencia_ya_en_el_perfil_no_se_repite_pero_las_skills_nuevas_si():
+    """El escenario completo de Daniel: dos CVs del mismo puesto, el segundo
+    con un par de skills nuevas. La experiencia no se duplica; lo nuevo sí entra."""
+    perfil = Perfil(
+        skills=[Skill(id="python", nombre=Bilingue(es="Python", en="Python"))],
+        experiencias=[
+            Experiencia(
+                id="ml-developer",
+                titulo=Bilingue(es="ML Developer", en="ML Developer"),
+                periodo=Bilingue(es="2026 - actualidad", en="2026 - present"),
+                bullets=Bilingue(es=["Pipeline completo"], en=["Full pipeline"]),
+                stack=Bilingue(es="Python, Optuna", en="Python, Optuna"),
+            )
+        ],
+    )
+    respuesta = _respuesta(
+        skills=[
+            {"nombre": {"es": "Python", "en": "Python"}, "categoria": "", "keywords": []},
+            {"nombre": {"es": "Docker", "en": "Docker"}, "categoria": "", "keywords": []},
+        ]
+    )
+    resultado = analizar_cv(ClienteFalso(respuesta), "texto", perfil)
+    assert resultado.experiencias == []
+    assert [s.nombre["es"] for s in resultado.skills] == ["Docker"]
 
 
 def test_sin_clave_no_llama_y_lo_dice():
@@ -248,7 +294,10 @@ def test_el_id_de_una_skill_personal_no_choca_con_una_tecnica_del_perfil():
     assert len(resultado.skills_personales) == 1
 
 
-def test_el_id_de_un_idioma_no_choca_con_otro_ya_en_el_perfil():
+def test_un_idioma_que_ya_esta_en_el_perfil_no_se_vuelve_a_proponer():
+    """Aunque el nivel detectado sea distinto (B2 en el perfil, C1 en el CV
+    nuevo): el dedup es por nombre, no por nivel — actualizar el nivel es
+    cosa de editar el idioma a mano, no de que se cuele un duplicado."""
     perfil = Perfil(
         idiomas=[
             IdiomaHablado(
@@ -268,7 +317,7 @@ def test_el_id_de_un_idioma_no_choca_con_otro_ya_en_el_perfil():
         ]
     )
     resultado = analizar_cv(ClienteFalso(respuesta), "texto", perfil)
-    assert resultado.idiomas[0].id != "ingles"
+    assert resultado.idiomas == []
 
 
 def test_sin_skills_personales_ni_idiomas_en_la_respuesta_no_revienta():

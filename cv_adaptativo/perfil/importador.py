@@ -23,6 +23,17 @@ romper la pantalla de subida.
 propio prompt (regla 7 y 8), no un filtro posterior — así "Trabajo en equipo"
 nunca puede colarse entre tus skills técnicas por error de clasificación.
 
+**No repite lo que ya está en el perfil** (decisión de producto, 2026-07-23):
+importar un segundo CV —p. ej. la versión en inglés de uno ya importado en
+español— no debe duplicar cada experiencia y skill que ya se guardó la
+primera vez, solo lo nuevo. Esto NO se le pide al modelo por prompt: se
+compara cada candidata contra `perfil` después de la respuesta
+(`normalizar()`, insensible a mayúsculas/acentos, igual que el resto del
+proyecto compara nombres) y se descarta la que ya exista con ese nombre en
+español o en inglés. Es la misma filosofía que los ids del motor de
+selección — garantía por código, no por instrucción al modelo, porque un
+prompt se puede ignorar y un filtro posterior no.
+
 **Traduce cuando falta un idioma** (decisión de producto, 2026-07-22): si el
 CV está solo en español, el modelo propone también la versión en inglés, y al
 revés. Es la única excepción consciente a "nunca reescribir al usuario" —
@@ -38,7 +49,7 @@ from dataclasses import dataclass, field
 
 from cv_adaptativo.ia.cliente import ClienteIA
 from cv_adaptativo.perfil.modelo import Bilingue, Experiencia, IdiomaHablado, Perfil, Skill
-from cv_adaptativo.texto import a_texto, a_textos, bloque_json, slugificar
+from cv_adaptativo.texto import a_texto, a_textos, bloque_json, normalizar, slugificar
 
 # El nivel gratuito de Groq limita a 8000 tokens por minuto (comprobado con
 # la API real). Ese presupuesto tiene que cubrir el prompt del sistema
@@ -150,31 +161,39 @@ def analizar_cv(cliente: ClienteIA, texto_cv: str, perfil: Perfil) -> ResultadoI
         | {i.id for i in perfil.idiomas}
     )
 
-    experiencias = [
-        exp
-        for bruto_exp in _lista(datos.get("experiencias"))
-        if (exp := _a_experiencia(_diccionario(bruto_exp), ids_usados)) is not None
-    ]
-    skills = [
-        skill
-        for bruto_skill in _lista(datos.get("skills"))
-        if (skill := _a_skill(_diccionario(bruto_skill), ids_usados)) is not None
-    ]
-    skills_personales = [
-        skill
-        for bruto_skill in _lista(datos.get("skills_personales"))
-        if (skill := _a_skill(_diccionario(bruto_skill), ids_usados)) is not None
-    ]
-    idiomas = [
-        idioma
-        for bruto_idioma in _lista(datos.get("idiomas"))
-        if (idioma := _a_idioma(_diccionario(bruto_idioma), ids_usados)) is not None
-    ]
+    experiencias, duplicadas_exp = _candidatas(
+        datos.get("experiencias"), _a_experiencia, ids_usados,
+        "titulo", _nombres_bilingues(perfil.experiencias, "titulo"),
+    )
+    skills, duplicadas_skills = _candidatas(
+        datos.get("skills"), _a_skill, ids_usados,
+        "nombre", _nombres_bilingues(perfil.skills, "nombre"),
+    )
+    skills_personales, duplicadas_sp = _candidatas(
+        datos.get("skills_personales"), _a_skill, ids_usados,
+        "nombre", _nombres_bilingues(perfil.skills_personales, "nombre"),
+    )
+    idiomas, duplicadas_idiomas = _candidatas(
+        datos.get("idiomas"), _a_idioma, ids_usados,
+        "nombre", _nombres_bilingues(perfil.idiomas, "nombre"),
+    )
+    duplicadas = duplicadas_exp + duplicadas_skills + duplicadas_sp + duplicadas_idiomas
 
     avisos = []
     if not any((experiencias, skills, skills_personales, idiomas)):
+        if duplicadas:
+            avisos.append(
+                "No hay nada nuevo que añadir: todo lo que se ha reconocido en este "
+                "CV ya está en tu perfil."
+            )
+        else:
+            avisos.append(
+                "No se ha encontrado ninguna experiencia ni skill reconocible en el texto."
+            )
+    elif duplicadas:
         avisos.append(
-            "No se ha encontrado ninguna experiencia ni skill reconocible en el texto."
+            f"Se ha omitido {duplicadas} elemento(s) que ya estaban en tu perfil "
+            "(mismo nombre en español o en inglés) para no duplicarlos."
         )
     return ResultadoImportacion(
         experiencias=experiencias,
@@ -199,6 +218,44 @@ def _extraer_json(bruto: str) -> dict | None:
     except json.JSONDecodeError:
         return None
     return datos if isinstance(datos, dict) else None
+
+
+def _nombres_bilingues(items: list, atributo: str) -> set[str]:
+    """Los nombres ES/EN ya presentes en el perfil para esta categoría,
+    normalizados para comparar sin depender de mayúsculas, acentos o de en
+    qué idioma coincida. `atributo` es "titulo" para experiencias, "nombre"
+    para skills e idiomas — el resto del modelo comparte esa forma."""
+    normalizados: set[str] = set()
+    for item in items:
+        bilingue = getattr(item, atributo)
+        for valor in (bilingue["es"], bilingue["en"]):
+            if valor:
+                normalizados.add(normalizar(valor))
+    return normalizados
+
+
+def _candidatas(bruto_lista: object, parser, ids_usados: set[str], atributo: str, existentes: set[str]):
+    """Parsea una lista de la respuesta del modelo y descarta lo que ya está
+    en el perfil (por nombre, no por id — el modelo no conoce los ids del
+    perfil). También descarta duplicados dentro del propio lote: si el
+    modelo repite el mismo nombre dos veces en una respuesta, la regla 9 del
+    prompt se lo pide pero esto lo garantiza aunque no la siga. Devuelve
+    `(candidatas, número_de_duplicadas)`."""
+    existentes = set(existentes)  # copia: no tocar el set del perfil del llamante
+    candidatas = []
+    duplicadas = 0
+    for bruto in _lista(bruto_lista):
+        candidata = parser(_diccionario(bruto), ids_usados)
+        if candidata is None:
+            continue
+        bilingue = getattr(candidata, atributo)
+        es, en = normalizar(bilingue["es"]), normalizar(bilingue["en"])
+        if (es and es in existentes) or (en and en in existentes):
+            duplicadas += 1
+            continue
+        candidatas.append(candidata)
+        existentes.update(nombre for nombre in (es, en) if nombre)
+    return candidatas, duplicadas
 
 
 def _a_experiencia(datos: dict, ids_usados: set[str]) -> Experiencia | None:
