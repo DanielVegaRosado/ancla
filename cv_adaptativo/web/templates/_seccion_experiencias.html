@@ -1,0 +1,42 @@
+<section class="tarjeta panel-perfil" id="experiencias" data-panel-arrastrable data-clave="experiencias">
+  <div class="fila-tarjeta">
+    <div class="titulo-panel">
+      <span class="manija-arrastrar" title="Arrastrar para reordenar" aria-hidden="true">⠿</span>
+      <div>
+        <h2>Experiencia ({{ perfil.experiencias|length }})</h2>
+        <p class="ayuda">Proyectos y puestos disponibles para elegir en cada adaptación.</p>
+      </div>
+    </div>
+    <div class="acciones">
+      <a class="boton boton-primario" href="{{ url_for('cv_adaptativo.nueva_experiencia') }}">Añadir experiencia</a>
+      {% if perfil.experiencias %}
+        <form class="en-linea" method="post" action="{{ url_for('cv_adaptativo.borrar_todas_experiencias') }}" data-confirmar="¿Borrar TODAS las {{ perfil.experiencias|length }} experiencias? Esta acción no se puede deshacer.">
+          <button type="submit" class="boton boton-pequeno boton-peligro">Borrar todas</button>
+        </form>
+      {% endif %}
+    </div>
+  </div>
+
+  {% if perfil.experiencias %}
+    <div class="lista-tarjetas">
+      {% for experiencia in perfil.experiencias %}
+        <div class="tarjeta">
+          <div class="fila-tarjeta">
+            <div>
+              <h3>{{ experiencia.titulo["es"] }}</h3>
+              <p class="ayuda">{{ experiencia.periodo["es"] }} · {{ experiencia.bullets["es"]|length }} bullets · id: {{ experiencia.id }}</p>
+            </div>
+            <div class="acciones">
+              <a class="boton boton-pequeno" href="{{ url_for('cv_adaptativo.editar_experiencia', id_=experiencia.id) }}">Editar</a>
+              <form class="en-linea" method="post" action="{{ url_for('cv_adaptativo.borrar_experiencia', id_=experiencia.id) }}" data-confirmar="¿Borrar «{{ experiencia.titulo['es'] }}»? Esta acción no se puede deshacer.">
+                <button type="submit" class="boton-pequeno boton-peligro">Borrar</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p class="vacio">Todavía no has añadido ninguna experiencia.</p>
+  {% endif %}
+</section>

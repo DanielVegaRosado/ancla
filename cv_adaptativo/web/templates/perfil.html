@@ -1,9 +1,9 @@
 {% extends "base.html" %}
-{% block titulo %}Mi perfil — CV Adaptativo{% endblock %}
+{% block titulo %}Mi perfil · CV Adaptativo{% endblock %}
 {% block contenido %}
   <h1>Mi perfil</h1>
   <p class="ayuda">
-    Tu base de hechos verificados. El motor de selección elige de aquí para cada vacante;
+    Tu base de hechos verificados. El motor de selección elige de aquí para cada vacante,
     nunca inventa nada que no esté aquí.
     {% if perfil.esta_vacio() %}
       <a href="{{ url_for('cv_adaptativo.importar') }}">¿Ya tienes un CV? Impórtalo</a>
@@ -54,169 +54,20 @@
     {% endif %}
   </section>
 
-  <section class="tarjeta" id="experiencias">
-    <div class="fila-tarjeta">
-      <div>
-        <h2>Experiencia ({{ perfil.experiencias|length }})</h2>
-        <p class="ayuda">Proyectos y puestos disponibles para elegir en cada adaptación.</p>
-      </div>
-      <div class="acciones">
-        <a class="boton boton-primario" href="{{ url_for('cv_adaptativo.nueva_experiencia') }}">Añadir experiencia</a>
-        {% if perfil.experiencias %}
-          <form class="en-linea" method="post" action="{{ url_for('cv_adaptativo.borrar_todas_experiencias') }}" data-confirmar="¿Borrar TODAS las {{ perfil.experiencias|length }} experiencias? Esta acción no se puede deshacer.">
-            <button type="submit" class="boton boton-pequeno boton-peligro">Borrar todas</button>
-          </form>
-        {% endif %}
-      </div>
-    </div>
+  <p class="ayuda">
+    Arrastra el asa <span aria-hidden="true">⠿</span> de cada panel para cambiar el orden en
+    el que se ven aquí abajo. Se recuerda para la próxima vez.
+  </p>
 
-    {% if perfil.experiencias %}
-      <div class="lista-tarjetas">
-        {% for experiencia in perfil.experiencias %}
-          <div class="tarjeta">
-            <div class="fila-tarjeta">
-              <div>
-                <h3>{{ experiencia.titulo["es"] }}</h3>
-                <p class="ayuda">{{ experiencia.periodo["es"] }} · {{ experiencia.bullets["es"]|length }} bullets · id: {{ experiencia.id }}</p>
-              </div>
-              <div class="acciones">
-                <a class="boton boton-pequeno" href="{{ url_for('cv_adaptativo.editar_experiencia', id_=experiencia.id) }}">Editar</a>
-                <form class="en-linea" method="post" action="{{ url_for('cv_adaptativo.borrar_experiencia', id_=experiencia.id) }}" data-confirmar="¿Borrar «{{ experiencia.titulo['es'] }}»? Esta acción no se puede deshacer.">
-                  <button type="submit" class="boton-pequeno boton-peligro">Borrar</button>
-                </form>
-              </div>
-            </div>
-          </div>
-        {% endfor %}
-      </div>
-    {% else %}
-      <p class="vacio">Todavía no has añadido ninguna experiencia.</p>
-    {% endif %}
-  </section>
-
-  <section class="tarjeta" id="skills">
-    <div class="fila-tarjeta">
-      <div>
-        <h2>Skills técnicas ({{ perfil.skills|length }})</h2>
-        <p class="ayuda">Tecnologías y herramientas disponibles para elegir en cada adaptación.</p>
-      </div>
-      <div class="acciones">
-        <a class="boton boton-primario" href="{{ url_for('cv_adaptativo.nueva_skill') }}">Añadir skill</a>
-        {% if perfil.skills %}
-          <form class="en-linea" method="post" action="{{ url_for('cv_adaptativo.borrar_todas_skills') }}" data-confirmar="¿Borrar TODAS las {{ perfil.skills|length }} skills técnicas? Esta acción no se puede deshacer.">
-            <button type="submit" class="boton boton-pequeno boton-peligro">Borrar todas</button>
-          </form>
-        {% endif %}
-      </div>
-    </div>
-
-    {% if perfil.skills %}
-      <div class="lista-tarjetas">
-        {% for skill in perfil.skills %}
-          <div class="tarjeta">
-            <div class="fila-tarjeta">
-              <div>
-                <h3>{{ skill.nombre["es"] }}</h3>
-                <p class="ayuda">{{ skill.categoria or "sin categoría" }} · id: {{ skill.id }}</p>
-              </div>
-              <div class="acciones">
-                <a class="boton boton-pequeno" href="{{ url_for('cv_adaptativo.editar_skill', id_=skill.id) }}">Editar</a>
-                <form class="en-linea" method="post" action="{{ url_for('cv_adaptativo.borrar_skill', id_=skill.id) }}" data-confirmar="¿Borrar «{{ skill.nombre['es'] }}»? Esta acción no se puede deshacer.">
-                  <button type="submit" class="boton-pequeno boton-peligro">Borrar</button>
-                </form>
-              </div>
-            </div>
-          </div>
-        {% endfor %}
-      </div>
-    {% else %}
-      <p class="vacio">Todavía no has añadido ninguna skill.</p>
-    {% endif %}
-  </section>
-
-  <section class="tarjeta" id="skills-personales">
-    <div class="fila-tarjeta">
-      <div>
-        <h2>Skills personales ({{ perfil.skills_personales|length }})</h2>
-        <p class="ayuda">
-          Se muestran siempre completas en la Propuesta, sin selección de IA — nunca
-          pueden aparecer en «Sobre mí» ni entre las skills técnicas.
-        </p>
-      </div>
-      <div class="acciones">
-        <a class="boton boton-primario" href="{{ url_for('cv_adaptativo.nueva_skill_personal') }}">Añadir skill personal</a>
-        {% if perfil.skills_personales %}
-          <form class="en-linea" method="post" action="{{ url_for('cv_adaptativo.borrar_todas_skills_personales') }}" data-confirmar="¿Borrar TODAS las {{ perfil.skills_personales|length }} skills personales? Esta acción no se puede deshacer.">
-            <button type="submit" class="boton boton-pequeno boton-peligro">Borrar todas</button>
-          </form>
-        {% endif %}
-      </div>
-    </div>
-
-    {% if perfil.skills_personales %}
-      <div class="lista-tarjetas">
-        {% for skill in perfil.skills_personales %}
-          <div class="tarjeta">
-            <div class="fila-tarjeta">
-              <div>
-                <h3>{{ skill.nombre["es"] }}</h3>
-                <p class="ayuda">id: {{ skill.id }}</p>
-              </div>
-              <div class="acciones">
-                <a class="boton boton-pequeno" href="{{ url_for('cv_adaptativo.editar_skill_personal', id_=skill.id) }}">Editar</a>
-                <form class="en-linea" method="post" action="{{ url_for('cv_adaptativo.borrar_skill_personal', id_=skill.id) }}" data-confirmar="¿Borrar «{{ skill.nombre['es'] }}»? Esta acción no se puede deshacer.">
-                  <button type="submit" class="boton-pequeno boton-peligro">Borrar</button>
-                </form>
-              </div>
-            </div>
-          </div>
-        {% endfor %}
-      </div>
-    {% else %}
-      <p class="vacio">Todavía no has añadido ninguna skill personal.</p>
-    {% endif %}
-  </section>
-
-  <section class="tarjeta" id="idiomas">
-    <div class="fila-tarjeta">
-      <div>
-        <h2>Idiomas ({{ perfil.idiomas|length }})</h2>
-        <p class="ayuda">
-          Se muestran siempre completos en la Propuesta, sin selección de IA — nunca
-          pueden aparecer en «Sobre mí» ni entre las skills técnicas.
-        </p>
-      </div>
-      <div class="acciones">
-        <a class="boton boton-primario" href="{{ url_for('cv_adaptativo.nuevo_idioma') }}">Añadir idioma</a>
-        {% if perfil.idiomas %}
-          <form class="en-linea" method="post" action="{{ url_for('cv_adaptativo.borrar_todos_idiomas') }}" data-confirmar="¿Borrar TODOS los {{ perfil.idiomas|length }} idiomas? Esta acción no se puede deshacer.">
-            <button type="submit" class="boton boton-pequeno boton-peligro">Borrar todos</button>
-          </form>
-        {% endif %}
-      </div>
-    </div>
-
-    {% if perfil.idiomas %}
-      <div class="lista-tarjetas">
-        {% for idioma in perfil.idiomas %}
-          <div class="tarjeta">
-            <div class="fila-tarjeta">
-              <div>
-                <h3>{{ idioma.nombre["es"] }}</h3>
-                <p class="ayuda">{{ idioma.nivel["es"] }} · id: {{ idioma.id }}</p>
-              </div>
-              <div class="acciones">
-                <a class="boton boton-pequeno" href="{{ url_for('cv_adaptativo.editar_idioma', id_=idioma.id) }}">Editar</a>
-                <form class="en-linea" method="post" action="{{ url_for('cv_adaptativo.borrar_idioma', id_=idioma.id) }}" data-confirmar="¿Borrar «{{ idioma.nombre['es'] }}»? Esta acción no se puede deshacer.">
-                  <button type="submit" class="boton-pequeno boton-peligro">Borrar</button>
-                </form>
-              </div>
-            </div>
-          </div>
-        {% endfor %}
-      </div>
-    {% else %}
-      <p class="vacio">Todavía no has añadido ningún idioma.</p>
-    {% endif %}
-  </section>
+  <div data-paneles-perfil>
+    {% set plantillas_panel = {
+      "experiencias": "_seccion_experiencias.html",
+      "skills": "_seccion_skills.html",
+      "skills_personales": "_seccion_skills_personales.html",
+      "idiomas": "_seccion_idiomas.html",
+    } %}
+    {% for clave in orden_perfil %}
+      {% include plantillas_panel[clave] %}
+    {% endfor %}
+  </div>
 {% endblock %}

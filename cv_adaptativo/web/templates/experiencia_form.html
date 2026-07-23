@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block titulo %}{{ "Nueva experiencia" if nueva else "Editar experiencia" }} — CV Adaptativo{% endblock %}
+{% block titulo %}{{ "Nueva experiencia" if nueva else "Editar experiencia" }} · CV Adaptativo{% endblock %}
 {% block contenido %}
   <h1>{{ "Nueva experiencia" if nueva else "Editar experiencia" }}</h1>
 
@@ -38,18 +38,18 @@
     <div class="dos-columnas">
       <div class="campo">
         <label for="periodo_es">Periodo (ES)</label>
-        <input type="text" id="periodo_es" name="periodo_es" placeholder="2023 — 2024" required
+        <input type="text" id="periodo_es" name="periodo_es" placeholder="2023-2024" required
                value="{{ experiencia.periodo['es'] if experiencia else '' }}">
       </div>
       <div class="campo">
         <label for="periodo_en">Periodo (EN)</label>
-        <input type="text" id="periodo_en" name="periodo_en" placeholder="2023 — 2024" required
+        <input type="text" id="periodo_en" name="periodo_en" placeholder="2023-2024" required
                value="{{ experiencia.periodo['en'] if experiencia else '' }}">
       </div>
     </div>
 
     <div class="campo">
-      <label for="bullets_es">Bullets (ES) — uno por línea, tal cual quieres que aparezcan</label>
+      <label for="bullets_es">Bullets (ES): uno por línea, tal cual quieres que aparezcan</label>
       <textarea id="bullets_es" name="bullets_es" class="alta">{{ experiencia.bullets['es']|lista_a_lineas if experiencia else '' }}</textarea>
     </div>
     <div class="campo">

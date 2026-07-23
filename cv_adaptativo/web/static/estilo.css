@@ -1,3 +1,28 @@
+/* IBM Plex Sans, alojada en local (ver fuentes/LICENSE.txt) — nunca un
+   enlace a un CDN de fuentes: cada visita pediría algo a un servidor externo,
+   justo lo que este proyecto promete que no hace. */
+@font-face {
+  font-family: "IBM Plex Sans";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("fuentes/ibm-plex-sans-400.woff2") format("woff2");
+}
+@font-face {
+  font-family: "IBM Plex Sans";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("fuentes/ibm-plex-sans-600.woff2") format("woff2");
+}
+@font-face {
+  font-family: "IBM Plex Sans";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("fuentes/ibm-plex-sans-700.woff2") format("woff2");
+}
+
 :root {
   --texto: #191f28;
   --texto-suave: #57606a;
@@ -20,7 +45,7 @@
 
 body {
   margin: 0;
-  font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-family: "IBM Plex Sans", -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   color: var(--texto);
   background: var(--fondo-suave);
   line-height: 1.5;
@@ -32,7 +57,15 @@ body {
   padding: 0 1.25rem;
 }
 
-a { color: var(--acento-fuerte); }
+a {
+  color: var(--acento-fuerte);
+  font-weight: 600;
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.15s ease;
+}
+
+a:hover { border-bottom-color: var(--acento-fuerte); }
 
 h1, h2, h3 { line-height: 1.25; letter-spacing: -0.01em; }
 h1 { font-size: 1.65rem; font-weight: 700; margin: 1.25rem 0 0.5rem; }
@@ -61,17 +94,18 @@ section[id] { scroll-margin-top: 4.5rem; }
 .cabecera .ancho {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   flex-wrap: wrap;
   padding-top: 0.85rem;
   padding-bottom: 0.85rem;
-  gap: 0.5rem;
+  gap: 1.5rem;
 }
 
 .marca {
   font-weight: 700;
   letter-spacing: -0.015em;
   text-decoration: none;
+  border-bottom: none;
   color: var(--texto);
 }
 
@@ -83,6 +117,7 @@ section[id] { scroll-margin-top: 4.5rem; }
 
 .nav a {
   text-decoration: none;
+  border-bottom: none;
   color: var(--texto-suave);
   padding: 0.4rem 0.7rem;
   border-radius: 999px;
@@ -148,17 +183,27 @@ section[id] { scroll-margin-top: 4.5rem; }
 }
 
 .bento-tarjeta {
+  display: block;
+  width: 100%;
   background: var(--fondo);
   border: 1px solid var(--borde);
   border-radius: var(--radio-tarjeta);
   box-shadow: var(--sombra);
   padding: 0.9rem 1rem;
+  font: inherit;
+  text-align: left;
   text-decoration: none;
   color: inherit;
-  transition: box-shadow 0.15s ease, transform 0.15s ease;
+  cursor: pointer;
+  transition: box-shadow 0.15s ease, transform 0.15s ease, border-color 0.15s ease;
 }
 
-a.bento-tarjeta:hover { box-shadow: var(--sombra-alta); transform: translateY(-1px); }
+.bento-tarjeta:hover { box-shadow: var(--sombra-alta); transform: translateY(-1px); }
+
+/* Cuando el panel de cifras hace también de filtro (Mis CVs): la tarjeta
+   del filtro activo se marca con el borde de acento, no solo con la sombra
+   del hover, para que se distinga incluso sin pasar el ratón por encima. */
+.bento-tarjeta-activa { border-color: var(--acento); }
 
 .bento-cifra {
   display: block;
@@ -187,6 +232,36 @@ a.bento-tarjeta:hover { box-shadow: var(--sombra-alta); transform: translateY(-1
   display: flex;
   gap: 0.5rem;
   flex-shrink: 0;
+}
+
+/* Paneles arrastrables de Mi perfil */
+
+.titulo-panel {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+}
+
+.manija-arrastrar {
+  cursor: grab;
+  color: var(--texto-suave);
+  font-size: 1.1rem;
+  line-height: 1.6;
+  user-select: none;
+  touch-action: none;
+}
+
+.manija-arrastrar:hover { color: var(--texto); }
+
+.panel-perfil {
+  transition: box-shadow 0.15s ease, transform 0.15s ease, opacity 0.15s ease;
+}
+
+.panel-perfil-arrastrando { opacity: 0.4; }
+
+.panel-perfil-destino {
+  border-color: var(--acento);
+  box-shadow: var(--sombra-alta);
 }
 
 /* Formularios */
@@ -263,7 +338,7 @@ input:focus, select:focus, textarea:focus {
   transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.1s ease, box-shadow 0.15s ease;
 }
 
-.boton:hover, button:hover { background: var(--fondo-suave); }
+.boton:hover, button:hover { background: var(--fondo-suave); border-color: var(--borde); }
 
 .boton-primario, button.boton-primario {
   background: var(--acento);

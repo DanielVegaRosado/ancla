@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block titulo %}Adaptar — CV Adaptativo{% endblock %}
+{% block titulo %}Adaptar · CV Adaptativo{% endblock %}
 {% block contenido %}
   <h1>Adaptar un CV a una vacante</h1>
   <p class="ayuda">
@@ -31,7 +31,7 @@
           {% for cv in previos %}
             <li>
               <a href="{{ url_for('cv_adaptativo.ver_cv', id_=cv.id) }}">
-                {{ cv.puesto or "sin puesto indicado" }} — {{ cv.fecha }}
+                {{ cv.puesto or "sin puesto indicado" }} · {{ cv.fecha }}
               </a>
               <span class="insignia insignia-{{ cv.estado.value }}">{{ etiquetas_estado[cv.estado] }}</span>
             </li>

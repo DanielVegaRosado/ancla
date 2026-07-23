@@ -1,25 +1,29 @@
 {% extends "base.html" %}
-{% block titulo %}Mis CVs — CV Adaptativo{% endblock %}
+{% block titulo %}Mis CVs · CV Adaptativo{% endblock %}
 {% block contenido %}
   <h1>Mis CVs</h1>
   <p class="ayuda">El archivo de todas las adaptaciones que has guardado.</p>
 
   {% if cvs %}
-    <div class="bento">
-      {% for etiqueta, cantidad in resumen_estados %}
-        <div class="bento-tarjeta">
-          <span class="bento-cifra">{{ cantidad }}</span>
-          <span class="bento-etiqueta">{{ etiqueta }}</span>
-        </div>
+    <div class="bento" data-filtro-cvs>
+      {% for fila in resumen_estados %}
+        <button
+          type="button"
+          class="bento-tarjeta{{ ' bento-tarjeta-activa' if fila.filtro == 'todos' else '' }}"
+          data-filtro="{{ fila.filtro }}"
+        >
+          <span class="bento-cifra">{{ fila.cantidad }}</span>
+          <span class="bento-etiqueta">{{ fila.etiqueta }}</span>
+        </button>
       {% endfor %}
     </div>
 
-    <div class="lista-tarjetas">
+    <div class="lista-tarjetas" data-lista-cvs>
       {% for cv in cvs %}
-        <div class="tarjeta">
+        <div class="tarjeta" data-estado="{{ cv.estado.value }}">
           <div class="fila-tarjeta">
             <div>
-              <h3><a href="{{ url_for('cv_adaptativo.ver_cv', id_=cv.id) }}">{{ cv.empresa }}{% if cv.puesto %} — {{ cv.puesto }}{% endif %}</a></h3>
+              <h3><a href="{{ url_for('cv_adaptativo.ver_cv', id_=cv.id) }}">{{ cv.empresa }}{% if cv.puesto %} · {{ cv.puesto }}{% endif %}</a></h3>
               <p class="ayuda">
                 {{ cv.fecha }}{% if cv.hora %} · {{ cv.hora.strftime('%H:%M') }}{% endif %}
                 · {{ "Español" if cv.propuesta.idioma == "es" else "Inglés" }}
@@ -30,6 +34,7 @@
         </div>
       {% endfor %}
     </div>
+    <p class="ayuda vacio" data-sin-resultados hidden>Ningún CV con ese estado todavía.</p>
   {% else %}
     <p class="vacio">Todavía no has guardado ningún CV. Empieza en <a href="{{ url_for('cv_adaptativo.adaptar') }}">Adaptar</a>.</p>
   {% endif %}

@@ -19,7 +19,21 @@ def portada():
 
 @bp.route("/perfil")
 def ver_perfil():
-    return render_template("perfil.html", perfil=contexto.perfil_actual())
+    ajustes = modulo_ajustes.cargar_ajustes(contexto.ruta_ajustes())
+    return render_template("perfil.html", perfil=contexto.perfil_actual(), orden_perfil=ajustes.orden_perfil)
+
+
+@bp.route("/perfil/orden", methods=["POST"])
+def guardar_orden_perfil():
+    """El usuario arrastra los paneles de Mi perfil a su gusto; esto solo
+    persiste ese orden. Devuelve 200 siempre que la petición sea legible: un
+    orden inválido no es un fallo del usuario que haya que explicarle, se
+    resuelve solo cayendo al orden por defecto (`orden_perfil_valido`)."""
+    datos = request.get_json(silent=True) or {}
+    ajustes = modulo_ajustes.cargar_ajustes(contexto.ruta_ajustes())
+    ajustes.orden_perfil = modulo_ajustes.orden_perfil_valido(datos.get("orden"))
+    modulo_ajustes.guardar_ajustes(ajustes, contexto.ruta_ajustes())
+    return jsonify({"ok": True})
 
 
 def _experiencia_desde_formulario(id_: str) -> Experiencia:

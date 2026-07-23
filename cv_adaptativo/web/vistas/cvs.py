@@ -16,9 +16,17 @@ from cv_adaptativo.web.presentacion import ETIQUETAS_ESTADO
 
 @bp.route("/cvs")
 def listar_cvs():
+    """El resumen por estado sirve de filtro: cada tarjeta lleva el valor por
+    el que filtrar (`filtro`), y "Total" (`filtro="todos"`) lo quita. El
+    filtrado en sí es JS del lado del cliente (`app.js`) sobre `data-estado`
+    en cada tarjeta — no hace falta ida y vuelta al servidor para algo tan
+    simple, y sin JS se ven todos los CVs igualmente."""
     cvs = archivo.listar(contexto.raiz())
     conteo = Counter(cv.estado for cv in cvs)
-    resumen_estados = [(ETIQUETAS_ESTADO[estado], conteo[estado]) for estado in EstadoCV]
+    resumen_estados = [{"etiqueta": "Total", "cantidad": len(cvs), "filtro": "todos"}] + [
+        {"etiqueta": ETIQUETAS_ESTADO[estado], "cantidad": conteo[estado], "filtro": estado.value}
+        for estado in EstadoCV
+    ]
     return render_template("cvs.html", cvs=cvs, resumen_estados=resumen_estados)
 
 

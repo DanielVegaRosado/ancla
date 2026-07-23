@@ -18,9 +18,11 @@ def ver_ajustes():
             url_conseguir_clave=URL_CONSEGUIR_CLAVE,
         )
 
+    actuales = modulo_ajustes.cargar_ajustes(contexto.ruta_ajustes())
     nuevos = modulo_ajustes.Ajustes(
         proveedor=request.form.get("proveedor", modulo_ajustes.PROVEEDOR_POR_DEFECTO),
         clave_api=request.form.get("clave_api", "").strip(),
+        orden_perfil=actuales.orden_perfil,
     )
     modulo_ajustes.guardar_ajustes(nuevos, contexto.ruta_ajustes())
 
@@ -34,7 +36,7 @@ def ver_ajustes():
         flash(
             "Esa clave no empieza por «gsk_», que es el formato de Groq. Si la "
             "conseguiste en console.x.ai en vez de console.groq.com, es de Grok "
-            "(xAI) y no funcionará aquí — son proveedores distintos."
+            "(xAI) y no funcionará aquí: son proveedores distintos."
         )
     flash("Ajustes guardados.")
     return redirect(url_for("cv_adaptativo.ver_ajustes"))

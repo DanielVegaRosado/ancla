@@ -1,0 +1,45 @@
+<section class="tarjeta panel-perfil" id="skills-personales" data-panel-arrastrable data-clave="skills_personales">
+  <div class="fila-tarjeta">
+    <div class="titulo-panel">
+      <span class="manija-arrastrar" title="Arrastrar para reordenar" aria-hidden="true">⠿</span>
+      <div>
+        <h2>Skills personales ({{ perfil.skills_personales|length }})</h2>
+        <p class="ayuda">
+          Se muestran siempre completas en la Propuesta, sin selección de IA. Nunca aparecen
+          en «Sobre mí» ni entre las skills técnicas.
+        </p>
+      </div>
+    </div>
+    <div class="acciones">
+      <a class="boton boton-primario" href="{{ url_for('cv_adaptativo.nueva_skill_personal') }}">Añadir skill personal</a>
+      {% if perfil.skills_personales %}
+        <form class="en-linea" method="post" action="{{ url_for('cv_adaptativo.borrar_todas_skills_personales') }}" data-confirmar="¿Borrar TODAS las {{ perfil.skills_personales|length }} skills personales? Esta acción no se puede deshacer.">
+          <button type="submit" class="boton boton-pequeno boton-peligro">Borrar todas</button>
+        </form>
+      {% endif %}
+    </div>
+  </div>
+
+  {% if perfil.skills_personales %}
+    <div class="lista-tarjetas">
+      {% for skill in perfil.skills_personales %}
+        <div class="tarjeta">
+          <div class="fila-tarjeta">
+            <div>
+              <h3>{{ skill.nombre["es"] }}</h3>
+              <p class="ayuda">id: {{ skill.id }}</p>
+            </div>
+            <div class="acciones">
+              <a class="boton boton-pequeno" href="{{ url_for('cv_adaptativo.editar_skill_personal', id_=skill.id) }}">Editar</a>
+              <form class="en-linea" method="post" action="{{ url_for('cv_adaptativo.borrar_skill_personal', id_=skill.id) }}" data-confirmar="¿Borrar «{{ skill.nombre['es'] }}»? Esta acción no se puede deshacer.">
+                <button type="submit" class="boton-pequeno boton-peligro">Borrar</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p class="vacio">Todavía no has añadido ninguna skill personal.</p>
+  {% endif %}
+</section>

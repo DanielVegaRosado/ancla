@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block titulo %}{{ "Nuevo idioma" if nuevo else "Editar idioma" }} — CV Adaptativo{% endblock %}
+{% block titulo %}{{ "Nuevo idioma" if nuevo else "Editar idioma" }} · CV Adaptativo{% endblock %}
 {% block contenido %}
   <h1>{{ "Nuevo idioma" if nuevo else "Editar idioma" }}</h1>
   <p class="ayuda">
@@ -44,13 +44,13 @@
     <div class="campo">
       <label for="nivel_es">Nivel (ES)</label>
       <input type="text" id="nivel_es" name="nivel_es" required
-             placeholder="C1 — Avanzado" value="{{ idioma.nivel['es'] if idioma else '' }}">
+             placeholder="C1 · Avanzado" value="{{ idioma.nivel['es'] if idioma else '' }}">
     </div>
 
     <div class="campo">
       <label for="nivel_en">Nivel (EN)</label>
       <input type="text" id="nivel_en" name="nivel_en" required
-             placeholder="C1 — Advanced" value="{{ idioma.nivel['en'] if idioma else '' }}">
+             placeholder="C1 · Advanced" value="{{ idioma.nivel['en'] if idioma else '' }}">
     </div>
 
     <div class="campo">

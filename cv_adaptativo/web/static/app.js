@@ -89,6 +89,91 @@ document.addEventListener("click", async (evento) => {
   }
 });
 
+// Mi perfil: arrastrar los paneles (Experiencia, Skills...) para cambiar el
+// orden en el que se ven. Solo se puede arrastrar agarrando el asa "⠿" —no
+// la tarjeta entera— para no interferir con los clics en sus botones. El
+// orden nuevo se guarda en el servidor al soltar; si la petición falla, el
+// panel ya se movió en pantalla igualmente, y se reintentará solo la
+// próxima vez que se reordene algo.
+(() => {
+  const contenedor = document.querySelector("[data-paneles-perfil]");
+  if (!contenedor) return;
+
+  let arrastrado = null;
+
+  contenedor.addEventListener("mousedown", (evento) => {
+    if (!evento.target.closest(".manija-arrastrar")) return;
+    const panel = evento.target.closest("[data-panel-arrastrable]");
+    if (panel) panel.draggable = true;
+  });
+
+  contenedor.addEventListener("dragstart", (evento) => {
+    const panel = evento.target.closest("[data-panel-arrastrable]");
+    if (!panel) return;
+    arrastrado = panel;
+    panel.classList.add("panel-perfil-arrastrando");
+    evento.dataTransfer.effectAllowed = "move";
+  });
+
+  contenedor.addEventListener("dragover", (evento) => {
+    const panel = evento.target.closest("[data-panel-arrastrable]");
+    if (!panel || panel === arrastrado) return;
+    evento.preventDefault();
+    contenedor.querySelectorAll("[data-panel-arrastrable]").forEach((p) => p.classList.remove("panel-perfil-destino"));
+    panel.classList.add("panel-perfil-destino");
+  });
+
+  contenedor.addEventListener("drop", (evento) => {
+    const destino = evento.target.closest("[data-panel-arrastrable]");
+    if (!destino || !arrastrado || destino === arrastrado) return;
+    evento.preventDefault();
+
+    const antes = evento.clientY < destino.getBoundingClientRect().top + destino.offsetHeight / 2;
+    destino.parentNode.insertBefore(arrastrado, antes ? destino : destino.nextSibling);
+
+    const orden = [...contenedor.querySelectorAll("[data-panel-arrastrable]")].map((p) => p.dataset.clave);
+    fetch("/perfil/orden", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ orden }),
+    }).catch(() => {});
+  });
+
+  contenedor.addEventListener("dragend", () => {
+    contenedor.querySelectorAll("[data-panel-arrastrable]").forEach((p) => {
+      p.draggable = false;
+      p.classList.remove("panel-perfil-arrastrando", "panel-perfil-destino");
+    });
+    arrastrado = null;
+  });
+})();
+
+// Mis CVs: el panel de cifras hace también de filtro. Se pulsa una tarjeta
+// (Enviado, Entrevista...) y la lista se filtra sin recargar la página; los
+// CVs siguen todos en el HTML, solo se ocultan los que no tocan.
+document.addEventListener("click", (evento) => {
+  const boton = evento.target.closest("[data-filtro]");
+  if (!boton) return;
+
+  const panel = boton.closest("[data-filtro-cvs]");
+  const lista = document.querySelector("[data-lista-cvs]");
+  if (!panel || !lista) return;
+
+  panel.querySelectorAll("[data-filtro]").forEach((b) => b.classList.remove("bento-tarjeta-activa"));
+  boton.classList.add("bento-tarjeta-activa");
+
+  const filtro = boton.getAttribute("data-filtro");
+  let visibles = 0;
+  lista.querySelectorAll("[data-estado]").forEach((tarjeta) => {
+    const coincide = filtro === "todos" || tarjeta.getAttribute("data-estado") === filtro;
+    tarjeta.hidden = !coincide;
+    if (coincide) visibles += 1;
+  });
+
+  const sinResultados = document.querySelector("[data-sin-resultados]");
+  if (sinResultados) sinResultados.hidden = visibles > 0;
+});
+
 // Soporte: el placeholder del mensaje cambia según sea "problema" o
 // "sugerencia", para que el hueco en blanco ya sugiera qué escribir.
 document.addEventListener("change", (evento) => {

@@ -1,9 +1,9 @@
 {% extends "base.html" %}
-{% block titulo %}Propuesta — CV Adaptativo{% endblock %}
+{% block titulo %}Propuesta · CV Adaptativo{% endblock %}
 {% block contenido %}
   <h1>Propuesta de CV</h1>
   <p class="ayuda">
-    {{ borrador.empresa or "Empresa sin identificar" }}{% if borrador.puesto %} — {{ borrador.puesto }}{% endif %}
+    {{ borrador.empresa or "Empresa sin identificar" }}{% if borrador.puesto %} · {{ borrador.puesto }}{% endif %}
     · {{ "Español" if propuesta.idioma == "es" else "Inglés" }}
   </p>
 
@@ -121,7 +121,7 @@
           {% if experiencia %}
             <textarea id="copia-experiencia-{{ loop.index0 }}" hidden>{{ texto_bloque }}</textarea>
             <div class="cabecera-bloque">
-              <h3>{{ experiencia.titulo[propuesta.idioma] }} — {{ experiencia.periodo[propuesta.idioma] }}</h3>
+              <h3>{{ experiencia.titulo[propuesta.idioma] }} · {{ experiencia.periodo[propuesta.idioma] }}</h3>
               <button type="button" class="boton boton-pequeno" data-copiar="copia-experiencia-{{ loop.index0 }}">Copiar</button>
             </div>
             <ul>
@@ -168,7 +168,7 @@
     </div>
     <textarea id="copia-skills-personales" hidden>{{ texto_skills_personales }}</textarea>
     <p class="ayuda">
-      Se muestran siempre todas, sin selección de IA — edítalas en «Mi perfil» si quieres
+      Se muestran siempre todas, sin selección de IA. Edítalas en «Mi perfil» si quieres
       cambiar cuáles aparecen.
     </p>
     <ul>
@@ -186,11 +186,11 @@
     </div>
     <textarea id="copia-idiomas" hidden>{{ texto_idiomas }}</textarea>
     <p class="ayuda">
-      Se muestran siempre todos, sin selección de IA — edítalos en «Mi perfil» si quieres
+      Se muestran siempre todos, sin selección de IA. Edítalos en «Mi perfil» si quieres
       cambiar cuáles aparecen.
     </p>
     <ul>
-      {% for idioma in perfil.idiomas %}<li>{{ idioma.nombre[propuesta.idioma] }} — {{ idioma.nivel[propuesta.idioma] }}</li>{% endfor %}
+      {% for idioma in perfil.idiomas %}<li>{{ idioma.nombre[propuesta.idioma] }} · {{ idioma.nivel[propuesta.idioma] }}</li>{% endfor %}
     </ul>
   </section>
   {% endif %}
