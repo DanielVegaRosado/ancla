@@ -94,7 +94,7 @@ def revisar_importacion():
 def guardar_importacion():
     importacion = modulo_importacion.cargar_importacion(contexto.raiz())
     if importacion is None:
-        flash("Esa importación ya no está disponible: vuelve a subir el CV.")
+        flash("Esa importación ya no está disponible, vuelve a subir el CV.")
         return redirect(url_for("cv_adaptativo.importar"))
 
     guardadas = 0

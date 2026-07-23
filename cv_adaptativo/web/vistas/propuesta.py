@@ -77,7 +77,7 @@ def ver_propuesta():
 def _con_borrador_o_redirigir():
     borrador = modulo_borrador.cargar_borrador(contexto.raiz())
     if borrador is None:
-        flash("Esa propuesta ya no está disponible: genera una nueva.")
+        flash("Esa propuesta ya no está disponible, genera una nueva.")
         return None
     return borrador
 

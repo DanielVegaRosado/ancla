@@ -3,7 +3,7 @@
 {% block contenido %}
   <h1>{{ "Nuevo idioma" if nuevo else "Editar idioma" }}</h1>
   <p class="ayuda">
-    No pasa por selección de IA: en la Propuesta se muestran siempre todos, igual que en
+    No pasa por selección de IA, en la Propuesta se muestran siempre todos, igual que en
     un CV real no se recorta la sección de idiomas según la vacante. Nunca puede aparecer
     en "Sobre mí" ni entre las skills técnicas.
   </p>
@@ -57,7 +57,7 @@
       <label for="keywords">Keywords</label>
       <input type="text" id="keywords" name="keywords" value="{{ idioma.keywords|lista_a_csv if idioma else '' }}">
       <p class="ayuda">
-        Las propone la IA a partir del nombre. No salen nunca en tu CV: sirven para que,
+        Las propone la IA a partir del nombre. No salen nunca en tu CV. Sirven para que,
         si una vacante pide este idioma con otras palabras («advanced English», «fluido»),
         la app no lo marque como un hueco que ya tienes cubierto. Revísalas y añade las
         que falten.

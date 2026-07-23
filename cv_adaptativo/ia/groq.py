@@ -52,7 +52,7 @@ URL_CONSEGUIR_CLAVE = "https://console.groq.com/keys"
 # Los fallos que el usuario puede arreglar por su cuenta se cuentan en claro, y
 # se dice qué hacer. Los demás no se disfrazan de otra cosa.
 _AYUDA_CLAVE = (
-    "Tu clave de Groq no es válida o ha caducado. Revísala en Ajustes; puedes "
+    "Tu clave de Groq no es válida o ha caducado. Revísala en Ajustes, puedes "
     f"generar una gratis en {URL_CONSEGUIR_CLAVE}."
 )
 _AYUDA_CUOTA = (
