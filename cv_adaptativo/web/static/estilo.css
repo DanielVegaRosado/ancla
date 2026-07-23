@@ -226,16 +226,6 @@ section[id] { scroll-margin-top: 4.5rem; }
   flex-wrap: wrap;
 }
 
-/* El bloque de título/descripción se encoge y envuelve su propio texto en
-   vez de empujar las acciones a otra línea cuando el párrafo es largo (p.
-   ej. Skills personales e Idiomas, con una descripción de dos líneas). Sin
-   esto, "Añadir..." y "Borrar todas" acaban cayendo debajo, pegados a la
-   lista de elementos. */
-.fila-tarjeta > :first-child {
-  flex: 1 1 auto;
-  min-width: 0;
-}
-
 .fila-tarjeta .acciones {
   display: flex;
   gap: 0.5rem;
@@ -248,12 +238,6 @@ section[id] { scroll-margin-top: 4.5rem; }
   display: flex;
   align-items: flex-start;
   gap: 0.6rem;
-  min-width: 0;
-}
-
-.titulo-panel > div {
-  flex: 1 1 auto;
-  min-width: 0;
 }
 
 .manija-arrastrar {
