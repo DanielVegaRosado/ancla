@@ -9,7 +9,7 @@ from pathlib import Path
 import pytest
 
 from cv_adaptativo.perfil import almacen
-from cv_adaptativo.perfil.modelo import Bilingue, Experiencia, Skill
+from cv_adaptativo.perfil.modelo import Bilingue, Experiencia, IdiomaHablado, Skill
 from cv_adaptativo.web import crear_app
 from cv_adaptativo.web import importacion as modulo_importacion
 
@@ -34,6 +34,19 @@ def _experiencia(id: str = "ml-dev") -> Experiencia:
 
 def _skill(id: str = "python") -> Skill:
     return Skill(id=id, nombre=Bilingue(es="Python", en="Python"), categoria="lenguaje", keywords=["py"])
+
+
+def _skill_personal(id: str = "equipo") -> Skill:
+    return Skill(id=id, nombre=Bilingue(es="Trabajo en equipo", en="Teamwork"), keywords=["team player"])
+
+
+def _idioma(id: str = "ingles") -> IdiomaHablado:
+    return IdiomaHablado(
+        id=id,
+        nombre=Bilingue(es="Inglés", en="English"),
+        nivel=Bilingue(es="C1", en="C1"),
+        keywords=["advanced english"],
+    )
 
 
 # --------------------------------------------------------------------------
@@ -175,6 +188,74 @@ def test_una_candidata_incompleta_no_se_guarda_pero_avisa(cliente_web, tmp_path:
     assert "no se pudieron guardar".encode("utf-8") in respuesta.data
 
 
+def test_guardar_una_skill_personal_importada_va_al_catalogo_correcto(cliente_web, tmp_path: Path):
+    """Caso real que motivó esto: una sección "PERSONAL" del CV (Trabajo en
+    equipo, Team player...) tiene que acabar en skills_personales, nunca
+    mezclada con las skills técnicas."""
+    raiz = tmp_path / "perfil"
+    modulo_importacion.guardar_importacion(
+        raiz, modulo_importacion.Importacion(skills_personales=[_skill_personal()])
+    )
+    cliente_web.post(
+        "/perfil/importar/guardar",
+        data={
+            "skillpersonal-0": "1",
+            "skillpersonal-0-nombre_es": "Trabajo en equipo",
+            "skillpersonal-0-nombre_en": "Teamwork",
+        },
+    )
+    perfil = almacen.cargar_perfil(raiz)
+    assert perfil.skill_personal("equipo") is not None
+    assert perfil.skill("equipo") is None  # nunca en el catálogo técnico
+
+
+def test_guardar_un_idioma_importado(cliente_web, tmp_path: Path):
+    raiz = tmp_path / "perfil"
+    modulo_importacion.guardar_importacion(
+        raiz, modulo_importacion.Importacion(idiomas=[_idioma()])
+    )
+    cliente_web.post(
+        "/perfil/importar/guardar",
+        data={
+            "idioma-0": "1",
+            "idioma-0-nombre_es": "Inglés",
+            "idioma-0-nombre_en": "English",
+            "idioma-0-nivel_es": "C1 Avanzado",
+            "idioma-0-nivel_en": "C1 Advanced",
+        },
+    )
+    perfil = almacen.cargar_perfil(raiz)
+    assert perfil.idioma("ingles") is not None
+    assert perfil.idioma("ingles").nivel["es"] == "C1 Avanzado"
+
+
+def test_una_skill_personal_o_idioma_no_marcados_no_se_guardan(cliente_web, tmp_path: Path):
+    raiz = tmp_path / "perfil"
+    modulo_importacion.guardar_importacion(
+        raiz,
+        modulo_importacion.Importacion(
+            skills_personales=[_skill_personal()], idiomas=[_idioma()]
+        ),
+    )
+    cliente_web.post("/perfil/importar/guardar", data={})
+    perfil = almacen.cargar_perfil(raiz)
+    assert perfil.skill_personal("equipo") is None
+    assert perfil.idioma("ingles") is None
+
+
+def test_revisar_muestra_skills_personales_e_idiomas(cliente_web, tmp_path: Path):
+    modulo_importacion.guardar_importacion(
+        tmp_path / "perfil",
+        modulo_importacion.Importacion(
+            skills_personales=[_skill_personal()], idiomas=[_idioma()]
+        ),
+    )
+    respuesta = cliente_web.get("/perfil/importar/revisar")
+    html = respuesta.data.decode("utf-8")
+    assert "Trabajo en equipo" in html
+    assert "Inglés" in html and "C1" in html
+
+
 def test_guardar_limpia_la_importacion_pendiente(cliente_web, tmp_path: Path):
     raiz = tmp_path / "perfil"
     modulo_importacion.guardar_importacion(raiz, modulo_importacion.Importacion(skills=[_skill()]))
@@ -259,6 +340,19 @@ def _respuesta_ia() -> str:
             "skills": [
                 {"nombre": {"es": "SQL", "en": "SQL"}, "categoria": "dato", "keywords": ["sql"]}
             ],
+            "skills_personales": [
+                {
+                    "nombre": {"es": "Trabajo en equipo", "en": "Teamwork"},
+                    "keywords": ["team player"],
+                }
+            ],
+            "idiomas": [
+                {
+                    "nombre": {"es": "Inglés", "en": "English"},
+                    "nivel": {"es": "C1 Avanzado", "en": "C1 Advanced"},
+                    "keywords": ["advanced english"],
+                }
+            ],
         },
         ensure_ascii=False,
     )
@@ -300,8 +394,12 @@ def test_de_punta_a_punta_subir_analizar_revisar_y_guardar(cliente_web, tmp_path
     assert "Ingeniera de Datos" in html
     assert "Airflow" in html
     assert "SQL" in html
+    assert "Trabajo en equipo" in html
+    assert "Inglés" in html
 
-    # 3) Guardar solo la experiencia, descartando la skill.
+    # 3) Guardar la experiencia y la skill personal; descartar la skill
+    #    técnica y el idioma, para probar los dos caminos (guardar/descartar)
+    #    en las cuatro categorías a la vez.
     guardar = cliente_web.post(
         "/perfil/importar/guardar",
         data={
@@ -315,16 +413,24 @@ def test_de_punta_a_punta_subir_analizar_revisar_y_guardar(cliente_web, tmp_path
             "exp-0-stack_es": "Python, Airflow",
             "exp-0-stack_en": "Python, Airflow",
             # "skill-0" no se envía: queda descartada.
+            "skillpersonal-0": "1",
+            "skillpersonal-0-nombre_es": "Trabajo en equipo",
+            "skillpersonal-0-nombre_en": "Teamwork",
+            # "idioma-0" no se envía: queda descartado.
         },
     )
     assert guardar.status_code == 302
 
-    # 4) El perfil real tiene la experiencia y NO tiene la skill descartada.
+    # 4) El perfil real tiene la experiencia y la skill personal, y NO tiene
+    #    ni la skill técnica ni el idioma descartados.
     perfil = almacen.cargar_perfil(tmp_path / "perfil")
     experiencias = [e for e in perfil.experiencias if e.titulo["es"] == "Ingeniera de Datos"]
     assert len(experiencias) == 1
     assert experiencias[0].bullets["es"] == ["Pipeline de ingesta con Airflow"]
     assert perfil.skill("sql") is None
+    assert perfil.skill_personal("trabajo-en-equipo") is not None
+    assert perfil.skill("trabajo-en-equipo") is None  # nunca en el catálogo técnico
+    assert perfil.idioma("ingles") is None
 
     # 5) El borrador de importación queda limpio: no se puede volver a
     #    "revisar" la misma tanda ni dejar basura en el perfil.

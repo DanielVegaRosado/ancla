@@ -1,4 +1,5 @@
-"""Analiza el texto de un CV y propone experiencias y skills candidatas.
+"""Analiza el texto de un CV y propone candidatas para las cuatro secciones del
+perfil: experiencias, skills técnicas, skills personales e idiomas.
 
 Distinto de `migrador.py`: aquel convierte un formato propio y rígido
 (`TITULO_ES:`, `BULLETS_ES:`...) con expresiones regulares, sin IA, porque no
@@ -10,11 +11,17 @@ El texto que analiza siempre viene de `extraccion.py` (determinista) o de lo
 que el usuario pegó a mano: nunca del propio modelo "leyendo" un PDF, que
 podría transcribir mal una palabra sin que nadie lo note.
 
-**Nada se guarda aquí.** Este módulo solo propone `Experiencia`/`Skill` con un
-id provisional; la web las guarda —o no— después de que el usuario las revise
-y confirme una por una, igual que con las keywords sugeridas en `keywords.py`.
-Nunca lanza excepción de red o de formato: un fallo aquí se traduce en la
-lista de candidatas vacía y un aviso, para no romper la pantalla de subida.
+**Nada se guarda aquí.** Este módulo solo propone `Experiencia`/`Skill`/
+`IdiomaHablado` con un id provisional; la web las guarda —o no— después de que
+el usuario las revise y confirme una por una, igual que con las keywords
+sugeridas en `keywords.py`. Nunca lanza excepción de red o de formato: un
+fallo aquí se traduce en la lista de candidatas vacía y un aviso, para no
+romper la pantalla de subida.
+
+**Skills personales e idiomas usan un catálogo aparte del de skills técnicas**
+(igual que en `Perfil`, ver `modelo.py`): el modelo se lo distingue en el
+propio prompt (regla 7 y 8), no un filtro posterior — así "Trabajo en equipo"
+nunca puede colarse entre tus skills técnicas por error de clasificación.
 
 **Traduce cuando falta un idioma** (decisión de producto, 2026-07-22): si el
 CV está solo en español, el modelo propone también la versión en inglés, y al
@@ -30,7 +37,7 @@ import json
 from dataclasses import dataclass, field
 
 from cv_adaptativo.ia.cliente import ClienteIA
-from cv_adaptativo.perfil.modelo import Bilingue, Experiencia, Perfil, Skill
+from cv_adaptativo.perfil.modelo import Bilingue, Experiencia, IdiomaHablado, Perfil, Skill
 from cv_adaptativo.texto import a_texto, a_textos, bloque_json, slugificar
 
 # El nivel gratuito de Groq limita a 8000 tokens por minuto (comprobado con
@@ -43,8 +50,8 @@ MAX_CARACTERES_CV = 10000
 
 SISTEMA = """\
 Analizas el texto de un CV para ayudar a una persona a construir su base de datos \
-profesional. No escribes su CV: identificas qué experiencias (puestos, proyectos) y \
-qué skills técnicas aparecen en el texto, y las estructuras.
+profesional. No escribes su CV: identificas qué hay en el texto y lo estructuras en \
+CUATRO categorías: experiencias, skills técnicas, skills personales e idiomas.
 
 Reglas:
 1. Extrae SOLO lo que está literalmente en el texto. No añadas responsabilidades, \
@@ -59,10 +66,17 @@ propio) o solo una skill suelta mencionada de pasada, propón skill. Inventar un
 experiencia alrededor de una mención suelta es peor error que perder una experiencia.
 5. Cada puesto o proyecto distinto es una experiencia separada. Nunca fusiones ni \
 resumas varias experiencias en una.
-6. Para cada skill, propón una categoría breve (lenguaje, cloud, dato, framework...) \
-y unas pocas keywords de cómo se nombra en ofertas de empleo. No añadas tecnologías \
-relacionadas que no aparezcan en el texto — de una mención a "Docker" no propongas \
-"Kubernetes" como skill aparte.
+6. Para cada skill TÉCNICA, propón una categoría breve (lenguaje, cloud, dato, \
+framework...) y unas pocas keywords de cómo se nombra en ofertas de empleo. No añadas \
+tecnologías relacionadas que no aparezcan en el texto — de una mención a "Docker" no \
+propongas "Kubernetes" como skill aparte.
+7. Distingue skill TÉCNICA de skill PERSONAL: una tecnología, lenguaje o herramienta \
+concreta (Python, SQL, Docker...) es técnica; una cualidad o forma de trabajar \
+(trabajo en equipo, resolución de problemas, atención al detalle, autonomía...) es \
+personal, aunque el CV las liste juntas o bajo el mismo apartado. Nunca mezcles las dos.
+8. Para cada idioma HABLADO (español, inglés, alemán...) extrae también su nivel tal \
+como aparezca (p. ej. "C1 Avanzado", "Nativo", "B2") y tradúcelo igual que el resto — no \
+inventes un nivel que no esté escrito. Un idioma hablado no es una skill técnica.
 
 Responde ÚNICAMENTE con este JSON, sin texto alrededor ni bloques de código:
 {
@@ -73,6 +87,12 @@ Responde ÚNICAMENTE con este JSON, sin texto alrededor ni bloques de código:
   ],
   "skills": [
     {"nombre": {"es": "", "en": ""}, "categoria": "", "keywords": []}
+  ],
+  "skills_personales": [
+    {"nombre": {"es": "", "en": ""}, "keywords": []}
+  ],
+  "idiomas": [
+    {"nombre": {"es": "", "en": ""}, "nivel": {"es": "", "en": ""}, "keywords": []}
   ]
 }"""
 
@@ -81,6 +101,8 @@ Responde ÚNICAMENTE con este JSON, sin texto alrededor ni bloques de código:
 class ResultadoImportacion:
     experiencias: list[Experiencia] = field(default_factory=list)
     skills: list[Skill] = field(default_factory=list)
+    skills_personales: list[Skill] = field(default_factory=list)
+    idiomas: list[IdiomaHablado] = field(default_factory=list)
     avisos: list[str] = field(default_factory=list)
 
 
@@ -109,9 +131,12 @@ def analizar_cv(cliente: ClienteIA, texto_cv: str, perfil: Perfil) -> ResultadoI
             avisos=["El modelo no ha devuelto una respuesta interpretable. Vuelve a intentarlo."]
         )
 
-    ids_usados: set[str] = {e.id for e in perfil.experiencias} | {
-        s.id for s in perfil.skills
-    } | {s.id for s in perfil.skills_personales}
+    ids_usados: set[str] = (
+        {e.id for e in perfil.experiencias}
+        | {s.id for s in perfil.skills}
+        | {s.id for s in perfil.skills_personales}
+        | {i.id for i in perfil.idiomas}
+    )
 
     experiencias = [
         exp
@@ -123,13 +148,29 @@ def analizar_cv(cliente: ClienteIA, texto_cv: str, perfil: Perfil) -> ResultadoI
         for bruto_skill in _lista(datos.get("skills"))
         if (skill := _a_skill(_diccionario(bruto_skill), ids_usados)) is not None
     ]
+    skills_personales = [
+        skill
+        for bruto_skill in _lista(datos.get("skills_personales"))
+        if (skill := _a_skill(_diccionario(bruto_skill), ids_usados)) is not None
+    ]
+    idiomas = [
+        idioma
+        for bruto_idioma in _lista(datos.get("idiomas"))
+        if (idioma := _a_idioma(_diccionario(bruto_idioma), ids_usados)) is not None
+    ]
 
     avisos = []
-    if not experiencias and not skills:
+    if not any((experiencias, skills, skills_personales, idiomas)):
         avisos.append(
             "No se ha encontrado ninguna experiencia ni skill reconocible en el texto."
         )
-    return ResultadoImportacion(experiencias=experiencias, skills=skills, avisos=avisos)
+    return ResultadoImportacion(
+        experiencias=experiencias,
+        skills=skills,
+        skills_personales=skills_personales,
+        idiomas=idiomas,
+        avisos=avisos,
+    )
 
 
 # --------------------------------------------------------------------------
@@ -174,6 +215,19 @@ def _a_skill(datos: dict, ids_usados: set[str]) -> Skill | None:
         id=id_,
         nombre=nombre,
         categoria=a_texto(datos.get("categoria")),
+        keywords=a_textos(datos.get("keywords")),
+    )
+
+
+def _a_idioma(datos: dict, ids_usados: set[str]) -> IdiomaHablado | None:
+    nombre = _bilingue(datos.get("nombre"))
+    if not nombre["es"].strip() and not nombre["en"].strip():
+        return None
+    id_ = _id_libre(nombre["es"] or nombre["en"], ids_usados)
+    return IdiomaHablado(
+        id=id_,
+        nombre=nombre,
+        nivel=_bilingue(datos.get("nivel")),
         keywords=a_textos(datos.get("keywords")),
     )
 

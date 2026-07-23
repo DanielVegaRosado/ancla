@@ -14,7 +14,7 @@ from flask import flash, redirect, render_template, request, url_for
 from cv_adaptativo.ia.cliente import ErrorIA
 from cv_adaptativo.perfil import almacen, importador, validacion
 from cv_adaptativo.perfil.extraccion import ErrorExtraccion, extraer_texto
-from cv_adaptativo.perfil.modelo import Bilingue, Experiencia, Skill
+from cv_adaptativo.perfil.modelo import Bilingue, Experiencia, IdiomaHablado, Skill
 from cv_adaptativo.web import ajustes as modulo_ajustes
 from cv_adaptativo.web import contexto
 from cv_adaptativo.web import importacion as modulo_importacion
@@ -48,7 +48,14 @@ def importar():
         return redirect(url_for("cv_adaptativo.ver_ajustes"))
 
     resultado = importador.analizar_cv(cliente, texto_cv, contexto.perfil_actual())
-    if not resultado.experiencias and not resultado.skills:
+    if not any(
+        (
+            resultado.experiencias,
+            resultado.skills,
+            resultado.skills_personales,
+            resultado.idiomas,
+        )
+    ):
         for aviso in resultado.avisos:
             flash(aviso)
         return render_template("importar.html")
@@ -58,6 +65,8 @@ def importar():
         modulo_importacion.Importacion(
             experiencias=resultado.experiencias,
             skills=resultado.skills,
+            skills_personales=resultado.skills_personales,
+            idiomas=resultado.idiomas,
             avisos=resultado.avisos,
         ),
     )
@@ -104,12 +113,34 @@ def guardar_importacion():
     for indice, skill in enumerate(importacion.skills):
         if request.form.get(f"skill-{indice}") != "1":
             continue
-        editada = _skill_editada(request.form, indice, skill)
+        editada = _skill_editada(request.form, "skill", indice, skill)
         errores = validacion.validar_skill(editada)
         if errores:
             con_error += 1
             continue
         almacen.guardar_skill(contexto.raiz(), editada)
+        guardadas += 1
+
+    for indice, skill in enumerate(importacion.skills_personales):
+        if request.form.get(f"skillpersonal-{indice}") != "1":
+            continue
+        editada = _skill_editada(request.form, "skillpersonal", indice, skill)
+        errores = validacion.validar_skill_personal(editada)
+        if errores:
+            con_error += 1
+            continue
+        almacen.guardar_skill_personal(contexto.raiz(), editada)
+        guardadas += 1
+
+    for indice, idioma in enumerate(importacion.idiomas):
+        if request.form.get(f"idioma-{indice}") != "1":
+            continue
+        editado = _idioma_editado(request.form, indice, idioma)
+        errores = validacion.validar_idioma(editado)
+        if errores:
+            con_error += 1
+            continue
+        almacen.guardar_idioma(contexto.raiz(), editado)
         guardadas += 1
 
     modulo_importacion.borrar_importacion(contexto.raiz())
@@ -148,8 +179,13 @@ def _experiencia_editada(form, indice: int, original: Experiencia) -> Experienci
     )
 
 
-def _skill_editada(form, indice: int, original: Skill) -> Skill:
-    prefijo = f"skill-{indice}"
+def _skill_editada(form, tipo: str, indice: int, original: Skill) -> Skill:
+    """Sirve para skills técnicas y personales: mismos campos, la única
+    diferencia es el prefijo del formulario (`skill-N` / `skillpersonal-N`).
+    Una skill personal no tiene campo de categoría en la plantilla —
+    `form.get` cae al valor original (cadena vacía) sin más, igual que en el
+    formulario manual de "Nueva skill personal"."""
+    prefijo = f"{tipo}-{indice}"
     return replace(
         original,
         nombre=Bilingue(
@@ -157,6 +193,21 @@ def _skill_editada(form, indice: int, original: Skill) -> Skill:
             en=form.get(f"{prefijo}-nombre_en", original.nombre["en"]).strip(),
         ),
         categoria=form.get(f"{prefijo}-categoria", original.categoria).strip(),
+    )
+
+
+def _idioma_editado(form, indice: int, original: IdiomaHablado) -> IdiomaHablado:
+    prefijo = f"idioma-{indice}"
+    return replace(
+        original,
+        nombre=Bilingue(
+            es=form.get(f"{prefijo}-nombre_es", original.nombre["es"]).strip(),
+            en=form.get(f"{prefijo}-nombre_en", original.nombre["en"]).strip(),
+        ),
+        nivel=Bilingue(
+            es=form.get(f"{prefijo}-nivel_es", original.nivel["es"]).strip(),
+            en=form.get(f"{prefijo}-nivel_en", original.nivel["en"]).strip(),
+        ),
     )
 
 

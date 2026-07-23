@@ -13,7 +13,7 @@ import json
 
 from cv_adaptativo.ia.cliente import ErrorIA
 from cv_adaptativo.perfil.importador import analizar_cv
-from cv_adaptativo.perfil.modelo import Bilingue, Perfil, Skill
+from cv_adaptativo.perfil.modelo import Bilingue, IdiomaHablado, Perfil, Skill
 
 
 class ClienteFalso:
@@ -182,3 +182,120 @@ def test_un_cv_larguisimo_se_recorta_antes_de_enviarlo():
     analizar_cv(cliente, "x" * 50000, Perfil())
     _, usuario = cliente.llamadas[0]
     assert len(usuario) < 50000
+
+
+# --------------------------------------------------------------------------
+# Skills personales e idiomas
+#
+# Caso real que motivó esto: un CV con una sección "PERSONAL" (Problem-
+# solving, Team player...) además de "SKILLS" técnicas — el importador no
+# tenía dónde meter lo primero y todo acababa en skills técnicas.
+# --------------------------------------------------------------------------
+
+
+def test_propone_skills_personales_e_idiomas_por_separado_de_las_tecnicas():
+    respuesta = _respuesta(
+        skills_personales=[
+            {"nombre": {"es": "Trabajo en equipo", "en": "Team player"}, "keywords": ["team player"]}
+        ],
+        idiomas=[
+            {
+                "nombre": {"es": "Inglés", "en": "English"},
+                "nivel": {"es": "C1 Avanzado", "en": "C1 Advanced"},
+                "keywords": ["advanced english"],
+            }
+        ],
+    )
+    resultado = analizar_cv(ClienteFalso(respuesta), "texto", Perfil())
+
+    assert len(resultado.skills_personales) == 1
+    assert resultado.skills_personales[0].nombre["es"] == "Trabajo en equipo"
+    assert len(resultado.idiomas) == 1
+    assert resultado.idiomas[0].nombre["es"] == "Inglés"
+    assert resultado.idiomas[0].nivel["es"] == "C1 Avanzado"
+    # Nunca se cuelan entre las skills técnicas.
+    assert all(s.nombre["es"] != "Trabajo en equipo" for s in resultado.skills)
+    assert all(s.nombre["es"] != "Inglés" for s in resultado.skills)
+
+
+def test_una_skill_personal_sin_nombre_se_descarta():
+    respuesta = _respuesta(
+        skills_personales=[{"nombre": {"es": "", "en": ""}, "keywords": []}]
+    )
+    resultado = analizar_cv(ClienteFalso(respuesta), "texto", Perfil())
+    assert resultado.skills_personales == []
+
+
+def test_un_idioma_sin_nombre_se_descarta():
+    respuesta = _respuesta(
+        idiomas=[{"nombre": {"es": "", "en": ""}, "nivel": {"es": "B2", "en": "B2"}, "keywords": []}]
+    )
+    resultado = analizar_cv(ClienteFalso(respuesta), "texto", Perfil())
+    assert resultado.idiomas == []
+
+
+def test_el_id_de_una_skill_personal_no_choca_con_una_tecnica_del_perfil():
+    perfil = Perfil(skills=[Skill(id="python", nombre=Bilingue(es="Python", en="Python"))])
+    respuesta = _respuesta(
+        skills_personales=[
+            {"nombre": {"es": "Python", "en": "Python"}, "keywords": []}
+        ]
+    )
+    # Coincidencia de nombre deliberadamente rara, solo para comprobar que
+    # el id provisional se genera bien aunque el nombre choque con otra
+    # categoría — no debería fallar ni mezclarse.
+    resultado = analizar_cv(ClienteFalso(respuesta), "texto", perfil)
+    assert len(resultado.skills_personales) == 1
+
+
+def test_el_id_de_un_idioma_no_choca_con_otro_ya_en_el_perfil():
+    perfil = Perfil(
+        idiomas=[
+            IdiomaHablado(
+                id="ingles",
+                nombre=Bilingue(es="Inglés", en="English"),
+                nivel=Bilingue(es="B2", en="B2"),
+            )
+        ]
+    )
+    respuesta = _respuesta(
+        idiomas=[
+            {
+                "nombre": {"es": "Inglés", "en": "English"},
+                "nivel": {"es": "C1", "en": "C1"},
+                "keywords": [],
+            }
+        ]
+    )
+    resultado = analizar_cv(ClienteFalso(respuesta), "texto", perfil)
+    assert resultado.idiomas[0].id != "ingles"
+
+
+def test_sin_skills_personales_ni_idiomas_en_la_respuesta_no_revienta():
+    """La mayoría de CVs no tendrán ninguna de las dos categorías: ausentes
+    del JSON, no es un error."""
+    resultado = analizar_cv(ClienteFalso(_respuesta()), "texto", Perfil())
+    assert resultado.skills_personales == []
+    assert resultado.idiomas == []
+
+
+def test_el_aviso_de_nada_encontrado_tiene_en_cuenta_las_cuatro_categorias():
+    """Antes solo miraba experiencias y skills: si un CV solo tuviera un
+    idioma reconocible, no debería avisar de que no se encontró nada."""
+    respuesta = json.dumps(
+        {
+            "experiencias": [],
+            "skills": [],
+            "skills_personales": [],
+            "idiomas": [
+                {
+                    "nombre": {"es": "Francés", "en": "French"},
+                    "nivel": {"es": "B1", "en": "B1"},
+                    "keywords": [],
+                }
+            ],
+        }
+    )
+    resultado = analizar_cv(ClienteFalso(respuesta), "texto", Perfil())
+    assert resultado.avisos == []
+    assert len(resultado.idiomas) == 1

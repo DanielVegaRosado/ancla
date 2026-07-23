@@ -12,7 +12,7 @@ import json
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 
-from cv_adaptativo.perfil.modelo import Bilingue, Experiencia, Skill
+from cv_adaptativo.perfil.modelo import Bilingue, Experiencia, IdiomaHablado, Skill
 
 NOMBRE_FICHERO = ".importacion.json"
 
@@ -21,6 +21,8 @@ NOMBRE_FICHERO = ".importacion.json"
 class Importacion:
     experiencias: list[Experiencia] = field(default_factory=list)
     skills: list[Skill] = field(default_factory=list)
+    skills_personales: list[Skill] = field(default_factory=list)
+    idiomas: list[IdiomaHablado] = field(default_factory=list)
     avisos: list[str] = field(default_factory=list)
 
 
@@ -44,6 +46,8 @@ def cargar_importacion(raiz: Path) -> Importacion | None:
         return Importacion(
             experiencias=[_a_experiencia(e) for e in datos["experiencias"]],
             skills=[_a_skill(s) for s in datos["skills"]],
+            skills_personales=[_a_skill(s) for s in datos.get("skills_personales", [])],
+            idiomas=[_a_idioma(i) for i in datos.get("idiomas", [])],
             avisos=list(datos.get("avisos", [])),
         )
     except (json.JSONDecodeError, OSError, KeyError, TypeError):
@@ -71,5 +75,14 @@ def _a_skill(datos: dict) -> Skill:
         id=datos["id"],
         nombre=Bilingue(**datos["nombre"]),
         categoria=datos.get("categoria", ""),
+        keywords=list(datos.get("keywords", [])),
+    )
+
+
+def _a_idioma(datos: dict) -> IdiomaHablado:
+    return IdiomaHablado(
+        id=datos["id"],
+        nombre=Bilingue(**datos["nombre"]),
+        nivel=Bilingue(**datos["nivel"]),
         keywords=list(datos.get("keywords", [])),
     )

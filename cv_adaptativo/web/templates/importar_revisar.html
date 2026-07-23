@@ -96,6 +96,64 @@
       </div>
     {% endif %}
 
+    {% if importacion.skills_personales %}
+      <h2>Skills personales ({{ importacion.skills_personales|length }})</h2>
+      <div class="lista-tarjetas">
+        {% for skill in importacion.skills_personales %}
+          <div class="tarjeta">
+            <label class="opcion-tipo">
+              <input type="checkbox" name="skillpersonal-{{ loop.index0 }}" value="1" checked>
+              <strong>Guardar esta skill personal</strong>
+            </label>
+            <div class="dos-columnas">
+              <div class="campo">
+                <label>Nombre (ES)</label>
+                <input type="text" name="skillpersonal-{{ loop.index0 }}-nombre_es" value="{{ skill.nombre['es'] }}">
+              </div>
+              <div class="campo">
+                <label>Nombre (EN)</label>
+                <input type="text" name="skillpersonal-{{ loop.index0 }}-nombre_en" value="{{ skill.nombre['en'] }}">
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    {% if importacion.idiomas %}
+      <h2>Idiomas ({{ importacion.idiomas|length }})</h2>
+      <div class="lista-tarjetas">
+        {% for idioma in importacion.idiomas %}
+          <div class="tarjeta">
+            <label class="opcion-tipo">
+              <input type="checkbox" name="idioma-{{ loop.index0 }}" value="1" checked>
+              <strong>Guardar este idioma</strong>
+            </label>
+            <div class="dos-columnas">
+              <div class="campo">
+                <label>Idioma (ES)</label>
+                <input type="text" name="idioma-{{ loop.index0 }}-nombre_es" value="{{ idioma.nombre['es'] }}">
+              </div>
+              <div class="campo">
+                <label>Idioma (EN)</label>
+                <input type="text" name="idioma-{{ loop.index0 }}-nombre_en" value="{{ idioma.nombre['en'] }}">
+              </div>
+            </div>
+            <div class="dos-columnas">
+              <div class="campo">
+                <label>Nivel (ES)</label>
+                <input type="text" name="idioma-{{ loop.index0 }}-nivel_es" value="{{ idioma.nivel['es'] }}">
+              </div>
+              <div class="campo">
+                <label>Nivel (EN)</label>
+                <input type="text" name="idioma-{{ loop.index0 }}-nivel_en" value="{{ idioma.nivel['en'] }}">
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
     <div class="barra-acciones">
       <button type="submit" class="boton-primario">Guardar lo seleccionado</button>
     </div>
