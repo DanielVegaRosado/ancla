@@ -354,9 +354,16 @@ def test_la_pantalla_de_plantillas_enlaza_las_dos_plantillas(cliente_web):
         assert plantilla.url in html
 
 
-def test_el_pie_de_cualquier_pantalla_enlaza_a_plantillas(cliente_web):
+def test_el_encabezado_de_cualquier_pantalla_enlaza_a_plantillas(cliente_web):
     respuesta = cliente_web.get("/perfil")
     assert b'href="/plantillas"' in respuesta.data
+
+
+def test_el_pie_ya_no_repite_los_enlaces_del_encabezado(cliente_web):
+    """Estaban duplicados y podían confundir: ahora solo viven en la cabecera."""
+    respuesta = cliente_web.get("/perfil")
+    assert b"Contactar soporte" not in respuesta.data
+    assert "Plantillas de Canva".encode("utf-8") not in respuesta.data
 
 
 def test_la_propuesta_enlaza_a_plantillas_junto_a_copiar_todo(cliente_web, tmp_path: Path):

@@ -167,6 +167,15 @@ def test_ajustes_enlaza_directo_a_conseguir_la_clave(cliente_web):
     assert b"console.groq.com/keys" in respuesta.data
 
 
+def test_ajustes_explica_el_limite_diario_de_groq(cliente_web):
+    """Verificado en vivo el 2026-07-23: el aviso de cuota agotada casi
+    siempre es el límite diario (200.000 tokens/día), no el de cada minuto —
+    Ajustes tiene que decirlo con esa cifra, no solo "espera un rato"."""
+    respuesta = cliente_web.get("/ajustes")
+    assert "200.000 tokens al día".encode("utf-8") in respuesta.data
+    assert "segunda cuenta gratuita".encode("utf-8") in respuesta.data
+
+
 def test_guardar_ajustes_los_persiste(cliente_web, tmp_path: Path):
     respuesta = cliente_web.post(
         "/ajustes", data={"proveedor": "groq", "clave_api": "gsk_123"}, follow_redirects=True

@@ -279,9 +279,19 @@ def test_descartar_borra_la_importacion_sin_guardar_nada(cliente_web, tmp_path: 
 def test_un_perfil_vacio_enlaza_a_importar_desde_mi_perfil(cliente_web):
     respuesta = cliente_web.get("/perfil")
     assert b'href="/perfil/importar"' in respuesta.data
+    assert "¿Ya tienes un CV? Impórtalo".encode("utf-8") in respuesta.data
 
 
-def test_el_pie_de_cualquier_pantalla_enlaza_a_importar(cliente_web):
+def test_un_perfil_con_datos_tambien_enlaza_a_importar_desde_mi_perfil(cliente_web, tmp_path: Path):
+    """Antes el enlace solo aparecía con el perfil vacío; ahora sigue ahí
+    después de la primera importación, no solo en la cabecera."""
+    almacen.guardar_skill(tmp_path / "perfil", _skill())
+    respuesta = cliente_web.get("/perfil")
+    assert b'href="/perfil/importar"' in respuesta.data
+    assert "¿Tienes otro CV que añadir?".encode("utf-8") in respuesta.data
+
+
+def test_el_encabezado_de_cualquier_pantalla_enlaza_a_importar(cliente_web):
     respuesta = cliente_web.get("/ajustes")
     assert b'href="/perfil/importar"' in respuesta.data
 

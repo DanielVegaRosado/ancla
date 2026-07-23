@@ -8,6 +8,9 @@
     {% if perfil.esta_vacio() %}
       <a href="{{ url_for('cv_adaptativo.importar') }}">¿Ya tienes un CV? Impórtalo</a>
       en vez de escribirlo todo a mano.
+    {% else %}
+      <a href="{{ url_for('cv_adaptativo.importar') }}">¿Tienes otro CV que añadir?</a>
+      Impórtalo para sumar lo que falte, sin duplicar lo que ya tienes.
     {% endif %}
   </p>
 
