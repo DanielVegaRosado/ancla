@@ -59,6 +59,10 @@ __all__ = [
     "borrar_idioma",
     "borrar_skill",
     "borrar_skill_personal",
+    "borrar_todas_experiencias",
+    "borrar_todas_skills",
+    "borrar_todas_skills_personales",
+    "borrar_todos_idiomas",
     "cargar_perfil",
     "escribir_yaml",
     "exportar_zip",
@@ -203,6 +207,29 @@ def borrar_skill_personal(raiz: Path, id: str) -> None:
 
 def borrar_idioma(raiz: Path, id: str) -> None:
     _borrar(ruta_idioma(raiz, id))
+
+
+def borrar_todas_experiencias(raiz: Path) -> None:
+    """Borra todos los ficheros de `experiencia/`. Acción de sección completa,
+    no una por una — mismo criterio de "no es un fallo si ya no está"."""
+    _borrar_carpeta(Path(raiz) / CARPETA_EXPERIENCIA)
+
+
+def borrar_todas_skills(raiz: Path) -> None:
+    _borrar_carpeta(Path(raiz) / CARPETA_SKILLS)
+
+
+def borrar_todas_skills_personales(raiz: Path) -> None:
+    _borrar_carpeta(Path(raiz) / CARPETA_SKILLS_PERSONALES)
+
+
+def borrar_todos_idiomas(raiz: Path) -> None:
+    _borrar_carpeta(Path(raiz) / CARPETA_IDIOMAS)
+
+
+def _borrar_carpeta(carpeta: Path) -> None:
+    for ruta in _ficheros(carpeta):
+        _borrar(ruta)
 
 
 def _borrar(ruta: Path) -> None:

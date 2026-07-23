@@ -233,6 +233,55 @@ def test_borrar_quita_el_fichero_y_repetirlo_no_falla(tmp_path: Path):
     assert almacen.cargar_perfil(tmp_path).skill("python") is None
 
 
+def test_borrar_todas_las_skills_vacia_la_carpeta_y_repetirlo_no_falla(tmp_path: Path):
+    almacen.guardar_skill(tmp_path, _skill("python"))
+    almacen.guardar_skill(tmp_path, _skill("sql"))
+
+    almacen.borrar_todas_skills(tmp_path)
+    almacen.borrar_todas_skills(tmp_path)
+
+    assert almacen.cargar_perfil(tmp_path).skills == []
+
+
+def test_borrar_todas_las_experiencias_no_toca_las_skills(tmp_path: Path):
+    almacen.guardar_experiencia(tmp_path, _experiencia())
+    almacen.guardar_skill(tmp_path, _skill())
+
+    almacen.borrar_todas_experiencias(tmp_path)
+
+    perfil = almacen.cargar_perfil(tmp_path)
+    assert perfil.experiencias == []
+    assert perfil.skill("python") is not None
+
+
+def test_borrar_todas_las_skills_personales_y_todos_los_idiomas(tmp_path: Path):
+    from cv_adaptativo.perfil.modelo import IdiomaHablado
+
+    almacen.guardar_skill_personal(tmp_path, _skill("trabajo-en-equipo"))
+    almacen.guardar_idioma(
+        tmp_path,
+        IdiomaHablado(
+            id="ingles",
+            nombre=Bilingue(es="Inglés", en="English"),
+            nivel=Bilingue(es="C1", en="C1"),
+        ),
+    )
+
+    almacen.borrar_todas_skills_personales(tmp_path)
+    almacen.borrar_todos_idiomas(tmp_path)
+
+    perfil = almacen.cargar_perfil(tmp_path)
+    assert perfil.skills_personales == []
+    assert perfil.idiomas == []
+
+
+def test_borrar_todas_sobre_una_carpeta_que_no_existe_no_falla(tmp_path: Path):
+    almacen.borrar_todas_experiencias(tmp_path)
+    almacen.borrar_todas_skills(tmp_path)
+    almacen.borrar_todas_skills_personales(tmp_path)
+    almacen.borrar_todos_idiomas(tmp_path)
+
+
 # --------------------------------------------------------------------------
 # Respaldo y mudanza
 # --------------------------------------------------------------------------

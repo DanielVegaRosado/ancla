@@ -38,6 +38,11 @@
       </div>
       <div class="acciones">
         <a class="boton boton-primario" href="{{ url_for('cv_adaptativo.nueva_experiencia') }}">Añadir experiencia</a>
+        {% if perfil.experiencias %}
+          <form class="en-linea" method="post" action="{{ url_for('cv_adaptativo.borrar_todas_experiencias') }}" data-confirmar="¿Borrar TODAS las {{ perfil.experiencias|length }} experiencias? Esta acción no se puede deshacer.">
+            <button type="submit" class="boton boton-pequeno boton-peligro">Borrar todas</button>
+          </form>
+        {% endif %}
       </div>
     </div>
 
@@ -73,6 +78,11 @@
       </div>
       <div class="acciones">
         <a class="boton boton-primario" href="{{ url_for('cv_adaptativo.nueva_skill') }}">Añadir skill</a>
+        {% if perfil.skills %}
+          <form class="en-linea" method="post" action="{{ url_for('cv_adaptativo.borrar_todas_skills') }}" data-confirmar="¿Borrar TODAS las {{ perfil.skills|length }} skills técnicas? Esta acción no se puede deshacer.">
+            <button type="submit" class="boton boton-pequeno boton-peligro">Borrar todas</button>
+          </form>
+        {% endif %}
       </div>
     </div>
 
@@ -111,6 +121,11 @@
       </div>
       <div class="acciones">
         <a class="boton boton-primario" href="{{ url_for('cv_adaptativo.nueva_skill_personal') }}">Añadir skill personal</a>
+        {% if perfil.skills_personales %}
+          <form class="en-linea" method="post" action="{{ url_for('cv_adaptativo.borrar_todas_skills_personales') }}" data-confirmar="¿Borrar TODAS las {{ perfil.skills_personales|length }} skills personales? Esta acción no se puede deshacer.">
+            <button type="submit" class="boton boton-pequeno boton-peligro">Borrar todas</button>
+          </form>
+        {% endif %}
       </div>
     </div>
 
@@ -149,6 +164,11 @@
       </div>
       <div class="acciones">
         <a class="boton boton-primario" href="{{ url_for('cv_adaptativo.nuevo_idioma') }}">Añadir idioma</a>
+        {% if perfil.idiomas %}
+          <form class="en-linea" method="post" action="{{ url_for('cv_adaptativo.borrar_todos_idiomas') }}" data-confirmar="¿Borrar TODOS los {{ perfil.idiomas|length }} idiomas? Esta acción no se puede deshacer.">
+            <button type="submit" class="boton boton-pequeno boton-peligro">Borrar todos</button>
+          </form>
+        {% endif %}
       </div>
     </div>
 

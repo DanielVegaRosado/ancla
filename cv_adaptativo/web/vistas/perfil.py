@@ -85,6 +85,14 @@ def borrar_experiencia(id_: str):
     return redirect(url_for("cv_adaptativo.ver_perfil"))
 
 
+@bp.route("/perfil/experiencias/borrar-todas", methods=["POST"])
+def borrar_todas_experiencias():
+    n = len(contexto.perfil_actual().experiencias)
+    almacen.borrar_todas_experiencias(contexto.raiz())
+    flash(f"{n} experiencia(s) borradas." if n else "No había ninguna experiencia que borrar.")
+    return redirect(url_for("cv_adaptativo.ver_perfil"))
+
+
 @bp.route("/perfil/keywords", methods=["POST"])
 def sugerir_keywords():
     """Propone keywords para la skill o experiencia que se está escribiendo.
@@ -184,6 +192,14 @@ def borrar_skill(id_: str):
     return redirect(url_for("cv_adaptativo.ver_perfil"))
 
 
+@bp.route("/perfil/skills/borrar-todas", methods=["POST"])
+def borrar_todas_skills():
+    n = len(contexto.perfil_actual().skills)
+    almacen.borrar_todas_skills(contexto.raiz())
+    flash(f"{n} skill(s) borradas." if n else "No había ninguna skill que borrar.")
+    return redirect(url_for("cv_adaptativo.ver_perfil"))
+
+
 # --------------------------------------------------------------------------
 # Skills personales: mismo tipo `Skill`, carpeta y validación aparte. Nunca
 # entran al motor de selección — se muestran siempre completas en la
@@ -235,6 +251,14 @@ def editar_skill_personal(id_: str):
 def borrar_skill_personal(id_: str):
     almacen.borrar_skill_personal(contexto.raiz(), id_)
     flash("Skill personal borrada.")
+    return redirect(url_for("cv_adaptativo.ver_perfil"))
+
+
+@bp.route("/perfil/skills-personales/borrar-todas", methods=["POST"])
+def borrar_todas_skills_personales():
+    n = len(contexto.perfil_actual().skills_personales)
+    almacen.borrar_todas_skills_personales(contexto.raiz())
+    flash(f"{n} skill(s) personal(es) borradas." if n else "No había ninguna skill personal que borrar.")
     return redirect(url_for("cv_adaptativo.ver_perfil"))
 
 
@@ -298,6 +322,14 @@ def editar_idioma(id_: str):
 def borrar_idioma(id_: str):
     almacen.borrar_idioma(contexto.raiz(), id_)
     flash("Idioma borrado.")
+    return redirect(url_for("cv_adaptativo.ver_perfil"))
+
+
+@bp.route("/perfil/idiomas/borrar-todos", methods=["POST"])
+def borrar_todos_idiomas():
+    n = len(contexto.perfil_actual().idiomas)
+    almacen.borrar_todos_idiomas(contexto.raiz())
+    flash(f"{n} idioma(s) borrados." if n else "No había ningún idioma que borrar.")
     return redirect(url_for("cv_adaptativo.ver_perfil"))
 
 

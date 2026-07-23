@@ -14,6 +14,8 @@ import pytest
 from cv_adaptativo.perfil import almacen
 from cv_adaptativo.perfil.modelo import (
     Bilingue,
+    Experiencia,
+    IdiomaHablado,
     Propuesta,
     SeleccionSobreMi,
     Skill,
@@ -140,6 +142,96 @@ def test_borrar_idioma_lo_quita_del_perfil(cliente_web, tmp_path: Path):
 def test_editar_un_idioma_que_no_existe_avisa_y_redirige(cliente_web):
     respuesta = cliente_web.get("/perfil/idiomas/no-existe/editar", follow_redirects=True)
     assert "No existe el idioma".encode("utf-8") in respuesta.data
+
+
+# --------------------------------------------------------------------------
+# Borrado masivo: borrar una sección entera de golpe, no solo uno a uno
+# --------------------------------------------------------------------------
+
+
+def test_borrar_todas_las_experiencias_las_quita_todas(cliente_web, tmp_path: Path):
+    raiz = tmp_path / "perfil"
+    almacen.guardar_experiencia(
+        raiz,
+        Experiencia(
+            id="proyecto-1",
+            titulo=Bilingue(es="Proyecto 1", en="Project 1"),
+            periodo=Bilingue(es="2024", en="2024"),
+            bullets=Bilingue(es=["Hecho 1"], en=["Done 1"]),
+            stack=Bilingue(es="Python", en="Python"),
+        ),
+    )
+    almacen.guardar_experiencia(
+        raiz,
+        Experiencia(
+            id="proyecto-2",
+            titulo=Bilingue(es="Proyecto 2", en="Project 2"),
+            periodo=Bilingue(es="2025", en="2025"),
+            bullets=Bilingue(es=["Hecho 2"], en=["Done 2"]),
+            stack=Bilingue(es="SQL", en="SQL"),
+        ),
+    )
+
+    respuesta = cliente_web.post("/perfil/experiencias/borrar-todas", follow_redirects=True)
+
+    assert respuesta.status_code == 200
+    assert "2 experiencia(s) borradas".encode("utf-8") in respuesta.data
+    assert almacen.cargar_perfil(raiz).experiencias == []
+
+
+def test_borrar_todas_las_skills_tecnicas_no_toca_las_personales(cliente_web, tmp_path: Path):
+    raiz = tmp_path / "perfil"
+    almacen.guardar_skill(raiz, Skill(id="python", nombre=Bilingue(es="Python", en="Python")))
+    almacen.guardar_skill_personal(
+        raiz, Skill(id="empatia", nombre=Bilingue(es="Empatía", en="Empathy"))
+    )
+
+    cliente_web.post("/perfil/skills/borrar-todas")
+
+    perfil = almacen.cargar_perfil(raiz)
+    assert perfil.skills == []
+    assert perfil.skill_personal("empatia") is not None
+
+
+def test_borrar_todas_las_skills_personales_las_quita_todas(cliente_web, tmp_path: Path):
+    raiz = tmp_path / "perfil"
+    almacen.guardar_skill_personal(
+        raiz, Skill(id="empatia", nombre=Bilingue(es="Empatía", en="Empathy"))
+    )
+
+    respuesta = cliente_web.post(
+        "/perfil/skills-personales/borrar-todas", follow_redirects=True
+    )
+
+    assert "1 skill(s) personal(es) borradas".encode("utf-8") in respuesta.data
+    assert almacen.cargar_perfil(raiz).skills_personales == []
+
+
+def test_borrar_todos_los_idiomas_los_quita_todos(cliente_web, tmp_path: Path):
+    raiz = tmp_path / "perfil"
+    almacen.guardar_idioma(
+        raiz,
+        IdiomaHablado(
+            id="ingles",
+            nombre=Bilingue(es="Inglés", en="English"),
+            nivel=Bilingue(es="C1", en="C1"),
+        ),
+    )
+
+    respuesta = cliente_web.post("/perfil/idiomas/borrar-todos", follow_redirects=True)
+
+    assert "1 idioma(s) borrados".encode("utf-8") in respuesta.data
+    assert almacen.cargar_perfil(raiz).idiomas == []
+
+
+def test_borrar_todas_sobre_una_seccion_vacia_avisa_sin_fallar(cliente_web):
+    respuesta = cliente_web.post("/perfil/experiencias/borrar-todas", follow_redirects=True)
+    assert "No había ninguna experiencia que borrar".encode("utf-8") in respuesta.data
+
+
+def test_borrar_todas_las_experiencias_no_aparece_si_no_hay_ninguna(cliente_web):
+    respuesta = cliente_web.get("/perfil")
+    assert "Borrar todas".encode("utf-8") not in respuesta.data
 
 
 # --------------------------------------------------------------------------
