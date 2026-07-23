@@ -1,6 +1,8 @@
 """Pantalla Mis CVs: el archivo histórico de propuestas guardadas."""
 from __future__ import annotations
 
+from collections import Counter
+
 from flask import flash, redirect, render_template, request, url_for
 from werkzeug.utils import secure_filename
 
@@ -9,11 +11,15 @@ from cv_adaptativo.perfil.modelo import EstadoCV
 from cv_adaptativo.propuesta.formato import a_markdown, a_texto
 from cv_adaptativo.web import contexto
 from cv_adaptativo.web.blueprint import bp
+from cv_adaptativo.web.presentacion import ETIQUETAS_ESTADO
 
 
 @bp.route("/cvs")
 def listar_cvs():
-    return render_template("cvs.html", cvs=archivo.listar(contexto.raiz()))
+    cvs = archivo.listar(contexto.raiz())
+    conteo = Counter(cv.estado for cv in cvs)
+    resumen_estados = [(ETIQUETAS_ESTADO[estado], conteo[estado]) for estado in EstadoCV]
+    return render_template("cvs.html", cvs=cvs, resumen_estados=resumen_estados)
 
 
 def _buscar_o_ninguno(id_: str):

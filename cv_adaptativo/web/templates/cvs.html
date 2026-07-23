@@ -5,6 +5,15 @@
   <p class="ayuda">El archivo de todas las adaptaciones que has guardado.</p>
 
   {% if cvs %}
+    <div class="bento">
+      {% for etiqueta, cantidad in resumen_estados %}
+        <div class="bento-tarjeta">
+          <span class="bento-cifra">{{ cantidad }}</span>
+          <span class="bento-etiqueta">{{ etiqueta }}</span>
+        </div>
+      {% endfor %}
+    </div>
+
     <div class="lista-tarjetas">
       {% for cv in cvs %}
         <div class="tarjeta">

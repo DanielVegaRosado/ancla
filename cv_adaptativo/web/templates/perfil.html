@@ -14,6 +14,27 @@
     {% endif %}
   </p>
 
+  {% if not perfil.esta_vacio() %}
+    <div class="bento">
+      <a class="bento-tarjeta" href="#experiencias">
+        <span class="bento-cifra">{{ perfil.experiencias|length }}</span>
+        <span class="bento-etiqueta">Experiencias</span>
+      </a>
+      <a class="bento-tarjeta" href="#skills">
+        <span class="bento-cifra">{{ perfil.skills|length }}</span>
+        <span class="bento-etiqueta">Skills técnicas</span>
+      </a>
+      <a class="bento-tarjeta" href="#skills-personales">
+        <span class="bento-cifra">{{ perfil.skills_personales|length }}</span>
+        <span class="bento-etiqueta">Skills personales</span>
+      </a>
+      <a class="bento-tarjeta" href="#idiomas">
+        <span class="bento-cifra">{{ perfil.idiomas|length }}</span>
+        <span class="bento-etiqueta">Idiomas</span>
+      </a>
+    </div>
+  {% endif %}
+
   <section class="tarjeta">
     <div class="fila-tarjeta">
       <div>
@@ -33,7 +54,7 @@
     {% endif %}
   </section>
 
-  <section class="tarjeta">
+  <section class="tarjeta" id="experiencias">
     <div class="fila-tarjeta">
       <div>
         <h2>Experiencia ({{ perfil.experiencias|length }})</h2>
@@ -73,7 +94,7 @@
     {% endif %}
   </section>
 
-  <section class="tarjeta">
+  <section class="tarjeta" id="skills">
     <div class="fila-tarjeta">
       <div>
         <h2>Skills técnicas ({{ perfil.skills|length }})</h2>
@@ -113,7 +134,7 @@
     {% endif %}
   </section>
 
-  <section class="tarjeta">
+  <section class="tarjeta" id="skills-personales">
     <div class="fila-tarjeta">
       <div>
         <h2>Skills personales ({{ perfil.skills_personales|length }})</h2>
@@ -156,7 +177,7 @@
     {% endif %}
   </section>
 
-  <section class="tarjeta">
+  <section class="tarjeta" id="idiomas">
     <div class="fila-tarjeta">
       <div>
         <h2>Idiomas ({{ perfil.idiomas|length }})</h2>
