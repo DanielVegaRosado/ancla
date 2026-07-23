@@ -80,10 +80,21 @@ tú lo confirmes, campo a campo.
 6. Nada se guarda hasta que tú revisas, editas y confirmas cada candidata en la
    pantalla de revisión.
 
+**Nota técnica sobre el modelo:** `gpt-oss-120b` (el modelo por defecto) "razona" antes de
+responder, y con el nivel gratuito de Groq (8000 tokens/minuto) ese razonamiento hay que
+mantenerlo al mínimo o se queda sin presupuesto antes de terminar. Se probó explícitamente
+con un caso ambiguo (un proyecto personal sin fechas claras, una tecnología mencionada de
+pasada) y el razonamiento mínimo clasificó todo correctamente — no es una rebaja de calidad,
+es lo único que funciona de forma fiable con este límite. *(Ver Roadmap: a largo plazo se
+evaluará un modelo open source que no necesite esta limitación.)*
+
 ## Roadmap
 
 - **v1** — lo de la tabla de arriba, en español.
-- **v1.1** — interfaz en inglés, más proveedores de IA.
+- **v1.1** — interfaz en inglés, más proveedores de IA. Incluye evaluar un modelo open
+  source mejor que `gpt-oss-120b`: con el nivel gratuito de Groq hay que limitar su
+  "razonamiento" al mínimo para que no se quede sin presupuesto de tokens (ver más abajo
+  en *Qué criterio usa la IA*) — un modelo distinto podría no necesitar esa limitación.
 - **v2** — *Mejoras a realizar*: registras el feedback real de cada empresa
   (en qué fase te descartaron, qué te dijeron) y el sistema te propone mejoras
   concretas sobre tu perfil. Y editar el CV dentro de la app.
