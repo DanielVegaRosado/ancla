@@ -80,8 +80,7 @@ p.ayuda, .ayuda {
 /* Cabecera */
 
 .cabecera {
-  background: var(--fondo);
-  border-bottom: 1px solid var(--borde);
+  background: var(--texto);
   position: sticky;
   top: 0;
   z-index: 10;
@@ -105,7 +104,7 @@ section[id] { scroll-margin-top: 4.5rem; }
   font-weight: 700;
   letter-spacing: -0.015em;
   text-decoration: none;
-  color: var(--texto);
+  color: var(--fondo);
 }
 
 .nav {
@@ -116,17 +115,17 @@ section[id] { scroll-margin-top: 4.5rem; }
 
 .nav a {
   text-decoration: none;
-  color: var(--texto-suave);
+  color: #9aa4b2;
   padding: 0.4rem 0.7rem;
   border-radius: 999px;
   transition: background-color 0.15s ease, color 0.15s ease;
 }
 
-.nav a:hover { color: var(--texto); background: var(--fondo-suave); }
+.nav a:hover { color: var(--fondo); background: rgba(255, 255, 255, 0.08); }
 
 .nav a.activo {
-  color: var(--acento-fuerte);
-  background: var(--aviso-fondo);
+  color: var(--texto);
+  background: var(--fondo);
   font-weight: 600;
 }
 
