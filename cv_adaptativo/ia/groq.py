@@ -27,7 +27,7 @@ TIMEOUT_SEGUNDOS = 120
 # el proveedor aplica su propio límite por defecto, y una petición que pide
 # mucho detalle (el importador puede devolver varias experiencias bilingües
 # completas) puede agotarlo a media reflexión y volver con el contenido
-# vacío — sin ningún error, solo nada.
+# vacío o cortado a medias — sin ningún error, solo un JSON incompleto.
 #
 # El valor tiene un techo real y verificado contra la API: el nivel gratuito
 # de Groq limita a 8000 tokens por minuto EN TOTAL (entrada + salida), así
@@ -36,6 +36,16 @@ TIMEOUT_SEGUNDOS = 120
 # llamadas que hace la app (adaptar y analizar un CV) sin arriesgarse a que
 # Groq rechace la petición entera por pedir más tokens de los que quedan.
 MAX_TOKENS_RESPUESTA = 4000
+
+# Verificado contra la API real con el CV de Daniel, tres veces seguidas: sin
+# esto, el modelo gastaba el 79% del presupuesto de `max_tokens` "razonando"
+# (3178 de 4000) y se quedaba sin espacio para el JSON antes de terminarlo
+# (`finish_reason: length`). Con `"low"`, gasta ~200 y termina de forma
+# natural (`finish_reason: stop`) las tres veces, con más contenido y menos
+# tokens totales. La tarea es elegir de un catálogo cerrado y extraer lo que
+# ya está escrito, no razonar sobre un problema — mismo criterio que la
+# temperatura baja de más abajo.
+REASONING_EFFORT = "low"
 
 URL_CONSEGUIR_CLAVE = "https://console.groq.com/keys"
 
@@ -112,6 +122,7 @@ class ClienteGroq:
                 model=self.modelo,
                 temperature=self.temperatura,
                 max_tokens=MAX_TOKENS_RESPUESTA,
+                reasoning_effort=REASONING_EFFORT,
                 messages=[
                     {"role": "system", "content": sistema},
                     {"role": "user", "content": usuario},

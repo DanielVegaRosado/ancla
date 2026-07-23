@@ -206,6 +206,45 @@ def test_los_fallos_del_proveedor_se_traducen_a_algo_accionable():
     assert "vaya cosa rara" in explicar(Exception("vaya cosa rara"))
 
 
+def test_la_llamada_al_sdk_lleva_max_tokens_y_reasoning_effort_bajo(monkeypatch):
+    """Verificado en vivo contra la API real (no aquí, que no toca la red):
+    sin `reasoning_effort`, el modelo gastaba el 79% de `max_tokens`
+    "razonando" y se quedaba sin espacio para terminar el JSON. Este test
+    solo fija que los dos parámetros llegan de verdad a la llamada del SDK,
+    para que nadie los quite sin darse cuenta al tocar este fichero."""
+    import cv_adaptativo.ia.groq as modulo_groq
+
+    llamadas = []
+
+    class _Mensaje:
+        content = "contenido de prueba"
+
+    class _Eleccion:
+        message = _Mensaje()
+
+    class _Completado:
+        choices = [_Eleccion()]
+
+    class _Completions:
+        def create(self, **kwargs):
+            llamadas.append(kwargs)
+            return _Completado()
+
+    class _Chat:
+        completions = _Completions()
+
+    class _SdkFalso:
+        chat = _Chat()
+
+    monkeypatch.setattr(ClienteGroq, "_sdk", lambda self: _SdkFalso())
+
+    ClienteGroq(clave="gsk_prueba").completar("sistema", "usuario")
+
+    assert len(llamadas) == 1
+    assert llamadas[0]["max_tokens"] == modulo_groq.MAX_TOKENS_RESPUESTA
+    assert llamadas[0]["reasoning_effort"] == modulo_groq.REASONING_EFFORT == "low"
+
+
 def test_una_peticion_demasiado_grande_no_se_confunde_con_cuota_agotada():
     """Caso real reproducido contra la API de Groq: el error viene con
     "code": "rate_limit_exceeded" (guion bajo), que no debe confundirse con
