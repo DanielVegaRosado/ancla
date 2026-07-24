@@ -107,6 +107,23 @@ python -m pytest tests/ -q
 python run.py  # sirve la web en http://127.0.0.1:5000
 ```
 
+## App de escritorio
+
+En construcción: un ejecutable único (sin instalador) que abre la app en una ventana propia
+en vez de una pestaña del navegador, usando [pywebview](https://pywebview.flowrl.com/). El
+icono actual es un marcador de posición, pendiente del diseño definitivo.
+
+```bash
+pip install -r requirements-escritorio.txt
+python escritorio.py       # probarlo desde el código fuente
+pyinstaller --noconfirm escritorio.spec   # genera dist/CV Adaptativo.exe (o .app en macOS)
+```
+
+PyInstaller no compila para un sistema operativo distinto al que lo ejecuta: un `.exe` se
+genera en Windows, un `.app` en macOS. `.github/workflows/build-escritorio.yml` compila los
+dos a la vez en la nube (uno por cada sistema operativo) al lanzarlo manualmente o al subir
+una etiqueta `v*`.
+
 ## Licencia
 
 MIT

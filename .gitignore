@@ -21,3 +21,8 @@ venv/
 
 # Salidas de las evaluaciones: llevan tu perfil y tus vacantes reales.
 exportaciones/
+
+# Salidas de PyInstaller al compilar la app de escritorio: se generan,
+# nunca se versionan (y build/ puede pesar varios GB).
+/build/
+/dist/

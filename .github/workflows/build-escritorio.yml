@@ -1,0 +1,46 @@
+name: Compilar app de escritorio
+
+# PyInstaller no compila cruzado (un .exe se genera EN Windows, un .app EN
+# macOS), así que la única forma práctica de tener los dos ejecutables sin
+# tener las dos máquinas es una matriz de runners, uno de cada sistema
+# operativo, compilando en paralelo con el mismo escritorio.spec.
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  compilar:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Instalar dependencias
+        run: pip install -r requirements-escritorio.txt
+
+      - name: Compilar con PyInstaller
+        run: pyinstaller --noconfirm escritorio.spec
+
+      - name: Subir el .exe (Windows)
+        if: runner.os == 'Windows'
+        uses: actions/upload-artifact@v4
+        with:
+          name: CV-Adaptativo-Windows
+          path: dist/CV Adaptativo.exe
+
+      - name: Subir el .app (macOS)
+        if: runner.os == 'macOS'
+        uses: actions/upload-artifact@v4
+        with:
+          name: CV-Adaptativo-macOS
+          path: dist/CV Adaptativo.app

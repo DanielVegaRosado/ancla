@@ -1,0 +1,7 @@
+# Dependencias extra para empaquetar y ejecutar la versión de escritorio
+# (ventana nativa en vez de pestaña del navegador). No hacen falta para usar
+# la app desde el código fuente con `python run.py`: ese camino solo
+# necesita requirements.txt.
+-r requirements.txt
+pywebview>=5.0
+pyinstaller>=6.0
