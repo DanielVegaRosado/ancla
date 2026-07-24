@@ -5,10 +5,10 @@ from __future__ import annotations
 
 from flask import render_template
 
-from cv_adaptativo.soporte.mensajes import REPOSITORIO
+from cv_adaptativo.soporte.mensajes import CORREO_SOPORTE, REPOSITORIO
 from cv_adaptativo.web.blueprint import bp
 
 
 @bp.route("/terminos")
 def terminos():
-    return render_template("terminos.html", repositorio=REPOSITORIO)
+    return render_template("terminos.html", repositorio=REPOSITORIO, correo=CORREO_SOPORTE)

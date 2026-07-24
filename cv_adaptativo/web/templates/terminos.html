@@ -51,4 +51,33 @@
       cada línea con tus datos.
     </p>
   </section>
+
+  <section class="tarjeta">
+    <h2>Sin garantía, como cualquier software libre</h2>
+    <p>
+      La app se distribuye bajo licencia MIT, incluida en el fichero <code>LICENSE</code> del
+      <a href="{{ repositorio }}" target="_blank" rel="noopener">repositorio</a>. Se ofrece
+      «tal cual», sin garantía de ningún tipo. Es gratis, se puede usar, copiar y modificar
+      libremente, y nadie responde por lo que hagas con ella ni por los fallos que tenga.
+    </p>
+  </section>
+
+  <section class="tarjeta">
+    <h2>La única cookie es técnica, no de seguimiento</h2>
+    <p>
+      La app usa una cookie de sesión (de Flask, el servidor que la hace funcionar) solo para
+      mostrarte avisos de una pantalla a otra, por ejemplo cuando guardas algo. No identifica
+      a nadie, no rastrea nada y no sale de tu ordenador, así que no hace falta pedirte
+      consentimiento para usarla.
+    </p>
+  </section>
+
+  <section class="tarjeta">
+    <h2>Quién mantiene este proyecto</h2>
+    <p>
+      CV Adaptativo lo mantiene Daniel Vega Rosado. Para cualquier duda que no encaje en
+      <a href="{{ url_for('cv_adaptativo.soporte') }}">Soporte</a>, puedes escribir a
+      <a href="mailto:{{ correo }}">{{ correo }}</a>.
+    </p>
+  </section>
 {% endblock %}

@@ -324,6 +324,25 @@ def test_terminos_enlaza_al_repositorio_publico(cliente_web):
     assert REPOSITORIO.encode("utf-8") in respuesta.data
 
 
+def test_terminos_identifica_al_autor_y_da_contacto(cliente_web):
+    from cv_adaptativo.soporte.mensajes import CORREO_SOPORTE
+
+    respuesta = cliente_web.get("/terminos")
+    assert "Daniel Vega Rosado".encode("utf-8") in respuesta.data
+    assert CORREO_SOPORTE.encode("utf-8") in respuesta.data
+
+
+def test_terminos_menciona_la_licencia_sin_garantia(cliente_web):
+    respuesta = cliente_web.get("/terminos")
+    assert "licencia MIT".encode("utf-8") in respuesta.data
+    assert "tal cual".encode("utf-8") in respuesta.data
+
+
+def test_terminos_explica_la_cookie_de_sesion(cliente_web):
+    respuesta = cliente_web.get("/terminos")
+    assert "cookie de sesión".encode("utf-8") in respuesta.data
+
+
 def test_el_pie_de_cualquier_pantalla_enlaza_a_terminos(cliente_web):
     respuesta = cliente_web.get("/perfil")
     assert b'href="/terminos"' in respuesta.data
