@@ -10,8 +10,9 @@ import json
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 
-RAIZ_APP = Path(__file__).resolve().parents[2]
-RUTA_POR_DEFECTO = RAIZ_APP / "ajustes.json"
+from cv_adaptativo.web.rutas import raiz_datos
+
+RUTA_POR_DEFECTO = raiz_datos() / "ajustes.json"
 
 PROVEEDOR_POR_DEFECTO = "groq"
 

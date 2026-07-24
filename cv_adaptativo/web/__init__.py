@@ -16,8 +16,9 @@ from pathlib import Path
 
 from flask import Flask, flash, redirect, render_template, request, url_for
 
-RAIZ_APP = Path(__file__).resolve().parents[2]
-RAIZ_PERFIL_POR_DEFECTO = RAIZ_APP / "perfil"
+from cv_adaptativo.web.rutas import raiz_datos
+
+RAIZ_PERFIL_POR_DEFECTO = raiz_datos() / "perfil"
 
 
 def crear_app(raiz_perfil: Path | None = None, ruta_ajustes: Path | None = None) -> Flask:
