@@ -28,12 +28,13 @@ candidaturas crece con ella.
 | Archivo de CVs | ✅ |
 | Importar desde un CV existente (PDF/Word) | ✅ |
 | Soporte y plantillas | ✅ |
-| Perfil de ejemplo para probar la app | ⬜ |
+| Perfil de ejemplo para probar la app | ✅ |
 
 Probado en local de punta a punta: crear experiencia y skills, definir la plantilla
 de «Sobre mí», pegar una vacante y generar la propuesta con una clave de Groq real.
-Solo falta rellenar `perfil-ejemplo/` para que alguien que clone el repo pueda
-probarlo sin escribir su perfil entero primero.
+`perfil-ejemplo/` trae un perfil ficticio completo (experiencias, skills, idiomas y
+plantilla de «Sobre mí», en español e inglés) para que quien clone el repo pueda
+probar la app sin escribir su perfil entero primero.
 
 ## Qué criterio usa la IA
 

@@ -1,0 +1,7 @@
+nombre:
+  es: PostgreSQL
+  en: PostgreSQL
+categoria: base de datos
+keywords:
+- postgresql
+- postgres
