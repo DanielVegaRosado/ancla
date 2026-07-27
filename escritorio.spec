@@ -41,7 +41,13 @@ a = Analysis(
         "webview.platforms.winforms" if sys.platform == "win32" else "webview.platforms.cocoa",
     ],
     hookspath=[],
-    excludes=[],
+    # pywebview soporta varios backends (winforms, Qt...) y elige el que
+    # toque en tiempo de ejecución, pero `hiddenimports` de arriba ya fuerza
+    # cuál usar en cada sistema. Si en el entorno de compilación hay más de
+    # unas bindings de Qt instaladas a la vez (p. ej. PyQt5 y PySide6 en un
+    # conda "base" con muchos paquetes), PyInstaller aborta el build porque
+    # no puede empaquetar las dos a la vez — y aquí no hace falta ninguna.
+    excludes=["PyQt5", "PyQt6", "PySide2", "PySide6"],
     noarchive=False,
 )
 pyz = PYZ(a.pure)
