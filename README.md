@@ -17,6 +17,24 @@ applications grows with it.
 - Gives you the text. The design stays yours (Canva or any other tool). If you don't
   have a CV design yet, there are [two starting templates](plantillas/README.md).
 
+## Getting started
+
+1. Clone this repository and open the `app/` folder.
+2. Install Python 3.11 or newer if you don't already have it.
+3. Install the dependencies: `pip install -r requirements.txt`.
+4. Start the app: `python run.py`. It opens on its own at `http://127.0.0.1:5000`.
+5. Go to Settings and pick an AI provider. Groq's free tier works out of the box,
+   you just need an account and a key. Paste your key, and the model name too if
+   you picked a provider other than Groq.
+6. Fill in your profile, either by hand under "My profile" or by importing an
+   existing CV (PDF or Word) and reviewing what it finds before saving it.
+7. Paste a job posting under "Adapt" and generate the proposal.
+8. Copy the result into Canva or any other tool to lay it out. The app gives you
+   the content, not the finished PDF.
+
+If you'd rather not touch a terminal, the desktop version skips steps 2 to 4 once
+it's ready (see *Desktop app* below). It's still work in progress today.
+
 ## Status (v1)
 
 | Piece | Status |
