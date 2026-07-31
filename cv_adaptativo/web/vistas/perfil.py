@@ -130,7 +130,7 @@ def sugerir_keywords():
         )
 
     try:
-        cliente = crear_cliente(ajustes.proveedor, ajustes.clave_api)
+        cliente = crear_cliente(ajustes.proveedor, ajustes.clave_api, ajustes.url_base, ajustes.modelo)
     except Exception:
         return jsonify({"keywords": [], "aviso": _("No se pudo contactar con el proveedor.")})
 

@@ -15,6 +15,16 @@ from cv_adaptativo.web.rutas import raiz_datos
 RUTA_POR_DEFECTO = raiz_datos() / "ajustes.json"
 
 PROVEEDOR_POR_DEFECTO = "groq"
+# "personalizado" es el único que pide la URL a mano — los demás la traen
+# incorporada (ver `web/proveedores.py`), así que solo el usuario que apunta
+# a un proveedor no listado (o un Ollama local) necesita escribirla.
+# "anthropic" no necesita URL tampoco: no comparte el cliente genérico
+# compatible con OpenAI (su API es distinta), tiene su propio módulo con la
+# URL fija dentro, igual que Groq.
+PROVEEDORES = ("groq", "openai", "anthropic", "mistral", "openrouter", "personalizado")
+# Todos menos Groq necesitan que el usuario diga qué modelo quiere — Groq
+# tiene el suyo fijo.
+PROVEEDORES_CON_MODELO = ("openai", "anthropic", "mistral", "openrouter", "personalizado")
 
 # Las cuatro secciones de "Mi perfil" que el usuario puede reordenar
 # arrastrando. "Sobre mí" no está aquí: es la plantilla del perfil, no un
@@ -31,11 +41,28 @@ IDIOMAS_INTERFAZ = ("es", "en")
 class Ajustes:
     proveedor: str = PROVEEDOR_POR_DEFECTO
     clave_api: str = ""
+    # `url_base` solo se guarda (y solo hace falta) con proveedor="personalizado"
+    # — para el resto la URL viene fija en `web/proveedores.py`. `modelo` hace
+    # falta para todos salvo Groq (ver PROVEEDORES_CON_MODELO).
+    url_base: str = ""
+    modelo: str = ""
     orden_perfil: list[str] = field(default_factory=lambda: list(SECCIONES_PERFIL))
     idioma: str = IDIOMA_POR_DEFECTO
 
     def configurado(self) -> bool:
-        return bool(self.clave_api.strip())
+        if not self.clave_api.strip():
+            return False
+        if self.proveedor in PROVEEDORES_CON_MODELO and not self.modelo.strip():
+            return False
+        if self.proveedor == "personalizado" and not self.url_base.strip():
+            return False
+        return True
+
+
+def proveedor_valido(proveedor: object) -> str:
+    if isinstance(proveedor, str) and proveedor in PROVEEDORES:
+        return proveedor
+    return PROVEEDOR_POR_DEFECTO
 
 
 def idioma_valido(idioma: object) -> str:
@@ -63,8 +90,10 @@ def cargar_ajustes(ruta: Path = RUTA_POR_DEFECTO) -> Ajustes:
     except (json.JSONDecodeError, OSError):
         return Ajustes()
     return Ajustes(
-        proveedor=datos.get("proveedor", PROVEEDOR_POR_DEFECTO),
+        proveedor=proveedor_valido(datos.get("proveedor")),
         clave_api=datos.get("clave_api", ""),
+        url_base=datos.get("url_base", ""),
+        modelo=datos.get("modelo", ""),
         orden_perfil=orden_perfil_valido(datos.get("orden_perfil")),
         idioma=idioma_valido(datos.get("idioma")),
     )

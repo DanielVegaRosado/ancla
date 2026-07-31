@@ -387,7 +387,7 @@ def test_de_punta_a_punta_subir_analizar_revisar_y_guardar(cliente_web, tmp_path
     monkeypatch.setattr(
         vista_importar,
         "crear_cliente",
-        lambda proveedor, clave: _ClienteFalsoDisponible(_respuesta_ia()),
+        lambda proveedor, clave, url_base="", modelo="": _ClienteFalsoDisponible(_respuesta_ia()),
     )
 
     # 1) Subir un .docx real.

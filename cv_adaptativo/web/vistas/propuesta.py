@@ -170,7 +170,7 @@ def regenerar_seccion(seccion: str):
 
     ajustes = modulo_ajustes.cargar_ajustes(contexto.ruta_ajustes())
     try:
-        cliente = crear_cliente(ajustes.proveedor, ajustes.clave_api)
+        cliente = crear_cliente(ajustes.proveedor, ajustes.clave_api, ajustes.url_base, ajustes.modelo)
     except ErrorIA as error:
         flash(str(error))
         return redirect(url_for("cv_adaptativo.ver_propuesta"))

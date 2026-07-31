@@ -2,18 +2,24 @@
 {% block titulo %}{{ _('Ajustes') }} · CV Adaptativo{% endblock %}
 {% block contenido %}
   <h1>{{ _('Ajustes') }}</h1>
-  <p class="ayuda">
-    {{ _('La clave es siempre tuya y se guarda solo en este ordenador, fuera del repositorio.') }}
-    <strong>Groq Cloud</strong> {{ _('tiene nivel gratuito, crea una cuenta gratis y pega aquí tu clave.') }}
-    <a href="{{ url_conseguir_clave }}" target="_blank" rel="noopener">{{ _('Consigue tu clave en console.groq.com →') }}</a>
-  </p>
 
   <form class="pila tarjeta" method="post">
     <div class="campo">
       <label for="proveedor">{{ _('Proveedor de IA') }}</label>
       <select id="proveedor" name="proveedor">
         <option value="groq" {{ "selected" if ajustes.proveedor == "groq" else "" }}>Groq Cloud</option>
+        <option value="openai" {{ "selected" if ajustes.proveedor == "openai" else "" }}>OpenAI</option>
+        <option value="anthropic" {{ "selected" if ajustes.proveedor == "anthropic" else "" }}>Anthropic</option>
+        <option value="mistral" {{ "selected" if ajustes.proveedor == "mistral" else "" }}>Mistral</option>
+        <option value="openrouter" {{ "selected" if ajustes.proveedor == "openrouter" else "" }}>OpenRouter</option>
+        <option value="personalizado" {{ "selected" if ajustes.proveedor == "personalizado" else "" }}>{{ _('Otro (URL manual)') }}</option>
       </select>
+      <p class="ayuda">
+        {{ _('Groq es gratis. Los demás son de pago, con la cuenta que ya tengas en ese proveedor. Otro sirve para cualquier proveedor no listado que hable el mismo formato de API.') }}
+        {% if ajustes.proveedor == "groq" %}
+          <a href="{{ url_conseguir_clave }}" target="_blank" rel="noopener">{{ _('Crea una cuenta gratis en console.groq.com') }}</a>.
+        {% endif %}
+      </p>
     </div>
 
     <div class="campo">
@@ -22,8 +28,22 @@
              value="{{ ajustes.clave_api }}" placeholder="gsk_...">
       <p class="ayuda">
         {% if ajustes.configurado() %}{{ _('Ya tienes una clave guardada.') }}{% else %}{{ _('Todavía no has configurado ninguna clave.') }}{% endif %}
-        {{ _('Empieza por') }} <code>gsk_</code>.
+        {% if ajustes.proveedor == "groq" %}{{ _('Las claves de Groq empiezan por gsk_.') }}{% endif %}
       </p>
+    </div>
+
+    <div class="campo" data-mostrar-si-proveedor="openai,anthropic,mistral,openrouter,personalizado">
+      <label for="modelo">{{ _('Modelo') }}</label>
+      <input type="text" id="modelo" name="modelo" autocomplete="off"
+             value="{{ ajustes.modelo }}" placeholder="gpt-4o-mini">
+      <p class="ayuda">{{ _('El nombre exacto del modelo tal cual lo espera ese proveedor.') }}</p>
+    </div>
+
+    <div class="campo" data-mostrar-si-proveedor="personalizado">
+      <label for="url_base">{{ _('URL base') }}</label>
+      <input type="text" id="url_base" name="url_base" autocomplete="off"
+             value="{{ ajustes.url_base }}" placeholder="https://api.example.com/v1">
+      <p class="ayuda">{{ _('La dirección que te dé la documentación de tu proveedor. Los demás ya la llevan puesta.') }}</p>
     </div>
 
     <div class="campo">
@@ -39,7 +59,7 @@
     </div>
   </form>
 
-  <section class="tarjeta">
+  <section class="tarjeta" data-mostrar-si-proveedor="groq">
     <h2>{{ _('Límite diario del nivel gratuito de Groq') }}</h2>
     <p class="ayuda">
       {{ _('El nivel gratuito de Groq permite 30 peticiones por minuto, 1.000 peticiones al día, 8.000 tokens por minuto y') }}

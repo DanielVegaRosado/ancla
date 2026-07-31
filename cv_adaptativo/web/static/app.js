@@ -174,6 +174,25 @@ document.addEventListener("click", (evento) => {
   if (sinResultados) sinResultados.hidden = visibles > 0;
 });
 
+// Ajustes: los campos de URL base y modelo (y el aviso del límite diario de
+// Groq) solo se ven cuando el proveedor elegido los necesita — evita mostrar
+// campos que no aplican a ese proveedor.
+(() => {
+  const selector = document.getElementById("proveedor");
+  if (!selector) return;
+  const campos = document.querySelectorAll("[data-mostrar-si-proveedor]");
+
+  const actualizar = () => {
+    campos.forEach((campo) => {
+      const permitidos = campo.getAttribute("data-mostrar-si-proveedor").split(",").map((v) => v.trim());
+      campo.hidden = !permitidos.includes(selector.value);
+    });
+  };
+
+  selector.addEventListener("change", actualizar);
+  actualizar();
+})();
+
 // Soporte: el placeholder del mensaje cambia según sea "problema" o
 // "sugerencia", para que el hueco en blanco ya sugiera qué escribir.
 document.addEventListener("change", (evento) => {

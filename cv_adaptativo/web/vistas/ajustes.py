@@ -21,20 +21,24 @@ def ver_ajustes():
 
     actuales = modulo_ajustes.cargar_ajustes(contexto.ruta_ajustes())
     nuevos = modulo_ajustes.Ajustes(
-        proveedor=request.form.get("proveedor", modulo_ajustes.PROVEEDOR_POR_DEFECTO),
+        proveedor=modulo_ajustes.proveedor_valido(request.form.get("proveedor")),
         clave_api=request.form.get("clave_api", "").strip(),
+        url_base=request.form.get("url_base", "").strip(),
+        modelo=request.form.get("modelo", "").strip(),
         orden_perfil=actuales.orden_perfil,
         idioma=modulo_ajustes.idioma_valido(request.form.get("idioma")),
     )
     modulo_ajustes.guardar_ajustes(nuevos, contexto.ruta_ajustes())
 
-    # Aviso, no bloqueo: no todas las claves de Groq tienen por qué llevar
-    # siempre este prefijo (p. ej. si cambian su formato), así que se guarda
-    # igual y se deja que sea la propia llamada la que confirme si es válida.
-    # Pero el caso real que motivó esto —una clave de xAI (Grok, "xai-...")
-    # pegada por error creyendo que era de Groq— se puede avisar en el
-    # momento de guardar en vez de esperar al primer fallo.
-    if nuevos.clave_api and not nuevos.clave_api.startswith("gsk_"):
+    # Aviso, no bloqueo, y solo para Groq: no todas las claves tienen por qué
+    # llevar siempre este prefijo (p. ej. si Groq cambia su formato), así que
+    # se guarda igual y se deja que sea la propia llamada la que confirme si
+    # es válida. Pero el caso real que motivó esto —una clave de xAI (Grok,
+    # "xai-...") pegada por error creyendo que era de Groq— se puede avisar
+    # en el momento de guardar en vez de esperar al primer fallo. Con "Otro
+    # (compatible OpenAI)" cualquier formato de clave es legítimo, así que el
+    # aviso no aplica.
+    if nuevos.proveedor == "groq" and nuevos.clave_api and not nuevos.clave_api.startswith("gsk_"):
         flash(
             _(
                 "Esa clave no empieza por «gsk_», que es el formato de Groq. Si la "
