@@ -131,16 +131,14 @@ open source model will be evaluated longer term.)*
 ## Next version improvements (v1.1)
 
 This list is not final. It grows as real feedback comes in from using the app on
-actual job applications.
+actual job applications. Anything that doesn't make it into v1.1 moves to a later
+version once v1.1 itself is done.
 
 - Evaluate an open source model that isn't limited by "reasoning" burning through
   Groq's free-tier token budget before finishing (see *What criteria the AI
   follows* above for why `gpt-oss-120b` needs minimal reasoning today).
 - Back the CV-import translation with a dictionary, such as Oxford or Cambridge,
   instead of leaving it entirely to the model's judgement.
-
-## Later (v2)
-
 - Log the real feedback from each company (what stage you were rejected at, what
   they told you) so the system can suggest concrete improvements to your profile.
 - Edit the CV proposal directly inside the app.
