@@ -1,130 +1,167 @@
 # CV Adaptativo
 
-**No genera tu CV. Selecciona de hechos que tú has verificado.**
+**Doesn't generate your CV. Selects from facts you've already verified.**
 
-Mantienes una base de datos con tu experiencia y tus skills. Para cada vacante,
-la app elige qué mostrar y te dice por qué. Nunca escribe nada que tú no hayas
-escrito: si la oferta pide algo que no tienes, te lo señala como hueco en vez de
-inventarlo.
+You keep a database of your experience and skills. For every job posting, the app
+chooses what to show and tells you why. It never writes anything you didn't write
+yourself: if the posting asks for something you don't have, it's flagged as a gap
+instead of being invented.
 
-Cada adaptación queda guardada. Tu base de hechos crece y tu archivo de
-candidaturas crece con ella.
+Every adaptation is saved. Your base of facts grows, and your archive of
+applications grows with it.
 
-- Corre **en tu ordenador**. Tus datos no salen de ahí: sin cuentas, sin nube.
-- Usa **tu propia clave** de IA (Groq tiene nivel gratuito).
-- Te da el texto; el diseño sigue siendo tuyo (Canva u otra herramienta). Si no tienes CV
-  todavía, hay [dos plantillas de partida](plantillas/README.md).
+- Runs **on your computer**. Your data never leaves it: no accounts, no cloud.
+- Uses **your own AI key** (Groq has a free tier).
+- Gives you the text; the design stays yours (Canva or any other tool). If you don't
+  have a CV design yet, there are [two starting templates](plantillas/README.md).
 
-> 🚧 **En construcción.** Todavía no es usable del todo. Ver el estado abajo.
+## Status
 
-## Estado
-
-| Pieza | Estado |
+| Piece | Status |
 |---|---|
-| Modelo de datos e interfaces | ✅ |
-| Almacén del perfil (YAML) | ✅ |
-| Motor de selección | ✅ |
-| Interfaz web | ✅ |
-| Archivo de CVs | ✅ |
-| Importar desde un CV existente (PDF/Word) | ✅ |
-| Soporte y plantillas | ✅ |
-| Perfil de ejemplo para probar la app | ✅ |
+| Data model and interfaces | ✅ |
+| Profile store (YAML) | ✅ |
+| Selection engine | ✅ |
+| Web interface (bilingual ES/EN) | ✅ |
+| CV archive | ✅ |
+| Import from an existing CV (PDF/Word) | ✅ |
+| Support and templates | ✅ |
+| Sample profile to try the app with | ✅ |
 
-Probado en local de punta a punta: crear experiencia y skills, definir la plantilla
-de «Sobre mí», pegar una vacante y generar la propuesta con una clave de Groq real.
-`perfil-ejemplo/` trae un perfil ficticio completo (experiencias, skills, idiomas y
-plantilla de «Sobre mí», en español e inglés) para que quien clone el repo pueda
-probar la app sin escribir su perfil entero primero.
+Tested end to end, locally: creating experience and skills, defining the "About me"
+template, pasting a job posting and generating the proposal with a real Groq key.
+`perfil-ejemplo/` ships a complete fictional profile (experience, skills, languages
+and "About me" template, in Spanish and English) so anyone who clones the repo can
+try the app without writing their whole profile first.
 
-## Qué criterio usa la IA
+## What competitors do that this doesn't
 
-Hay dos momentos en los que un modelo de IA toma decisiones, y en los dos aplica el
-mismo principio: **la garantía la da el código, no una instrucción que el modelo
-podría ignorar.**
+Checked against BetterCV, Mi CV Ideal, Rezi, Kickresume and Teal. All five share the
+same pattern:
 
-### Al adaptar tu perfil a una vacante (`seleccion/`)
+- The AI **writes or rewrites** the user's content (Kickresume generates whole
+  sections "from a job title"; Rezi rewrites bullet points so they "don't sound
+  templated") — exactly what this project refuses to do.
+- Account and cloud storage are mandatory; your application data lives on their
+  server.
+- A paywall: you can build the CV for free but pay to save or download it (Mi CV
+  Ideal is explicit about this).
+- They optimise for a "match score"/ATS number, with no readable reason behind any
+  given choice.
+- Templates and design *are* the product.
 
-El modelo solo devuelve *identificadores* de tu catálogo, nunca texto nuevo — así que
-lo que aparece en tu CV siempre es, literalmente, algo que tú escribiste. Reglas:
+**What CV Adaptativo can offer instead, verifiably, not just as a claim:**
 
-1. **Nunca propone algo que no esté en tu perfil.** Si un id no existe en tu catálogo,
-   el código lo descarta antes de que llegue a la pantalla — no es una petición al
-   modelo, es una comprobación después de su respuesta.
-2. **Nunca reescribe tus bullets.** Se muestran tal cual los escribiste.
-3. **Toda elección lleva un motivo**, para que puedas juzgar la propuesta en vez de
-   firmarla a ciegas.
-4. **Lo que la vacante pide y no tienes va a «huecos»**, nunca al CV. Inventar es
-   exactamente lo que esta herramienta no hace.
-5. Ante varias experiencias candidatas, prioriza las que cubran requisitos
-   **distintos** entre sí antes que repetir el mismo stack.
+1. "Never invents" isn't a marketing promise — it's open source, so you can read
+   `seleccion/motor.py` yourself and confirm that an ID missing from your profile is
+   discarded no matter what the model returns.
+2. An explicit reason behind every choice — none of the five competitors above
+   offer this, only a score.
+3. Zero account, zero cloud — also verifiable by reading the code, not a line like
+   "securely synced to the cloud."
+4. Free, no paywall, using your own Groq key.
+5. Doesn't compete on templates — it leaves that to Canva (a better design tool
+   than any of the five) and focuses only on the selection problem.
 
-### Al importar un CV existente (`perfil/importador.py`)
+**One honest caveat:** "never invents, only selects from verified facts" is not, on
+its own, a technical moat — it's copyable in a week. What's genuinely hard to copy
+is the business model: BetterCV, Mi CV Ideal, Rezi and the rest need your data on
+their cloud and a subscription to survive as companies. Free + local + no account is
+commercially unviable for them — not out of ignorance, but because they'd stop
+making money if they did it. That's the one real advantage they can't replicate
+without stopping being what they are.
 
-Aquí el riesgo no es que el modelo invente un hueco: es que, al leer tu CV,
-**parafrasee de más** (que tu «colaboré con el equipo» se convierta en «lideré un
-equipo de 5»). La garantía aquí es de proceso: nada se guarda en tu perfil sin que
-tú lo confirmes, campo a campo.
+## What criteria the AI follows
 
-1. **La extracción del texto es 100% determinista** (una librería, sin IA): el modelo
-   nunca "lee" el PDF o el Word directamente, analiza el texto exacto que ya se sacó
-   del fichero. Así no puede transcribir mal una palabra sin que se note.
-2. **Solo extrae lo que está literalmente en el texto.** No añade responsabilidades,
-   logros ni fechas que no aparezcan.
-3. **Si un dato falta, el campo se queda vacío** — nunca se completa con un supuesto
-   razonable.
-4. **Traduce el idioma que falte**, de forma literal, para que no tengas que escribir
-   los dos idiomas a mano. *(Mejora prevista para v1.1: apoyar la traducción en
-   diccionarios como Oxford o Cambridge, en vez de dejarla enteramente al criterio
-   del modelo.)*
-5. **Ante la duda entre experiencia o skill suelta, propone skill** — inventar una
-   experiencia alrededor de una mención suelta es peor error que perder una real.
-6. Nada se guarda hasta que tú revisas, editas y confirmas cada candidata en la
-   pantalla de revisión.
+There are two moments where an AI model makes decisions, and both follow the same
+principle: **the guarantee comes from the code, not from an instruction the model
+could ignore.**
 
-**Nota técnica sobre el modelo:** `gpt-oss-120b` (el modelo por defecto) "razona" antes de
-responder, y con el nivel gratuito de Groq (8000 tokens/minuto) ese razonamiento hay que
-mantenerlo al mínimo o se queda sin presupuesto antes de terminar. Se probó explícitamente
-con un caso ambiguo (un proyecto personal sin fechas claras, una tecnología mencionada de
-pasada) y el razonamiento mínimo clasificó todo correctamente — no es una rebaja de calidad,
-es lo único que funciona de forma fiable con este límite. *(Ver Roadmap: a largo plazo se
-evaluará un modelo open source que no necesite esta limitación.)*
+### Adapting your profile to a job posting (`seleccion/`)
+
+The model only returns *IDs* from your catalogue, never new text — so whatever ends
+up on your CV is, literally, something you wrote yourself. Rules:
+
+1. **Never suggests anything that isn't in your profile.** If an ID doesn't exist in
+   your catalogue, the code discards it before it reaches the screen — this isn't a
+   request made to the model, it's a check applied after its response.
+2. **Never rewrites your bullet points.** They're shown exactly as you wrote them.
+3. **Every choice comes with a reason**, so you can judge the proposal instead of
+   signing off on it blindly.
+4. **Whatever the posting asks for that you don't have goes to "gaps"**, never onto
+   the CV. Making things up is exactly what this tool refuses to do.
+5. Given several candidate experience entries, it prioritises ones covering
+   **different** requirements over repeating the same tech stack.
+
+### Importing an existing CV (`perfil/importador.py`)
+
+Here the risk isn't the model inventing a gap: it's **over-paraphrasing** while
+reading your CV (turning "collaborated with the team" into "led a team of 5"). The
+guarantee here is procedural: nothing is saved to your profile without you
+confirming it, field by field.
+
+1. **Text extraction is 100% deterministic** (a library, no AI): the model never
+   "reads" the PDF or Word file directly, it analyses the exact text already pulled
+   from the file. That way it can't misread a word without it being noticed.
+2. **Only extracts what's literally in the text.** It doesn't add responsibilities,
+   achievements or dates that aren't there.
+3. **If a field is missing, it's left blank** — never filled in with a reasonable
+   guess.
+4. **Translates whichever language is missing**, literally, so you don't have to
+   write both languages by hand. *(Planned improvement for v1.1: back the
+   translation with dictionaries like Oxford or Cambridge, instead of leaving it
+   entirely to the model's judgement.)*
+5. **When in doubt between an experience entry or a standalone skill, it suggests a
+   skill** — inventing an experience entry around a passing mention is a worse
+   mistake than missing a real one.
+6. Nothing is saved until you review, edit and confirm each candidate on the review
+   screen.
+
+**Technical note on the model:** `gpt-oss-120b` (the default model) "reasons" before
+answering, and on Groq's free tier (8,000 tokens/minute) that reasoning has to be
+kept to a minimum or it runs out of budget before finishing. This was tested
+explicitly with an ambiguous case (a personal project with no clear dates, a
+technology mentioned only in passing) and minimal reasoning classified everything
+correctly — this isn't a quality trade-off, it's the only thing that works reliably
+within this limit. *(See Roadmap: a non-reasoning-constrained open source model will
+be evaluated longer term.)*
 
 ## Roadmap
 
-- **v1** — lo de la tabla de arriba, en español.
-- **v1.1** — interfaz en inglés, más proveedores de IA. Incluye evaluar un modelo open
-  source mejor que `gpt-oss-120b`: con el nivel gratuito de Groq hay que limitar su
-  "razonamiento" al mínimo para que no se quede sin presupuesto de tokens (ver más abajo
-  en *Qué criterio usa la IA*) — un modelo distinto podría no necesitar esa limitación.
-- **v2** — *Mejoras a realizar*: registras el feedback real de cada empresa
-  (en qué fase te descartaron, qué te dijeron) y el sistema te propone mejoras
-  concretas sobre tu perfil. Y editar el CV dentro de la app.
+- **v1** — everything in the table above, plus a bilingual ES/EN interface.
+- **v1.1** — more AI providers. Includes evaluating an open source model better
+  suited than `gpt-oss-120b`: on Groq's free tier its "reasoning" has to be kept to
+  a minimum so it doesn't run out of token budget (see *What criteria the AI
+  follows* above) — a different model might not need that constraint.
+- **v2** — *Improvements to make*: you log the real feedback from each company
+  (what stage you were rejected at, what they told you) and the system suggests
+  concrete improvements to your profile. Also editing the CV inside the app.
 
-## Desarrollo
+## Development
 
 ```bash
 pip install -r requirements.txt
 python -m pytest tests/ -q
-python run.py  # sirve la web en http://127.0.0.1:5000
+python run.py  # serves the web app at http://127.0.0.1:5000
 ```
 
-## App de escritorio
+## Desktop app
 
-En construcción: un ejecutable único (sin instalador) que abre la app en una ventana propia
-en vez de una pestaña del navegador, usando [pywebview](https://pywebview.flowrl.com/). El
-icono actual es un marcador de posición, pendiente del diseño definitivo.
+Work in progress: a single executable (no installer) that opens the app in its own
+window instead of a browser tab, using [pywebview](https://pywebview.flowrl.com/).
+The current icon is a placeholder, pending the final design.
 
 ```bash
 pip install -r requirements-escritorio.txt
-python escritorio.py       # probarlo desde el código fuente
-pyinstaller --noconfirm escritorio.spec   # genera dist/CV Adaptativo.exe (o .app en macOS)
+python escritorio.py       # try it from source
+pyinstaller --noconfirm escritorio.spec   # builds dist/CV Adaptativo.exe (or .app on macOS)
 ```
 
-PyInstaller no compila para un sistema operativo distinto al que lo ejecuta: un `.exe` se
-genera en Windows, un `.app` en macOS. `.github/workflows/build-escritorio.yml` compila los
-dos a la vez en la nube (uno por cada sistema operativo) al lanzarlo manualmente o al subir
-una etiqueta `v*`.
+PyInstaller doesn't cross-compile for a different OS than the one running it: a
+`.exe` is built on Windows, a `.app` on macOS. `.github/workflows/build-escritorio.yml`
+builds both at once in the cloud (one per OS) when triggered manually or when a
+`v*` tag is pushed.
 
-## Licencia
+## License
 
 MIT
