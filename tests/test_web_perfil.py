@@ -345,13 +345,16 @@ def test_guardar_la_propuesta_captura_la_hora(cliente_web, tmp_path: Path):
 
 
 def test_la_pantalla_de_plantillas_enlaza_las_dos_plantillas(cliente_web):
-    from cv_adaptativo.web.vistas.plantillas import PLANTILLAS
+    from cv_adaptativo.web.vistas.plantillas import (
+        URL_CORPORATIVA_CLASICA,
+        URL_MINIMALISTA_CALIDA,
+    )
 
     respuesta = cliente_web.get("/plantillas")
     assert respuesta.status_code == 200
     html = respuesta.data.decode("utf-8")
-    for plantilla in PLANTILLAS:
-        assert plantilla.url in html
+    assert URL_MINIMALISTA_CALIDA in html
+    assert URL_CORPORATIVA_CLASICA in html
 
 
 def test_el_encabezado_de_cualquier_pantalla_enlaza_a_plantillas(cliente_web):

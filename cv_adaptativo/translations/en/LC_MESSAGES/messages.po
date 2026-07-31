@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-07-31 09:37+0200\n"
+"POT-Creation-Date: 2026-07-31 11:29+0200\n"
 "PO-Revision-Date: 2026-07-30 12:46+0200\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: en <LL@li.org>\n"
@@ -90,7 +90,6 @@ msgid "Tu clave de Anthropic no es válida o ha caducado. Revísala en Ajustes."
 msgstr "Your Anthropic key isn't valid or has expired. Check it in Settings."
 
 #: cv_adaptativo/ia/anthropic.py:114
-#, python-format
 msgid "El modelo configurado no existe en Anthropic. Revísalo en Ajustes."
 msgstr "The model you set doesn't exist on Anthropic. Check it in Settings."
 
@@ -2359,6 +2358,14 @@ msgstr "There was no language to delete."
 #: cv_adaptativo/web/vistas/perfil.py:370
 msgid "Plantilla de «Sobre mí» guardada."
 msgstr "“About me” template saved."
+
+#: cv_adaptativo/web/vistas/plantillas.py:38
+msgid "Minimalista Cálida"
+msgstr "Warm Minimalist"
+
+#: cv_adaptativo/web/vistas/plantillas.py:39
+msgid "Corporativa Clásica"
+msgstr "Classic Corporate"
 
 #: cv_adaptativo/web/vistas/propuesta.py:42
 msgid ""

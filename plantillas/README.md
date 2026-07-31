@@ -4,8 +4,8 @@ CV Adaptativo no maqueta tu CV — te da el texto ya elegido, y el diseño sigue
 Canva. Estas dos plantillas son el punto de partida para quien no tiene ya su propio diseño:
 una página, en español, y la única diferencia real entre ellas es el estilo visual.
 
-- **Plantilla A** — <!-- TODO: nombre del estilo --> · https://www.canva.com/design/DAHHeNVzaGM/mggPEzw06NPeboGC6D5wCQ/edit
-- **Plantilla B** — <!-- TODO: nombre del estilo --> · https://www.canva.com/design/DAHHeKwDZM4/RKBBp6YcMzbNCAdErRfSrQ/edit
+- **Minimalista Cálida** (*Warm Minimalist*) · https://www.canva.com/design/DAHHeNVzaGM/mggPEzw06NPeboGC6D5wCQ/edit
+- **Corporativa Clásica** (*Classic Corporate*) · https://www.canva.com/design/DAHHeKwDZM4/RKBBp6YcMzbNCAdErRfSrQ/edit
 
 ## Cómo se usan
 

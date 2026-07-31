@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-07-31 09:37+0200\n"
+"POT-Creation-Date: 2026-07-31 11:29+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -2104,6 +2104,14 @@ msgstr ""
 
 #: cv_adaptativo/web/vistas/perfil.py:370
 msgid "Plantilla de «Sobre mí» guardada."
+msgstr ""
+
+#: cv_adaptativo/web/vistas/plantillas.py:38
+msgid "Minimalista Cálida"
+msgstr ""
+
+#: cv_adaptativo/web/vistas/plantillas.py:39
+msgid "Corporativa Clásica"
 msgstr ""
 
 #: cv_adaptativo/web/vistas/propuesta.py:42
