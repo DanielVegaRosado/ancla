@@ -55,42 +55,17 @@ template, pasting a job posting and generating the proposal with a real Groq key
 and "About me" template, in Spanish and English) so anyone who clones the repo can
 try the app without writing their whole profile first.
 
-## What competitors do that this doesn't
-
-Checked against BetterCV, Mi CV Ideal, Rezi, Kickresume and Teal. All five share the
-same pattern:
-
-- The AI **writes or rewrites** the user's content (Kickresume generates whole
-  sections "from a job title", and Rezi rewrites bullet points so they "don't sound
-  templated"). That's exactly what this project refuses to do.
-- Account and cloud storage are mandatory. Your application data lives on their
-  server.
-- A paywall: you can build the CV for free but pay to save or download it (Mi CV
-  Ideal is explicit about this).
-- They optimise for a "match score"/ATS number, with no readable reason behind any
-  given choice.
-- Templates and design *are* the product.
-
-**What CV Adaptativo can offer instead, verifiably, not just as a claim:**
+## What this app guarantees, verifiably, not just as a claim
 
 1. "Never invents" isn't a marketing promise. It's open source, so you can read
    `seleccion/motor.py` yourself and confirm that an ID missing from your profile is
    discarded no matter what the model returns.
-2. An explicit reason behind every choice. None of the five competitors above
-   offer this, only a score.
+2. An explicit reason behind every choice, not just a score.
 3. Zero account, zero cloud. Also verifiable by reading the code, not a line like
    "securely synced to the cloud."
 4. Free, no paywall, using your own key. Groq's free tier costs nothing to start with.
-5. Doesn't compete on templates. It leaves that to Canva (a better design tool
-   than any of the five) and focuses only on the selection problem.
-
-**One honest caveat:** "never invents, only selects from verified facts" is not, on
-its own, a technical moat. It's copyable in a week. What's genuinely hard to copy
-is the business model: BetterCV, Mi CV Ideal, Rezi and the rest need your data on
-their cloud and a subscription to survive as companies. Free, local and no account
-is commercially unviable for them, not out of ignorance, but because they'd stop
-making money if they did it. That's the one real advantage they can't replicate
-without stopping being what they are.
+5. Doesn't compete on templates. It leaves that to Canva and focuses only on the
+   selection problem.
 
 ## What criteria the AI follows
 
