@@ -1,20 +1,23 @@
-# Plantillas de partida
+# Starting templates
 
-CV Adaptativo no maqueta tu CV — te da el texto ya elegido, y el diseño sigue siendo tuyo en
-Canva. Estas dos plantillas son el punto de partida para quien no tiene ya su propio diseño:
-una página, en español, y la única diferencia real entre ellas es el estilo visual.
+CV Adaptativo doesn't lay out your CV. It gives you the text already chosen, and the
+design stays yours in Canva. These two templates are a starting point if you don't
+already have your own design. One page, in Spanish, and the only real difference
+between them is the visual style.
 
-- **Minimalista Cálida** (*Warm Minimalist*) · https://www.canva.com/design/DAHHeNVzaGM/mggPEzw06NPeboGC6D5wCQ/edit
-- **Corporativa Clásica** (*Classic Corporate*) · https://www.canva.com/design/DAHHeKwDZM4/RKBBp6YcMzbNCAdErRfSrQ/edit
+- **Warm Minimalist** · https://www.canva.com/design/DAHHeNVzaGM/mggPEzw06NPeboGC6D5wCQ/edit
+- **Classic Corporate** · https://www.canva.com/design/DAHHeKwDZM4/RKBBp6YcMzbNCAdErRfSrQ/edit
 
-## Cómo se usan
+## How to use them
 
-1. Abre la plantilla que más te guste y duplícala en tu cuenta de Canva (*Archivo → Hacer una
-   copia*, para no editar el original).
-2. Genera tu propuesta en **Adaptar → Propuesta**.
-3. Copia cada bloque ("Copiar" junto a cada sección, o "Copiar todo") y pégalo en su sitio en
-   Canva.
-4. Exporta como PDF cuando esté listo. La app nunca toca ese PDF: solo te da el texto.
+1. Open whichever template you like best and duplicate it into your own Canva
+   account (*File → Make a copy*, so you don't edit the original).
+2. Generate your proposal under **Adapt → Proposal**.
+3. Copy each block ("Copy" next to each section, or "Copy all") and paste it into
+   place in Canva.
+4. Export as a PDF once it's ready. The app never touches that PDF. It only gives
+   you the text.
 
-Estas plantillas no son parte del código y no están sujetas a las reglas de no inventar del
-motor de selección — son diseño, gestionado a mano por Daniel, igual que los CVs finales.
+These templates aren't part of the codebase and aren't subject to the selection
+engine's never-invent rules. They're design, managed by hand by Daniel, the same
+way the final CVs are.
