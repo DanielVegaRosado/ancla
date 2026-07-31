@@ -11,11 +11,13 @@ Every adaptation is saved. Your base of facts grows, and your archive of
 applications grows with it.
 
 - Runs **on your computer**. Your data never leaves it: no accounts, no cloud.
-- Uses **your own AI key** (Groq has a free tier).
-- Gives you the text; the design stays yours (Canva or any other tool). If you don't
+- Uses **your own AI key**. Groq has a free tier, and several paid providers
+  (OpenAI, Anthropic, Mistral, OpenRouter, or any other with a compatible API) are
+  also supported.
+- Gives you the text. The design stays yours (Canva or any other tool). If you don't
   have a CV design yet, there are [two starting templates](plantillas/README.md).
 
-## Status
+## Status (v1)
 
 | Piece | Status |
 |---|---|
@@ -27,6 +29,7 @@ applications grows with it.
 | Import from an existing CV (PDF/Word) | ✅ |
 | Support and templates | ✅ |
 | Sample profile to try the app with | ✅ |
+| Multiple AI providers (Groq, OpenAI, Anthropic, Mistral, OpenRouter, custom) | ✅ |
 
 Tested end to end, locally: creating experience and skills, defining the "About me"
 template, pasting a job posting and generating the proposal with a real Groq key.
@@ -40,9 +43,9 @@ Checked against BetterCV, Mi CV Ideal, Rezi, Kickresume and Teal. All five share
 same pattern:
 
 - The AI **writes or rewrites** the user's content (Kickresume generates whole
-  sections "from a job title"; Rezi rewrites bullet points so they "don't sound
-  templated") — exactly what this project refuses to do.
-- Account and cloud storage are mandatory; your application data lives on their
+  sections "from a job title", and Rezi rewrites bullet points so they "don't sound
+  templated"). That's exactly what this project refuses to do.
+- Account and cloud storage are mandatory. Your application data lives on their
   server.
 - A paywall: you can build the CV for free but pay to save or download it (Mi CV
   Ideal is explicit about this).
@@ -52,22 +55,22 @@ same pattern:
 
 **What CV Adaptativo can offer instead, verifiably, not just as a claim:**
 
-1. "Never invents" isn't a marketing promise — it's open source, so you can read
+1. "Never invents" isn't a marketing promise. It's open source, so you can read
    `seleccion/motor.py` yourself and confirm that an ID missing from your profile is
    discarded no matter what the model returns.
-2. An explicit reason behind every choice — none of the five competitors above
+2. An explicit reason behind every choice. None of the five competitors above
    offer this, only a score.
-3. Zero account, zero cloud — also verifiable by reading the code, not a line like
+3. Zero account, zero cloud. Also verifiable by reading the code, not a line like
    "securely synced to the cloud."
-4. Free, no paywall, using your own Groq key.
-5. Doesn't compete on templates — it leaves that to Canva (a better design tool
+4. Free, no paywall, using your own key. Groq's free tier costs nothing to start with.
+5. Doesn't compete on templates. It leaves that to Canva (a better design tool
    than any of the five) and focuses only on the selection problem.
 
 **One honest caveat:** "never invents, only selects from verified facts" is not, on
-its own, a technical moat — it's copyable in a week. What's genuinely hard to copy
+its own, a technical moat. It's copyable in a week. What's genuinely hard to copy
 is the business model: BetterCV, Mi CV Ideal, Rezi and the rest need your data on
-their cloud and a subscription to survive as companies. Free + local + no account is
-commercially unviable for them — not out of ignorance, but because they'd stop
+their cloud and a subscription to survive as companies. Free, local and no account
+is commercially unviable for them, not out of ignorance, but because they'd stop
 making money if they did it. That's the one real advantage they can't replicate
 without stopping being what they are.
 
@@ -79,11 +82,11 @@ could ignore.**
 
 ### Adapting your profile to a job posting (`seleccion/`)
 
-The model only returns *IDs* from your catalogue, never new text — so whatever ends
+The model only returns *IDs* from your catalogue, never new text, so whatever ends
 up on your CV is, literally, something you wrote yourself. Rules:
 
 1. **Never suggests anything that isn't in your profile.** If an ID doesn't exist in
-   your catalogue, the code discards it before it reaches the screen — this isn't a
+   your catalogue, the code discards it before it reaches the screen. This isn't a
    request made to the model, it's a check applied after its response.
 2. **Never rewrites your bullet points.** They're shown exactly as you wrote them.
 3. **Every choice comes with a reason**, so you can judge the proposal instead of
@@ -105,14 +108,13 @@ confirming it, field by field.
    from the file. That way it can't misread a word without it being noticed.
 2. **Only extracts what's literally in the text.** It doesn't add responsibilities,
    achievements or dates that aren't there.
-3. **If a field is missing, it's left blank** — never filled in with a reasonable
+3. **If a field is missing, it's left blank.** Never filled in with a reasonable
    guess.
 4. **Translates whichever language is missing**, literally, so you don't have to
-   write both languages by hand. *(Planned improvement for v1.1: back the
-   translation with dictionaries like Oxford or Cambridge, instead of leaving it
-   entirely to the model's judgement.)*
+   write both languages by hand. *(See Next version improvements below for a
+   planned change to how this translation works.)*
 5. **When in doubt between an experience entry or a standalone skill, it suggests a
-   skill** — inventing an experience entry around a passing mention is a worse
+   skill.** Inventing an experience entry around a passing mention is a worse
    mistake than missing a real one.
 6. Nothing is saved until you review, edit and confirm each candidate on the review
    screen.
@@ -122,20 +124,26 @@ answering, and on Groq's free tier (8,000 tokens/minute) that reasoning has to b
 kept to a minimum or it runs out of budget before finishing. This was tested
 explicitly with an ambiguous case (a personal project with no clear dates, a
 technology mentioned only in passing) and minimal reasoning classified everything
-correctly — this isn't a quality trade-off, it's the only thing that works reliably
-within this limit. *(See Roadmap: a non-reasoning-constrained open source model will
-be evaluated longer term.)*
+correctly. This isn't a quality trade-off, it's the only thing that works reliably
+within this limit. *(See Next version improvements below: a non-reasoning-constrained
+open source model will be evaluated longer term.)*
 
-## Roadmap
+## Next version improvements (v1.1)
 
-- **v1** — everything in the table above, plus a bilingual ES/EN interface.
-- **v1.1** — more AI providers. Includes evaluating an open source model better
-  suited than `gpt-oss-120b`: on Groq's free tier its "reasoning" has to be kept to
-  a minimum so it doesn't run out of token budget (see *What criteria the AI
-  follows* above) — a different model might not need that constraint.
-- **v2** — *Improvements to make*: you log the real feedback from each company
-  (what stage you were rejected at, what they told you) and the system suggests
-  concrete improvements to your profile. Also editing the CV inside the app.
+This list is not final. It grows as real feedback comes in from using the app on
+actual job applications.
+
+- Evaluate an open source model that isn't limited by "reasoning" burning through
+  Groq's free-tier token budget before finishing (see *What criteria the AI
+  follows* above for why `gpt-oss-120b` needs minimal reasoning today).
+- Back the CV-import translation with a dictionary, such as Oxford or Cambridge,
+  instead of leaving it entirely to the model's judgement.
+
+## Later (v2)
+
+- Log the real feedback from each company (what stage you were rejected at, what
+  they told you) so the system can suggest concrete improvements to your profile.
+- Edit the CV proposal directly inside the app.
 
 ## Development
 
