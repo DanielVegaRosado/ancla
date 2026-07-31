@@ -3,7 +3,7 @@ pantallas principales — mismo patrón que Soporte.
 
 Las plantillas son diseño (Canva), no datos del perfil: viven aquí como una
 lista fija en vez de en `perfil/`, porque no son algo que el usuario edite
-desde la app ni algo que varíe entre instalaciones. `plantillas/README.md`,
+desde la app ni algo que varíe entre instalaciones. `canva-templates/README.md`,
 en la raíz del repositorio, documenta lo mismo para quien mire el proyecto
 en GitHub sin llegar a ejecutarlo.
 """

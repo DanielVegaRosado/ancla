@@ -3,7 +3,7 @@ name: Compilar app de escritorio
 # PyInstaller no compila cruzado (un .exe se genera EN Windows, un .app EN
 # macOS), así que la única forma práctica de tener los dos ejecutables sin
 # tener las dos máquinas es una matriz de runners, uno de cada sistema
-# operativo, compilando en paralelo con el mismo escritorio.spec.
+# operativo, compilando en paralelo con el mismo desktop.spec.
 
 on:
   workflow_dispatch:
@@ -26,10 +26,10 @@ jobs:
           python-version: "3.11"
 
       - name: Instalar dependencias
-        run: pip install -r requirements-escritorio.txt
+        run: pip install -r requirements-desktop.txt
 
       - name: Compilar con PyInstaller
-        run: pyinstaller --noconfirm escritorio.spec
+        run: pyinstaller --noconfirm desktop.spec
 
       - name: Subir el .exe (Windows)
         if: runner.os == 'Windows'

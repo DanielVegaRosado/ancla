@@ -1,5 +1,5 @@
 # -*- mode: python ; coding: utf-8 -*-
-"""Empaqueta escritorio.py como ejecutable único con PyInstaller.
+"""Empaqueta desktop.py como ejecutable único con PyInstaller.
 
 Un solo .spec para Windows y macOS, con la diferencia real entre los dos
 sistemas resuelta con `sys.platform`, no con dos ficheros separados:
@@ -14,7 +14,7 @@ sistemas resuelta con `sys.platform`, no con dos ficheros separados:
 
 PyInstaller no compila cruzado: este .spec genera el .exe si se ejecuta EN
 Windows, y el .app si se ejecuta EN macOS. Ver el workflow de GitHub
-Actions (`.github/workflows/build-escritorio.yml`) para compilar los dos a
+Actions (`.github/workflows/build-desktop.yml`) para compilar los dos a
 la vez, uno en cada sistema operativo.
 """
 import sys
@@ -27,7 +27,7 @@ ICONO_WINDOWS = f"{CARPETA_ICONOS}/icono_prueba.ico"
 ICONO_MACOS = f"{CARPETA_ICONOS}/icono_prueba.icns"
 
 a = Analysis(
-    ["escritorio.py"],
+    ["desktop.py"],
     pathex=[],
     binaries=[],
     datas=[
@@ -58,7 +58,7 @@ exe = EXE(
     a.binaries,
     a.datas,
     [],
-    name=NOMBRE if sys.platform != "darwin" else "escritorio",
+    name=NOMBRE if sys.platform != "darwin" else "desktop",
     console=False,  # ventana, no consola detrás
     onefile=True,
     icon=ICONO_WINDOWS if sys.platform == "win32" else ICONO_MACOS,

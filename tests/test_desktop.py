@@ -11,7 +11,7 @@ import time
 
 import pytest
 
-from escritorio import _esperar_servidor
+from desktop import _esperar_servidor
 
 
 def _puerto_libre() -> int:

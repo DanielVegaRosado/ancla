@@ -15,7 +15,7 @@ applications grows with it.
   (OpenAI, Anthropic, Mistral, OpenRouter, or any other with a compatible API) are
   also supported.
 - Gives you the text. The design stays yours (Canva or any other tool). If you don't
-  have a CV design yet, there are [two starting templates](plantillas/README.md).
+  have a CV design yet, there are [two starting templates](canva-templates/README.md).
 
 ## Getting started
 
@@ -151,13 +151,13 @@ window instead of a browser tab, using [pywebview](https://pywebview.flowrl.com/
 The current icon is a placeholder, pending the final design.
 
 ```bash
-pip install -r requirements-escritorio.txt
-python escritorio.py       # try it from source
-pyinstaller --noconfirm escritorio.spec   # builds dist/CV Adaptativo.exe (or .app on macOS)
+pip install -r requirements-desktop.txt
+python desktop.py       # try it from source
+pyinstaller --noconfirm desktop.spec   # builds dist/CV Adaptativo.exe (or .app on macOS)
 ```
 
 PyInstaller doesn't cross-compile for a different OS than the one running it: a
-`.exe` is built on Windows, a `.app` on macOS. `.github/workflows/build-escritorio.yml`
+`.exe` is built on Windows, a `.app` on macOS. `.github/workflows/build-desktop.yml`
 builds both at once in the cloud (one per OS) when triggered manually or when a
 `v*` tag is pushed.
 

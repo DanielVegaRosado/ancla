@@ -1,7 +1,7 @@
 """Lanzador de escritorio: arranca el servidor Flask en un hilo y lo enseña
 en una ventana nativa con pywebview, en vez de en una pestaña del
 navegador. Es el punto de entrada que empaqueta PyInstaller
-(`escritorio.spec`) para la versión de escritorio.
+(`desktop.spec`) para la versión de escritorio.
 
 Quien ejecuta la app desde el código fuente sigue usando `run.py`, que abre
 el navegador del sistema y no depende de pywebview — ese camino no cambia.
