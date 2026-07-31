@@ -55,7 +55,7 @@ template, pasting a job posting and generating the proposal with a real Groq key
 and "About me" template, in Spanish and English) so anyone who clones the repo can
 try the app without writing their whole profile first.
 
-## What this app guarantees, verifiably, not just as a claim
+## What this app guarantees
 
 1. "Never invents" isn't a marketing promise. It's open source, so you can read
    `seleccion/motor.py` yourself and confirm that an ID missing from your profile is
