@@ -10,6 +10,8 @@ from __future__ import annotations
 import os
 from typing import Callable
 
+from flask_babel import gettext as _
+
 from cv_adaptativo.ia.cliente import ClienteIA, ErrorIA
 
 NOMBRES = {"groq": "Groq"}
@@ -29,10 +31,15 @@ _FABRICAS: dict[str, Callable[[str], ClienteIA]] = {"groq": _cliente_groq}
 def crear_cliente(proveedor: str, clave_api: str) -> ClienteIA:
     fabrica = _FABRICAS.get(proveedor)
     if fabrica is None:
-        raise ErrorIA(f"Proveedor de IA desconocido: «{proveedor}».")
+        raise ErrorIA(_("Proveedor de IA desconocido: «%(proveedor)s».", proveedor=proveedor))
 
     try:
         return fabrica(clave_api)
     except ImportError as error:
         nombre = NOMBRES.get(proveedor, proveedor)
-        raise ErrorIA(f"El proveedor {nombre} todavía no está disponible en esta instalación.") from error
+        raise ErrorIA(
+            _(
+                "El proveedor %(nombre)s todavía no está disponible en esta instalación.",
+                nombre=nombre,
+            )
+        ) from error

@@ -46,6 +46,8 @@ import zipfile
 from pathlib import Path
 from typing import Any
 
+from flask_babel import gettext as _
+
 from cv_adaptativo.perfil import serializacion
 from cv_adaptativo.perfil.errores import ErrorPerfil
 from cv_adaptativo.perfil.modelo import Experiencia, IdiomaHablado, Perfil, Skill, SobreMi
@@ -149,11 +151,16 @@ def _leer(ruta: Path) -> dict[str, Any]:
         texto = ruta.read_text(encoding="utf-8")
     except UnicodeDecodeError as exc:
         raise ErrorPerfil(
-            f"«{ruta.name}» no está guardado en UTF-8, así que no se pueden leer "
-            "sus acentos. Vuelve a guardarlo con codificación UTF-8."
+            _(
+                "«%(nombre)s» no está guardado en UTF-8, así que no se pueden leer "
+                "sus acentos. Vuelve a guardarlo con codificación UTF-8.",
+                nombre=ruta.name,
+            )
         ) from exc
     except OSError as exc:
-        raise ErrorPerfil(f"No se pudo leer «{ruta.name}»: {exc.strerror}.") from exc
+        raise ErrorPerfil(
+            _("No se pudo leer «%(nombre)s»: %(detalle)s.", nombre=ruta.name, detalle=exc.strerror)
+        ) from exc
     return serializacion.leer_datos(texto, ruta.name)
 
 
@@ -239,7 +246,9 @@ def _borrar(ruta: Path) -> None:
     except FileNotFoundError:
         pass
     except OSError as exc:
-        raise ErrorPerfil(f"No se pudo borrar «{ruta.name}»: {exc.strerror}.") from exc
+        raise ErrorPerfil(
+            _("No se pudo borrar «%(nombre)s»: %(detalle)s.", nombre=ruta.name, detalle=exc.strerror)
+        ) from exc
 
 
 def escribir_yaml(ruta: Path, datos: dict[str, Any], comentario: str = "") -> None:
@@ -260,7 +269,9 @@ def escribir_yaml(ruta: Path, datos: dict[str, Any], comentario: str = "") -> No
         os.replace(temporal, ruta)
     except OSError as exc:
         temporal.unlink(missing_ok=True)
-        raise ErrorPerfil(f"No se pudo guardar «{ruta.name}»: {exc.strerror}.") from exc
+        raise ErrorPerfil(
+            _("No se pudo guardar «%(nombre)s»: %(detalle)s.", nombre=ruta.name, detalle=exc.strerror)
+        ) from exc
 
 
 def anotar(ruta: Path, texto: str) -> None:
@@ -280,7 +291,9 @@ def anotar(ruta: Path, texto: str) -> None:
             newline="\n",
         )
     except OSError as exc:
-        raise ErrorPerfil(f"No se pudo anotar «{ruta.name}»: {exc.strerror}.") from exc
+        raise ErrorPerfil(
+            _("No se pudo anotar «%(nombre)s»: %(detalle)s.", nombre=ruta.name, detalle=exc.strerror)
+        ) from exc
 
 
 # --------------------------------------------------------------------------
@@ -311,8 +324,11 @@ def ruta_sobre_mi(raiz: Path) -> Path:
 def _ruta(carpeta: Path, id: str) -> Path:
     if not isinstance(id, str) or not _ID_VALIDO.match(id):
         raise ErrorPerfil(
-            f"«{id}» no sirve como identificador. Usa solo letras sin acentos, "
-            "números, guiones y puntos, por ejemplo «data-analyst-movilidad»."
+            _(
+                "«%(id)s» no sirve como identificador. Usa solo letras sin acentos, "
+                "números, guiones y puntos, por ejemplo «data-analyst-movilidad».",
+                id=id,
+            )
         )
     return carpeta / f"{id}.yaml"
 
@@ -327,7 +343,10 @@ def exportar_zip(raiz: Path, destino: Path) -> Path:
     raiz, destino = Path(raiz), Path(destino)
     if not raiz.is_dir():
         raise ErrorPerfil(
-            f"Todavía no hay ningún perfil que exportar: la carpeta «{raiz}» no existe."
+            _(
+                "Todavía no hay ningún perfil que exportar: la carpeta «%(raiz)s» no existe.",
+                raiz=raiz,
+            )
         )
     if destino.suffix.lower() != ".zip":
         destino = destino.with_name(destino.name + ".zip")
@@ -347,7 +366,9 @@ def exportar_zip(raiz: Path, destino: Path) -> Path:
         os.replace(temporal, destino)
     except OSError as exc:
         temporal.unlink(missing_ok=True)
-        raise ErrorPerfil(f"No se pudo crear el respaldo: {exc.strerror}.") from exc
+        raise ErrorPerfil(
+            _("No se pudo crear el respaldo: %(detalle)s.", detalle=exc.strerror)
+        ) from exc
     return destino
 
 
@@ -356,12 +377,17 @@ def importar_zip(raiz: Path, origen: Path) -> None:
     sobrescritura desde la capa web, nunca aquí en silencio."""
     raiz, origen = Path(raiz), Path(origen)
     if not origen.is_file():
-        raise ErrorPerfil(f"No se encuentra el fichero de respaldo «{origen}».")
+        raise ErrorPerfil(
+            _("No se encuentra el fichero de respaldo «%(origen)s».", origen=origen)
+        )
     if raiz.is_dir() and any(raiz.iterdir()):
         raise ErrorPerfil(
-            f"La carpeta «{raiz}» ya tiene un perfil dentro. Importa sobre una "
-            "carpeta vacía, o borra el perfil actual antes, para no acabar con "
-            "una mezcla de los dos."
+            _(
+                "La carpeta «%(raiz)s» ya tiene un perfil dentro. Importa sobre una "
+                "carpeta vacía, o borra el perfil actual antes, para no acabar con "
+                "una mezcla de los dos.",
+                raiz=raiz,
+            )
         )
     try:
         with zipfile.ZipFile(origen) as zip_:
@@ -371,10 +397,15 @@ def importar_zip(raiz: Path, origen: Path) -> None:
             zip_.extractall(raiz)
     except zipfile.BadZipFile as exc:
         raise ErrorPerfil(
-            f"«{origen.name}» no es un respaldo válido: no se puede abrir como zip."
+            _(
+                "«%(nombre)s» no es un respaldo válido: no se puede abrir como zip.",
+                nombre=origen.name,
+            )
         ) from exc
     except OSError as exc:
-        raise ErrorPerfil(f"No se pudo restaurar el respaldo: {exc.strerror}.") from exc
+        raise ErrorPerfil(
+            _("No se pudo restaurar el respaldo: %(detalle)s.", detalle=exc.strerror)
+        ) from exc
 
 
 def _comprobar_dentro(raiz: Path, miembro: str, origen: Path) -> None:
@@ -383,6 +414,10 @@ def _comprobar_dentro(raiz: Path, miembro: str, origen: Path) -> None:
     destino = (raiz / miembro).resolve()
     if not destino.is_relative_to(raiz.resolve()):
         raise ErrorPerfil(
-            f"«{origen.name}» contiene rutas que salen de la carpeta del perfil "
-            f"(«{miembro}»). No se ha importado nada."
+            _(
+                "«%(nombre)s» contiene rutas que salen de la carpeta del perfil "
+                "(«%(miembro)s»). No se ha importado nada.",
+                nombre=origen.name,
+                miembro=miembro,
+            )
         )

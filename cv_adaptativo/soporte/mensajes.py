@@ -31,6 +31,8 @@ from datetime import datetime
 from pathlib import Path
 from urllib.parse import quote, urlencode
 
+from flask_babel import gettext as _
+
 from cv_adaptativo.perfil import almacen
 
 VERSION = "0.1.0"
@@ -143,8 +145,15 @@ def _tipo_valido(tipo: str) -> str:
     return tipo if tipo in TIPOS else TIPO_POR_DEFECTO
 
 
+def _etiqueta_traducida(tipo: str) -> str:
+    # Literales explícitos, no `_(variable)`: pybabel solo extrae strings
+    # pasados directamente a `_()`, no valores de `TIPOS` resueltos en
+    # tiempo de ejecución — ver la misma nota en `web/vistas/soporte.py`.
+    return _("Problema") if _tipo_valido(tipo) == "problema" else _("Sugerencia")
+
+
 def _titulo(asunto: str, tipo: str) -> str:
-    etiqueta = TIPOS[_tipo_valido(tipo)]
+    etiqueta = _etiqueta_traducida(tipo)
     return f"{etiqueta}: {asunto.strip()}" if asunto.strip() else etiqueta
 
 

@@ -1,17 +1,17 @@
 <section class="tarjeta panel-perfil" id="idiomas" data-panel-arrastrable data-clave="idiomas">
   <div class="fila-tarjeta">
     <div class="titulo-panel">
-      <span class="manija-arrastrar" title="Arrastrar para reordenar" aria-hidden="true">⠿</span>
+      <span class="manija-arrastrar" title="{{ _('Arrastrar para reordenar') }}" aria-hidden="true">⠿</span>
       <div>
-        <h2>Idiomas ({{ perfil.idiomas|length }})</h2>
-        <p class="ayuda">Siempre completos en la Propuesta, sin selección de IA.</p>
+        <h2>{{ _('Idiomas') }} ({{ perfil.idiomas|length }})</h2>
+        <p class="ayuda">{{ _('Siempre completos en la Propuesta, sin selección de IA.') }}</p>
       </div>
     </div>
     <div class="acciones">
-      <a class="boton boton-primario" href="{{ url_for('cv_adaptativo.nuevo_idioma') }}">Añadir idioma</a>
+      <a class="boton boton-primario" href="{{ url_for('cv_adaptativo.nuevo_idioma') }}">{{ _('Añadir idioma') }}</a>
       {% if perfil.idiomas %}
-        <form class="en-linea" method="post" action="{{ url_for('cv_adaptativo.borrar_todos_idiomas') }}" data-confirmar="¿Borrar TODOS los {{ perfil.idiomas|length }} idiomas? Esta acción no se puede deshacer.">
-          <button type="submit" class="boton boton-pequeno boton-peligro">Borrar todos</button>
+        <form class="en-linea" method="post" action="{{ url_for('cv_adaptativo.borrar_todos_idiomas') }}" data-confirmar="{{ _('¿Borrar TODOS los %(cantidad)s idiomas? Esta acción no se puede deshacer.', cantidad=perfil.idiomas|length) }}">
+          <button type="submit" class="boton boton-pequeno boton-peligro">{{ _('Borrar todos') }}</button>
         </form>
       {% endif %}
     </div>
@@ -27,9 +27,9 @@
               <p class="ayuda">{{ idioma.nivel["es"] }} · id: {{ idioma.id }}</p>
             </div>
             <div class="acciones">
-              <a class="boton boton-pequeno" href="{{ url_for('cv_adaptativo.editar_idioma', id_=idioma.id) }}">Editar</a>
-              <form class="en-linea" method="post" action="{{ url_for('cv_adaptativo.borrar_idioma', id_=idioma.id) }}" data-confirmar="¿Borrar «{{ idioma.nombre['es'] }}»? Esta acción no se puede deshacer.">
-                <button type="submit" class="boton-pequeno boton-peligro">Borrar</button>
+              <a class="boton boton-pequeno" href="{{ url_for('cv_adaptativo.editar_idioma', id_=idioma.id) }}">{{ _('Editar') }}</a>
+              <form class="en-linea" method="post" action="{{ url_for('cv_adaptativo.borrar_idioma', id_=idioma.id) }}" data-confirmar="{{ _('¿Borrar «%(nombre)s»? Esta acción no se puede deshacer.', nombre=idioma.nombre['es']) }}">
+                <button type="submit" class="boton-pequeno boton-peligro">{{ _('Borrar') }}</button>
               </form>
             </div>
           </div>
@@ -37,6 +37,6 @@
       {% endfor %}
     </div>
   {% else %}
-    <p class="vacio">Todavía no has añadido ningún idioma.</p>
+    <p class="vacio">{{ _('Todavía no has añadido ningún idioma.') }}</p>
   {% endif %}
 </section>

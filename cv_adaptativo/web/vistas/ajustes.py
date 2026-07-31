@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from flask import flash, redirect, render_template, request, url_for
+from flask_babel import gettext as _
 
 from cv_adaptativo.ia.groq import URL_CONSEGUIR_CLAVE
 from cv_adaptativo.web import ajustes as modulo_ajustes
@@ -23,6 +24,7 @@ def ver_ajustes():
         proveedor=request.form.get("proveedor", modulo_ajustes.PROVEEDOR_POR_DEFECTO),
         clave_api=request.form.get("clave_api", "").strip(),
         orden_perfil=actuales.orden_perfil,
+        idioma=modulo_ajustes.idioma_valido(request.form.get("idioma")),
     )
     modulo_ajustes.guardar_ajustes(nuevos, contexto.ruta_ajustes())
 
@@ -34,9 +36,11 @@ def ver_ajustes():
     # momento de guardar en vez de esperar al primer fallo.
     if nuevos.clave_api and not nuevos.clave_api.startswith("gsk_"):
         flash(
-            "Esa clave no empieza por «gsk_», que es el formato de Groq. Si la "
-            "conseguiste en console.x.ai en vez de console.groq.com, es de Grok "
-            "(xAI) y no funcionará aquí: son proveedores distintos."
+            _(
+                "Esa clave no empieza por «gsk_», que es el formato de Groq. Si la "
+                "conseguiste en console.x.ai en vez de console.groq.com, es de Grok "
+                "(xAI) y no funcionará aquí: son proveedores distintos."
+            )
         )
-    flash("Ajustes guardados.")
+    flash(_("Ajustes guardados."))
     return redirect(url_for("cv_adaptativo.ver_ajustes"))

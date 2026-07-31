@@ -1,8 +1,8 @@
 {% extends "base.html" %}
-{% block titulo %}Mis CVs · CV Adaptativo{% endblock %}
+{% block titulo %}{{ _('Mis CVs') }} · CV Adaptativo{% endblock %}
 {% block contenido %}
-  <h1>Mis CVs</h1>
-  <p class="ayuda">El archivo de todas las adaptaciones que has guardado.</p>
+  <h1>{{ _('Mis CVs') }}</h1>
+  <p class="ayuda">{{ _('El archivo de todas las adaptaciones que has guardado.') }}</p>
 
   {% if cvs %}
     <div class="bento" data-filtro-cvs>
@@ -26,7 +26,7 @@
               <h3><a href="{{ url_for('cv_adaptativo.ver_cv', id_=cv.id) }}">{{ cv.empresa }}{% if cv.puesto %} · {{ cv.puesto }}{% endif %}</a></h3>
               <p class="ayuda">
                 {{ cv.fecha }}{% if cv.hora %} · {{ cv.hora.strftime('%H:%M') }}{% endif %}
-                · {{ "Español" if cv.propuesta.idioma == "es" else "Inglés" }}
+                · {{ _("Español") if cv.propuesta.idioma == "es" else _("Inglés") }}
               </p>
             </div>
             <span class="insignia insignia-{{ cv.estado.value }}">{{ etiquetas_estado[cv.estado] }}</span>
@@ -34,8 +34,8 @@
         </div>
       {% endfor %}
     </div>
-    <p class="ayuda vacio" data-sin-resultados hidden>Ningún CV con ese estado todavía.</p>
+    <p class="ayuda vacio" data-sin-resultados hidden>{{ _('Ningún CV con ese estado todavía.') }}</p>
   {% else %}
-    <p class="vacio">Todavía no has guardado ningún CV. Empieza en <a href="{{ url_for('cv_adaptativo.adaptar') }}">Adaptar</a>.</p>
+    <p class="vacio">{{ _('Todavía no has guardado ningún CV. Empieza en') }} <a href="{{ url_for('cv_adaptativo.adaptar') }}">{{ _('Adaptar') }}</a>.</p>
   {% endif %}
 {% endblock %}

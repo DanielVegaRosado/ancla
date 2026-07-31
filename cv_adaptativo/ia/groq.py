@@ -14,6 +14,8 @@ de `ia.cliente`. El motor no sabe quién le responde, y así debe seguir.
 """
 from __future__ import annotations
 
+from flask_babel import gettext as _
+
 from cv_adaptativo.ia.cliente import ErrorIA
 
 MODELO_POR_DEFECTO = "openai/gpt-oss-120b"
@@ -51,29 +53,16 @@ URL_CONSEGUIR_CLAVE = "https://console.groq.com/keys"
 
 # Los fallos que el usuario puede arreglar por su cuenta se cuentan en claro, y
 # se dice qué hacer. Los demás no se disfrazan de otra cosa.
-_AYUDA_CLAVE = (
-    "Tu clave de Groq no es válida o ha caducado. Revísala en Ajustes, puedes "
-    f"generar una gratis en {URL_CONSEGUIR_CLAVE}."
-)
-_AYUDA_CUOTA = (
-    "Has agotado la cuota gratuita de Groq por ahora. Espera un rato y vuelve a "
-    "intentarlo, o usa otra clave."
-)
-# Distinto de _AYUDA_CUOTA a propósito: aquí el problema no es haber agotado
-# la cuota a base de peticiones, es que ESTA petición ya es demasiado grande
-# para el límite por minuto de una sola vez — reintentar la misma vacante,
-# CV o perfil sin recortarlos vuelve a fallar igual. Groq lo devuelve como
-# HTTP 413 con `"code": "rate_limit_exceeded"` (con guion bajo: no lo
-# confundas con el "rate limit" de _AYUDA_CUOTA, que lleva espacio).
-_AYUDA_DEMASIADO_GRANDE = (
-    "Esta petición es demasiado grande para el límite de tokens por minuto de tu "
-    "plan gratuito de Groq. Si es un CV, una vacante o un perfil muy largos, prueba "
-    "con un texto más corto."
-)
-_AYUDA_RED = (
-    "No se ha podido contactar con Groq. Comprueba tu conexión a internet y "
-    "vuelve a intentarlo."
-)
+#
+# Los textos van inline en cada `_(...)` de `_explicar` (no en una constante
+# de módulo): pybabel solo extrae literales pasados directamente a `_()`, no
+# variables — una constante aquí quedaría fuera del catálogo de traducción
+# sin avisar. Distinto de la cuota agotada por peticiones acumuladas
+# (código 429): el 413 es esta petición en concreto siendo demasiado grande
+# para el límite por minuto de una sola vez — reintentar la misma vacante, CV
+# o perfil sin recortarlos vuelve a fallar igual. Groq lo devuelve con
+# `"code": "rate_limit_exceeded"` (con guion bajo: no confundir con el
+# "rate limit" del 429, que lleva espacio).
 
 
 class ClienteGroq:
@@ -103,13 +92,16 @@ class ClienteGroq:
     def completar(self, sistema: str, usuario: str) -> str:
         if not self.disponible():
             raise ErrorIA(
-                "Todavía no has configurado tu clave de Groq. Ve a Ajustes y "
-                f"pégala; puedes conseguir una gratis en {URL_CONSEGUIR_CLAVE}."
+                _(
+                    "Todavía no has configurado tu clave de Groq. Ve a Ajustes y "
+                    "pégala; puedes conseguir una gratis en %(url)s.",
+                    url=URL_CONSEGUIR_CLAVE,
+                )
             )
         respuesta = self._pedir(sistema, usuario)
         if not respuesta.strip():
             raise ErrorIA(
-                "Groq ha devuelto una respuesta vacía. Vuelve a generar la propuesta."
+                _("Groq ha devuelto una respuesta vacía. Vuelve a generar la propuesta.")
             )
         return respuesta
 
@@ -134,8 +126,10 @@ class ClienteGroq:
             return completado.choices[0].message.content or ""
         except (AttributeError, IndexError, TypeError) as exc:
             raise ErrorIA(
-                "Groq ha devuelto una respuesta con un formato inesperado. "
-                "Vuelve a generar la propuesta."
+                _(
+                    "Groq ha devuelto una respuesta con un formato inesperado. "
+                    "Vuelve a generar la propuesta."
+                )
             ) from exc
 
     def _sdk(self):
@@ -145,7 +139,7 @@ class ClienteGroq:
             from groq import Groq
         except ImportError as exc:
             raise ErrorIA(
-                "Falta la librería «groq». Instálala con: pip install -r requirements.txt"
+                _("Falta la librería «groq». Instálala con: pip install -r requirements.txt")
             ) from exc
         return Groq(api_key=self.clave, timeout=TIMEOUT_SEGUNDOS)
 
@@ -161,20 +155,35 @@ class ClienteGroq:
         texto = str(exc).lower()
 
         if codigo in (401, 403) or "api key" in texto or "unauthorized" in texto:
-            return _AYUDA_CLAVE
+            return _(
+                "Tu clave de Groq no es válida o ha caducado. Revísala en Ajustes, "
+                "puedes generar una gratis en %(url)s.",
+                url=URL_CONSEGUIR_CLAVE,
+            )
         if codigo == 413 or "tokens per minute" in texto or "request too large" in texto:
-            return _AYUDA_DEMASIADO_GRANDE
+            return _(
+                "Esta petición es demasiado grande para el límite de tokens por "
+                "minuto de tu plan gratuito de Groq. Si es un CV, una vacante o un "
+                "perfil muy largos, prueba con un texto más corto."
+            )
         if codigo == 429 or "rate limit" in texto or "quota" in texto:
-            return _AYUDA_CUOTA
+            return _(
+                "Has agotado la cuota gratuita de Groq por ahora. Espera un rato y "
+                "vuelve a intentarlo, o usa otra clave."
+            )
         if codigo == 404 or ("model" in texto and "not found" in texto):
-            return (
-                f"El modelo «{MODELO_POR_DEFECTO}» ya no está disponible en Groq. "
-                "Elige otro en Ajustes."
+            return _(
+                "El modelo «%(modelo)s» ya no está disponible en Groq. "
+                "Elige otro en Ajustes.",
+                modelo=MODELO_POR_DEFECTO,
             )
         if "timeout" in texto or "timed out" in texto:
-            return (
+            return _(
                 "Groq ha tardado demasiado en responder. Vuelve a generar la propuesta."
             )
         if "connect" in texto or "network" in texto or "dns" in texto:
-            return _AYUDA_RED
-        return f"Groq ha devuelto un error: {exc}"
+            return _(
+                "No se ha podido contactar con Groq. Comprueba tu conexión a "
+                "internet y vuelve a intentarlo."
+            )
+        return _("Groq ha devuelto un error: %(error)s", error=exc)

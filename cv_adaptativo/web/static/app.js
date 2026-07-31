@@ -12,7 +12,7 @@ document.addEventListener("click", (evento) => {
   const texto = "value" in origen ? origen.value : origen.textContent;
   navigator.clipboard.writeText(texto).then(() => {
     const original = boton.textContent;
-    boton.textContent = "Copiado";
+    boton.textContent = document.body.dataset.textoCopiado;
     setTimeout(() => { boton.textContent = original; }, 1500);
   });
 });
@@ -59,7 +59,7 @@ document.addEventListener("click", async (evento) => {
   }
 
   const original = boton.textContent;
-  boton.textContent = "Pensando…";
+  boton.textContent = document.body.dataset.textoPensando;
   boton.disabled = true;
   aviso.hidden = true;
 
@@ -81,7 +81,7 @@ document.addEventListener("click", async (evento) => {
       aviso.hidden = false;
     }
   } catch (error) {
-    aviso.textContent = "No se han podido proponer keywords.";
+    aviso.textContent = document.body.dataset.textoFalloKeywords;
     aviso.hidden = false;
   } finally {
     boton.textContent = original;

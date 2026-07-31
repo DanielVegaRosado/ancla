@@ -26,6 +26,8 @@ from __future__ import annotations
 import json
 from typing import Any
 
+from flask_babel import gettext as _
+
 from cv_adaptativo.ia.cliente import ClienteIA, ErrorIA
 from cv_adaptativo.perfil.modelo import (
     N_EXPERIENCIAS,
@@ -72,14 +74,14 @@ def adaptar(
     """
     if perfil.esta_vacio():
         raise ValueError(
-            "Tu perfil está vacío: añade experiencias y skills antes de adaptar el CV."
+            _("Tu perfil está vacío: añade experiencias y skills antes de adaptar el CV.")
         )
     if perfil.sobre_mi is None:
         raise ValueError(
-            "Tu perfil no tiene plantilla de «Sobre mí»: créala antes de adaptar el CV."
+            _("Tu perfil no tiene plantilla de «Sobre mí»: créala antes de adaptar el CV.")
         )
     if not vacante.strip():
-        raise ValueError("Pega el texto de la vacante antes de generar la propuesta.")
+        raise ValueError(_("Pega el texto de la vacante antes de generar la propuesta."))
 
     sistema, usuario = construir_mensajes(
         perfil, vacante, idioma, n_experiencias, n_skills
@@ -111,20 +113,26 @@ def _interpretar(respuesta: str) -> dict[str, Any]:
     bloque = bloque_json(respuesta or "")
     if bloque is None:
         raise ErrorIA(
-            "El modelo no ha devuelto una respuesta que se pueda interpretar. "
-            "Vuelve a generar la propuesta."
+            _(
+                "El modelo no ha devuelto una respuesta que se pueda interpretar. "
+                "Vuelve a generar la propuesta."
+            )
         )
     try:
         datos = json.loads(bloque)
     except json.JSONDecodeError as exc:
         raise ErrorIA(
-            "El modelo ha devuelto una respuesta mal formada. "
-            "Vuelve a generar la propuesta."
+            _(
+                "El modelo ha devuelto una respuesta mal formada. "
+                "Vuelve a generar la propuesta."
+            )
         ) from exc
     if not isinstance(datos, dict):
         raise ErrorIA(
-            "El modelo ha devuelto algo que no es una propuesta. "
-            "Vuelve a generar la propuesta."
+            _(
+                "El modelo ha devuelto algo que no es una propuesta. "
+                "Vuelve a generar la propuesta."
+            )
         )
     return datos
 

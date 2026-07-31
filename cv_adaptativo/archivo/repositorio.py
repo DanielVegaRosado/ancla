@@ -24,6 +24,8 @@ import unicodedata
 from datetime import date
 from pathlib import Path
 
+from flask_babel import gettext as _
+
 from cv_adaptativo.archivo import serializacion
 from cv_adaptativo.perfil import almacen
 from cv_adaptativo.perfil import serializacion as serializacion_perfil
@@ -67,7 +69,9 @@ def leer(ruta: Path) -> CVGuardado:
     try:
         texto = ruta.read_text(encoding="utf-8")
     except OSError as exc:
-        raise ErrorPerfil(f"No se pudo leer «{ruta.name}»: {exc.strerror}.") from exc
+        raise ErrorPerfil(
+            _("No se pudo leer «%(nombre)s»: %(detalle)s.", nombre=ruta.name, detalle=exc.strerror)
+        ) from exc
     datos = serializacion_perfil.leer_datos(texto, ruta.name)
     return serializacion.a_cv(datos, ruta.stem)
 
@@ -116,7 +120,7 @@ def adjuntar(raiz: Path, id: str, archivo: Path) -> Path:
     """
     archivo = Path(archivo)
     if not archivo.is_file():
-        raise ErrorPerfil(f"No existe el archivo «{archivo}».")
+        raise ErrorPerfil(_("No existe el archivo «%(archivo)s».", archivo=archivo))
 
     cv = leer(_ruta(raiz, id))
     destino = _ruta_adjunto(raiz, id, archivo.suffix)
@@ -125,7 +129,11 @@ def adjuntar(raiz: Path, id: str, archivo: Path) -> Path:
         shutil.copy2(archivo, destino)
     except OSError as exc:
         raise ErrorPerfil(
-            f"No se pudo guardar el adjunto «{archivo.name}»: {exc.strerror}."
+            _(
+                "No se pudo guardar el adjunto «%(nombre)s»: %(detalle)s.",
+                nombre=archivo.name,
+                detalle=exc.strerror,
+            )
         ) from exc
 
     guardar(raiz, dataclasses.replace(cv, adjunto=destino.name))
@@ -174,7 +182,9 @@ def _ruta_adjunto(raiz: Path, id: str, extension: str) -> Path:
 
 def _validar_id(id: str) -> str:
     if not _ID_VALIDO.fullmatch(id or ""):
-        raise ErrorPerfil(f"El identificador «{id}» no es válido para un CV guardado.")
+        raise ErrorPerfil(
+            _("El identificador «%(id)s» no es válido para un CV guardado.", id=id)
+        )
     return id
 
 

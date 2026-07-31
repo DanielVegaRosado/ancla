@@ -1,10 +1,9 @@
 {% extends "base.html" %}
-{% block titulo %}Revisar importación · CV Adaptativo{% endblock %}
+{% block titulo %}{{ _('Revisar importación') }} · CV Adaptativo{% endblock %}
 {% block contenido %}
-  <h1>Revisa lo que se ha encontrado</h1>
+  <h1>{{ _('Revisa lo que se ha encontrado') }}</h1>
   <p class="ayuda">
-    Solo se guardará lo que dejes marcado. Corrige lo que haga falta antes de confirmar.
-    La IA ha extraído esto de tu CV, pero el criterio final es tuyo.
+    {{ _('Solo se guardará lo que dejes marcado. Corrige lo que haga falta antes de confirmar. La IA ha extraído esto de tu CV, pero el criterio final es tuyo.') }}
   </p>
 
   {% if importacion.avisos %}
@@ -15,51 +14,51 @@
 
   <form class="pila" method="post" action="{{ url_for('cv_adaptativo.guardar_importacion') }}">
     {% if importacion.experiencias %}
-      <h2>Experiencias ({{ importacion.experiencias|length }})</h2>
+      <h2>{{ _('Experiencias') }} ({{ importacion.experiencias|length }})</h2>
       <div class="lista-tarjetas">
         {% for experiencia in importacion.experiencias %}
           <div class="tarjeta">
             <label class="opcion-tipo">
               <input type="checkbox" name="exp-{{ loop.index0 }}" value="1" checked>
-              <strong>Guardar esta experiencia</strong>
+              <strong>{{ _('Guardar esta experiencia') }}</strong>
             </label>
             <div class="dos-columnas">
               <div class="campo">
-                <label>Título (ES)</label>
+                <label>{{ _('Título (ES)') }}</label>
                 <input type="text" name="exp-{{ loop.index0 }}-titulo_es" value="{{ experiencia.titulo['es'] }}">
               </div>
               <div class="campo">
-                <label>Título (EN)</label>
+                <label>{{ _('Título (EN)') }}</label>
                 <input type="text" name="exp-{{ loop.index0 }}-titulo_en" value="{{ experiencia.titulo['en'] }}">
               </div>
             </div>
             <div class="dos-columnas">
               <div class="campo">
-                <label>Periodo (ES)</label>
+                <label>{{ _('Periodo (ES)') }}</label>
                 <input type="text" name="exp-{{ loop.index0 }}-periodo_es" value="{{ experiencia.periodo['es'] }}">
               </div>
               <div class="campo">
-                <label>Periodo (EN)</label>
+                <label>{{ _('Periodo (EN)') }}</label>
                 <input type="text" name="exp-{{ loop.index0 }}-periodo_en" value="{{ experiencia.periodo['en'] }}">
               </div>
             </div>
             <div class="dos-columnas">
               <div class="campo">
-                <label>Bullets (ES, uno por línea)</label>
+                <label>{{ _('Bullets (ES, uno por línea)') }}</label>
                 <textarea name="exp-{{ loop.index0 }}-bullets_es">{{ experiencia.bullets['es']|join('\n') }}</textarea>
               </div>
               <div class="campo">
-                <label>Bullets (EN, uno por línea)</label>
+                <label>{{ _('Bullets (EN, uno por línea)') }}</label>
                 <textarea name="exp-{{ loop.index0 }}-bullets_en">{{ experiencia.bullets['en']|join('\n') }}</textarea>
               </div>
             </div>
             <div class="dos-columnas">
               <div class="campo">
-                <label>Stack (ES)</label>
+                <label>{{ _('Stack (ES)') }}</label>
                 <input type="text" name="exp-{{ loop.index0 }}-stack_es" value="{{ experiencia.stack['es'] }}">
               </div>
               <div class="campo">
-                <label>Stack (EN)</label>
+                <label>{{ _('Stack (EN)') }}</label>
                 <input type="text" name="exp-{{ loop.index0 }}-stack_en" value="{{ experiencia.stack['en'] }}">
               </div>
             </div>
@@ -69,26 +68,26 @@
     {% endif %}
 
     {% if importacion.skills %}
-      <h2>Skills ({{ importacion.skills|length }})</h2>
+      <h2>{{ _('Skills') }} ({{ importacion.skills|length }})</h2>
       <div class="lista-tarjetas">
         {% for skill in importacion.skills %}
           <div class="tarjeta">
             <label class="opcion-tipo">
               <input type="checkbox" name="skill-{{ loop.index0 }}" value="1" checked>
-              <strong>Guardar esta skill</strong>
+              <strong>{{ _('Guardar esta skill') }}</strong>
             </label>
             <div class="dos-columnas">
               <div class="campo">
-                <label>Nombre (ES)</label>
+                <label>{{ _('Nombre (ES)') }}</label>
                 <input type="text" name="skill-{{ loop.index0 }}-nombre_es" value="{{ skill.nombre['es'] }}">
               </div>
               <div class="campo">
-                <label>Nombre (EN)</label>
+                <label>{{ _('Nombre (EN)') }}</label>
                 <input type="text" name="skill-{{ loop.index0 }}-nombre_en" value="{{ skill.nombre['en'] }}">
               </div>
             </div>
             <div class="campo">
-              <label>Categoría</label>
+              <label>{{ _('Categoría') }}</label>
               <input type="text" name="skill-{{ loop.index0 }}-categoria" value="{{ skill.categoria }}">
             </div>
           </div>
@@ -97,21 +96,21 @@
     {% endif %}
 
     {% if importacion.skills_personales %}
-      <h2>Skills personales ({{ importacion.skills_personales|length }})</h2>
+      <h2>{{ _('Skills personales') }} ({{ importacion.skills_personales|length }})</h2>
       <div class="lista-tarjetas">
         {% for skill in importacion.skills_personales %}
           <div class="tarjeta">
             <label class="opcion-tipo">
               <input type="checkbox" name="skillpersonal-{{ loop.index0 }}" value="1" checked>
-              <strong>Guardar esta skill personal</strong>
+              <strong>{{ _('Guardar esta skill personal') }}</strong>
             </label>
             <div class="dos-columnas">
               <div class="campo">
-                <label>Nombre (ES)</label>
+                <label>{{ _('Nombre (ES)') }}</label>
                 <input type="text" name="skillpersonal-{{ loop.index0 }}-nombre_es" value="{{ skill.nombre['es'] }}">
               </div>
               <div class="campo">
-                <label>Nombre (EN)</label>
+                <label>{{ _('Nombre (EN)') }}</label>
                 <input type="text" name="skillpersonal-{{ loop.index0 }}-nombre_en" value="{{ skill.nombre['en'] }}">
               </div>
             </div>
@@ -121,31 +120,31 @@
     {% endif %}
 
     {% if importacion.idiomas %}
-      <h2>Idiomas ({{ importacion.idiomas|length }})</h2>
+      <h2>{{ _('Idiomas') }} ({{ importacion.idiomas|length }})</h2>
       <div class="lista-tarjetas">
         {% for idioma in importacion.idiomas %}
           <div class="tarjeta">
             <label class="opcion-tipo">
               <input type="checkbox" name="idioma-{{ loop.index0 }}" value="1" checked>
-              <strong>Guardar este idioma</strong>
+              <strong>{{ _('Guardar este idioma') }}</strong>
             </label>
             <div class="dos-columnas">
               <div class="campo">
-                <label>Idioma (ES)</label>
+                <label>{{ _('Idioma (ES)') }}</label>
                 <input type="text" name="idioma-{{ loop.index0 }}-nombre_es" value="{{ idioma.nombre['es'] }}">
               </div>
               <div class="campo">
-                <label>Idioma (EN)</label>
+                <label>{{ _('Idioma (EN)') }}</label>
                 <input type="text" name="idioma-{{ loop.index0 }}-nombre_en" value="{{ idioma.nombre['en'] }}">
               </div>
             </div>
             <div class="dos-columnas">
               <div class="campo">
-                <label>Nivel (ES)</label>
+                <label>{{ _('Nivel (ES)') }}</label>
                 <input type="text" name="idioma-{{ loop.index0 }}-nivel_es" value="{{ idioma.nivel['es'] }}">
               </div>
               <div class="campo">
-                <label>Nivel (EN)</label>
+                <label>{{ _('Nivel (EN)') }}</label>
                 <input type="text" name="idioma-{{ loop.index0 }}-nivel_en" value="{{ idioma.nivel['en'] }}">
               </div>
             </div>
@@ -155,11 +154,11 @@
     {% endif %}
 
     <div class="barra-acciones">
-      <button type="submit" class="boton-primario">Guardar lo seleccionado</button>
+      <button type="submit" class="boton-primario">{{ _('Guardar lo seleccionado') }}</button>
     </div>
   </form>
 
-  <form method="post" action="{{ url_for('cv_adaptativo.descartar_importacion') }}" data-confirmar="¿Descartar toda la importación? No se guardará nada de esto.">
-    <button type="submit" class="boton-peligro">Descartar todo</button>
+  <form method="post" action="{{ url_for('cv_adaptativo.descartar_importacion') }}" data-confirmar="{{ _('¿Descartar toda la importación? No se guardará nada de esto.') }}">
+    <button type="submit" class="boton-peligro">{{ _('Descartar todo') }}</button>
   </form>
 {% endblock %}

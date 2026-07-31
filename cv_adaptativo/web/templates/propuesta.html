@@ -1,59 +1,59 @@
 {% extends "base.html" %}
-{% block titulo %}Propuesta · CV Adaptativo{% endblock %}
+{% block titulo %}{{ _('Propuesta') }} · CV Adaptativo{% endblock %}
 {% block contenido %}
-  <h1>Propuesta de CV</h1>
+  <h1>{{ _('Propuesta de CV') }}</h1>
   <p class="ayuda">
-    {{ borrador.empresa or "Empresa sin identificar" }}{% if borrador.puesto %} · {{ borrador.puesto }}{% endif %}
-    · {{ "Español" if propuesta.idioma == "es" else "Inglés" }}
+    {{ borrador.empresa or _("Empresa sin identificar") }}{% if borrador.puesto %} · {{ borrador.puesto }}{% endif %}
+    · {{ _("Español") if propuesta.idioma == "es" else _("Inglés") }}
   </p>
 
   <textarea id="copia-todo" hidden>{{ texto_plano }}</textarea>
   <textarea id="copia-todo-md" hidden>{{ texto_markdown }}</textarea>
   <div class="barra-acciones">
-    <button type="button" class="boton" data-copiar="copia-todo">Copiar todo (texto plano)</button>
-    <button type="button" class="boton" data-copiar="copia-todo-md">Copiar todo (con motivos, Markdown)</button>
+    <button type="button" class="boton" data-copiar="copia-todo">{{ _('Copiar todo (texto plano)') }}</button>
+    <button type="button" class="boton" data-copiar="copia-todo-md">{{ _('Copiar todo (con motivos, Markdown)') }}</button>
   </div>
   <p class="ayuda">
-    ¿Aún no tienes tu CV en Canva?
-    <a href="{{ url_for('cv_adaptativo.plantillas') }}">Empieza desde una plantilla →</a>
+    {{ _('¿Aún no tienes tu CV en Canva?') }}
+    <a href="{{ url_for('cv_adaptativo.plantillas') }}">{{ _('Empieza desde una plantilla →') }}</a>
   </p>
 
   <!-- Sobre mí -->
   <section class="tarjeta">
     <div class="cabecera-bloque">
-      <h2>Sobre mí</h2>
+      <h2>{{ _('Sobre mí') }}</h2>
       <div class="acciones">
-        <button type="button" class="boton boton-pequeno" data-copiar="copia-sobre-mi">Copiar</button>
+        <button type="button" class="boton boton-pequeno" data-copiar="copia-sobre-mi">{{ _('Copiar') }}</button>
         <form class="en-linea" method="post" action="{{ url_for('cv_adaptativo.regenerar_seccion', seccion='sobre-mi') }}">
-          <button type="submit" class="boton boton-pequeno">Regenerar</button>
+          <button type="submit" class="boton boton-pequeno">{{ _('Regenerar') }}</button>
         </form>
       </div>
     </div>
     <textarea id="copia-sobre-mi" hidden>{{ propuesta.sobre_mi.texto }}</textarea>
     <div class="bloque-texto">{{ propuesta.sobre_mi.texto }}</div>
-    {% if propuesta.sobre_mi.motivo %}<p class="motivo">Motivo: {{ propuesta.sobre_mi.motivo }}</p>{% endif %}
+    {% if propuesta.sobre_mi.motivo %}<p class="motivo">{{ _('Motivo:') }} {{ propuesta.sobre_mi.motivo }}</p>{% endif %}
 
     <details>
-      <summary>Ajuste directo</summary>
+      <summary>{{ _('Ajuste directo') }}</summary>
       <form class="pila" method="post" action="{{ url_for('cv_adaptativo.ajustar_sobre_mi') }}">
-        <p class="ayuda">Conceptos y dominios (GRUPO A):</p>
+        <p class="ayuda">{{ _('Conceptos y dominios (GRUPO A):') }}</p>
         <div class="dos-columnas">
           {% for n in (1, 2, 3) %}
             <input type="text" name="grupo_a_{{ n }}" value="{{ propuesta.sobre_mi.grupo_a[n-1] if propuesta.sobre_mi.grupo_a|length >= n else '' }}">
           {% endfor %}
         </div>
-        <p class="ayuda">Lenguajes y tecnologías (GRUPO B):</p>
+        <p class="ayuda">{{ _('Lenguajes y tecnologías (GRUPO B):') }}</p>
         <div class="dos-columnas">
           {% for n in (1, 2, 3) %}
             <input type="text" name="grupo_b_{{ n }}" value="{{ propuesta.sobre_mi.grupo_b[n-1] if propuesta.sobre_mi.grupo_b|length >= n else '' }}">
           {% endfor %}
         </div>
         <div class="campo">
-          <label>Motivo</label>
+          <label>{{ _('Motivo') }}</label>
           <input type="text" name="motivo" value="{{ propuesta.sobre_mi.motivo }}">
         </div>
         <div class="barra-acciones">
-          <button type="submit" class="boton boton-pequeno boton-primario">Actualizar texto</button>
+          <button type="submit" class="boton boton-pequeno boton-primario">{{ _('Actualizar texto') }}</button>
         </div>
       </form>
     </details>
@@ -62,11 +62,11 @@
   <!-- Skills -->
   <section class="tarjeta">
     <div class="cabecera-bloque">
-      <h2>Skills técnicas ({{ skills|length }})</h2>
+      <h2>{{ _('Skills técnicas') }} ({{ skills|length }})</h2>
       <div class="acciones">
-        <button type="button" class="boton boton-pequeno" data-copiar="copia-skills">Copiar</button>
+        <button type="button" class="boton boton-pequeno" data-copiar="copia-skills">{{ _('Copiar') }}</button>
         <form class="en-linea" method="post" action="{{ url_for('cv_adaptativo.regenerar_seccion', seccion='skills') }}">
-          <button type="submit" class="boton boton-pequeno">Regenerar</button>
+          <button type="submit" class="boton boton-pequeno">{{ _('Regenerar') }}</button>
         </form>
       </div>
     </div>
@@ -78,10 +78,10 @@
           {% if skill %}
             {{ skill.nombre[propuesta.idioma] }}
           {% else %}
-            <span class="vacio">«{{ id_ }}» ya no existe en tu perfil</span>
+            <span class="vacio">{{ _('«%(id)s» ya no existe en tu perfil', id=id_) }}</span>
           {% endif %}
           <details>
-            <summary>Cambiar</summary>
+            <summary>{{ _('Cambiar') }}</summary>
             <form class="en-linea" method="post" action="{{ url_for('cv_adaptativo.ajustar_skill') }}">
               <input type="hidden" name="indice" value="{{ loop.index0 }}">
               <select name="skill_id">
@@ -89,19 +89,19 @@
                   <option value="{{ candidata.id }}" {{ "selected" if candidata.id == id_ else "" }}>{{ candidata.nombre["es"] }}</option>
                 {% endfor %}
               </select>
-              <button type="submit" class="boton-pequeno">Actualizar</button>
+              <button type="submit" class="boton-pequeno">{{ _('Actualizar') }}</button>
             </form>
           </details>
         </li>
       {% endfor %}
     </ol>
 
-    {% if propuesta.motivo_skills %}<p class="motivo">Motivo: {{ propuesta.motivo_skills }}</p>{% endif %}
+    {% if propuesta.motivo_skills %}<p class="motivo">{{ _('Motivo:') }} {{ propuesta.motivo_skills }}</p>{% endif %}
     <details>
-      <summary>Editar motivo</summary>
+      <summary>{{ _('Editar motivo') }}</summary>
       <form class="en-linea" method="post" action="{{ url_for('cv_adaptativo.ajustar_motivo_skills') }}">
         <input type="text" name="motivo" value="{{ propuesta.motivo_skills }}" style="min-width: 20rem;">
-        <button type="submit" class="boton-pequeno">Guardar</button>
+        <button type="submit" class="boton-pequeno">{{ _('Guardar') }}</button>
       </form>
     </details>
   </section>
@@ -109,9 +109,9 @@
   <!-- Experiencia -->
   <section class="tarjeta">
     <div class="cabecera-bloque">
-      <h2>Experiencia relevante ({{ experiencias|length }})</h2>
+      <h2>{{ _('Experiencia relevante') }} ({{ experiencias|length }})</h2>
       <form class="en-linea" method="post" action="{{ url_for('cv_adaptativo.regenerar_seccion', seccion='experiencias') }}">
-        <button type="submit" class="boton boton-pequeno">Regenerar</button>
+        <button type="submit" class="boton boton-pequeno">{{ _('Regenerar') }}</button>
       </form>
     </div>
 
@@ -122,23 +122,23 @@
             <textarea id="copia-experiencia-{{ loop.index0 }}" hidden>{{ texto_bloque }}</textarea>
             <div class="cabecera-bloque">
               <h3>{{ experiencia.titulo[propuesta.idioma] }} · {{ experiencia.periodo[propuesta.idioma] }}</h3>
-              <button type="button" class="boton boton-pequeno" data-copiar="copia-experiencia-{{ loop.index0 }}">Copiar</button>
+              <button type="button" class="boton boton-pequeno" data-copiar="copia-experiencia-{{ loop.index0 }}">{{ _('Copiar') }}</button>
             </div>
             <ul>
               {% for bullet in experiencia.bullets[propuesta.idioma] %}<li>{{ bullet }}</li>{% endfor %}
             </ul>
             <p class="ayuda">{{ experiencia.stack[propuesta.idioma] }}</p>
           {% else %}
-            <p class="vacio">«{{ seleccionada.id }}» ya no existe en tu perfil.</p>
+            <p class="vacio">{{ _('«%(id)s» ya no existe en tu perfil.', id=seleccionada.id) }}</p>
           {% endif %}
-          {% if seleccionada.motivo %}<p class="motivo">Motivo: {{ seleccionada.motivo }}</p>{% endif %}
+          {% if seleccionada.motivo %}<p class="motivo">{{ _('Motivo:') }} {{ seleccionada.motivo }}</p>{% endif %}
 
           <details>
-            <summary>Ajuste directo</summary>
+            <summary>{{ _('Ajuste directo') }}</summary>
             <form class="pila" method="post" action="{{ url_for('cv_adaptativo.ajustar_experiencia') }}">
               <input type="hidden" name="indice" value="{{ loop.index0 }}">
               <div class="campo">
-                <label>Experiencia</label>
+                <label>{{ _('Experiencia') }}</label>
                 <select name="experiencia_id">
                   {% for candidata in perfil.experiencias %}
                     <option value="{{ candidata.id }}" {{ "selected" if candidata.id == seleccionada.id else "" }}>{{ candidata.titulo["es"] }}</option>
@@ -146,11 +146,11 @@
                 </select>
               </div>
               <div class="campo">
-                <label>Motivo</label>
+                <label>{{ _('Motivo') }}</label>
                 <input type="text" name="motivo" value="{{ seleccionada.motivo }}">
               </div>
               <div class="barra-acciones">
-                <button type="submit" class="boton boton-pequeno boton-primario">Actualizar</button>
+                <button type="submit" class="boton boton-pequeno boton-primario">{{ _('Actualizar') }}</button>
               </div>
             </form>
           </details>
@@ -163,13 +163,12 @@
   <!-- Skills personales: sin selección de IA, siempre completas -->
   <section class="tarjeta">
     <div class="cabecera-bloque">
-      <h2>Skills personales ({{ perfil.skills_personales|length }})</h2>
-      <button type="button" class="boton boton-pequeno" data-copiar="copia-skills-personales">Copiar</button>
+      <h2>{{ _('Skills personales') }} ({{ perfil.skills_personales|length }})</h2>
+      <button type="button" class="boton boton-pequeno" data-copiar="copia-skills-personales">{{ _('Copiar') }}</button>
     </div>
     <textarea id="copia-skills-personales" hidden>{{ texto_skills_personales }}</textarea>
     <p class="ayuda">
-      Se muestran siempre todas, sin selección de IA. Edítalas en «Mi perfil» si quieres
-      cambiar cuáles aparecen.
+      {{ _('Se muestran siempre todas, sin selección de IA. Edítalas en «Mi perfil» si quieres cambiar cuáles aparecen.') }}
     </p>
     <ul>
       {% for skill in perfil.skills_personales %}<li>{{ skill.nombre[propuesta.idioma] }}</li>{% endfor %}
@@ -181,13 +180,12 @@
   <!-- Idiomas: sin selección de IA, siempre completos -->
   <section class="tarjeta">
     <div class="cabecera-bloque">
-      <h2>Idiomas ({{ perfil.idiomas|length }})</h2>
-      <button type="button" class="boton boton-pequeno" data-copiar="copia-idiomas">Copiar</button>
+      <h2>{{ _('Idiomas') }} ({{ perfil.idiomas|length }})</h2>
+      <button type="button" class="boton boton-pequeno" data-copiar="copia-idiomas">{{ _('Copiar') }}</button>
     </div>
     <textarea id="copia-idiomas" hidden>{{ texto_idiomas }}</textarea>
     <p class="ayuda">
-      Se muestran siempre todos, sin selección de IA. Edítalos en «Mi perfil» si quieres
-      cambiar cuáles aparecen.
+      {{ _('Se muestran siempre todos, sin selección de IA. Edítalos en «Mi perfil» si quieres cambiar cuáles aparecen.') }}
     </p>
     <ul>
       {% for idioma in perfil.idiomas %}<li>{{ idioma.nombre[propuesta.idioma] }} · {{ idioma.nivel[propuesta.idioma] }}</li>{% endfor %}
@@ -197,14 +195,14 @@
 
   <!-- Huecos -->
   <section class="tarjeta">
-    <h2>Huecos detectados</h2>
-    <p class="ayuda">Lo que pide la vacante y no está en tu perfil. No entra en el CV: es información para ti.</p>
+    <h2>{{ _('Huecos detectados') }}</h2>
+    <p class="ayuda">{{ _('Lo que pide la vacante y no está en tu perfil. No entra en el CV: es información para ti.') }}</p>
     {% if propuesta.huecos %}
       {% for hueco in propuesta.huecos %}
         <div class="hueco">{{ hueco }}</div>
       {% endfor %}
     {% else %}
-      <p class="vacio">Ninguno: tu perfil cubre todo lo que pide la vacante.</p>
+      <p class="vacio">{{ _('Ninguno: tu perfil cubre todo lo que pide la vacante.') }}</p>
     {% endif %}
   </section>
 
@@ -212,31 +210,31 @@
 
   <div class="dos-columnas">
     <section class="tarjeta">
-      <h2>Guardar en Mis CVs</h2>
+      <h2>{{ _('Guardar en Mis CVs') }}</h2>
       <form class="pila" method="post" action="{{ url_for('cv_adaptativo.guardar_propuesta') }}">
         <div class="campo">
-          <label for="empresa">Empresa</label>
+          <label for="empresa">{{ _('Empresa') }}</label>
           <input type="text" id="empresa" name="empresa" value="{{ borrador.empresa }}" required>
         </div>
         <div class="campo">
-          <label for="puesto">Puesto</label>
+          <label for="puesto">{{ _('Puesto') }}</label>
           <input type="text" id="puesto" name="puesto" value="{{ borrador.puesto }}">
         </div>
         <div class="campo">
-          <label for="notas">Notas (opcional)</label>
+          <label for="notas">{{ _('Notas (opcional)') }}</label>
           <textarea id="notas" name="notas"></textarea>
         </div>
         <div class="barra-acciones">
-          <button type="submit" class="boton-primario">Guardar en el archivo</button>
+          <button type="submit" class="boton-primario">{{ _('Guardar en el archivo') }}</button>
         </div>
       </form>
     </section>
 
     <section class="tarjeta">
-      <h2>Descartar</h2>
-      <p class="ayuda">Borra esta propuesta sin guardarla en el archivo.</p>
-      <form method="post" action="{{ url_for('cv_adaptativo.descartar_propuesta') }}" data-confirmar="¿Descartar esta propuesta? No se guardará en el archivo.">
-        <button type="submit" class="boton-peligro">Descartar propuesta</button>
+      <h2>{{ _('Descartar') }}</h2>
+      <p class="ayuda">{{ _('Borra esta propuesta sin guardarla en el archivo.') }}</p>
+      <form method="post" action="{{ url_for('cv_adaptativo.descartar_propuesta') }}" data-confirmar="{{ _('¿Descartar esta propuesta? No se guardará en el archivo.') }}">
+        <button type="submit" class="boton-peligro">{{ _('Descartar propuesta') }}</button>
       </form>
     </section>
   </div>

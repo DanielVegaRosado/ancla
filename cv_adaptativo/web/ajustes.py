@@ -21,15 +21,27 @@ PROVEEDOR_POR_DEFECTO = "groq"
 # catálogo, y siempre va primero.
 SECCIONES_PERFIL = ("experiencias", "skills", "skills_personales", "idiomas")
 
+IDIOMA_POR_DEFECTO = "es"
+# Selector manual en la cabecera, nunca autodetección: la preferencia se
+# guarda aquí, junto al resto de configuración de la instalación.
+IDIOMAS_INTERFAZ = ("es", "en")
+
 
 @dataclass
 class Ajustes:
     proveedor: str = PROVEEDOR_POR_DEFECTO
     clave_api: str = ""
     orden_perfil: list[str] = field(default_factory=lambda: list(SECCIONES_PERFIL))
+    idioma: str = IDIOMA_POR_DEFECTO
 
     def configurado(self) -> bool:
         return bool(self.clave_api.strip())
+
+
+def idioma_valido(idioma: object) -> str:
+    if isinstance(idioma, str) and idioma in IDIOMAS_INTERFAZ:
+        return idioma
+    return IDIOMA_POR_DEFECTO
 
 
 def orden_perfil_valido(orden: object) -> list[str]:
@@ -54,6 +66,7 @@ def cargar_ajustes(ruta: Path = RUTA_POR_DEFECTO) -> Ajustes:
         proveedor=datos.get("proveedor", PROVEEDOR_POR_DEFECTO),
         clave_api=datos.get("clave_api", ""),
         orden_perfil=orden_perfil_valido(datos.get("orden_perfil")),
+        idioma=idioma_valido(datos.get("idioma")),
     )
 
 

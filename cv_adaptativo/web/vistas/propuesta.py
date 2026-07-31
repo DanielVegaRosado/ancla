@@ -6,6 +6,7 @@ from dataclasses import replace
 from datetime import date, datetime
 
 from flask import flash, redirect, render_template, request, url_for
+from flask_babel import gettext as _
 
 from cv_adaptativo.ia.cliente import ErrorIA
 from cv_adaptativo.perfil.modelo import (
@@ -38,7 +39,7 @@ _SECCIONES = ("sobre-mi", "skills", "experiencias")
 def ver_propuesta():
     borrador = modulo_borrador.cargar_borrador(contexto.raiz())
     if borrador is None:
-        flash("Todavía no has generado ninguna propuesta. Empieza por pegar una vacante.")
+        flash(_("Todavía no has generado ninguna propuesta. Empieza por pegar una vacante."))
         return redirect(url_for("cv_adaptativo.adaptar"))
 
     perfil = contexto.perfil_actual()
@@ -77,7 +78,7 @@ def ver_propuesta():
 def _con_borrador_o_redirigir():
     borrador = modulo_borrador.cargar_borrador(contexto.raiz())
     if borrador is None:
-        flash("Esa propuesta ya no está disponible, genera una nueva.")
+        flash(_("Esa propuesta ya no está disponible, genera una nueva."))
         return None
     return borrador
 
@@ -90,7 +91,7 @@ def ajustar_sobre_mi():
 
     perfil = contexto.perfil_actual()
     if perfil.sobre_mi is None:
-        flash("Tu perfil ya no tiene plantilla de «Sobre mí».")
+        flash(_("Tu perfil ya no tiene plantilla de «Sobre mí»."))
         return redirect(url_for("cv_adaptativo.ver_propuesta"))
 
     f = request.form
@@ -107,7 +108,7 @@ def ajustar_sobre_mi():
     nueva_seleccion = SeleccionSobreMi(grupo_a=grupo_a, grupo_b=grupo_b, texto=texto, motivo=motivo)
     borrador.propuesta = replace(borrador.propuesta, sobre_mi=nueva_seleccion)
     modulo_borrador.guardar_borrador(contexto.raiz(), borrador)
-    flash("«Sobre mí» actualizado.")
+    flash(_("«Sobre mí» actualizado."))
     return redirect(url_for("cv_adaptativo.ver_propuesta"))
 
 
@@ -124,7 +125,7 @@ def ajustar_skill():
         skills[indice] = nuevo_id
         borrador.propuesta = replace(borrador.propuesta, skills=skills)
         modulo_borrador.guardar_borrador(contexto.raiz(), borrador)
-        flash("Skill actualizada.")
+        flash(_("Skill actualizada."))
     return redirect(url_for("cv_adaptativo.ver_propuesta"))
 
 
@@ -153,7 +154,7 @@ def ajustar_experiencia():
         experiencias[indice] = ExperienciaSeleccionada(id=nuevo_id, motivo=motivo)
         borrador.propuesta = replace(borrador.propuesta, experiencias=experiencias)
         modulo_borrador.guardar_borrador(contexto.raiz(), borrador)
-        flash("Experiencia actualizada.")
+        flash(_("Experiencia actualizada."))
     return redirect(url_for("cv_adaptativo.ver_propuesta"))
 
 
@@ -164,7 +165,7 @@ def regenerar_seccion(seccion: str):
         return redirect(url_for("cv_adaptativo.adaptar"))
 
     if seccion not in _SECCIONES:
-        flash("Sección desconocida.")
+        flash(_("Sección desconocida."))
         return redirect(url_for("cv_adaptativo.ver_propuesta"))
 
     ajustes = modulo_ajustes.cargar_ajustes(contexto.ruta_ajustes())
@@ -174,7 +175,7 @@ def regenerar_seccion(seccion: str):
         flash(str(error))
         return redirect(url_for("cv_adaptativo.ver_propuesta"))
     if not cliente.disponible():
-        flash("Configura tu clave de API en Ajustes antes de regenerar.")
+        flash(_("Configura tu clave de API en Ajustes antes de regenerar."))
         return redirect(url_for("cv_adaptativo.ver_ajustes"))
 
     try:
@@ -196,14 +197,14 @@ def regenerar_seccion(seccion: str):
 
     borrador.propuesta = replace(borrador.propuesta, huecos=nueva_propuesta.huecos)
     modulo_borrador.guardar_borrador(contexto.raiz(), borrador)
-    flash("Sección regenerada.")
+    flash(_("Sección regenerada."))
     return redirect(url_for("cv_adaptativo.ver_propuesta"))
 
 
 @bp.route("/propuesta/descartar", methods=["POST"])
 def descartar_propuesta():
     modulo_borrador.borrar_borrador(contexto.raiz())
-    flash("Propuesta descartada.")
+    flash(_("Propuesta descartada."))
     return redirect(url_for("cv_adaptativo.adaptar"))
 
 
@@ -234,5 +235,5 @@ def guardar_propuesta():
     )
     archivo.guardar(contexto.raiz(), cv)
     modulo_borrador.borrar_borrador(contexto.raiz())
-    flash(f"CV guardado en el archivo para {empresa}.")
+    flash(_("CV guardado en el archivo para %(empresa)s.", empresa=empresa))
     return redirect(url_for("cv_adaptativo.ver_cv", id_=id_))

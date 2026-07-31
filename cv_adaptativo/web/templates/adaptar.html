@@ -1,24 +1,23 @@
 {% extends "base.html" %}
-{% block titulo %}Adaptar · CV Adaptativo{% endblock %}
+{% block titulo %}{{ _('Adaptar') }} · CV Adaptativo{% endblock %}
 {% block contenido %}
-  <h1>Adaptar un CV a una vacante</h1>
+  <h1>{{ _('Adaptar un CV a una vacante') }}</h1>
   <p class="ayuda">
-    Pega el texto completo de la vacante. El sistema elige, de tu perfil, qué experiencia y
-    skills mostrar, y te dice por qué. Es una única llamada al modelo.
+    {{ _('Pega el texto completo de la vacante. El sistema elige, de tu perfil, qué experiencia y skills mostrar, y te dice por qué. Es una única llamada al modelo.') }}
   </p>
 
   <form class="pila" method="post" action="{{ url_for('cv_adaptativo.adaptar') }}">
     <div class="campo">
-      <label for="vacante">Texto de la vacante</label>
+      <label for="vacante">{{ _('Texto de la vacante') }}</label>
       <textarea id="vacante" name="vacante" class="alta" required>{{ vacante }}</textarea>
     </div>
 
     <div class="campo">
-      <label for="idioma">Idioma de la propuesta</label>
+      <label for="idioma">{{ _('Idioma de la propuesta') }}</label>
       <select id="idioma" name="idioma">
         {% for cod in idiomas %}
           <option value="{{ cod }}" {{ "selected" if cod == idioma else "" }}>
-            {{ "Español" if cod == "es" else "Inglés" }}
+            {{ _("Español") if cod == "es" else _("Inglés") }}
           </option>
         {% endfor %}
       </select>
@@ -26,26 +25,26 @@
 
     {% if previos %}
       <div class="tarjeta">
-        <p>Ya existe al menos un CV archivado para <strong>{{ empresa }}</strong>:</p>
+        <p>{{ _('Ya existe al menos un CV archivado para') }} <strong>{{ empresa }}</strong>:</p>
         <ul>
           {% for cv in previos %}
             <li>
               <a href="{{ url_for('cv_adaptativo.ver_cv', id_=cv.id) }}">
-                {{ cv.puesto or "sin puesto indicado" }} · {{ cv.fecha }}
+                {{ cv.puesto or _("sin puesto indicado") }} · {{ cv.fecha }}
               </a>
               <span class="insignia insignia-{{ cv.estado.value }}">{{ etiquetas_estado[cv.estado] }}</span>
             </li>
           {% endfor %}
         </ul>
-        <p class="ayuda">Puedes reutilizar uno de esos o generar una propuesta nueva (por ejemplo, si esta vacante pide algo distinto).</p>
+        <p class="ayuda">{{ _('Puedes reutilizar uno de esos o generar una propuesta nueva (por ejemplo, si esta vacante pide algo distinto).') }}</p>
         <div class="barra-acciones">
           <input type="hidden" name="forzar" value="1">
-          <button type="submit" class="boton-primario">Generar una propuesta nueva de todas formas</button>
+          <button type="submit" class="boton-primario">{{ _('Generar una propuesta nueva de todas formas') }}</button>
         </div>
       </div>
     {% else %}
       <div class="barra-acciones">
-        <button type="submit" class="boton-primario">Generar propuesta</button>
+        <button type="submit" class="boton-primario">{{ _('Generar propuesta') }}</button>
       </div>
     {% endif %}
   </form>

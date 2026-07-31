@@ -1,17 +1,17 @@
 <section class="tarjeta panel-perfil" id="skills-personales" data-panel-arrastrable data-clave="skills_personales">
   <div class="fila-tarjeta">
     <div class="titulo-panel">
-      <span class="manija-arrastrar" title="Arrastrar para reordenar" aria-hidden="true">⠿</span>
+      <span class="manija-arrastrar" title="{{ _('Arrastrar para reordenar') }}" aria-hidden="true">⠿</span>
       <div>
-        <h2>Skills personales ({{ perfil.skills_personales|length }})</h2>
-        <p class="ayuda">Siempre completas en la Propuesta, sin selección de IA.</p>
+        <h2>{{ _('Skills personales') }} ({{ perfil.skills_personales|length }})</h2>
+        <p class="ayuda">{{ _('Siempre completas en la Propuesta, sin selección de IA.') }}</p>
       </div>
     </div>
     <div class="acciones">
-      <a class="boton boton-primario" href="{{ url_for('cv_adaptativo.nueva_skill_personal') }}">Añadir skill personal</a>
+      <a class="boton boton-primario" href="{{ url_for('cv_adaptativo.nueva_skill_personal') }}">{{ _('Añadir skill personal') }}</a>
       {% if perfil.skills_personales %}
-        <form class="en-linea" method="post" action="{{ url_for('cv_adaptativo.borrar_todas_skills_personales') }}" data-confirmar="¿Borrar TODAS las {{ perfil.skills_personales|length }} skills personales? Esta acción no se puede deshacer.">
-          <button type="submit" class="boton boton-pequeno boton-peligro">Borrar todas</button>
+        <form class="en-linea" method="post" action="{{ url_for('cv_adaptativo.borrar_todas_skills_personales') }}" data-confirmar="{{ _('¿Borrar TODAS las %(cantidad)s skills personales? Esta acción no se puede deshacer.', cantidad=perfil.skills_personales|length) }}">
+          <button type="submit" class="boton boton-pequeno boton-peligro">{{ _('Borrar todas') }}</button>
         </form>
       {% endif %}
     </div>
@@ -27,9 +27,9 @@
               <p class="ayuda">id: {{ skill.id }}</p>
             </div>
             <div class="acciones">
-              <a class="boton boton-pequeno" href="{{ url_for('cv_adaptativo.editar_skill_personal', id_=skill.id) }}">Editar</a>
-              <form class="en-linea" method="post" action="{{ url_for('cv_adaptativo.borrar_skill_personal', id_=skill.id) }}" data-confirmar="¿Borrar «{{ skill.nombre['es'] }}»? Esta acción no se puede deshacer.">
-                <button type="submit" class="boton-pequeno boton-peligro">Borrar</button>
+              <a class="boton boton-pequeno" href="{{ url_for('cv_adaptativo.editar_skill_personal', id_=skill.id) }}">{{ _('Editar') }}</a>
+              <form class="en-linea" method="post" action="{{ url_for('cv_adaptativo.borrar_skill_personal', id_=skill.id) }}" data-confirmar="{{ _('¿Borrar «%(nombre)s»? Esta acción no se puede deshacer.', nombre=skill.nombre['es']) }}">
+                <button type="submit" class="boton-pequeno boton-peligro">{{ _('Borrar') }}</button>
               </form>
             </div>
           </div>
@@ -37,6 +37,6 @@
       {% endfor %}
     </div>
   {% else %}
-    <p class="vacio">Todavía no has añadido ninguna skill personal.</p>
+    <p class="vacio">{{ _('Todavía no has añadido ninguna skill personal.') }}</p>
   {% endif %}
 </section>

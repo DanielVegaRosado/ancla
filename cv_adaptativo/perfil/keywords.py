@@ -27,6 +27,8 @@ import json
 import re
 from dataclasses import dataclass, field
 
+from flask_babel import gettext as _
+
 from cv_adaptativo.ia.cliente import ClienteIA, ErrorIA
 from cv_adaptativo.texto import normalizar
 
@@ -85,7 +87,7 @@ def sugerir_para_experiencia(
 
 def _pedir(cliente: ClienteIA, peticion: str) -> Sugerencia:
     if not cliente.disponible():
-        return Sugerencia(motivo="No hay ninguna clave de API configurada. Ve a Ajustes.")
+        return Sugerencia(motivo=_("No hay ninguna clave de API configurada. Ve a Ajustes."))
     try:
         bruto = cliente.completar(SISTEMA, peticion)
     except ErrorIA as exc:
@@ -94,11 +96,11 @@ def _pedir(cliente: ClienteIA, peticion: str) -> Sugerencia:
         # justo lo que el usuario necesita para saber qué revisar en Ajustes.
         return Sugerencia(motivo=str(exc))
     except Exception:
-        return Sugerencia(motivo="No se pudo contactar con el proveedor de IA.")
+        return Sugerencia(motivo=_("No se pudo contactar con el proveedor de IA."))
 
     sugeridas = _limpiar(_extraer(bruto))
     if not sugeridas:
-        return Sugerencia(motivo="El modelo no ha devuelto ninguna keyword aprovechable.")
+        return Sugerencia(motivo=_("El modelo no ha devuelto ninguna keyword aprovechable."))
     return Sugerencia(keywords=sugeridas)
 
 

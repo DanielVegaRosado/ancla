@@ -10,6 +10,7 @@ from __future__ import annotations
 from dataclasses import replace
 
 from flask import flash, redirect, render_template, request, url_for
+from flask_babel import gettext as _
 
 from cv_adaptativo.ia.cliente import ErrorIA
 from cv_adaptativo.perfil import almacen, importador, validacion
@@ -44,7 +45,7 @@ def importar():
         flash(str(error))
         return render_template("importar.html")
     if not cliente.disponible():
-        flash("Configura tu clave de API en Ajustes antes de importar un CV.")
+        flash(_("Configura tu clave de API en Ajustes antes de importar un CV."))
         return redirect(url_for("cv_adaptativo.ver_ajustes"))
 
     resultado = importador.analizar_cv(cliente, texto_cv, contexto.perfil_actual())
@@ -78,14 +79,14 @@ def _texto_de_entrada(fichero, texto_pegado: str) -> str:
         return extraer_texto(fichero.filename, fichero.read())
     if texto_pegado:
         return texto_pegado
-    raise ErrorExtraccion("Sube un fichero o pega el texto de tu CV antes de continuar.")
+    raise ErrorExtraccion(_("Sube un fichero o pega el texto de tu CV antes de continuar."))
 
 
 @bp.route("/perfil/importar/revisar")
 def revisar_importacion():
     importacion = modulo_importacion.cargar_importacion(contexto.raiz())
     if importacion is None:
-        flash("No hay ninguna importación pendiente de revisar.")
+        flash(_("No hay ninguna importación pendiente de revisar."))
         return redirect(url_for("cv_adaptativo.importar"))
     return render_template("importar_revisar.html", importacion=importacion)
 
@@ -94,7 +95,7 @@ def revisar_importacion():
 def guardar_importacion():
     importacion = modulo_importacion.cargar_importacion(contexto.raiz())
     if importacion is None:
-        flash("Esa importación ya no está disponible, vuelve a subir el CV.")
+        flash(_("Esa importación ya no está disponible, vuelve a subir el CV."))
         return redirect(url_for("cv_adaptativo.importar"))
 
     guardadas = 0
@@ -146,12 +147,15 @@ def guardar_importacion():
     modulo_importacion.borrar_importacion(contexto.raiz())
 
     if guardadas:
-        flash(f"{guardadas} elemento(s) añadidos al perfil.")
+        flash(_("%(cantidad)s elemento(s) añadidos al perfil.", cantidad=guardadas))
     if con_error:
         flash(
-            f"{con_error} elemento(s) no se pudieron guardar por falta de datos "
-            "(faltaba el nombre en algún idioma, o palabras clave). Añádelos a mano "
-            "en «Mi perfil»."
+            _(
+                "%(cantidad)s elemento(s) no se pudieron guardar por falta de datos "
+                "(faltaba el nombre en algún idioma, o palabras clave). Añádelos a mano "
+                "en «Mi perfil».",
+                cantidad=con_error,
+            )
         )
     return redirect(url_for("cv_adaptativo.ver_perfil"))
 
@@ -214,5 +218,5 @@ def _idioma_editado(form, indice: int, original: IdiomaHablado) -> IdiomaHablado
 @bp.route("/perfil/importar/descartar", methods=["POST"])
 def descartar_importacion():
     modulo_importacion.borrar_importacion(contexto.raiz())
-    flash("Importación descartada. No se ha guardado nada.")
+    flash(_("Importación descartada. No se ha guardado nada."))
     return redirect(url_for("cv_adaptativo.importar"))

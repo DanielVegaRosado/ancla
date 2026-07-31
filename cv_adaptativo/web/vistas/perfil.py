@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from flask import flash, jsonify, redirect, render_template, request, url_for
+from flask_babel import gettext as _
 
 from cv_adaptativo.perfil import almacen, keywords, validacion
 from cv_adaptativo.perfil.modelo import Bilingue, Experiencia, IdiomaHablado, Skill, SobreMi
@@ -59,7 +60,7 @@ def nueva_experiencia():
 
     id_ = slugificar(request.form.get("id") or request.form.get("titulo_es", ""))
     if contexto.perfil_actual().experiencia(id_) is not None:
-        errores = [f"Ya existe una experiencia con el identificador «{id_}»."]
+        errores = [_("Ya existe una experiencia con el identificador «%(id)s».", id=id_)]
         return render_template("experiencia_form.html", experiencia=None, errores=errores, nueva=True)
 
     experiencia = _experiencia_desde_formulario(id_)
@@ -68,7 +69,7 @@ def nueva_experiencia():
         return render_template("experiencia_form.html", experiencia=experiencia, errores=errores, nueva=True)
 
     almacen.guardar_experiencia(contexto.raiz(), experiencia)
-    flash(f"Experiencia «{experiencia.titulo['es']}» guardada.")
+    flash(_("Experiencia «%(titulo)s» guardada.", titulo=experiencia.titulo["es"]))
     return redirect(url_for("cv_adaptativo.ver_perfil"))
 
 
@@ -76,7 +77,7 @@ def nueva_experiencia():
 def editar_experiencia(id_: str):
     existente = contexto.perfil_actual().experiencia(id_)
     if existente is None:
-        flash(f"No existe la experiencia «{id_}».")
+        flash(_("No existe la experiencia «%(id)s».", id=id_))
         return redirect(url_for("cv_adaptativo.ver_perfil"))
 
     if request.method == "GET":
@@ -88,14 +89,14 @@ def editar_experiencia(id_: str):
         return render_template("experiencia_form.html", experiencia=experiencia, errores=errores, nueva=False)
 
     almacen.guardar_experiencia(contexto.raiz(), experiencia)
-    flash(f"Experiencia «{experiencia.titulo['es']}» actualizada.")
+    flash(_("Experiencia «%(titulo)s» actualizada.", titulo=experiencia.titulo["es"]))
     return redirect(url_for("cv_adaptativo.ver_perfil"))
 
 
 @bp.route("/perfil/experiencias/<id_>/borrar", methods=["POST"])
 def borrar_experiencia(id_: str):
     almacen.borrar_experiencia(contexto.raiz(), id_)
-    flash("Experiencia borrada.")
+    flash(_("Experiencia borrada."))
     return redirect(url_for("cv_adaptativo.ver_perfil"))
 
 
@@ -103,7 +104,7 @@ def borrar_experiencia(id_: str):
 def borrar_todas_experiencias():
     n = len(contexto.perfil_actual().experiencias)
     almacen.borrar_todas_experiencias(contexto.raiz())
-    flash(f"{n} experiencia(s) borradas." if n else "No había ninguna experiencia que borrar.")
+    flash(_("%(cantidad)s experiencia(s) borradas.", cantidad=n) if n else _("No había ninguna experiencia que borrar."))
     return redirect(url_for("cv_adaptativo.ver_perfil"))
 
 
@@ -121,15 +122,17 @@ def sugerir_keywords():
         return jsonify(
             {
                 "keywords": [],
-                "aviso": "Configura tu clave de API en Ajustes para que la IA "
-                "te proponga keywords. Mientras tanto, escríbelas a mano.",
+                "aviso": _(
+                    "Configura tu clave de API en Ajustes para que la IA "
+                    "te proponga keywords. Mientras tanto, escríbelas a mano."
+                ),
             }
         )
 
     try:
         cliente = crear_cliente(ajustes.proveedor, ajustes.clave_api)
     except Exception:
-        return jsonify({"keywords": [], "aviso": "No se pudo contactar con el proveedor."})
+        return jsonify({"keywords": [], "aviso": _("No se pudo contactar con el proveedor.")})
 
     if datos.get("tipo") == "experiencia":
         sugerencia = keywords.sugerir_para_experiencia(
@@ -166,7 +169,7 @@ def nueva_skill():
 
     id_ = slugificar(request.form.get("id") or request.form.get("nombre_es", ""))
     if contexto.perfil_actual().skill(id_) is not None:
-        errores = [f"Ya existe una skill con el identificador «{id_}»."]
+        errores = [_("Ya existe una skill con el identificador «%(id)s».", id=id_)]
         return render_template("skill_form.html", skill=None, errores=errores, nueva=True)
 
     skill = _skill_desde_formulario(id_)
@@ -175,7 +178,7 @@ def nueva_skill():
         return render_template("skill_form.html", skill=skill, errores=errores, nueva=True)
 
     almacen.guardar_skill(contexto.raiz(), skill)
-    flash(f"Skill «{skill.nombre['es']}» guardada.")
+    flash(_("Skill «%(nombre)s» guardada.", nombre=skill.nombre["es"]))
     return redirect(url_for("cv_adaptativo.ver_perfil"))
 
 
@@ -183,7 +186,7 @@ def nueva_skill():
 def editar_skill(id_: str):
     existente = contexto.perfil_actual().skill(id_)
     if existente is None:
-        flash(f"No existe la skill «{id_}».")
+        flash(_("No existe la skill «%(id)s».", id=id_))
         return redirect(url_for("cv_adaptativo.ver_perfil"))
 
     if request.method == "GET":
@@ -195,14 +198,14 @@ def editar_skill(id_: str):
         return render_template("skill_form.html", skill=skill, errores=errores, nueva=False)
 
     almacen.guardar_skill(contexto.raiz(), skill)
-    flash(f"Skill «{skill.nombre['es']}» actualizada.")
+    flash(_("Skill «%(nombre)s» actualizada.", nombre=skill.nombre["es"]))
     return redirect(url_for("cv_adaptativo.ver_perfil"))
 
 
 @bp.route("/perfil/skills/<id_>/borrar", methods=["POST"])
 def borrar_skill(id_: str):
     almacen.borrar_skill(contexto.raiz(), id_)
-    flash("Skill borrada.")
+    flash(_("Skill borrada."))
     return redirect(url_for("cv_adaptativo.ver_perfil"))
 
 
@@ -210,7 +213,7 @@ def borrar_skill(id_: str):
 def borrar_todas_skills():
     n = len(contexto.perfil_actual().skills)
     almacen.borrar_todas_skills(contexto.raiz())
-    flash(f"{n} skill(s) borradas." if n else "No había ninguna skill que borrar.")
+    flash(_("%(cantidad)s skill(s) borradas.", cantidad=n) if n else _("No había ninguna skill que borrar."))
     return redirect(url_for("cv_adaptativo.ver_perfil"))
 
 
@@ -228,7 +231,7 @@ def nueva_skill_personal():
 
     id_ = slugificar(request.form.get("id") or request.form.get("nombre_es", ""))
     if contexto.perfil_actual().skill_personal(id_) is not None:
-        errores = [f"Ya existe una skill personal con el identificador «{id_}»."]
+        errores = [_("Ya existe una skill personal con el identificador «%(id)s».", id=id_)]
         return render_template("skill_personal_form.html", skill=None, errores=errores, nueva=True)
 
     skill = _skill_desde_formulario(id_)
@@ -237,7 +240,7 @@ def nueva_skill_personal():
         return render_template("skill_personal_form.html", skill=skill, errores=errores, nueva=True)
 
     almacen.guardar_skill_personal(contexto.raiz(), skill)
-    flash(f"Skill personal «{skill.nombre['es']}» guardada.")
+    flash(_("Skill personal «%(nombre)s» guardada.", nombre=skill.nombre["es"]))
     return redirect(url_for("cv_adaptativo.ver_perfil"))
 
 
@@ -245,7 +248,7 @@ def nueva_skill_personal():
 def editar_skill_personal(id_: str):
     existente = contexto.perfil_actual().skill_personal(id_)
     if existente is None:
-        flash(f"No existe la skill personal «{id_}».")
+        flash(_("No existe la skill personal «%(id)s».", id=id_))
         return redirect(url_for("cv_adaptativo.ver_perfil"))
 
     if request.method == "GET":
@@ -257,14 +260,14 @@ def editar_skill_personal(id_: str):
         return render_template("skill_personal_form.html", skill=skill, errores=errores, nueva=False)
 
     almacen.guardar_skill_personal(contexto.raiz(), skill)
-    flash(f"Skill personal «{skill.nombre['es']}» actualizada.")
+    flash(_("Skill personal «%(nombre)s» actualizada.", nombre=skill.nombre["es"]))
     return redirect(url_for("cv_adaptativo.ver_perfil"))
 
 
 @bp.route("/perfil/skills-personales/<id_>/borrar", methods=["POST"])
 def borrar_skill_personal(id_: str):
     almacen.borrar_skill_personal(contexto.raiz(), id_)
-    flash("Skill personal borrada.")
+    flash(_("Skill personal borrada."))
     return redirect(url_for("cv_adaptativo.ver_perfil"))
 
 
@@ -272,7 +275,11 @@ def borrar_skill_personal(id_: str):
 def borrar_todas_skills_personales():
     n = len(contexto.perfil_actual().skills_personales)
     almacen.borrar_todas_skills_personales(contexto.raiz())
-    flash(f"{n} skill(s) personal(es) borradas." if n else "No había ninguna skill personal que borrar.")
+    flash(
+        _("%(cantidad)s skill(s) personal(es) borradas.", cantidad=n)
+        if n
+        else _("No había ninguna skill personal que borrar.")
+    )
     return redirect(url_for("cv_adaptativo.ver_perfil"))
 
 
@@ -299,7 +306,7 @@ def nuevo_idioma():
 
     id_ = slugificar(request.form.get("id") or request.form.get("nombre_es", ""))
     if contexto.perfil_actual().idioma(id_) is not None:
-        errores = [f"Ya existe un idioma con el identificador «{id_}»."]
+        errores = [_("Ya existe un idioma con el identificador «%(id)s».", id=id_)]
         return render_template("idioma_form.html", idioma=None, errores=errores, nuevo=True)
 
     idioma = _idioma_desde_formulario(id_)
@@ -308,7 +315,7 @@ def nuevo_idioma():
         return render_template("idioma_form.html", idioma=idioma, errores=errores, nuevo=True)
 
     almacen.guardar_idioma(contexto.raiz(), idioma)
-    flash(f"Idioma «{idioma.nombre['es']}» guardado.")
+    flash(_("Idioma «%(nombre)s» guardado.", nombre=idioma.nombre["es"]))
     return redirect(url_for("cv_adaptativo.ver_perfil"))
 
 
@@ -316,7 +323,7 @@ def nuevo_idioma():
 def editar_idioma(id_: str):
     existente = contexto.perfil_actual().idioma(id_)
     if existente is None:
-        flash(f"No existe el idioma «{id_}».")
+        flash(_("No existe el idioma «%(id)s».", id=id_))
         return redirect(url_for("cv_adaptativo.ver_perfil"))
 
     if request.method == "GET":
@@ -328,14 +335,14 @@ def editar_idioma(id_: str):
         return render_template("idioma_form.html", idioma=idioma, errores=errores, nuevo=False)
 
     almacen.guardar_idioma(contexto.raiz(), idioma)
-    flash(f"Idioma «{idioma.nombre['es']}» actualizado.")
+    flash(_("Idioma «%(nombre)s» actualizado.", nombre=idioma.nombre["es"]))
     return redirect(url_for("cv_adaptativo.ver_perfil"))
 
 
 @bp.route("/perfil/idiomas/<id_>/borrar", methods=["POST"])
 def borrar_idioma(id_: str):
     almacen.borrar_idioma(contexto.raiz(), id_)
-    flash("Idioma borrado.")
+    flash(_("Idioma borrado."))
     return redirect(url_for("cv_adaptativo.ver_perfil"))
 
 
@@ -343,7 +350,7 @@ def borrar_idioma(id_: str):
 def borrar_todos_idiomas():
     n = len(contexto.perfil_actual().idiomas)
     almacen.borrar_todos_idiomas(contexto.raiz())
-    flash(f"{n} idioma(s) borrados." if n else "No había ningún idioma que borrar.")
+    flash(_("%(cantidad)s idioma(s) borrados.", cantidad=n) if n else _("No había ningún idioma que borrar."))
     return redirect(url_for("cv_adaptativo.ver_perfil"))
 
 
@@ -360,5 +367,5 @@ def editar_sobre_mi():
         return render_template("sobre_mi_form.html", sobre_mi=sobre_mi, errores=errores)
 
     almacen.guardar_sobre_mi(contexto.raiz(), sobre_mi)
-    flash("Plantilla de «Sobre mí» guardada.")
+    flash(_("Plantilla de «Sobre mí» guardada."))
     return redirect(url_for("cv_adaptativo.ver_perfil"))

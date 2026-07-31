@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from flask import flash, redirect, render_template, request, url_for
+from flask_babel import gettext as _
 
 from cv_adaptativo.archivo import repositorio as archivo
 from cv_adaptativo.ia.cliente import ErrorIA
@@ -25,12 +26,17 @@ def adaptar():
     forzar = request.form.get("forzar") == "1"
 
     if not vacante_texto:
-        flash("Pega el texto de la vacante antes de generar la propuesta.")
+        flash(_("Pega el texto de la vacante antes de generar la propuesta."))
         return render_template("adaptar.html", vacante=vacante_texto, idioma=idioma)
 
     perfil = contexto.perfil_actual()
     if perfil.esta_vacio() or perfil.sobre_mi is None:
-        flash("Tu perfil todavía no tiene experiencia, skills o «Sobre mí». Complétalo antes de adaptar un CV.")
+        flash(
+            _(
+                "Tu perfil todavía no tiene experiencia, skills o «Sobre mí». "
+                "Complétalo antes de adaptar un CV."
+            )
+        )
         return redirect(url_for("cv_adaptativo.ver_perfil"))
 
     datos_vacante = analisis.extraer_datos(vacante_texto)
@@ -53,7 +59,7 @@ def adaptar():
         flash(str(error))
         return render_template("adaptar.html", vacante=vacante_texto, idioma=idioma)
     if not cliente.disponible():
-        flash("Configura tu clave de API en Ajustes antes de generar una propuesta.")
+        flash(_("Configura tu clave de API en Ajustes antes de generar una propuesta."))
         return redirect(url_for("cv_adaptativo.ver_ajustes"))
 
     try:

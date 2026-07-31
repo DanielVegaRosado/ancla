@@ -1,7 +1,7 @@
 {% extends "base.html" %}
-{% block titulo %}{{ "Nueva skill" if nueva else "Editar skill" }} · CV Adaptativo{% endblock %}
+{% block titulo %}{{ _("Nueva skill") if nueva else _("Editar skill") }} · CV Adaptativo{% endblock %}
 {% block contenido %}
-  <h1>{{ "Nueva skill" if nueva else "Editar skill" }}</h1>
+  <h1>{{ _("Nueva skill") if nueva else _("Editar skill") }}</h1>
 
   {% if errores %}
     <div class="errores">
@@ -12,56 +12,54 @@
   <form class="pila" method="post">
     {% if nueva %}
       <div class="campo">
-        <label for="nombre_es">Nombre (ES)</label>
+        <label for="nombre_es">{{ _('Nombre (ES)') }}</label>
         <input type="text" id="nombre_es" name="nombre_es" data-fuente-id="id" required
                value="{{ skill.nombre['es'] if skill else '' }}">
       </div>
       <div class="campo">
-        <label for="id">Identificador</label>
-        <input type="text" id="id" name="id" data-id-manual placeholder="se genera del nombre si lo dejas vacío"
+        <label for="id">{{ _('Identificador') }}</label>
+        <input type="text" id="id" name="id" data-id-manual placeholder="{{ _('se genera del nombre si lo dejas vacío') }}"
                value="{{ skill.id if skill else '' }}">
-        <p class="ayuda">Se usa como referencia estable en el archivo de CVs: no se puede cambiar después.</p>
+        <p class="ayuda">{{ _('Se usa como referencia estable en el archivo de CVs: no se puede cambiar después.') }}</p>
       </div>
     {% else %}
       <div class="campo">
-        <label for="nombre_es">Nombre (ES)</label>
+        <label for="nombre_es">{{ _('Nombre (ES)') }}</label>
         <input type="text" id="nombre_es" name="nombre_es" required value="{{ skill.nombre['es'] }}">
       </div>
-      <p class="ayuda">Identificador: {{ skill.id }} (fijo)</p>
+      <p class="ayuda">{{ _('Identificador:') }} {{ skill.id }} ({{ _('fijo') }})</p>
     {% endif %}
 
     <div class="campo">
-      <label for="nombre_en">Nombre (EN)</label>
+      <label for="nombre_en">{{ _('Nombre (EN)') }}</label>
       <input type="text" id="nombre_en" name="nombre_en" required value="{{ skill.nombre['en'] if skill else '' }}">
     </div>
 
     <div class="campo">
-      <label for="categoria">Categoría</label>
-      <input type="text" id="categoria" name="categoria" placeholder="lenguaje, cloud, dato..."
+      <label for="categoria">{{ _('Categoría') }}</label>
+      <input type="text" id="categoria" name="categoria" placeholder="{{ _('lenguaje, cloud, dato...') }}"
              value="{{ skill.categoria if skill else '' }}">
     </div>
 
     <div class="campo">
-      <label for="keywords">Keywords</label>
+      <label for="keywords">{{ _('Keywords') }}</label>
       <input type="text" id="keywords" name="keywords" value="{{ skill.keywords|lista_a_csv if skill else '' }}">
       <p class="ayuda">
-        Las propone la IA a partir del nombre y la categoría. No salen nunca en tu CV,
-        sirven para reconocer esta skill cuando una oferta la nombre de otra forma.
-        Revísalas y añade las que falten.
+        {{ _('Las propone la IA a partir del nombre y la categoría. No salen nunca en tu CV, sirven para reconocer esta skill cuando una oferta la nombre de otra forma. Revísalas y añade las que falten.') }}
       </p>
       <div class="barra-acciones">
         <button type="button" class="boton"
                 data-sugerir-keywords
                 data-tipo="skill"
                 data-campos="nombre_es,nombre_en,categoria"
-                data-destino="keywords">Proponer con IA</button>
+                data-destino="keywords">{{ _('Proponer con IA') }}</button>
       </div>
       <p class="ayuda" data-aviso-keywords hidden></p>
     </div>
 
     <div class="barra-acciones">
-      <button type="submit" class="boton-primario">Guardar</button>
-      <a class="boton" href="{{ url_for('cv_adaptativo.ver_perfil') }}">Cancelar</a>
+      <button type="submit" class="boton-primario">{{ _('Guardar') }}</button>
+      <a class="boton" href="{{ url_for('cv_adaptativo.ver_perfil') }}">{{ _('Cancelar') }}</a>
     </div>
   </form>
 {% endblock %}

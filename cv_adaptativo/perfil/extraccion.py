@@ -15,6 +15,8 @@ from __future__ import annotations
 import io
 from typing import Callable
 
+from flask_babel import gettext as _
+
 MIN_CARACTERES_UTILES = 40
 
 
@@ -35,7 +37,7 @@ def _texto_desde_pdf(datos: bytes) -> str:
         from pypdf.errors import PdfReadError
     except ImportError as exc:
         raise ErrorExtraccion(
-            "Falta la librería «pypdf». Instálala con: pip install -r requirements.txt"
+            _("Falta la librería «pypdf». Instálala con: pip install -r requirements.txt")
         ) from exc
 
     try:
@@ -43,7 +45,7 @@ def _texto_desde_pdf(datos: bytes) -> str:
         return "\n".join(pagina.extract_text() or "" for pagina in lector.pages)
     except PdfReadError as exc:
         raise ErrorExtraccion(
-            "No se ha podido leer el PDF: parece estar dañado o protegido."
+            _("No se ha podido leer el PDF: parece estar dañado o protegido.")
         ) from exc
 
 
@@ -52,14 +54,14 @@ def _texto_desde_docx(datos: bytes) -> str:
         import docx
     except ImportError as exc:
         raise ErrorExtraccion(
-            "Falta la librería «python-docx». Instálala con: pip install -r requirements.txt"
+            _("Falta la librería «python-docx». Instálala con: pip install -r requirements.txt")
         ) from exc
 
     try:
         documento = docx.Document(io.BytesIO(datos))
     except Exception as exc:  # python-docx no expone una excepción propia
         raise ErrorExtraccion(
-            "No se ha podido leer el documento: ¿es un .docx válido?"
+            _("No se ha podido leer el documento: ¿es un .docx válido?")
         ) from exc
     partes = [parrafo.text for parrafo in documento.paragraphs]
     for tabla in documento.tables:
@@ -94,7 +96,11 @@ def extraer_texto(nombre_fichero: str, datos: bytes) -> str:
     if extractor is None:
         formatos = ", ".join(FORMATOS_SOPORTADOS)
         raise ErrorExtraccion(
-            f"«{nombre_fichero}» no es un formato soportado. Admitidos: {formatos}."
+            _(
+                "«%(nombre)s» no es un formato soportado. Admitidos: %(formatos)s.",
+                nombre=nombre_fichero,
+                formatos=formatos,
+            )
         )
 
     try:
@@ -103,15 +109,21 @@ def extraer_texto(nombre_fichero: str, datos: bytes) -> str:
         raise  # Ya viene con un mensaje pensado para enseñarse tal cual.
     except Exception as exc:
         raise ErrorExtraccion(
-            f"No se ha podido leer «{nombre_fichero}». Puede estar dañado, protegido con "
-            "contraseña, o en una variante del formato que esta versión no reconoce. "
-            "Si puedes, pega el texto a mano en su lugar."
+            _(
+                "No se ha podido leer «%(nombre)s». Puede estar dañado, protegido con "
+                "contraseña, o en una variante del formato que esta versión no reconoce. "
+                "Si puedes, pega el texto a mano en su lugar.",
+                nombre=nombre_fichero,
+            )
         ) from exc
 
     if len(texto) < MIN_CARACTERES_UTILES:
         raise ErrorExtraccion(
-            f"No se ha podido sacar texto de «{nombre_fichero}». Si es un PDF "
-            "escaneado (una imagen, no texto real), pega el contenido a mano."
+            _(
+                "No se ha podido sacar texto de «%(nombre)s». Si es un PDF "
+                "escaneado (una imagen, no texto real), pega el contenido a mano.",
+                nombre=nombre_fichero,
+            )
         )
     return texto
 

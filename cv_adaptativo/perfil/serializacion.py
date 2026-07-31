@@ -23,6 +23,7 @@ from __future__ import annotations
 from typing import Any
 
 import yaml
+from flask_babel import gettext as _
 
 from cv_adaptativo.perfil.errores import ErrorPerfil
 from cv_adaptativo.perfil.modelo import Bilingue, Experiencia, IdiomaHablado, Skill, SobreMi
@@ -44,8 +45,11 @@ def leer_datos(texto: str, origen: str) -> dict[str, Any]:
         return {}
     if not isinstance(datos, dict):
         raise ErrorPerfil(
-            f"«{origen}» no tiene el formato esperado: se esperaba una lista de "
-            "campos como «titulo:» o «keywords:»."
+            _(
+                "«%(origen)s» no tiene el formato esperado: se esperaba una lista de "
+                "campos como «titulo:» o «keywords:».",
+                origen=origen,
+            )
         )
     return datos
 
@@ -69,10 +73,18 @@ def comentario(texto: str) -> str:
 
 def _error_de_formato(origen: str, exc: yaml.YAMLError) -> str:
     marca = getattr(exc, "problem_mark", None)
-    donde = f" en la línea {marca.line + 1}" if marca is not None else ""
-    return (
-        f"«{origen}» tiene un error de formato{donde}. Suele ser un espacio de "
-        "más al principio de una línea, o un texto con «:» sin comillas."
+    if marca is not None:
+        return _(
+            "«%(origen)s» tiene un error de formato en la línea %(linea)s. Suele ser "
+            "un espacio de más al principio de una línea, o un texto con «:» sin "
+            "comillas.",
+            origen=origen,
+            linea=marca.line + 1,
+        )
+    return _(
+        "«%(origen)s» tiene un error de formato. Suele ser un espacio de "
+        "más al principio de una línea, o un texto con «:» sin comillas.",
+        origen=origen,
     )
 
 
@@ -178,8 +190,12 @@ def _bilingue_texto(datos: dict[str, Any], campo: str, origen: str) -> Bilingue[
         return Bilingue(es=_texto(valor.get("es")), en=_texto(valor.get("en")))
     if isinstance(valor, (list, tuple)):
         raise ErrorPerfil(
-            f"En «{origen}», el campo «{campo}» es una lista y debería ser un "
-            "texto, o «es:» y «en:» con un texto cada uno."
+            _(
+                "En «%(origen)s», el campo «%(campo)s» es una lista y debería ser un "
+                "texto, o «es:» y «en:» con un texto cada uno.",
+                origen=origen,
+                campo=campo,
+            )
         )
     return Bilingue(es=_texto(valor), en=_texto(valor))
 
@@ -206,8 +222,13 @@ def _lista(valor: Any, campo: str, idioma: str | None, origen: str) -> list[str]
         return [_texto(elemento) for elemento in valor]
     sufijo = f" ({idioma})" if idioma else ""
     raise ErrorPerfil(
-        f"En «{origen}», el campo «{campo}»{sufijo} debería ser una lista: una "
-        "línea por elemento, cada una empezando por «- »."
+        _(
+            "En «%(origen)s», el campo «%(campo)s»%(sufijo)s debería ser una lista: una "
+            "línea por elemento, cada una empezando por «- ».",
+            origen=origen,
+            campo=campo,
+            sufijo=sufijo,
+        )
     )
 
 

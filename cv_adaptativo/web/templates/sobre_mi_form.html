@@ -1,12 +1,12 @@
 {% extends "base.html" %}
-{% block titulo %}Plantilla de «Sobre mí» · CV Adaptativo{% endblock %}
+{% block titulo %}{{ _('Plantilla de «Sobre mí»') }} · CV Adaptativo{% endblock %}
 {% block contenido %}
-  <h1>Plantilla de «Sobre mí»</h1>
+  <h1>{{ _('Plantilla de «Sobre mí»') }}</h1>
   <p class="ayuda">
-    El texto es tuyo y se copia tal cual, salvo seis huecos que rellena el sistema con nombres
-    de skills que ya tienes: <code>{GRUPO_A_1}</code> a <code>{GRUPO_A_3}</code> (conceptos o
-    dominios) y <code>{GRUPO_B_1}</code> a <code>{GRUPO_B_3}</code> (lenguajes y tecnologías
-    concretas). El resto de la plantilla no cambia nunca.
+    {{ _('El texto es tuyo y se copia tal cual, salvo seis huecos que rellena el sistema con nombres de skills que ya tienes:') }}
+    <code>{GRUPO_A_1}</code> {{ _('a') }} <code>{GRUPO_A_3}</code> ({{ _('conceptos o dominios') }})
+    {{ _('y') }} <code>{GRUPO_B_1}</code> {{ _('a') }} <code>{GRUPO_B_3}</code> ({{ _('lenguajes y tecnologías concretas') }}).
+    {{ _('El resto de la plantilla no cambia nunca.') }}
   </p>
 
   {% if errores %}
@@ -17,17 +17,17 @@
 
   <form class="pila" method="post">
     <div class="campo">
-      <label for="plantilla_es">Plantilla (ES)</label>
+      <label for="plantilla_es">{{ _('Plantilla (ES)') }}</label>
       <textarea id="plantilla_es" name="plantilla_es" class="alta" required>{{ sobre_mi.plantilla["es"] if sobre_mi else "" }}</textarea>
     </div>
     <div class="campo">
-      <label for="plantilla_en">Plantilla (EN)</label>
+      <label for="plantilla_en">{{ _('Plantilla (EN)') }}</label>
       <textarea id="plantilla_en" name="plantilla_en" class="alta" required>{{ sobre_mi.plantilla["en"] if sobre_mi else "" }}</textarea>
     </div>
 
     <div class="barra-acciones">
-      <button type="submit" class="boton-primario">Guardar</button>
-      <a class="boton" href="{{ url_for('cv_adaptativo.ver_perfil') }}">Cancelar</a>
+      <button type="submit" class="boton-primario">{{ _('Guardar') }}</button>
+      <a class="boton" href="{{ url_for('cv_adaptativo.ver_perfil') }}">{{ _('Cancelar') }}</a>
     </div>
   </form>
 {% endblock %}

@@ -1,16 +1,14 @@
 {% extends "base.html" %}
-{% block titulo %}Soporte · CV Adaptativo{% endblock %}
+{% block titulo %}{{ _('Soporte') }} · CV Adaptativo{% endblock %}
 {% block contenido %}
-  <h1>Hablemos</h1>
+  <h1>{{ _('Hablemos') }}</h1>
   <p class="ayuda">
-    Este proyecto es open source y se hace mejor con lo que cuentes: un fallo, una idea, o
-    simplemente algo que no te haya quedado claro. No hace falta que sea un bug para que
-    merezca la pena escribirlo. Se lee todo.
+    {{ _('Este proyecto es open source y se hace mejor con lo que cuentes: un fallo, una idea, o simplemente algo que no te haya quedado claro. No hace falta que sea un bug para que merezca la pena escribirlo. Se lee todo.') }}
   </p>
 
   <form class="pila tarjeta" method="post">
     <div class="campo">
-      <label>¿Qué es esto?</label>
+      <label>{{ _('¿Qué es esto?') }}</label>
       <div class="opciones-tipo">
         {% for valor, etiqueta in tipos.items() %}
           <label class="opcion-tipo">
@@ -24,33 +22,30 @@
     </div>
 
     <div class="campo">
-      <label for="asunto">Asunto (opcional)</label>
-      <input type="text" id="asunto" name="asunto" placeholder="Resumen breve, si quieres ponerlo">
+      <label for="asunto">{{ _('Asunto (opcional)') }}</label>
+      <input type="text" id="asunto" name="asunto" placeholder="{{ _('Resumen breve, si quieres ponerlo') }}">
     </div>
     <div class="campo">
-      <label for="mensaje">Mensaje</label>
+      <label for="mensaje">{{ _('Mensaje') }}</label>
       <textarea id="mensaje" name="mensaje" class="alta" required
-                data-placeholder-problema="Qué esperabas que pasara y qué ha pasado en su lugar. Si puedes, los pasos para reproducirlo."
-                data-placeholder-sugerencia="Qué mejorarías, qué echas en falta, o qué te ha resultado confuso. Cualquier cosa vale."
-                placeholder="Qué mejorarías, qué echas en falta, o qué te ha resultado confuso. Cualquier cosa vale."></textarea>
+                data-placeholder-problema="{{ _('Qué esperabas que pasara y qué ha pasado en su lugar. Si puedes, los pasos para reproducirlo.') }}"
+                data-placeholder-sugerencia="{{ _('Qué mejorarías, qué echas en falta, o qué te ha resultado confuso. Cualquier cosa vale.') }}"
+                placeholder="{{ _('Qué mejorarías, qué echas en falta, o qué te ha resultado confuso. Cualquier cosa vale.') }}"></textarea>
     </div>
 
     <div class="campo">
       <div class="barra-acciones">
-        <button type="submit" name="destino" value="github" class="boton-primario">Abrir incidencia en GitHub</button>
-        <button type="submit" name="destino" value="correo" class="boton">Enviar por correo</button>
+        <button type="submit" name="destino" value="github" class="boton-primario">{{ _('Abrir incidencia en GitHub') }}</button>
+        <button type="submit" name="destino" value="correo" class="boton">{{ _('Enviar por correo') }}</button>
       </div>
       <p class="ayuda">
-        <strong>GitHub</strong> es público y queda buscable, ideal si otras personas pueden tener
-        el mismo problema. <strong>El correo</strong> es privado, solo lo lee Daniel. Elige el que
-        prefieras, los dos llegan igual.
+        <strong>GitHub</strong> {{ _('es público y queda buscable, ideal si otras personas pueden tener el mismo problema.') }}
+        <strong>{{ _('El correo') }}</strong> {{ _('es privado, solo lo lee Daniel. Elige el que prefieras, los dos llegan igual.') }}
       </p>
     </div>
   </form>
 
   <p class="ayuda">
-    Tu mensaje se guarda primero en tu ordenador, en <code>perfil/soporte/</code>, antes de
-    intentar enviarlo a ningún sitio. Solo se adjunta diagnóstico técnico (versión, sistema,
-    proveedor de IA), nunca datos de tu perfil.
+    {{ _('Tu mensaje se guarda primero en tu ordenador, en') }} <code>perfil/soporte/</code>, {{ _('antes de intentar enviarlo a ningún sitio. Solo se adjunta diagnóstico técnico (versión, sistema, proveedor de IA), nunca datos de tu perfil.') }}
   </p>
 {% endblock %}

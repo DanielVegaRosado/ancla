@@ -1,56 +1,56 @@
 {% extends "base.html" %}
-{% block titulo %}Ajustes · CV Adaptativo{% endblock %}
+{% block titulo %}{{ _('Ajustes') }} · CV Adaptativo{% endblock %}
 {% block contenido %}
-  <h1>Ajustes</h1>
+  <h1>{{ _('Ajustes') }}</h1>
   <p class="ayuda">
-    La clave es siempre tuya y se guarda solo en este ordenador, fuera del repositorio.
-    <strong>Groq Cloud</strong> tiene nivel gratuito, crea una cuenta gratis y pega aquí tu
-    clave.
-    <a href="{{ url_conseguir_clave }}" target="_blank" rel="noopener">Consigue tu clave en
-    console.groq.com →</a>
+    {{ _('La clave es siempre tuya y se guarda solo en este ordenador, fuera del repositorio.') }}
+    <strong>Groq Cloud</strong> {{ _('tiene nivel gratuito, crea una cuenta gratis y pega aquí tu clave.') }}
+    <a href="{{ url_conseguir_clave }}" target="_blank" rel="noopener">{{ _('Consigue tu clave en console.groq.com →') }}</a>
   </p>
 
   <form class="pila tarjeta" method="post">
     <div class="campo">
-      <label for="proveedor">Proveedor de IA</label>
+      <label for="proveedor">{{ _('Proveedor de IA') }}</label>
       <select id="proveedor" name="proveedor">
         <option value="groq" {{ "selected" if ajustes.proveedor == "groq" else "" }}>Groq Cloud</option>
       </select>
     </div>
 
     <div class="campo">
-      <label for="clave_api">Clave de API</label>
+      <label for="clave_api">{{ _('Clave de API') }}</label>
       <input type="password" id="clave_api" name="clave_api" autocomplete="off"
              value="{{ ajustes.clave_api }}" placeholder="gsk_...">
       <p class="ayuda">
-        {% if ajustes.configurado() %}Ya tienes una clave guardada.{% else %}Todavía no has configurado ninguna clave.{% endif %}
-        Empieza por <code>gsk_</code>.
+        {% if ajustes.configurado() %}{{ _('Ya tienes una clave guardada.') }}{% else %}{{ _('Todavía no has configurado ninguna clave.') }}{% endif %}
+        {{ _('Empieza por') }} <code>gsk_</code>.
       </p>
     </div>
 
+    <div class="campo">
+      <label for="idioma">{{ _('Idioma de la interfaz') }}</label>
+      <select id="idioma" name="idioma">
+        <option value="es" {{ "selected" if ajustes.idioma == "es" else "" }}>{{ _('Español') }}</option>
+        <option value="en" {{ "selected" if ajustes.idioma == "en" else "" }}>{{ _('Inglés') }}</option>
+      </select>
+    </div>
+
     <div class="barra-acciones">
-      <button type="submit" class="boton-primario">Guardar ajustes</button>
+      <button type="submit" class="boton-primario">{{ _('Guardar ajustes') }}</button>
     </div>
   </form>
 
   <section class="tarjeta">
-    <h2>Límite diario del nivel gratuito de Groq</h2>
+    <h2>{{ _('Límite diario del nivel gratuito de Groq') }}</h2>
     <p class="ayuda">
-      El nivel gratuito de Groq permite 30 peticiones por minuto, 1.000 peticiones al día,
-      8.000 tokens por minuto y <strong>200.000 tokens al día</strong>. Cada adaptación o
-      importación de CV es una sola petición, pero puede gastar varios miles de tokens, así
-      que el límite que más se nota con uso normal es el diario, no el de cada minuto.
+      {{ _('El nivel gratuito de Groq permite 30 peticiones por minuto, 1.000 peticiones al día, 8.000 tokens por minuto y') }}
+      <strong>{{ _('200.000 tokens al día') }}</strong>. {{ _('Cada adaptación o importación de CV es una sola petición, pero puede gastar varios miles de tokens, así que el límite que más se nota con uso normal es el diario, no el de cada minuto.') }}
     </p>
     <p class="ayuda">
-      Si ves el aviso "Has agotado la cuota gratuita de Groq", casi siempre es este límite
-      diario. Groq no indica cuánto queda exactamente, y se libera poco a poco a lo largo de
-      24 horas, no de golpe. Puede tardar bastante más que unos minutos en volver a funcionar.
+      {{ _('Si ves el aviso "Has agotado la cuota gratuita de Groq", casi siempre es este límite diario. Groq no indica cuánto queda exactamente, y se libera poco a poco a lo largo de 24 horas, no de golpe. Puede tardar bastante más que unos minutos en volver a funcionar.') }}
     </p>
     <p class="ayuda">
-      Como cada cuenta de Groq gratuita tiene su propio límite independiente, una forma sencilla
-      de no quedarte nunca sin margen es crear una segunda cuenta gratuita (con otro correo) y
-      generar otra clave. Cuando se agote la que tienes puesta aquí, pega la otra en
-      <strong>Clave de API</strong> y sigue trabajando mientras la primera se recupera.
+      {{ _('Como cada cuenta de Groq gratuita tiene su propio límite independiente, una forma sencilla de no quedarte nunca sin margen es crear una segunda cuenta gratuita (con otro correo) y generar otra clave. Cuando se agote la que tienes puesta aquí, pega la otra en') }}
+      <strong>{{ _('Clave de API') }}</strong> {{ _('y sigue trabajando mientras la primera se recupera.') }}
     </p>
   </section>
 {% endblock %}

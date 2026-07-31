@@ -14,6 +14,8 @@ from __future__ import annotations
 from datetime import date, time
 from typing import Any
 
+from flask_babel import gettext as _
+
 from cv_adaptativo.perfil.errores import ErrorPerfil
 from cv_adaptativo.perfil.modelo import (
     CVGuardado,
@@ -114,7 +116,10 @@ def _a_fecha(valor: Any, id: str) -> date:
         return date.fromisoformat(str(valor))
     except (TypeError, ValueError) as exc:
         raise ErrorPerfil(
-            f"El CV «{id}» no tiene una fecha válida (esperaba algo como 2026-07-24)."
+            _(
+                "El CV «%(id)s» no tiene una fecha válida (esperaba algo como 2026-07-24).",
+                id=id,
+            )
         ) from exc
 
 

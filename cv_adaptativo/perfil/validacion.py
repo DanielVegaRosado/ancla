@@ -23,6 +23,8 @@ from __future__ import annotations
 
 import re
 
+from flask_babel import gettext as _
+
 from cv_adaptativo.perfil.modelo import (
     IDIOMAS,
     Experiencia,
@@ -33,51 +35,72 @@ from cv_adaptativo.perfil.modelo import (
     SobreMi,
 )
 
-_NOMBRE_IDIOMA: dict[Idioma, str] = {"es": "español", "en": "inglés"}
+
+def _nombre_idioma(idioma: Idioma) -> str:
+    # Función, no dict de módulo: `_()` tiene que evaluarse en cada llamada
+    # (idioma de la petición actual), no una sola vez al importar.
+    return {"es": _("español"), "en": _("inglés")}[idioma]
+
 
 # Cualquier {COSA} escrita en la plantilla del "Sobre mí".
 _HUECO = re.compile(r"\{[^{}]*\}")
 
 
 def validar_experiencia(experiencia: Experiencia) -> list[str]:
-    """Problemas encontrados, en español y dirigidos al usuario. Vacío = correcta."""
-    etiqueta = f"Experiencia «{experiencia.id}»" if experiencia.id else "Una experiencia"
+    """Problemas encontrados, dirigidos al usuario. Vacío = correcta."""
+    etiqueta = (
+        _('Experiencia «%(id)s»', id=experiencia.id) if experiencia.id else _("Una experiencia")
+    )
     problemas: list[str] = []
 
     if not experiencia.id.strip():
         problemas.append(
-            "Hay una experiencia sin identificador. El identificador es el nombre "
-            "del fichero, por ejemplo «data-analyst-movilidad.yaml»."
+            _(
+                "Hay una experiencia sin identificador. El identificador es el nombre "
+                "del fichero, por ejemplo «data-analyst-movilidad.yaml»."
+            )
         )
 
     for idioma in IDIOMAS:
-        nombre = _NOMBRE_IDIOMA[idioma]
+        nombre = _nombre_idioma(idioma)
         if not experiencia.titulo[idioma].strip():
-            problemas.append(f"{etiqueta}: falta el título en {nombre}.")
+            problemas.append(_("%(etiqueta)s: falta el título en %(nombre)s.", etiqueta=etiqueta, nombre=nombre))
         if not experiencia.periodo[idioma].strip():
             problemas.append(
-                f"{etiqueta}: falta el periodo en {nombre} (por ejemplo «2025 - ACTUALIDAD»)."
+                _(
+                    "%(etiqueta)s: falta el periodo en %(nombre)s (por ejemplo «2025 - ACTUALIDAD»).",
+                    etiqueta=etiqueta, nombre=nombre,
+                )
             )
         if not experiencia.stack[idioma].strip():
             problemas.append(
-                f"{etiqueta}: falta el stack en {nombre} (las tecnologías que usaste)."
+                _(
+                    "%(etiqueta)s: falta el stack en %(nombre)s (las tecnologías que usaste).",
+                    etiqueta=etiqueta, nombre=nombre,
+                )
             )
         problemas += _problemas_bullets(experiencia.bullets[idioma], etiqueta, nombre)
 
     if not experiencia.keywords:
         problemas.append(
-            f"{etiqueta}: no tiene palabras clave, así que casi nunca se elegirá "
-            "para un CV. Añade los términos con los que la buscaría una empresa."
+            _(
+                "%(etiqueta)s: no tiene palabras clave, así que casi nunca se elegirá "
+                "para un CV. Añade los términos con los que la buscaría una empresa.",
+                etiqueta=etiqueta,
+            )
         )
     return problemas
 
 
 def _problemas_bullets(bullets: list[str], etiqueta: str, nombre: str) -> list[str]:
     if not bullets:
-        problemas = [f"{etiqueta}: no tiene ningún punto en {nombre}."]
+        problemas = [_("%(etiqueta)s: no tiene ningún punto en %(nombre)s.", etiqueta=etiqueta, nombre=nombre)]
     elif any(not bullet.strip() for bullet in bullets):
         problemas = [
-            f"{etiqueta}: hay algún punto vacío en {nombre}; escríbelo o quítalo."
+            _(
+                "%(etiqueta)s: hay algún punto vacío en %(nombre)s; escríbelo o quítalo.",
+                etiqueta=etiqueta, nombre=nombre,
+            )
         ]
     else:
         problemas = []
@@ -85,26 +108,36 @@ def _problemas_bullets(bullets: list[str], etiqueta: str, nombre: str) -> list[s
 
 
 def validar_skill(skill: Skill) -> list[str]:
-    etiqueta = f"Skill «{skill.id}»" if skill.id else "Una skill"
+    etiqueta = _('Skill «%(id)s»', id=skill.id) if skill.id else _("Una skill")
     problemas: list[str] = []
 
     if not skill.id.strip():
         problemas.append(
-            "Hay una skill sin identificador. El identificador es el nombre del "
-            "fichero, por ejemplo «python.yaml»."
+            _(
+                "Hay una skill sin identificador. El identificador es el nombre del "
+                "fichero, por ejemplo «python.yaml»."
+            )
         )
     for idioma in IDIOMAS:
         if not skill.nombre[idioma].strip():
-            problemas.append(f"{etiqueta}: falta el nombre en {_NOMBRE_IDIOMA[idioma]}.")
+            problemas.append(
+                _("%(etiqueta)s: falta el nombre en %(nombre)s.", etiqueta=etiqueta, nombre=_nombre_idioma(idioma))
+            )
     if not skill.categoria.strip():
         problemas.append(
-            f"{etiqueta}: no tiene categoría. Se usa para agrupar las skills del "
-            "CV y para repartirlas en el «Sobre mí»."
+            _(
+                "%(etiqueta)s: no tiene categoría. Se usa para agrupar las skills del "
+                "CV y para repartirlas en el «Sobre mí».",
+                etiqueta=etiqueta,
+            )
         )
     if not skill.keywords:
         problemas.append(
-            f"{etiqueta}: no tiene palabras clave, así que casi nunca se elegirá "
-            "para un CV. Añade cómo la nombran las ofertas."
+            _(
+                "%(etiqueta)s: no tiene palabras clave, así que casi nunca se elegirá "
+                "para un CV. Añade cómo la nombran las ofertas.",
+                etiqueta=etiqueta,
+            )
         )
     return problemas
 
@@ -112,22 +145,29 @@ def validar_skill(skill: Skill) -> list[str]:
 def validar_skill_personal(skill: Skill) -> list[str]:
     """Como `validar_skill`, pero sin exigir categoría: no hay agrupación por
     categoría para skills personales, así que pedirla sería un campo sin uso."""
-    etiqueta = f"Skill personal «{skill.id}»" if skill.id else "Una skill personal"
+    etiqueta = _('Skill personal «%(id)s»', id=skill.id) if skill.id else _("Una skill personal")
     problemas: list[str] = []
 
     if not skill.id.strip():
         problemas.append(
-            "Hay una skill personal sin identificador. El identificador es el "
-            "nombre del fichero, por ejemplo «trabajo-en-equipo.yaml»."
+            _(
+                "Hay una skill personal sin identificador. El identificador es el "
+                "nombre del fichero, por ejemplo «trabajo-en-equipo.yaml»."
+            )
         )
     for idioma in IDIOMAS:
         if not skill.nombre[idioma].strip():
-            problemas.append(f"{etiqueta}: falta el nombre en {_NOMBRE_IDIOMA[idioma]}.")
+            problemas.append(
+                _("%(etiqueta)s: falta el nombre en %(nombre)s.", etiqueta=etiqueta, nombre=_nombre_idioma(idioma))
+            )
     if not skill.keywords:
         problemas.append(
-            f"{etiqueta}: no tiene palabras clave, así que puede que una vacante "
-            "la siga marcando como hueco aunque ya la tengas. Añade cómo se "
-            "nombra en las ofertas."
+            _(
+                "%(etiqueta)s: no tiene palabras clave, así que puede que una vacante "
+                "la siga marcando como hueco aunque ya la tengas. Añade cómo se "
+                "nombra en las ofertas.",
+                etiqueta=etiqueta,
+            )
         )
     return problemas
 
@@ -135,28 +175,35 @@ def validar_skill_personal(skill: Skill) -> list[str]:
 def validar_idioma(idioma: IdiomaHablado) -> list[str]:
     """Igual de estricto que `validar_skill`: sin nivel, un idioma no dice nada
     en un CV, y sin keywords casi nunca anulará un hueco falso de la vacante."""
-    etiqueta = f"Idioma «{idioma.id}»" if idioma.id else "Un idioma"
+    etiqueta = _('Idioma «%(id)s»', id=idioma.id) if idioma.id else _("Un idioma")
     problemas: list[str] = []
 
     if not idioma.id.strip():
         problemas.append(
-            "Hay un idioma sin identificador. El identificador es el nombre del "
-            "fichero, por ejemplo «ingles.yaml»."
+            _(
+                "Hay un idioma sin identificador. El identificador es el nombre del "
+                "fichero, por ejemplo «ingles.yaml»."
+            )
         )
     for cod in IDIOMAS:
-        nombre_cod = _NOMBRE_IDIOMA[cod]
+        nombre_cod = _nombre_idioma(cod)
         if not idioma.nombre[cod].strip():
-            problemas.append(f"{etiqueta}: falta el nombre en {nombre_cod}.")
+            problemas.append(_("%(etiqueta)s: falta el nombre en %(nombre)s.", etiqueta=etiqueta, nombre=nombre_cod))
         if not idioma.nivel[cod].strip():
             problemas.append(
-                f"{etiqueta}: falta el nivel en {nombre_cod} (por ejemplo «C1 — "
-                "Avanzado»)."
+                _(
+                    "%(etiqueta)s: falta el nivel en %(nombre)s (por ejemplo «C1 — Avanzado»).",
+                    etiqueta=etiqueta, nombre=nombre_cod,
+                )
             )
     if not idioma.keywords:
         problemas.append(
-            f"{etiqueta}: no tiene palabras clave, así que puede que una vacante "
-            "lo siga marcando como hueco aunque ya lo tengas. Añade cómo se "
-            "nombra en las ofertas (p. ej. «advanced english», «fluido»)."
+            _(
+                "%(etiqueta)s: no tiene palabras clave, así que puede que una vacante "
+                "lo siga marcando como hueco aunque ya lo tengas. Añade cómo se "
+                "nombra en las ofertas (p. ej. «advanced english», «fluido»).",
+                etiqueta=etiqueta,
+            )
         )
     return problemas
 
@@ -167,27 +214,33 @@ def validar_sobre_mi(sobre_mi: SobreMi) -> list[str]:
     huecos = set(sobre_mi.huecos())
 
     for idioma in IDIOMAS:
-        nombre = _NOMBRE_IDIOMA[idioma]
+        nombre = _nombre_idioma(idioma)
         texto = sobre_mi.plantilla[idioma]
         if not texto.strip():
-            problemas.append(f"El «Sobre mí» está vacío en {nombre}.")
+            problemas.append(_("El «Sobre mí» está vacío en %(nombre)s.", nombre=nombre))
             continue
 
         faltan = [hueco for hueco in sobre_mi.huecos() if hueco not in texto]
         if faltan:
             problemas.append(
-                f"Al «Sobre mí» en {nombre} le faltan estos huecos: "
-                f"{', '.join(faltan)}. Escríbelos tal cual donde quieras que "
-                "entren las skills elegidas."
+                _(
+                    "Al «Sobre mí» en %(nombre)s le faltan estos huecos: %(huecos)s. "
+                    "Escríbelos tal cual donde quieras que entren las skills elegidas.",
+                    nombre=nombre, huecos=", ".join(faltan),
+                )
             )
         # Un {GRUPO_A_4} o un {GRUPO_C_1} se quedarían escritos tal cual en el
         # CV final, y eso el usuario solo lo vería al leer el resultado.
         desconocidos = sorted(set(_HUECO.findall(texto)) - huecos)
         if desconocidos:
             problemas.append(
-                f"El «Sobre mí» en {nombre} tiene huecos que el sistema no sabe "
-                f"rellenar: {', '.join(desconocidos)}. Los válidos son: "
-                f"{', '.join(sobre_mi.huecos())}."
+                _(
+                    "El «Sobre mí» en %(nombre)s tiene huecos que el sistema no sabe "
+                    "rellenar: %(desconocidos)s. Los válidos son: %(validos)s.",
+                    nombre=nombre,
+                    desconocidos=", ".join(desconocidos),
+                    validos=", ".join(sobre_mi.huecos()),
+                )
             )
     return problemas
 
@@ -198,34 +251,40 @@ def validar_perfil(perfil: Perfil) -> list[str]:
 
     if perfil.esta_vacio():
         problemas.append(
-            "El perfil está vacío. Añade al menos una experiencia y una skill "
-            "antes de generar un CV: la app solo puede elegir entre lo que tú "
-            "hayas escrito."
+            _(
+                "El perfil está vacío. Añade al menos una experiencia y una skill "
+                "antes de generar un CV: la app solo puede elegir entre lo que tú "
+                "hayas escrito."
+            )
         )
     else:
         if not perfil.experiencias:
             problemas.append(
-                "No hay ninguna experiencia, así que el CV saldría sin proyectos."
+                _("No hay ninguna experiencia, así que el CV saldría sin proyectos.")
             )
         if not perfil.skills:
             problemas.append(
-                "No hay ninguna skill, así que el CV saldría sin la sección "
-                "técnica y el «Sobre mí» no se podría componer."
+                _(
+                    "No hay ninguna skill, así que el CV saldría sin la sección "
+                    "técnica y el «Sobre mí» no se podría componer."
+                )
             )
 
     problemas += _duplicados(
-        [experiencia.id for experiencia in perfil.experiencias], "experiencias"
+        [experiencia.id for experiencia in perfil.experiencias], _("experiencias")
     )
-    problemas += _duplicados([skill.id for skill in perfil.skills], "skills")
+    problemas += _duplicados([skill.id for skill in perfil.skills], _("skills"))
     problemas += _duplicados(
-        [skill.id for skill in perfil.skills_personales], "skills personales"
+        [skill.id for skill in perfil.skills_personales], _("skills personales")
     )
-    problemas += _duplicados([idioma.id for idioma in perfil.idiomas], "idiomas")
+    problemas += _duplicados([idioma.id for idioma in perfil.idiomas], _("idiomas"))
 
     if perfil.sobre_mi is None:
         problemas.append(
-            "Falta el «Sobre mí». Escríbelo en «Mi perfil»: es el bloque que abre "
-            "el CV y el único que la app compone."
+            _(
+                "Falta el «Sobre mí». Escríbelo en «Mi perfil»: es el bloque que abre "
+                "el CV y el único que la app compone."
+            )
         )
     else:
         problemas += validar_sobre_mi(perfil.sobre_mi)
@@ -256,6 +315,9 @@ def _duplicados(ids: list[str], que: str) -> list[str]:
     if not repetidos:
         return []
     return [
-        f"Hay {que} con el mismo identificador ({', '.join(repetidos)}). Cada una "
-        "tiene que tener el suyo: es como el CV guardado sabe a cuál se refiere."
+        _(
+            "Hay %(que)s con el mismo identificador (%(repetidos)s). Cada una "
+            "tiene que tener el suyo: es como el CV guardado sabe a cuál se refiere.",
+            que=que, repetidos=", ".join(repetidos),
+        )
     ]

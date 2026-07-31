@@ -12,6 +12,7 @@ from flask import current_app
 
 from cv_adaptativo.perfil import almacen
 from cv_adaptativo.perfil.modelo import Perfil
+from cv_adaptativo.web import ajustes as modulo_ajustes
 
 
 def raiz() -> Path:
@@ -24,3 +25,7 @@ def ruta_ajustes() -> Path:
 
 def perfil_actual() -> Perfil:
     return almacen.cargar_perfil(raiz())
+
+
+def idioma_actual() -> str:
+    return modulo_ajustes.cargar_ajustes(ruta_ajustes()).idioma

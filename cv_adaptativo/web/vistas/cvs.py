@@ -4,6 +4,7 @@ from __future__ import annotations
 from collections import Counter
 
 from flask import flash, redirect, render_template, request, url_for
+from flask_babel import gettext as _
 from werkzeug.utils import secure_filename
 
 from cv_adaptativo.archivo import repositorio as archivo
@@ -38,7 +39,7 @@ def _buscar_o_ninguno(id_: str):
 def ver_cv(id_: str):
     cv = _buscar_o_ninguno(id_)
     if cv is None:
-        flash(f"No se encuentra el CV «{id_}» en el archivo.")
+        flash(_("No se encuentra el CV «%(id)s» en el archivo.", id=id_))
         return redirect(url_for("cv_adaptativo.listar_cvs"))
 
     perfil = contexto.perfil_actual()
@@ -57,9 +58,9 @@ def cambiar_estado_cv(id_: str):
     estado = request.form.get("estado", "")
     try:
         archivo.cambiar_estado(contexto.raiz(), id_, EstadoCV(estado))
-        flash("Estado actualizado.")
+        flash(_("Estado actualizado."))
     except ValueError:
-        flash("Estado no reconocido.")
+        flash(_("Estado no reconocido."))
     return redirect(url_for("cv_adaptativo.ver_cv", id_=id_))
 
 
@@ -67,7 +68,7 @@ def cambiar_estado_cv(id_: str):
 def adjuntar_cv(id_: str):
     archivo_subido = request.files.get("adjunto")
     if archivo_subido is None or not archivo_subido.filename:
-        flash("Elige un archivo antes de adjuntarlo.")
+        flash(_("Elige un archivo antes de adjuntarlo."))
         return redirect(url_for("cv_adaptativo.ver_cv", id_=id_))
 
     nombre_seguro = secure_filename(archivo_subido.filename)
@@ -76,5 +77,5 @@ def adjuntar_cv(id_: str):
     archivo_subido.save(destino_temporal)
     archivo.adjuntar(contexto.raiz(), id_, destino_temporal)
     destino_temporal.unlink(missing_ok=True)
-    flash("Archivo adjuntado.")
+    flash(_("Archivo adjuntado."))
     return redirect(url_for("cv_adaptativo.ver_cv", id_=id_))
