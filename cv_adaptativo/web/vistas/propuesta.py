@@ -26,7 +26,6 @@ from cv_adaptativo.propuesta.formato import (
 )
 from cv_adaptativo.archivo import repositorio as archivo
 from cv_adaptativo.seleccion import motor
-from cv_adaptativo.web import ajustes as modulo_ajustes
 from cv_adaptativo.web import borrador as modulo_borrador
 from cv_adaptativo.web import contexto
 from cv_adaptativo.web.blueprint import bp
@@ -168,7 +167,7 @@ def regenerar_seccion(seccion: str):
         flash(_("Sección desconocida."))
         return redirect(url_for("cv_adaptativo.ver_propuesta"))
 
-    ajustes = modulo_ajustes.cargar_ajustes(contexto.ruta_ajustes())
+    ajustes = contexto.ajustes_actuales()
     try:
         cliente = crear_cliente(ajustes.proveedor, ajustes.clave_api, ajustes.url_base, ajustes.modelo)
     except ErrorIA as error:

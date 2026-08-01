@@ -16,7 +16,6 @@ from cv_adaptativo.ia.cliente import ErrorIA
 from cv_adaptativo.perfil import almacen, importador, validacion
 from cv_adaptativo.perfil.extraccion import ErrorExtraccion, extraer_texto
 from cv_adaptativo.perfil.modelo import Bilingue, Experiencia, IdiomaHablado, Skill
-from cv_adaptativo.web import ajustes as modulo_ajustes
 from cv_adaptativo.web import contexto
 from cv_adaptativo.web import importacion as modulo_importacion
 from cv_adaptativo.web.blueprint import bp
@@ -38,7 +37,7 @@ def importar():
         flash(str(error))
         return render_template("importar.html")
 
-    ajustes = modulo_ajustes.cargar_ajustes(contexto.ruta_ajustes())
+    ajustes = contexto.ajustes_actuales()
     try:
         cliente = crear_cliente(ajustes.proveedor, ajustes.clave_api, ajustes.url_base, ajustes.modelo)
     except ErrorIA as error:

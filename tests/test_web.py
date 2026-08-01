@@ -346,3 +346,62 @@ def test_terminos_explica_la_cookie_de_sesion(cliente_web):
 def test_el_pie_de_cualquier_pantalla_enlaza_a_terminos(cliente_web):
     respuesta = cliente_web.get("/perfil")
     assert b'href="/terminos"' in respuesta.data
+
+
+# --------------------------------------------------------------------------
+# Modo demo (Hugging Face Space): sin este flag no cambia nada; con él, la
+# clave de API se guarda por sesión en vez de en ajustes.json, porque todos
+# los visitantes comparten el mismo proceso y el mismo perfil de ejemplo.
+# --------------------------------------------------------------------------
+
+
+@pytest.fixture
+def app_demo(tmp_path: Path):
+    app = crear_app(
+        raiz_perfil=tmp_path / "perfil", ruta_ajustes=tmp_path / "ajustes.json", modo_demo=True
+    )
+    app.config["TESTING"] = True
+    return app
+
+
+@pytest.fixture
+def cliente_demo(app_demo):
+    return app_demo.test_client()
+
+
+def test_fuera_de_modo_demo_no_aparece_el_aviso(cliente_web):
+    respuesta = cliente_web.get("/perfil")
+    assert "Demo pública".encode("utf-8") not in respuesta.data
+
+
+def test_en_modo_demo_aparece_el_aviso(cliente_demo):
+    respuesta = cliente_demo.get("/perfil")
+    assert "Demo pública".encode("utf-8") in respuesta.data
+
+
+def test_en_modo_demo_la_clave_no_se_escribe_en_ajustes_json(cliente_demo, tmp_path: Path):
+    cliente_demo.post(
+        "/ajustes", data={"proveedor": "groq", "clave_api": "gsk_visitante_a"}, follow_redirects=True
+    )
+    ruta = tmp_path / "ajustes.json"
+    assert not ruta.exists()
+
+
+def test_en_modo_demo_la_clave_persiste_para_la_misma_sesion(cliente_demo):
+    cliente_demo.post(
+        "/ajustes", data={"proveedor": "groq", "clave_api": "gsk_visitante_a"}, follow_redirects=True
+    )
+    respuesta = cliente_demo.get("/ajustes")
+    assert b"gsk_visitante_a" in respuesta.data
+
+
+def test_en_modo_demo_dos_sesiones_distintas_no_comparten_clave(app_demo, cliente_demo):
+    """El escenario real que motivó el modo demo: dos visitantes distintos
+    del mismo Space no deben ver la clave que el otro ha probado."""
+    otro_visitante = app_demo.test_client()
+
+    cliente_demo.post(
+        "/ajustes", data={"proveedor": "groq", "clave_api": "gsk_visitante_a"}, follow_redirects=True
+    )
+    respuesta = otro_visitante.get("/ajustes")
+    assert b"gsk_visitante_a" not in respuesta.data

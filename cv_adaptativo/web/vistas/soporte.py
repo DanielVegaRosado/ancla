@@ -6,7 +6,6 @@ from flask import flash, redirect, render_template, request
 from flask_babel import gettext as _
 
 from cv_adaptativo.soporte import mensajes as modulo_soporte
-from cv_adaptativo.web import ajustes as modulo_ajustes
 from cv_adaptativo.web import contexto
 from cv_adaptativo.web.blueprint import bp
 
@@ -36,7 +35,7 @@ def soporte():
         flash(_("Cuéntanos qué ha pasado, o qué se te ha ocurrido, antes de enviarlo."))
         return render_template("soporte.html", tipos=_tipos_traducidos())
 
-    ajustes = modulo_ajustes.cargar_ajustes(contexto.ruta_ajustes())
+    ajustes = contexto.ajustes_actuales()
     diagnostico = modulo_soporte.recoger(proveedor=ajustes.proveedor)
     modulo_soporte.guardar_mensaje(contexto.raiz(), asunto, mensaje, diagnostico, tipo)
 

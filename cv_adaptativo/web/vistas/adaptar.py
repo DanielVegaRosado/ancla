@@ -9,7 +9,6 @@ from cv_adaptativo.ia.cliente import ErrorIA
 from cv_adaptativo.perfil.modelo import N_EXPERIENCIAS, N_SKILLS
 from cv_adaptativo.seleccion import motor
 from cv_adaptativo.vacante import analisis
-from cv_adaptativo.web import ajustes as modulo_ajustes
 from cv_adaptativo.web import borrador as modulo_borrador
 from cv_adaptativo.web import contexto
 from cv_adaptativo.web.blueprint import bp
@@ -52,7 +51,7 @@ def adaptar():
                 empresa=datos_vacante.empresa,
             )
 
-    ajustes = modulo_ajustes.cargar_ajustes(contexto.ruta_ajustes())
+    ajustes = contexto.ajustes_actuales()
     try:
         cliente = crear_cliente(ajustes.proveedor, ajustes.clave_api, ajustes.url_base, ajustes.modelo)
     except ErrorIA as error:

@@ -7,15 +7,15 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-07-31 11:29+0200\n"
+"POT-Creation-Date: 2026-08-01 08:53+0200\n"
 "PO-Revision-Date: 2026-07-30 12:46+0200\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language-Team: en <LL@li.org>\n"
 "Language: en\n"
+"Language-Team: en <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "Generated-By: Babel 2.17.0\n"
 
 #: cv_adaptativo/archivo/repositorio.py:73 cv_adaptativo/perfil/almacen.py:162
@@ -40,8 +40,7 @@ msgstr "“%(id)s” is not a valid ID for a saved CV."
 
 #: cv_adaptativo/archivo/serializacion.py:120
 #, python-format
-msgid ""
-"El CV «%(id)s» no tiene una fecha válida (esperaba algo como 2026-07-24)."
+msgid "El CV «%(id)s» no tiene una fecha válida (esperaba algo como 2026-07-24)."
 msgstr ""
 "The CV “%(id)s” does not have a valid date (expected something like "
 "2026-07-24)."
@@ -49,25 +48,23 @@ msgstr ""
 #: cv_adaptativo/ia/anthropic.py:50
 #, python-format
 msgid ""
-"Todavía no has configurado tu clave y tu modelo de Anthropic. Ve a Ajustes y"
-" rellena los dos; puedes conseguir una clave en %(url)s."
+"Todavía no has configurado tu clave y tu modelo de Anthropic. Ve a "
+"Ajustes y rellena los dos; puedes conseguir una clave en %(url)s."
 msgstr ""
-"You haven't set up your Anthropic key and model yet. Go to Settings and fill"
-" in both; you can get a key at %(url)s."
+"You haven't set up your Anthropic key and model yet. Go to Settings and "
+"fill in both; you can get a key at %(url)s."
 
 #: cv_adaptativo/ia/anthropic.py:58
-msgid ""
-"Anthropic ha devuelto una respuesta vacía. Vuelve a generar la propuesta."
-msgstr ""
-"Anthropic returned an empty response. Try generating the proposal again."
+msgid "Anthropic ha devuelto una respuesta vacía. Vuelve a generar la propuesta."
+msgstr "Anthropic returned an empty response. Try generating the proposal again."
 
 #: cv_adaptativo/ia/anthropic.py:80
 msgid ""
 "Anthropic ha rechazado esta petición por motivos de seguridad. Revisa el "
 "texto de la vacante o del CV e inténtalo de nuevo."
 msgstr ""
-"Anthropic declined this request for safety reasons. Check the job posting or"
-" CV text and try again."
+"Anthropic declined this request for safety reasons. Check the job posting"
+" or CV text and try again."
 
 #: cv_adaptativo/ia/anthropic.py:88
 msgid ""
@@ -97,12 +94,10 @@ msgstr "The model you set doesn't exist on Anthropic. Check it in Settings."
 msgid ""
 "Has agotado la cuota de Anthropic por ahora. Espera un rato y vuelve a "
 "intentarlo."
-msgstr ""
-"You've used up your Anthropic quota for now. Wait a while and try again."
+msgstr "You've used up your Anthropic quota for now. Wait a while and try again."
 
 #: cv_adaptativo/ia/anthropic.py:121
-msgid ""
-"No se ha podido contactar con Anthropic. Comprueba tu conexión a internet."
+msgid "No se ha podido contactar con Anthropic. Comprueba tu conexión a internet."
 msgstr "Couldn't reach Anthropic. Check your internet connection."
 
 #: cv_adaptativo/ia/anthropic.py:122
@@ -113,11 +108,11 @@ msgstr "Anthropic returned an error: %(error)s"
 #: cv_adaptativo/ia/groq.py:96
 #, python-format
 msgid ""
-"Todavía no has configurado tu clave de Groq. Ve a Ajustes y pégala; puedes "
-"conseguir una gratis en %(url)s."
+"Todavía no has configurado tu clave de Groq. Ve a Ajustes y pégala; "
+"puedes conseguir una gratis en %(url)s."
 msgstr ""
-"You haven't set up your Groq key yet. Go to Settings and paste it in; you "
-"can get a free one at %(url)s."
+"You haven't set up your Groq key yet. Go to Settings and paste it in; you"
+" can get a free one at %(url)s."
 
 #: cv_adaptativo/ia/groq.py:104
 msgid "Groq ha devuelto una respuesta vacía. Vuelve a generar la propuesta."
@@ -125,15 +120,14 @@ msgstr "Groq returned an empty response. Try generating the proposal again."
 
 #: cv_adaptativo/ia/groq.py:130
 msgid ""
-"Groq ha devuelto una respuesta con un formato inesperado. Vuelve a generar "
-"la propuesta."
+"Groq ha devuelto una respuesta con un formato inesperado. Vuelve a "
+"generar la propuesta."
 msgstr ""
 "Groq returned a response in an unexpected format. Try generating the "
 "proposal again."
 
 #: cv_adaptativo/ia/groq.py:142
-msgid ""
-"Falta la librería «groq». Instálala con: pip install -r requirements.txt"
+msgid "Falta la librería «groq». Instálala con: pip install -r requirements.txt"
 msgstr ""
 "The “groq” library is missing. Install it with: pip install -r "
 "requirements.txt"
@@ -149,28 +143,30 @@ msgstr ""
 
 #: cv_adaptativo/ia/groq.py:165
 msgid ""
-"Esta petición es demasiado grande para el límite de tokens por minuto de tu "
-"plan gratuito de Groq. Si es un CV, una vacante o un perfil muy largos, "
-"prueba con un texto más corto."
+"Esta petición es demasiado grande para el límite de tokens por minuto de "
+"tu plan gratuito de Groq. Si es un CV, una vacante o un perfil muy "
+"largos, prueba con un texto más corto."
 msgstr ""
-"This request is too large for the per-minute token limit on your free Groq "
-"plan. If it's a very long CV, job posting or profile, try shorter text."
+"This request is too large for the per-minute token limit on your free "
+"Groq plan. If it's a very long CV, job posting or profile, try shorter "
+"text."
 
 #: cv_adaptativo/ia/groq.py:171
 msgid ""
-"Has agotado la cuota gratuita de Groq por ahora. Espera un rato y vuelve a "
-"intentarlo, o usa otra clave."
+"Has agotado la cuota gratuita de Groq por ahora. Espera un rato y vuelve "
+"a intentarlo, o usa otra clave."
 msgstr ""
-"You've used up your free Groq quota for now. Wait a while and try again, or "
-"use a different key."
+"You've used up your free Groq quota for now. Wait a while and try again, "
+"or use a different key."
 
 #: cv_adaptativo/ia/groq.py:176
 #, python-format
 msgid ""
-"El modelo «%(modelo)s» ya no está disponible en Groq. Elige otro en Ajustes."
+"El modelo «%(modelo)s» ya no está disponible en Groq. Elige otro en "
+"Ajustes."
 msgstr ""
-"The model “%(modelo)s” is no longer available on Groq. Choose another one in"
-" Settings."
+"The model “%(modelo)s” is no longer available on Groq. Choose another one"
+" in Settings."
 
 #: cv_adaptativo/ia/groq.py:182
 msgid "Groq ha tardado demasiado en responder. Vuelve a generar la propuesta."
@@ -197,21 +193,22 @@ msgstr ""
 
 #: cv_adaptativo/ia/openai_compatible.py:68
 msgid ""
-"El proveedor ha devuelto una respuesta vacía. Vuelve a generar la propuesta."
+"El proveedor ha devuelto una respuesta vacía. Vuelve a generar la "
+"propuesta."
 msgstr ""
-"The provider returned an empty response. Try generating the proposal again."
+"The provider returned an empty response. Try generating the proposal "
+"again."
 
 #: cv_adaptativo/ia/openai_compatible.py:93
 msgid ""
-"El proveedor ha devuelto una respuesta con un formato inesperado. Vuelve a "
-"generar la propuesta."
+"El proveedor ha devuelto una respuesta con un formato inesperado. Vuelve "
+"a generar la propuesta."
 msgstr ""
-"The provider returned a response in an unexpected format. Try generating the"
-" proposal again."
+"The provider returned a response in an unexpected format. Try generating "
+"the proposal again."
 
 #: cv_adaptativo/ia/openai_compatible.py:105
-msgid ""
-"Falta la librería «openai». Instálala con: pip install -r requirements.txt"
+msgid "Falta la librería «openai». Instálala con: pip install -r requirements.txt"
 msgstr ""
 "The \"openai\" library is missing. Install it with: pip install -r "
 "requirements.txt"
@@ -222,30 +219,28 @@ msgstr "Your API key isn't valid or has expired. Check it in Settings."
 
 #: cv_adaptativo/ia/openai_compatible.py:126
 msgid ""
-"El modelo configurado no existe en este proveedor, o la URL base de Ajustes "
-"está mal. Revisa ambos."
+"El modelo configurado no existe en este proveedor, o la URL base de "
+"Ajustes está mal. Revisa ambos."
 msgstr ""
 "The model you set doesn't exist for this provider, or the base URL in "
 "Settings is wrong. Check both."
 
 #: cv_adaptativo/ia/openai_compatible.py:131
 msgid ""
-"Has agotado la cuota de tu proveedor por ahora. Espera un rato y vuelve a "
-"intentarlo."
-msgstr ""
-"You've used up your provider's quota for now. Wait a while and try again."
+"Has agotado la cuota de tu proveedor por ahora. Espera un rato y vuelve a"
+" intentarlo."
+msgstr "You've used up your provider's quota for now. Wait a while and try again."
 
 #: cv_adaptativo/ia/openai_compatible.py:136
 msgid ""
 "El proveedor ha tardado demasiado en responder. Vuelve a generar la "
 "propuesta."
-msgstr ""
-"The provider took too long to respond. Try generating the proposal again."
+msgstr "The provider took too long to respond. Try generating the proposal again."
 
 #: cv_adaptativo/ia/openai_compatible.py:140
 msgid ""
-"No se ha podido contactar con la URL base configurada. Comprueba que esté "
-"bien escrita y tu conexión a internet."
+"No se ha podido contactar con la URL base configurada. Comprueba que esté"
+" bien escrita y tu conexión a internet."
 msgstr ""
 "Couldn't reach the base URL you set. Check that it's typed correctly and "
 "that you're connected to the internet."
@@ -261,8 +256,8 @@ msgid ""
 "«%(nombre)s» no está guardado en UTF-8, así que no se pueden leer sus "
 "acentos. Vuelve a guardarlo con codificación UTF-8."
 msgstr ""
-"“%(nombre)s” is not saved as UTF-8, so accented characters can't be read. "
-"Save it again using UTF-8 encoding."
+"“%(nombre)s” is not saved as UTF-8, so accented characters can't be read."
+" Save it again using UTF-8 encoding."
 
 #: cv_adaptativo/perfil/almacen.py:250
 #, python-format
@@ -282,8 +277,8 @@ msgstr "Could not write to “%(nombre)s”: %(detalle)s."
 #: cv_adaptativo/perfil/almacen.py:328
 #, python-format
 msgid ""
-"«%(id)s» no sirve como identificador. Usa solo letras sin acentos, números, "
-"guiones y puntos, por ejemplo «data-analyst-movilidad»."
+"«%(id)s» no sirve como identificador. Usa solo letras sin acentos, "
+"números, guiones y puntos, por ejemplo «data-analyst-movilidad»."
 msgstr ""
 "“%(id)s” can't be used as an ID. Use only unaccented letters, numbers, "
 "hyphens and dots, e.g. “data-analyst-mobility”."
@@ -291,9 +286,9 @@ msgstr ""
 #: cv_adaptativo/perfil/almacen.py:347
 #, python-format
 msgid ""
-"Todavía no hay ningún perfil que exportar: la carpeta «%(raiz)s» no existe."
-msgstr ""
-"There's no profile to export yet: the folder “%(raiz)s” does not exist."
+"Todavía no hay ningún perfil que exportar: la carpeta «%(raiz)s» no "
+"existe."
+msgstr "There's no profile to export yet: the folder “%(raiz)s” does not exist."
 
 #: cv_adaptativo/perfil/almacen.py:370
 #, python-format
@@ -308,13 +303,13 @@ msgstr "The backup file “%(origen)s” could not be found."
 #: cv_adaptativo/perfil/almacen.py:386
 #, python-format
 msgid ""
-"La carpeta «%(raiz)s» ya tiene un perfil dentro. Importa sobre una carpeta "
-"vacía, o borra el perfil actual antes, para no acabar con una mezcla de los "
-"dos."
+"La carpeta «%(raiz)s» ya tiene un perfil dentro. Importa sobre una "
+"carpeta vacía, o borra el perfil actual antes, para no acabar con una "
+"mezcla de los dos."
 msgstr ""
 "The folder “%(raiz)s” already has a profile in it. Import into an empty "
-"folder, or delete the current profile first, so the two don't end up mixed "
-"together."
+"folder, or delete the current profile first, so the two don't end up "
+"mixed together."
 
 #: cv_adaptativo/perfil/almacen.py:401
 #, python-format
@@ -336,8 +331,7 @@ msgstr ""
 "(“%(miembro)s”). Nothing was imported."
 
 #: cv_adaptativo/perfil/extraccion.py:40
-msgid ""
-"Falta la librería «pypdf». Instálala con: pip install -r requirements.txt"
+msgid "Falta la librería «pypdf». Instálala con: pip install -r requirements.txt"
 msgstr ""
 "The “pypdf” library is missing. Install it with: pip install -r "
 "requirements.txt"
@@ -361,19 +355,18 @@ msgstr "The document could not be read: is it a valid .docx file?"
 #: cv_adaptativo/perfil/extraccion.py:100
 #, python-format
 msgid "«%(nombre)s» no es un formato soportado. Admitidos: %(formatos)s."
-msgstr ""
-"“%(nombre)s” is not a supported format. Supported formats: %(formatos)s."
+msgstr "“%(nombre)s” is not a supported format. Supported formats: %(formatos)s."
 
 #: cv_adaptativo/perfil/extraccion.py:113
 #, python-format
 msgid ""
 "No se ha podido leer «%(nombre)s». Puede estar dañado, protegido con "
-"contraseña, o en una variante del formato que esta versión no reconoce. Si "
-"puedes, pega el texto a mano en su lugar."
+"contraseña, o en una variante del formato que esta versión no reconoce. "
+"Si puedes, pega el texto a mano en su lugar."
 msgstr ""
-"“%(nombre)s” could not be read. It may be damaged, password-protected, or in"
-" a format variant this version doesn't recognise. If you can, paste the text"
-" in by hand instead."
+"“%(nombre)s” could not be read. It may be damaged, password-protected, or"
+" in a format variant this version doesn't recognise. If you can, paste "
+"the text in by hand instead."
 
 #: cv_adaptativo/perfil/extraccion.py:123
 #, python-format
@@ -399,8 +392,8 @@ msgstr "The model didn't return any usable keywords."
 #: cv_adaptativo/perfil/serializacion.py:49
 #, python-format
 msgid ""
-"«%(origen)s» no tiene el formato esperado: se esperaba una lista de campos "
-"como «titulo:» o «keywords:»."
+"«%(origen)s» no tiene el formato esperado: se esperaba una lista de "
+"campos como «titulo:» o «keywords:»."
 msgstr ""
 "“%(origen)s” is not in the expected format: a list of fields such as "
 "“titulo:” or “keywords:” was expected."
@@ -408,11 +401,13 @@ msgstr ""
 #: cv_adaptativo/perfil/serializacion.py:78
 #, python-format
 msgid ""
-"«%(origen)s» tiene un error de formato en la línea %(linea)s. Suele ser un "
-"espacio de más al principio de una línea, o un texto con «:» sin comillas."
+"«%(origen)s» tiene un error de formato en la línea %(linea)s. Suele ser "
+"un espacio de más al principio de una línea, o un texto con «:» sin "
+"comillas."
 msgstr ""
-"“%(origen)s” has a formatting error on line %(linea)s. This is usually an "
-"extra space at the start of a line, or text containing “:” without quotes."
+"“%(origen)s” has a formatting error on line %(linea)s. This is usually an"
+" extra space at the start of a line, or text containing “:” without "
+"quotes."
 
 #: cv_adaptativo/perfil/serializacion.py:85
 #, python-format
@@ -420,26 +415,26 @@ msgid ""
 "«%(origen)s» tiene un error de formato. Suele ser un espacio de más al "
 "principio de una línea, o un texto con «:» sin comillas."
 msgstr ""
-"“%(origen)s” has a formatting error. This is usually an extra space at the "
-"start of a line, or text containing “:” without quotes."
+"“%(origen)s” has a formatting error. This is usually an extra space at "
+"the start of a line, or text containing “:” without quotes."
 
 #: cv_adaptativo/perfil/serializacion.py:194
 #, python-format
 msgid ""
-"En «%(origen)s», el campo «%(campo)s» es una lista y debería ser un texto, o"
-" «es:» y «en:» con un texto cada uno."
+"En «%(origen)s», el campo «%(campo)s» es una lista y debería ser un "
+"texto, o «es:» y «en:» con un texto cada uno."
 msgstr ""
-"In “%(origen)s”, the field “%(campo)s” is a list and should be plain text, "
-"or “es:” and “en:” each with their own text."
+"In “%(origen)s”, the field “%(campo)s” is a list and should be plain "
+"text, or “es:” and “en:” each with their own text."
 
 #: cv_adaptativo/perfil/serializacion.py:226
 #, python-format
 msgid ""
-"En «%(origen)s», el campo «%(campo)s»%(sufijo)s debería ser una lista: una "
-"línea por elemento, cada una empezando por «- »."
+"En «%(origen)s», el campo «%(campo)s»%(sufijo)s debería ser una lista: "
+"una línea por elemento, cada una empezando por «- »."
 msgstr ""
-"In “%(origen)s”, the field “%(campo)s”%(sufijo)s should be a list: one line "
-"per item, each starting with “- ”."
+"In “%(origen)s”, the field “%(campo)s”%(sufijo)s should be a list: one "
+"line per item, each starting with “- ”."
 
 #: cv_adaptativo/perfil/validacion.py:42
 msgid "español"
@@ -463,8 +458,8 @@ msgid ""
 "Hay una experiencia sin identificador. El identificador es el nombre del "
 "fichero, por ejemplo «data-analyst-movilidad.yaml»."
 msgstr ""
-"There's an experience entry with no ID. The ID is the file name, e.g. “data-"
-"analyst-mobility.yaml”."
+"There's an experience entry with no ID. The ID is the file name, e.g. "
+"“data-analyst-mobility.yaml”."
 
 #: cv_adaptativo/perfil/validacion.py:67
 #, python-format
@@ -476,13 +471,11 @@ msgstr "%(etiqueta)s: missing the title in %(nombre)s."
 msgid ""
 "%(etiqueta)s: falta el periodo en %(nombre)s (por ejemplo «2025 - "
 "ACTUALIDAD»)."
-msgstr ""
-"%(etiqueta)s: missing the period in %(nombre)s (e.g. “2025 - PRESENT”)."
+msgstr "%(etiqueta)s: missing the period in %(nombre)s (e.g. “2025 - PRESENT”)."
 
 #: cv_adaptativo/perfil/validacion.py:78
 #, python-format
-msgid ""
-"%(etiqueta)s: falta el stack en %(nombre)s (las tecnologías que usaste)."
+msgid "%(etiqueta)s: falta el stack en %(nombre)s (las tecnologías que usaste)."
 msgstr ""
 "%(etiqueta)s: missing the tech stack in %(nombre)s (the technologies you "
 "used)."
@@ -490,11 +483,11 @@ msgstr ""
 #: cv_adaptativo/perfil/validacion.py:87
 #, python-format
 msgid ""
-"%(etiqueta)s: no tiene palabras clave, así que casi nunca se elegirá para un"
-" CV. Añade los términos con los que la buscaría una empresa."
+"%(etiqueta)s: no tiene palabras clave, así que casi nunca se elegirá para"
+" un CV. Añade los términos con los que la buscaría una empresa."
 msgstr ""
-"%(etiqueta)s: has no keywords, so it will almost never be picked for a CV. "
-"Add the terms a company would use to look for it."
+"%(etiqueta)s: has no keywords, so it will almost never be picked for a "
+"CV. Add the terms a company would use to look for it."
 
 #: cv_adaptativo/perfil/validacion.py:97
 #, python-format
@@ -503,11 +496,10 @@ msgstr "%(etiqueta)s: has no bullet points in %(nombre)s."
 
 #: cv_adaptativo/perfil/validacion.py:101
 #, python-format
-msgid ""
-"%(etiqueta)s: hay algún punto vacío en %(nombre)s; escríbelo o quítalo."
+msgid "%(etiqueta)s: hay algún punto vacío en %(nombre)s; escríbelo o quítalo."
 msgstr ""
-"%(etiqueta)s: there's an empty bullet point in %(nombre)s; write it in or "
-"remove it."
+"%(etiqueta)s: there's an empty bullet point in %(nombre)s; write it in or"
+" remove it."
 
 #: cv_adaptativo/perfil/validacion.py:111
 #, python-format
@@ -520,10 +512,9 @@ msgstr "A skill"
 
 #: cv_adaptativo/perfil/validacion.py:117
 msgid ""
-"Hay una skill sin identificador. El identificador es el nombre del fichero, "
-"por ejemplo «python.yaml»."
-msgstr ""
-"There's a skill with no ID. The ID is the file name, e.g. “python.yaml”."
+"Hay una skill sin identificador. El identificador es el nombre del "
+"fichero, por ejemplo «python.yaml»."
+msgstr "There's a skill with no ID. The ID is the file name, e.g. “python.yaml”."
 
 #: cv_adaptativo/perfil/validacion.py:124
 #: cv_adaptativo/perfil/validacion.py:161
@@ -535,20 +526,20 @@ msgstr "%(etiqueta)s: missing the name in %(nombre)s."
 #: cv_adaptativo/perfil/validacion.py:129
 #, python-format
 msgid ""
-"%(etiqueta)s: no tiene categoría. Se usa para agrupar las skills del CV y "
-"para repartirlas en el «Sobre mí»."
+"%(etiqueta)s: no tiene categoría. Se usa para agrupar las skills del CV y"
+" para repartirlas en el «Sobre mí»."
 msgstr ""
-"%(etiqueta)s: has no category. It's used to group the skills on the CV and "
-"to spread them across “About me”."
+"%(etiqueta)s: has no category. It's used to group the skills on the CV "
+"and to spread them across “About me”."
 
 #: cv_adaptativo/perfil/validacion.py:137
 #, python-format
 msgid ""
-"%(etiqueta)s: no tiene palabras clave, así que casi nunca se elegirá para un"
-" CV. Añade cómo la nombran las ofertas."
+"%(etiqueta)s: no tiene palabras clave, así que casi nunca se elegirá para"
+" un CV. Añade cómo la nombran las ofertas."
 msgstr ""
-"%(etiqueta)s: has no keywords, so it will almost never be picked for a CV. "
-"Add how job postings refer to it."
+"%(etiqueta)s: has no keywords, so it will almost never be picked for a "
+"CV. Add how job postings refer to it."
 
 #: cv_adaptativo/perfil/validacion.py:148
 #, python-format
@@ -561,8 +552,8 @@ msgstr "A personal skill"
 
 #: cv_adaptativo/perfil/validacion.py:154
 msgid ""
-"Hay una skill personal sin identificador. El identificador es el nombre del "
-"fichero, por ejemplo «trabajo-en-equipo.yaml»."
+"Hay una skill personal sin identificador. El identificador es el nombre "
+"del fichero, por ejemplo «trabajo-en-equipo.yaml»."
 msgstr ""
 "There's a personal skill with no ID. The ID is the file name, e.g. "
 "“teamwork.yaml”."
@@ -570,12 +561,12 @@ msgstr ""
 #: cv_adaptativo/perfil/validacion.py:166
 #, python-format
 msgid ""
-"%(etiqueta)s: no tiene palabras clave, así que puede que una vacante la siga"
-" marcando como hueco aunque ya la tengas. Añade cómo se nombra en las "
-"ofertas."
+"%(etiqueta)s: no tiene palabras clave, así que puede que una vacante la "
+"siga marcando como hueco aunque ya la tengas. Añade cómo se nombra en las"
+" ofertas."
 msgstr ""
-"%(etiqueta)s: has no keywords, so a job posting might still flag it as a gap"
-" even though you already have it. Add how it's named in job postings."
+"%(etiqueta)s: has no keywords, so a job posting might still flag it as a "
+"gap even though you already have it. Add how it's named in job postings."
 
 #: cv_adaptativo/perfil/validacion.py:178
 #, python-format
@@ -588,27 +579,27 @@ msgstr "A language"
 
 #: cv_adaptativo/perfil/validacion.py:184
 msgid ""
-"Hay un idioma sin identificador. El identificador es el nombre del fichero, "
-"por ejemplo «ingles.yaml»."
+"Hay un idioma sin identificador. El identificador es el nombre del "
+"fichero, por ejemplo «ingles.yaml»."
 msgstr ""
-"There's a language with no ID. The ID is the file name, e.g. “english.yaml”."
+"There's a language with no ID. The ID is the file name, e.g. "
+"“english.yaml”."
 
 #: cv_adaptativo/perfil/validacion.py:195
 #, python-format
-msgid ""
-"%(etiqueta)s: falta el nivel en %(nombre)s (por ejemplo «C1 — Avanzado»)."
+msgid "%(etiqueta)s: falta el nivel en %(nombre)s (por ejemplo «C1 — Avanzado»)."
 msgstr "%(etiqueta)s: missing the level in %(nombre)s (e.g. “C1 — Advanced”)."
 
 #: cv_adaptativo/perfil/validacion.py:202
 #, python-format
 msgid ""
-"%(etiqueta)s: no tiene palabras clave, así que puede que una vacante lo siga"
-" marcando como hueco aunque ya lo tengas. Añade cómo se nombra en las "
-"ofertas (p. ej. «advanced english», «fluido»)."
+"%(etiqueta)s: no tiene palabras clave, así que puede que una vacante lo "
+"siga marcando como hueco aunque ya lo tengas. Añade cómo se nombra en las"
+" ofertas (p. ej. «advanced english», «fluido»)."
 msgstr ""
-"%(etiqueta)s: has no keywords, so a job posting might still flag it as a gap"
-" even though you already have it. Add how it's named in job postings (e.g. "
-"“advanced English”, “fluent”)."
+"%(etiqueta)s: has no keywords, so a job posting might still flag it as a "
+"gap even though you already have it. Add how it's named in job postings "
+"(e.g. “advanced English”, “fluent”)."
 
 #: cv_adaptativo/perfil/validacion.py:220
 #, python-format
@@ -618,25 +609,25 @@ msgstr "“About me” is empty in %(nombre)s."
 #: cv_adaptativo/perfil/validacion.py:227
 #, python-format
 msgid ""
-"Al «Sobre mí» en %(nombre)s le faltan estos huecos: %(huecos)s. Escríbelos "
-"tal cual donde quieras que entren las skills elegidas."
+"Al «Sobre mí» en %(nombre)s le faltan estos huecos: %(huecos)s. "
+"Escríbelos tal cual donde quieras que entren las skills elegidas."
 msgstr ""
-"“About me” in %(nombre)s is missing these placeholders: %(huecos)s. Write "
-"them exactly as shown, wherever you want the chosen skills to go."
+"“About me” in %(nombre)s is missing these placeholders: %(huecos)s. Write"
+" them exactly as shown, wherever you want the chosen skills to go."
 
 #: cv_adaptativo/perfil/validacion.py:238
 #, python-format
 msgid ""
-"El «Sobre mí» en %(nombre)s tiene huecos que el sistema no sabe rellenar: "
-"%(desconocidos)s. Los válidos son: %(validos)s."
+"El «Sobre mí» en %(nombre)s tiene huecos que el sistema no sabe rellenar:"
+" %(desconocidos)s. Los válidos son: %(validos)s."
 msgstr ""
 "“About me” in %(nombre)s has placeholders the system doesn't know how to "
 "fill in: %(desconocidos)s. The valid ones are: %(validos)s."
 
 #: cv_adaptativo/perfil/validacion.py:255
 msgid ""
-"El perfil está vacío. Añade al menos una experiencia y una skill antes de "
-"generar un CV: la app solo puede elegir entre lo que tú hayas escrito."
+"El perfil está vacío. Añade al menos una experiencia y una skill antes de"
+" generar un CV: la app solo puede elegir entre lo que tú hayas escrito."
 msgstr ""
 "Your profile is empty. Add at least one experience entry and one skill "
 "before generating a CV: the app can only choose from what you've written."
@@ -650,8 +641,8 @@ msgid ""
 "No hay ninguna skill, así que el CV saldría sin la sección técnica y el "
 "«Sobre mí» no se podría componer."
 msgstr ""
-"There are no skills, so the CV would have no technical skills section and "
-"“About me” couldn't be put together."
+"There are no skills, so the CV would have no technical skills section and"
+" “About me” couldn't be put together."
 
 #: cv_adaptativo/perfil/validacion.py:274
 msgid "experiencias"
@@ -671,51 +662,50 @@ msgstr "languages"
 
 #: cv_adaptativo/perfil/validacion.py:285
 msgid ""
-"Falta el «Sobre mí». Escríbelo en «Mi perfil»: es el bloque que abre el CV y"
-" el único que la app compone."
+"Falta el «Sobre mí». Escríbelo en «Mi perfil»: es el bloque que abre el "
+"CV y el único que la app compone."
 msgstr ""
-"“About me” is missing. Write it in “My Profile”: it's the block that opens "
-"the CV, and the only one the app puts together."
+"“About me” is missing. Write it in “My Profile”: it's the block that "
+"opens the CV, and the only one the app puts together."
 
 #: cv_adaptativo/perfil/validacion.py:319
 #, python-format
 msgid ""
-"Hay %(que)s con el mismo identificador (%(repetidos)s). Cada una tiene que "
-"tener el suyo: es como el CV guardado sabe a cuál se refiere."
+"Hay %(que)s con el mismo identificador (%(repetidos)s). Cada una tiene "
+"que tener el suyo: es como el CV guardado sabe a cuál se refiere."
 msgstr ""
-"There are %(que)s with the same ID (%(repetidos)s). Each one needs its own: "
-"that's how a saved CV knows which one it refers to."
+"There are %(que)s with the same ID (%(repetidos)s). Each one needs its "
+"own: that's how a saved CV knows which one it refers to."
 
 #: cv_adaptativo/seleccion/motor.py:77
-msgid ""
-"Tu perfil está vacío: añade experiencias y skills antes de adaptar el CV."
+msgid "Tu perfil está vacío: añade experiencias y skills antes de adaptar el CV."
 msgstr ""
-"Your profile is empty: add some experience and skills before adapting a CV."
+"Your profile is empty: add some experience and skills before adapting a "
+"CV."
 
 #: cv_adaptativo/seleccion/motor.py:81
-msgid ""
-"Tu perfil no tiene plantilla de «Sobre mí»: créala antes de adaptar el CV."
-msgstr ""
-"Your profile has no “About me” template: create one before adapting a CV."
+msgid "Tu perfil no tiene plantilla de «Sobre mí»: créala antes de adaptar el CV."
+msgstr "Your profile has no “About me” template: create one before adapting a CV."
 
-#: cv_adaptativo/seleccion/motor.py:84 cv_adaptativo/web/vistas/adaptar.py:29
+#: cv_adaptativo/seleccion/motor.py:84 cv_adaptativo/web/vistas/adaptar.py:28
 msgid "Pega el texto de la vacante antes de generar la propuesta."
 msgstr "Paste the job posting text before generating the proposal."
 
 #: cv_adaptativo/seleccion/motor.py:117
 msgid ""
-"El modelo no ha devuelto una respuesta que se pueda interpretar. Vuelve a "
-"generar la propuesta."
+"El modelo no ha devuelto una respuesta que se pueda interpretar. Vuelve a"
+" generar la propuesta."
 msgstr ""
-"The model didn't return a response that could be parsed. Try generating the "
-"proposal again."
+"The model didn't return a response that could be parsed. Try generating "
+"the proposal again."
 
 #: cv_adaptativo/seleccion/motor.py:126
 msgid ""
 "El modelo ha devuelto una respuesta mal formada. Vuelve a generar la "
 "propuesta."
 msgstr ""
-"The model returned a malformed response. Try generating the proposal again."
+"The model returned a malformed response. Try generating the proposal "
+"again."
 
 #: cv_adaptativo/seleccion/motor.py:133
 msgid ""
@@ -725,13 +715,11 @@ msgstr ""
 "The model returned something that isn't a proposal. Try generating the "
 "proposal again."
 
-#: cv_adaptativo/soporte/mensajes.py:152
-#: cv_adaptativo/web/vistas/soporte.py:21
+#: cv_adaptativo/soporte/mensajes.py:152 cv_adaptativo/web/vistas/soporte.py:20
 msgid "Problema"
 msgstr "Problem"
 
-#: cv_adaptativo/soporte/mensajes.py:152
-#: cv_adaptativo/web/vistas/soporte.py:22
+#: cv_adaptativo/soporte/mensajes.py:152 cv_adaptativo/web/vistas/soporte.py:21
 msgid "Sugerencia"
 msgstr "Suggestion"
 
@@ -742,8 +730,7 @@ msgstr "Unknown AI provider: “%(proveedor)s”."
 
 #: cv_adaptativo/web/proveedores.py:93
 #, python-format
-msgid ""
-"El proveedor %(nombre)s todavía no está disponible en esta instalación."
+msgid "El proveedor %(nombre)s todavía no está disponible en esta instalación."
 msgstr "The %(nombre)s provider isn't available in this installation yet."
 
 #: cv_adaptativo/web/templates/404.html:2
@@ -785,7 +772,8 @@ msgid ""
 "¿Borrar TODAS las %(cantidad)s experiencias? Esta acción no se puede "
 "deshacer."
 msgstr ""
-"Delete ALL %(cantidad)s entries in Experience? This action cannot be undone."
+"Delete ALL %(cantidad)s entries in Experience? This action cannot be "
+"undone."
 
 #: cv_adaptativo/web/templates/_seccion_experiencias.html:14
 #: cv_adaptativo/web/templates/_seccion_skills.html:14
@@ -838,8 +826,7 @@ msgstr "Add language"
 
 #: cv_adaptativo/web/templates/_seccion_idiomas.html:13
 #, python-format
-msgid ""
-"¿Borrar TODOS los %(cantidad)s idiomas? Esta acción no se puede deshacer."
+msgid "¿Borrar TODOS los %(cantidad)s idiomas? Esta acción no se puede deshacer."
 msgstr "Delete ALL %(cantidad)s languages? This action cannot be undone."
 
 #: cv_adaptativo/web/templates/_seccion_idiomas.html:14
@@ -876,8 +863,7 @@ msgstr "Add skill"
 msgid ""
 "¿Borrar TODAS las %(cantidad)s skills técnicas? Esta acción no se puede "
 "deshacer."
-msgstr ""
-"Delete ALL %(cantidad)s technical skills? This action cannot be undone."
+msgstr "Delete ALL %(cantidad)s technical skills? This action cannot be undone."
 
 #: cv_adaptativo/web/templates/_seccion_skills.html:27
 msgid "sin categoría"
@@ -905,17 +891,16 @@ msgstr "Add personal skill"
 #: cv_adaptativo/web/templates/_seccion_skills_personales.html:13
 #, python-format
 msgid ""
-"¿Borrar TODAS las %(cantidad)s skills personales? Esta acción no se puede "
-"deshacer."
-msgstr ""
-"Delete ALL %(cantidad)s personal skills? This action cannot be undone."
+"¿Borrar TODAS las %(cantidad)s skills personales? Esta acción no se puede"
+" deshacer."
+msgstr "Delete ALL %(cantidad)s personal skills? This action cannot be undone."
 
 #: cv_adaptativo/web/templates/_seccion_skills_personales.html:40
 msgid "Todavía no has añadido ninguna skill personal."
 msgstr "You haven't added any personal skills yet."
 
 #: cv_adaptativo/web/templates/adaptar.html:2
-#: cv_adaptativo/web/templates/base.html:19
+#: cv_adaptativo/web/templates/base.html:25
 #: cv_adaptativo/web/templates/cvs.html:39
 msgid "Adaptar"
 msgstr "Adapt"
@@ -926,13 +911,13 @@ msgstr "Adapt a CV to a job posting"
 
 #: cv_adaptativo/web/templates/adaptar.html:6
 msgid ""
-"Pega el texto completo de la vacante. El sistema elige, de tu perfil, qué "
-"experiencia y skills mostrar, y te dice por qué. Es una única llamada al "
-"modelo."
+"Pega el texto completo de la vacante. El sistema elige, de tu perfil, qué"
+" experiencia y skills mostrar, y te dice por qué. Es una única llamada al"
+" modelo."
 msgstr ""
-"Paste the full text of the job posting. The system chooses which experience "
-"and skills to show from your profile, and tells you why. It's a single call "
-"to the model."
+"Paste the full text of the job posting. The system chooses which "
+"experience and skills to show from your profile, and tells you why. It's "
+"a single call to the model."
 
 #: cv_adaptativo/web/templates/adaptar.html:11
 msgid "Texto de la vacante"
@@ -968,11 +953,11 @@ msgstr "no role given"
 
 #: cv_adaptativo/web/templates/adaptar.html:39
 msgid ""
-"Puedes reutilizar uno de esos o generar una propuesta nueva (por ejemplo, si"
-" esta vacante pide algo distinto)."
+"Puedes reutilizar uno de esos o generar una propuesta nueva (por ejemplo,"
+" si esta vacante pide algo distinto)."
 msgstr ""
-"You can reuse one of those or generate a new proposal (for example, if this "
-"job posting asks for something different)."
+"You can reuse one of those or generate a new proposal (for example, if "
+"this job posting asks for something different)."
 
 #: cv_adaptativo/web/templates/adaptar.html:42
 msgid "Generar una propuesta nueva de todas formas"
@@ -984,7 +969,7 @@ msgstr "Generate proposal"
 
 #: cv_adaptativo/web/templates/ajustes.html:2
 #: cv_adaptativo/web/templates/ajustes.html:4
-#: cv_adaptativo/web/templates/base.html:24
+#: cv_adaptativo/web/templates/base.html:30
 msgid "Ajustes"
 msgstr "Settings"
 
@@ -998,9 +983,9 @@ msgstr "Other (manual URL)"
 
 #: cv_adaptativo/web/templates/ajustes.html:18
 msgid ""
-"Groq es gratis. Los demás son de pago, con la cuenta que ya tengas en ese "
-"proveedor. Otro sirve para cualquier proveedor no listado que hable el mismo"
-" formato de API."
+"Groq es gratis. Los demás son de pago, con la cuenta que ya tengas en ese"
+" proveedor. Otro sirve para cualquier proveedor no listado que hable el "
+"mismo formato de API."
 msgstr ""
 "Groq is free. The others are paid, using your existing account with that "
 "provider. Other works for any unlisted provider that speaks the same API "
@@ -1061,8 +1046,8 @@ msgstr "Daily limit on Groq's free tier"
 
 #: cv_adaptativo/web/templates/ajustes.html:65
 msgid ""
-"El nivel gratuito de Groq permite 30 peticiones por minuto, 1.000 peticiones"
-" al día, 8.000 tokens por minuto y"
+"El nivel gratuito de Groq permite 30 peticiones por minuto, 1.000 "
+"peticiones al día, 8.000 tokens por minuto y"
 msgstr ""
 "Groq's free tier allows 30 requests per minute, 1,000 requests per day, "
 "8,000 tokens per minute and"
@@ -1073,9 +1058,9 @@ msgstr "200,000 tokens per day"
 
 #: cv_adaptativo/web/templates/ajustes.html:66
 msgid ""
-"Cada adaptación o importación de CV es una sola petición, pero puede gastar "
-"varios miles de tokens, así que el límite que más se nota con uso normal es "
-"el diario, no el de cada minuto."
+"Cada adaptación o importación de CV es una sola petición, pero puede "
+"gastar varios miles de tokens, así que el límite que más se nota con uso "
+"normal es el diario, no el de cada minuto."
 msgstr ""
 "Each CV adaptation or import is a single request, but it can use several "
 "thousand tokens, so with normal use the daily limit is the one you'll "
@@ -1083,27 +1068,27 @@ msgstr ""
 
 #: cv_adaptativo/web/templates/ajustes.html:69
 msgid ""
-"Si ves el aviso \"Has agotado la cuota gratuita de Groq\", casi siempre es "
-"este límite diario. Groq no indica cuánto queda exactamente, y se libera "
-"poco a poco a lo largo de 24 horas, no de golpe. Puede tardar bastante más "
-"que unos minutos en volver a funcionar."
+"Si ves el aviso \"Has agotado la cuota gratuita de Groq\", casi siempre "
+"es este límite diario. Groq no indica cuánto queda exactamente, y se "
+"libera poco a poco a lo largo de 24 horas, no de golpe. Puede tardar "
+"bastante más que unos minutos en volver a funcionar."
 msgstr ""
-"If you see the message “You've used up your Groq free quota”, it's almost "
-"always this daily limit. Groq doesn't show exactly how much is left, and "
-"it's released gradually over 24 hours, not all at once. It can take a good "
-"deal longer than a few minutes to work again."
+"If you see the message “You've used up your Groq free quota”, it's almost"
+" always this daily limit. Groq doesn't show exactly how much is left, and"
+" it's released gradually over 24 hours, not all at once. It can take a "
+"good deal longer than a few minutes to work again."
 
 #: cv_adaptativo/web/templates/ajustes.html:72
 msgid ""
-"Como cada cuenta de Groq gratuita tiene su propio límite independiente, una "
-"forma sencilla de no quedarte nunca sin margen es crear una segunda cuenta "
-"gratuita (con otro correo) y generar otra clave. Cuando se agote la que "
-"tienes puesta aquí, pega la otra en"
+"Como cada cuenta de Groq gratuita tiene su propio límite independiente, "
+"una forma sencilla de no quedarte nunca sin margen es crear una segunda "
+"cuenta gratuita (con otro correo) y generar otra clave. Cuando se agote "
+"la que tienes puesta aquí, pega la otra en"
 msgstr ""
-"Since each free Groq account has its own independent limit, a simple way to "
-"never run out of headroom is to create a second free account (with another "
-"email address) and generate another key. When the one you have here runs "
-"out, paste the other one in"
+"Since each free Groq account has its own independent limit, a simple way "
+"to never run out of headroom is to create a second free account (with "
+"another email address) and generate another key. When the one you have "
+"here runs out, paste the other one in"
 
 #: cv_adaptativo/web/templates/ajustes.html:73
 msgid "y sigue trabajando mientras la primera se recupera."
@@ -1121,40 +1106,56 @@ msgstr "Thinking…"
 msgid "No se han podido proponer keywords."
 msgstr "Keywords could not be suggested."
 
-#: cv_adaptativo/web/templates/base.html:18
+#: cv_adaptativo/web/templates/base.html:16
+msgid ""
+"Demo pública compartida: cualquier visitante ve el mismo perfil de "
+"ejemplo y puede reiniciarse en cualquier momento. Tu clave de API solo se"
+" guarda en tu sesión de este navegador, nunca en el servidor."
+msgstr ""
+"Shared public demo: every visitor sees the same sample profile, and it "
+"can reset at any moment. Your API key is only kept in this browser's "
+"session, never on the server."
+
+#: cv_adaptativo/web/templates/base.html:24
 #: cv_adaptativo/web/templates/perfil.html:2
 #: cv_adaptativo/web/templates/perfil.html:4
 msgid "Mi perfil"
 msgstr "My Profile"
 
-#: cv_adaptativo/web/templates/base.html:20
+#: cv_adaptativo/web/templates/base.html:26
 #: cv_adaptativo/web/templates/propuesta.html:2
 msgid "Propuesta"
 msgstr "Proposal"
 
-#: cv_adaptativo/web/templates/base.html:21
+#: cv_adaptativo/web/templates/base.html:27
 #: cv_adaptativo/web/templates/cv_detalle.html:4
 #: cv_adaptativo/web/templates/cvs.html:2
 #: cv_adaptativo/web/templates/cvs.html:4
 msgid "Mis CVs"
 msgstr "My CVs"
 
-#: cv_adaptativo/web/templates/base.html:22
+#: cv_adaptativo/web/templates/base.html:28
 msgid "Plantillas Canva"
 msgstr "Canva Templates"
 
-#: cv_adaptativo/web/templates/base.html:23
+#: cv_adaptativo/web/templates/base.html:29
 #: cv_adaptativo/web/templates/soporte.html:2
 #: cv_adaptativo/web/templates/terminos.html:29
 #: cv_adaptativo/web/templates/terminos.html:60
 msgid "Soporte"
 msgstr "Support"
 
-#: cv_adaptativo/web/templates/base.html:45
+#: cv_adaptativo/web/templates/base.html:52
+msgid ""
+"Demo pública. Instala la app en tu ordenador para que tus datos no salgan"
+" de él."
+msgstr "Public demo. Install the app on your computer so your data never leaves it."
+
+#: cv_adaptativo/web/templates/base.html:54
 msgid "Corre en tu ordenador. Tus datos no salen de aquí."
 msgstr "Runs on your computer. Your data never leaves it."
 
-#: cv_adaptativo/web/templates/base.html:46
+#: cv_adaptativo/web/templates/base.html:56
 #: cv_adaptativo/web/templates/terminos.html:2
 #: cv_adaptativo/web/templates/terminos.html:4
 msgid "Términos y condiciones"
@@ -1314,14 +1315,14 @@ msgstr "Keywords"
 
 #: cv_adaptativo/web/templates/experiencia_form.html:75
 msgid ""
-"Las propone la IA a partir del título, el stack y lo que hiciste. No salen "
-"nunca en tu CV, sirven para reconocer esta experiencia cuando una oferta use"
-" otras palabras. Revísalas y añade las que falten."
+"Las propone la IA a partir del título, el stack y lo que hiciste. No "
+"salen nunca en tu CV, sirven para reconocer esta experiencia cuando una "
+"oferta use otras palabras. Revísalas y añade las que falten."
 msgstr ""
-"These are suggested by the AI from the title, the tech stack and what you "
-"did. They never appear on your CV; they're used to recognise this experience"
-" when a job posting uses different words. Review them and add any that are "
-"missing."
+"These are suggested by the AI from the title, the tech stack and what you"
+" did. They never appear on your CV; they're used to recognise this "
+"experience when a job posting uses different words. Review them and add "
+"any that are missing."
 
 #: cv_adaptativo/web/templates/experiencia_form.html:82
 #: cv_adaptativo/web/templates/idioma_form.html:65
@@ -1365,11 +1366,13 @@ msgstr "Edit language"
 msgid ""
 "No pasa por selección de IA, en la Propuesta se muestran siempre todos, "
 "igual que en un CV real no se recorta la sección de idiomas según la "
-"vacante. Nunca puede aparecer en \"Sobre mí\" ni entre las skills técnicas."
+"vacante. Nunca puede aparecer en \"Sobre mí\" ni entre las skills "
+"técnicas."
 msgstr ""
-"This doesn't go through AI selection: the Proposal always shows all of them,"
-" just as a real CV doesn't trim the languages section based on the job "
-"posting. It can never appear in “About me” or among the technical skills."
+"This doesn't go through AI selection: the Proposal always shows all of "
+"them, just as a real CV doesn't trim the languages section based on the "
+"job posting. It can never appear in “About me” or among the technical "
+"skills."
 
 #: cv_adaptativo/web/templates/idioma_form.html:18
 #: cv_adaptativo/web/templates/idioma_form.html:30
@@ -1400,15 +1403,15 @@ msgstr "Level (EN)"
 
 #: cv_adaptativo/web/templates/idioma_form.html:58
 msgid ""
-"Las propone la IA a partir del nombre. No salen nunca en tu CV. Sirven para "
-"que, si una vacante pide este idioma con otras palabras («advanced English»,"
-" «fluido»), la app no lo marque como un hueco que ya tienes cubierto. "
-"Revísalas y añade las que falten."
+"Las propone la IA a partir del nombre. No salen nunca en tu CV. Sirven "
+"para que, si una vacante pide este idioma con otras palabras («advanced "
+"English», «fluido»), la app no lo marque como un hueco que ya tienes "
+"cubierto. Revísalas y añade las que falten."
 msgstr ""
-"These are suggested by the AI from the name. They never appear on your CV. "
-"They mean that if a job posting asks for this language using different words"
-" (“advanced English”, “fluent”), the app won't flag it as a gap you already "
-"cover. Review them and add any that are missing."
+"These are suggested by the AI from the name. They never appear on your "
+"CV. They mean that if a job posting asks for this language using "
+"different words (“advanced English”, “fluent”), the app won't flag it as "
+"a gap you already cover. Review them and add any that are missing."
 
 #: cv_adaptativo/web/templates/importar.html:2
 msgid "Importar CV"
@@ -1420,8 +1423,8 @@ msgstr "Import from a CV"
 
 #: cv_adaptativo/web/templates/importar.html:6
 msgid ""
-"Sube tu CV en PDF o Word, o pega el texto directamente. La IA propone qué "
-"experiencias y skills añadir a tu perfil."
+"Sube tu CV en PDF o Word, o pega el texto directamente. La IA propone qué"
+" experiencias y skills añadir a tu perfil."
 msgstr ""
 "Upload your CV as a PDF or Word file, or paste the text directly. The AI "
 "suggests which experience and skills to add to your profile."
@@ -1432,11 +1435,11 @@ msgstr "Nothing is saved yet"
 
 #: cv_adaptativo/web/templates/importar.html:7
 msgid ""
-"En el siguiente paso revisas, editas y confirmas una por una lo que quieres "
-"quedarte."
+"En el siguiente paso revisas, editas y confirmas una por una lo que "
+"quieres quedarte."
 msgstr ""
-"On the next step you review, edit and confirm, one by one, what you want to "
-"keep."
+"On the next step you review, edit and confirm, one by one, what you want "
+"to keep."
 
 #: cv_adaptativo/web/templates/importar.html:12
 msgid "Sube tu CV (PDF o .docx)"
@@ -1456,8 +1459,8 @@ msgstr "Analyse"
 
 #: cv_adaptativo/web/templates/importar.html:27
 msgid ""
-"Si tu PDF es una imagen escaneada (sin texto real dentro), no se podrá leer."
-" Usa la opción de pegar el texto a mano en ese caso."
+"Si tu PDF es una imagen escaneada (sin texto real dentro), no se podrá "
+"leer. Usa la opción de pegar el texto a mano en ese caso."
 msgstr ""
 "If your PDF is a scanned image (with no real text inside), it won't be "
 "readable. Use the paste-the-text option instead in that case."
@@ -1472,12 +1475,13 @@ msgstr "Review what was found"
 
 #: cv_adaptativo/web/templates/importar_revisar.html:6
 msgid ""
-"Solo se guardará lo que dejes marcado. Corrige lo que haga falta antes de "
-"confirmar. La IA ha extraído esto de tu CV, pero el criterio final es tuyo."
+"Solo se guardará lo que dejes marcado. Corrige lo que haga falta antes de"
+" confirmar. La IA ha extraído esto de tu CV, pero el criterio final es "
+"tuyo."
 msgstr ""
-"Only what you leave checked will be saved. Fix anything that needs it before"
-" confirming. The AI extracted this from your CV, but the final call is "
-"yours."
+"Only what you leave checked will be saved. Fix anything that needs it "
+"before confirming. The AI extracted this from your CV, but the final call"
+" is yours."
 
 #: cv_adaptativo/web/templates/importar_revisar.html:17
 #: cv_adaptativo/web/templates/perfil.html:20
@@ -1547,11 +1551,11 @@ msgstr "Discard all"
 
 #: cv_adaptativo/web/templates/perfil.html:6
 msgid ""
-"Tu base de hechos verificados. El motor de selección elige de aquí para cada"
-" vacante, nunca inventa nada que no esté aquí."
+"Tu base de hechos verificados. El motor de selección elige de aquí para "
+"cada vacante, nunca inventa nada que no esté aquí."
 msgstr ""
-"Your base of verified facts. The selection engine picks from here for each "
-"job posting; it never makes up anything that isn't here."
+"Your base of verified facts. The selection engine picks from here for "
+"each job posting; it never makes up anything that isn't here."
 
 #: cv_adaptativo/web/templates/perfil.html:8
 msgid "¿Ya tienes un CV? Impórtalo"
@@ -1568,7 +1572,8 @@ msgstr "Have another CV to add?"
 #: cv_adaptativo/web/templates/perfil.html:12
 msgid "Impórtalo para sumar lo que falte, sin duplicar lo que ya tienes."
 msgstr ""
-"Import it to add what's missing, without duplicating what you already have."
+"Import it to add what's missing, without duplicating what you already "
+"have."
 
 #: cv_adaptativo/web/templates/perfil.html:40
 #: cv_adaptativo/web/templates/propuesta.html:24
@@ -1577,11 +1582,11 @@ msgstr "About me"
 
 #: cv_adaptativo/web/templates/perfil.html:41
 msgid ""
-"La plantilla fija de tu bloque «Sobre mí», con seis huecos que rellena el "
-"sistema."
+"La plantilla fija de tu bloque «Sobre mí», con seis huecos que rellena el"
+" sistema."
 msgstr ""
-"The fixed template for your “About me” block, with six gaps the system fills"
-" in."
+"The fixed template for your “About me” block, with six gaps the system "
+"fills in."
 
 #: cv_adaptativo/web/templates/perfil.html:45
 msgid "Definir plantilla"
@@ -1597,11 +1602,11 @@ msgstr "Drag the handle"
 
 #: cv_adaptativo/web/templates/perfil.html:57
 msgid ""
-"de cada panel para cambiar el orden en el que se ven aquí abajo. Se recuerda"
-" para la próxima vez."
+"de cada panel para cambiar el orden en el que se ven aquí abajo. Se "
+"recuerda para la próxima vez."
 msgstr ""
-"on each panel to change the order they appear in below. It's remembered for "
-"next time."
+"on each panel to change the order they appear in below. It's remembered "
+"for next time."
 
 #: cv_adaptativo/web/templates/plantillas.html:2
 msgid "Plantillas"
@@ -1613,15 +1618,15 @@ msgstr "Starting templates"
 
 #: cv_adaptativo/web/templates/plantillas.html:6
 msgid ""
-"La app no maqueta tu CV, te da el texto ya elegido, y el diseño sigue siendo"
-" tuyo en Canva. Estas dos plantillas son el punto de partida si aún no "
-"tienes tu propio diseño. Una página, en español, y lo único que cambia entre"
-" ellas es el estilo."
+"La app no maqueta tu CV, te da el texto ya elegido, y el diseño sigue "
+"siendo tuyo en Canva. Estas dos plantillas son el punto de partida si aún"
+" no tienes tu propio diseño. Una página, en español, y lo único que "
+"cambia entre ellas es el estilo."
 msgstr ""
 "The app doesn't lay out your CV for you; it gives you the text already "
 "chosen, and the design stays yours in Canva. These two templates are a "
-"starting point if you don't have your own design yet. One page, in Spanish, "
-"and the only thing that changes between them is the style."
+"starting point if you don't have your own design yet. One page, in "
+"Spanish, and the only thing that changes between them is the style."
 
 #: cv_adaptativo/web/templates/plantillas.html:14
 msgid "Abrir en Canva →"
@@ -1629,13 +1634,13 @@ msgstr "Open in Canva →"
 
 #: cv_adaptativo/web/templates/plantillas.html:21
 msgid ""
-"Duplica la que más te guste en tu cuenta (Archivo → Hacer una copia) antes "
-"de editarla, para no tocar el original. Luego pega el texto de tu Propuesta "
-"y exporta como PDF cuando esté lista."
+"Duplica la que más te guste en tu cuenta (Archivo → Hacer una copia) "
+"antes de editarla, para no tocar el original. Luego pega el texto de tu "
+"Propuesta y exporta como PDF cuando esté lista."
 msgstr ""
 "Duplicate whichever one you like into your account (File → Make a copy) "
-"before editing it, so you don't touch the original. Then paste in the text "
-"from your Proposal and export as a PDF once it's ready."
+"before editing it, so you don't touch the original. Then paste in the "
+"text from your Proposal and export as a PDF once it's ready."
 
 #: cv_adaptativo/web/templates/propuesta.html:4
 msgid "Propuesta de CV"
@@ -1724,16 +1729,16 @@ msgstr "“%(id)s” no longer exists in your profile."
 
 #: cv_adaptativo/web/templates/propuesta.html:171
 msgid ""
-"Se muestran siempre todas, sin selección de IA. Edítalas en «Mi perfil» si "
-"quieres cambiar cuáles aparecen."
+"Se muestran siempre todas, sin selección de IA. Edítalas en «Mi perfil» "
+"si quieres cambiar cuáles aparecen."
 msgstr ""
 "These are always shown in full, with no AI selection. Edit them in “My "
 "Profile” if you want to change which ones appear."
 
 #: cv_adaptativo/web/templates/propuesta.html:188
 msgid ""
-"Se muestran siempre todos, sin selección de IA. Edítalos en «Mi perfil» si "
-"quieres cambiar cuáles aparecen."
+"Se muestran siempre todos, sin selección de IA. Edítalos en «Mi perfil» "
+"si quieres cambiar cuáles aparecen."
 msgstr ""
 "These are always shown in full, with no AI selection. Edit them in “My "
 "Profile” if you want to change which ones appear."
@@ -1747,8 +1752,8 @@ msgid ""
 "Lo que pide la vacante y no está en tu perfil. No entra en el CV: es "
 "información para ti."
 msgstr ""
-"What the job posting asks for that isn't in your profile. It doesn't go on "
-"the CV: it's information for you."
+"What the job posting asks for that isn't in your profile. It doesn't go "
+"on the CV: it's information for you."
 
 #: cv_adaptativo/web/templates/propuesta.html:205
 msgid "Ninguno: tu perfil cubre todo lo que pide la vacante."
@@ -1806,13 +1811,13 @@ msgstr "language, cloud, data..."
 
 #: cv_adaptativo/web/templates/skill_form.html:48
 msgid ""
-"Las propone la IA a partir del nombre y la categoría. No salen nunca en tu "
-"CV, sirven para reconocer esta skill cuando una oferta la nombre de otra "
-"forma. Revísalas y añade las que falten."
+"Las propone la IA a partir del nombre y la categoría. No salen nunca en "
+"tu CV, sirven para reconocer esta skill cuando una oferta la nombre de "
+"otra forma. Revísalas y añade las que falten."
 msgstr ""
-"These are suggested by the AI from the name and category. They never appear "
-"on your CV; they're used to recognise this skill when a job posting names it"
-" differently. Review them and add any that are missing."
+"These are suggested by the AI from the name and category. They never "
+"appear on your CV; they're used to recognise this skill when a job "
+"posting names it differently. Review them and add any that are missing."
 
 #: cv_adaptativo/web/templates/skill_personal_form.html:2
 #: cv_adaptativo/web/templates/skill_personal_form.html:4
@@ -1827,26 +1832,26 @@ msgstr "Edit personal skill"
 #: cv_adaptativo/web/templates/skill_personal_form.html:6
 msgid ""
 "No pasa por selección de IA, en la Propuesta se muestran siempre todas, "
-"igual que en un CV real no se recorta la sección de habilidades personales "
-"según la vacante. Nunca puede aparecer en \"Sobre mí\" ni entre las skills "
-"técnicas."
+"igual que en un CV real no se recorta la sección de habilidades "
+"personales según la vacante. Nunca puede aparecer en \"Sobre mí\" ni "
+"entre las skills técnicas."
 msgstr ""
-"This doesn't go through AI selection: the Proposal always shows all of them "
-"in full, just as a real CV doesn't trim the personal skills section based on"
-" the job posting. It can never appear in “About me” or among the technical "
-"skills."
+"This doesn't go through AI selection: the Proposal always shows all of "
+"them in full, just as a real CV doesn't trim the personal skills section "
+"based on the job posting. It can never appear in “About me” or among the "
+"technical skills."
 
 #: cv_adaptativo/web/templates/skill_personal_form.html:46
 msgid ""
-"Las propone la IA a partir del nombre. No salen nunca en tu CV. Sirven para "
-"que, si una vacante pide esta habilidad con otras palabras, la app no la "
-"marque como un hueco que ya tienes cubierto. Revísalas y añade las que "
-"falten."
+"Las propone la IA a partir del nombre. No salen nunca en tu CV. Sirven "
+"para que, si una vacante pide esta habilidad con otras palabras, la app "
+"no la marque como un hueco que ya tienes cubierto. Revísalas y añade las "
+"que falten."
 msgstr ""
-"These are suggested by the AI from the name. They never appear on your CV. "
-"They mean that if a job posting asks for this skill using different words, "
-"the app won't flag it as a gap you already cover. Review them and add any "
-"that are missing."
+"These are suggested by the AI from the name. They never appear on your "
+"CV. They mean that if a job posting asks for this skill using different "
+"words, the app won't flag it as a gap you already cover. Review them and "
+"add any that are missing."
 
 #: cv_adaptativo/web/templates/sobre_mi_form.html:2
 #: cv_adaptativo/web/templates/sobre_mi_form.html:4
@@ -1858,8 +1863,8 @@ msgid ""
 "El texto es tuyo y se copia tal cual, salvo seis huecos que rellena el "
 "sistema con nombres de skills que ya tienes:"
 msgstr ""
-"The text is yours and is copied as-is, except for six gaps the system fills "
-"in with names of skills you already have:"
+"The text is yours and is copied as-is, except for six gaps the system "
+"fills in with names of skills you already have:"
 
 #: cv_adaptativo/web/templates/sobre_mi_form.html:7
 #: cv_adaptativo/web/templates/sobre_mi_form.html:8
@@ -1896,13 +1901,13 @@ msgstr "Let's talk"
 
 #: cv_adaptativo/web/templates/soporte.html:6
 msgid ""
-"Este proyecto es open source y se hace mejor con lo que cuentes: un fallo, "
-"una idea, o simplemente algo que no te haya quedado claro. No hace falta que"
-" sea un bug para que merezca la pena escribirlo. Se lee todo."
+"Este proyecto es open source y se hace mejor con lo que cuentes: un "
+"fallo, una idea, o simplemente algo que no te haya quedado claro. No hace"
+" falta que sea un bug para que merezca la pena escribirlo. Se lee todo."
 msgstr ""
-"This project is open source and gets better with what you share: a bug, an "
-"idea, or just something that wasn't clear to you. It doesn't have to be a "
-"bug to be worth writing in about. Everything gets read."
+"This project is open source and gets better with what you share: a bug, "
+"an idea, or just something that wasn't clear to you. It doesn't have to "
+"be a bug to be worth writing in about. Everything gets read."
 
 #: cv_adaptativo/web/templates/soporte.html:11
 msgid "¿Qué es esto?"
@@ -1922,17 +1927,17 @@ msgstr "Message"
 
 #: cv_adaptativo/web/templates/soporte.html:31
 msgid ""
-"Qué esperabas que pasara y qué ha pasado en su lugar. Si puedes, los pasos "
-"para reproducirlo."
+"Qué esperabas que pasara y qué ha pasado en su lugar. Si puedes, los "
+"pasos para reproducirlo."
 msgstr ""
-"What you expected to happen and what happened instead. Steps to reproduce "
-"it, if you can."
+"What you expected to happen and what happened instead. Steps to reproduce"
+" it, if you can."
 
 #: cv_adaptativo/web/templates/soporte.html:32
 #: cv_adaptativo/web/templates/soporte.html:33
 msgid ""
-"Qué mejorarías, qué echas en falta, o qué te ha resultado confuso. Cualquier"
-" cosa vale."
+"Qué mejorarías, qué echas en falta, o qué te ha resultado confuso. "
+"Cualquier cosa vale."
 msgstr ""
 "What you'd improve, what you're missing, or what you found confusing. "
 "Anything counts."
@@ -1947,8 +1952,8 @@ msgstr "Send by email"
 
 #: cv_adaptativo/web/templates/soporte.html:42
 msgid ""
-"es público y queda buscable, ideal si otras personas pueden tener el mismo "
-"problema."
+"es público y queda buscable, ideal si otras personas pueden tener el "
+"mismo problema."
 msgstr ""
 "is public and searchable, ideal if other people might run into the same "
 "issue."
@@ -1962,8 +1967,8 @@ msgid ""
 "es privado, solo lo lee Daniel. Elige el que prefieras, los dos llegan "
 "igual."
 msgstr ""
-"is private, only Daniel reads it. Pick whichever you prefer, both reach the "
-"same place."
+"is private, only Daniel reads it. Pick whichever you prefer, both reach "
+"the same place."
 
 #: cv_adaptativo/web/templates/soporte.html:49
 msgid "Tu mensaje se guarda primero en tu ordenador, en"
@@ -1974,8 +1979,8 @@ msgid ""
 "antes de intentar enviarlo a ningún sitio. Solo se adjunta diagnóstico "
 "técnico (versión, sistema, proveedor de IA), nunca datos de tu perfil."
 msgstr ""
-"before it tries to send it anywhere. Only technical diagnostics are attached"
-" (version, system, AI provider), never your profile data."
+"before it tries to send it anywhere. Only technical diagnostics are "
+"attached (version, system, AI provider), never your profile data."
 
 #: cv_adaptativo/web/templates/terminos.html:6
 msgid ""
@@ -1991,16 +1996,17 @@ msgstr "Your data never leaves your computer"
 
 #: cv_adaptativo/web/templates/terminos.html:12
 msgid ""
-"Tu perfil, tus CVs guardados y tus ajustes viven en ficheros de texto en tu "
-"propio ordenador. No hay cuentas, no hay servidor de este proyecto donde se "
-"guarde nada tuyo, no hay analítica ni telemetría. Nadie del proyecto puede "
-"ver tu perfil ni saber que existe, no hay ningún sitio al que llegue."
+"Tu perfil, tus CVs guardados y tus ajustes viven en ficheros de texto en "
+"tu propio ordenador. No hay cuentas, no hay servidor de este proyecto "
+"donde se guarde nada tuyo, no hay analítica ni telemetría. Nadie del "
+"proyecto puede ver tu perfil ni saber que existe, no hay ningún sitio al "
+"que llegue."
 msgstr ""
-"Your profile, your saved CVs and your settings live in text files on your "
-"own computer. There are no accounts, no server run by this project where "
-"anything of yours is stored, no analytics and no telemetry. No one involved "
-"in the project can see your profile or even know it exists — there's nowhere"
-" for it to go."
+"Your profile, your saved CVs and your settings live in text files on your"
+" own computer. There are no accounts, no server run by this project where"
+" anything of yours is stored, no analytics and no telemetry. No one "
+"involved in the project can see your profile or even know it exists — "
+"there's nowhere for it to go."
 
 #: cv_adaptativo/web/templates/terminos.html:17
 msgid "La única llamada de red la haces tú, con tu propia clave"
@@ -2009,25 +2015,26 @@ msgstr "The only network call is one you make yourself, with your own key"
 #: cv_adaptativo/web/templates/terminos.html:19
 msgid ""
 "Cuando adaptas un CV o importas uno nuevo, tu navegador envía el texto "
-"necesario (tu perfil relevante, la vacante, o el CV que subes) directamente "
-"al proveedor de IA que has configurado en Ajustes (Groq por defecto), con la"
-" clave de API que tú mismo has generado. No pasa por ningún servidor "
-"intermedio de este proyecto porque no existe tal servidor."
+"necesario (tu perfil relevante, la vacante, o el CV que subes) "
+"directamente al proveedor de IA que has configurado en Ajustes (Groq por "
+"defecto), con la clave de API que tú mismo has generado. No pasa por "
+"ningún servidor intermedio de este proyecto porque no existe tal "
+"servidor."
 msgstr ""
-"When you adapt a CV or import a new one, your browser sends the necessary "
-"text (your relevant profile, the job posting, or the CV you upload) directly"
-" to the AI provider you've set up in Settings (Groq by default), using the "
-"API key you generated yourself. It doesn't pass through any intermediate "
-"server run by this project, because no such server exists."
+"When you adapt a CV or import a new one, your browser sends the necessary"
+" text (your relevant profile, the job posting, or the CV you upload) "
+"directly to the AI provider you've set up in Settings (Groq by default), "
+"using the API key you generated yourself. It doesn't pass through any "
+"intermediate server run by this project, because no such server exists."
 
 #: cv_adaptativo/web/templates/terminos.html:22
 msgid ""
 "La tipografía de la app está alojada en local por el mismo motivo. Ni "
-"siquiera cargar una fuente debería avisar a un tercero de que has abierto la"
-" app."
+"siquiera cargar una fuente debería avisar a un tercero de que has abierto"
+" la app."
 msgstr ""
-"The app's typeface is hosted locally for the same reason. Not even loading a"
-" font should let a third party know you've opened the app."
+"The app's typeface is hosted locally for the same reason. Not even "
+"loading a font should let a third party know you've opened the app."
 
 #: cv_adaptativo/web/templates/terminos.html:27
 msgid "Soporte: tú eliges si algo se hace público"
@@ -2040,16 +2047,16 @@ msgstr "If you write in to"
 #: cv_adaptativo/web/templates/terminos.html:29
 msgid ""
 "puedes elegir entre GitHub o correo. El correo es privado, solo lo lee "
-"Daniel. GitHub es público, se te abre un formulario ya rellenado, pero es "
-"tuyo publicarlo o no. Tú decides si pulsas «Crear incidencia». En ningún "
-"caso se incluye tu clave de API ni el contenido de tu perfil, solo tu "
+"Daniel. GitHub es público, se te abre un formulario ya rellenado, pero es"
+" tuyo publicarlo o no. Tú decides si pulsas «Crear incidencia». En ningún"
+" caso se incluye tu clave de API ni el contenido de tu perfil, solo tu "
 "mensaje y datos técnicos básicos (sistema operativo, versión, proveedor)."
 msgstr ""
-"you can choose between GitHub or email. Email is private, only Daniel reads "
-"it. GitHub is public — a pre-filled form opens for you, but it's up to you "
-"whether to post it. You decide whether to click “Create issue”. Your API key"
-" and profile content are never included, only your message and basic "
-"technical details (operating system, version, provider)."
+"you can choose between GitHub or email. Email is private, only Daniel "
+"reads it. GitHub is public — a pre-filled form opens for you, but it's up"
+" to you whether to post it. You decide whether to click “Create issue”. "
+"Your API key and profile content are never included, only your message "
+"and basic technical details (operating system, version, provider)."
 
 #: cv_adaptativo/web/templates/terminos.html:34
 msgid "Puedes comprobarlo tú mismo"
@@ -2065,11 +2072,11 @@ msgstr "open source"
 
 #: cv_adaptativo/web/templates/terminos.html:37
 msgid ""
-"así que no hace falta que confíes en lo que dice esta página. Puedes leer "
-"exactamente qué hace cada línea con tus datos."
+"así que no hace falta que confíes en lo que dice esta página. Puedes leer"
+" exactamente qué hace cada línea con tus datos."
 msgstr ""
-"so you don't need to take this page's word for it. You can read exactly what"
-" every line does with your data."
+"so you don't need to take this page's word for it. You can read exactly "
+"what every line does with your data."
 
 #: cv_adaptativo/web/templates/terminos.html:42
 msgid "Sin garantía, como cualquier software libre"
@@ -2089,13 +2096,13 @@ msgstr "repository"
 
 #: cv_adaptativo/web/templates/terminos.html:45
 msgid ""
-"Se ofrece «tal cual», sin garantía de ningún tipo. Es gratis, se puede usar,"
-" copiar y modificar libremente, y nadie responde por lo que hagas con ella "
-"ni por los fallos que tenga."
+"Se ofrece «tal cual», sin garantía de ningún tipo. Es gratis, se puede "
+"usar, copiar y modificar libremente, y nadie responde por lo que hagas "
+"con ella ni por los fallos que tenga."
 msgstr ""
-"It's provided “as is”, with no warranty of any kind. It's free, and you're "
-"free to use, copy and modify it, and no one is liable for what you do with "
-"it or for any bugs it may have."
+"It's provided “as is”, with no warranty of any kind. It's free, and "
+"you're free to use, copy and modify it, and no one is liable for what you"
+" do with it or for any bugs it may have."
 
 #: cv_adaptativo/web/templates/terminos.html:50
 msgid "La única cookie es técnica, no de seguimiento"
@@ -2104,14 +2111,15 @@ msgstr "The only cookie is a technical one, not a tracking one"
 #: cv_adaptativo/web/templates/terminos.html:52
 msgid ""
 "La app usa una cookie de sesión (de Flask, el servidor que la hace "
-"funcionar) solo para mostrarte avisos de una pantalla a otra, por ejemplo "
-"cuando guardas algo. No identifica a nadie, no rastrea nada y no sale de tu "
-"ordenador, así que no hace falta pedirte consentimiento para usarla."
+"funcionar) solo para mostrarte avisos de una pantalla a otra, por ejemplo"
+" cuando guardas algo. No identifica a nadie, no rastrea nada y no sale de"
+" tu ordenador, así que no hace falta pedirte consentimiento para usarla."
 msgstr ""
-"The app uses a session cookie (from Flask, the server that runs it) only to "
-"show you notices from one screen to the next, for example when you save "
-"something. It doesn't identify anyone, doesn't track anything, and never "
-"leaves your computer, so there's no need to ask for your consent to use it."
+"The app uses a session cookie (from Flask, the server that runs it) only "
+"to show you notices from one screen to the next, for example when you "
+"save something. It doesn't identify anyone, doesn't track anything, and "
+"never leaves your computer, so there's no need to ask for your consent to"
+" use it."
 
 #: cv_adaptativo/web/templates/terminos.html:57
 msgid "Quién mantiene este proyecto"
@@ -2122,34 +2130,34 @@ msgid ""
 "CV Adaptativo lo mantiene Daniel Vega Rosado. Para cualquier duda que no "
 "encaje en"
 msgstr ""
-"CV Adaptativo is maintained by Daniel Vega Rosado. For anything that doesn't"
-" fit under"
+"CV Adaptativo is maintained by Daniel Vega Rosado. For anything that "
+"doesn't fit under"
 
 #: cv_adaptativo/web/templates/terminos.html:60
 msgid "puedes escribir a"
 msgstr "you can write to"
 
-#: cv_adaptativo/web/vistas/adaptar.py:36
+#: cv_adaptativo/web/vistas/adaptar.py:35
 msgid ""
 "Tu perfil todavía no tiene experiencia, skills o «Sobre mí». Complétalo "
 "antes de adaptar un CV."
 msgstr ""
-"Your profile doesn't have any experience, skills or “About me” yet. Complete"
-" it before adapting a CV."
+"Your profile doesn't have any experience, skills or “About me” yet. "
+"Complete it before adapting a CV."
 
-#: cv_adaptativo/web/vistas/adaptar.py:62
+#: cv_adaptativo/web/vistas/adaptar.py:61
 msgid "Configura tu clave de API en Ajustes antes de generar una propuesta."
 msgstr "Set up your API key in Settings before generating a proposal."
 
 #: cv_adaptativo/web/vistas/ajustes.py:44
 msgid ""
 "Esa clave no empieza por «gsk_», que es el formato de Groq. Si la "
-"conseguiste en console.x.ai en vez de console.groq.com, es de Grok (xAI) y "
-"no funcionará aquí: son proveedores distintos."
+"conseguiste en console.x.ai en vez de console.groq.com, es de Grok (xAI) "
+"y no funcionará aquí: son proveedores distintos."
 msgstr ""
-"That key doesn't start with “gsk_”, which is Groq's format. If you got it "
-"from console.x.ai instead of console.groq.com, it's a Grok (xAI) key and "
-"won't work here — they're different providers."
+"That key doesn't start with “gsk_”, which is Groq's format. If you got it"
+" from console.x.ai instead of console.groq.com, it's a Grok (xAI) key and"
+" won't work here — they're different providers."
 
 #: cv_adaptativo/web/vistas/ajustes.py:49
 msgid "Ajustes guardados."
@@ -2176,38 +2184,39 @@ msgstr "Choose a file before attaching it."
 msgid "Archivo adjuntado."
 msgstr "File attached."
 
-#: cv_adaptativo/web/vistas/importar.py:48
+#: cv_adaptativo/web/vistas/importar.py:47
 msgid "Configura tu clave de API en Ajustes antes de importar un CV."
 msgstr "Set up your API key in Settings before importing a CV."
 
-#: cv_adaptativo/web/vistas/importar.py:82
+#: cv_adaptativo/web/vistas/importar.py:81
 msgid "Sube un fichero o pega el texto de tu CV antes de continuar."
 msgstr "Upload a file or paste your CV text before continuing."
 
-#: cv_adaptativo/web/vistas/importar.py:89
+#: cv_adaptativo/web/vistas/importar.py:88
 msgid "No hay ninguna importación pendiente de revisar."
 msgstr "There's no import pending review."
 
-#: cv_adaptativo/web/vistas/importar.py:98
+#: cv_adaptativo/web/vistas/importar.py:97
 msgid "Esa importación ya no está disponible, vuelve a subir el CV."
 msgstr "That import is no longer available, upload the CV again."
 
-#: cv_adaptativo/web/vistas/importar.py:150
+#: cv_adaptativo/web/vistas/importar.py:149
 #, python-format
 msgid "%(cantidad)s elemento(s) añadidos al perfil."
 msgstr "%(cantidad)s item(s) added to your profile."
 
-#: cv_adaptativo/web/vistas/importar.py:154
+#: cv_adaptativo/web/vistas/importar.py:153
 #, python-format
 msgid ""
-"%(cantidad)s elemento(s) no se pudieron guardar por falta de datos (faltaba "
-"el nombre en algún idioma, o palabras clave). Añádelos a mano en «Mi "
-"perfil»."
+"%(cantidad)s elemento(s) no se pudieron guardar por falta de datos "
+"(faltaba el nombre en algún idioma, o palabras clave). Añádelos a mano en"
+" «Mi perfil»."
 msgstr ""
-"%(cantidad)s item(s) could not be saved due to missing data (a name in one "
-"language, or keywords, was missing). Add them by hand in “My Profile”."
+"%(cantidad)s item(s) could not be saved due to missing data (a name in "
+"one language, or keywords, was missing). Add them by hand in “My "
+"Profile”."
 
-#: cv_adaptativo/web/vistas/importar.py:221
+#: cv_adaptativo/web/vistas/importar.py:220
 msgid "Importación descartada. No se ha guardado nada."
 msgstr "Import discarded. Nothing was saved."
 
@@ -2246,11 +2255,11 @@ msgstr "There was no experience to delete."
 
 #: cv_adaptativo/web/vistas/perfil.py:126
 msgid ""
-"Configura tu clave de API en Ajustes para que la IA te proponga keywords. "
-"Mientras tanto, escríbelas a mano."
+"Configura tu clave de API en Ajustes para que la IA te proponga keywords."
+" Mientras tanto, escríbelas a mano."
 msgstr ""
-"Set up your API key in Settings so the AI can suggest keywords for you. In "
-"the meantime, write them in by hand."
+"Set up your API key in Settings so the AI can suggest keywords for you. "
+"In the meantime, write them in by hand."
 
 #: cv_adaptativo/web/vistas/perfil.py:135
 msgid "No se pudo contactar con el proveedor."
@@ -2367,65 +2376,67 @@ msgstr "Warm Minimalist"
 msgid "Corporativa Clásica"
 msgstr "Classic Corporate"
 
-#: cv_adaptativo/web/vistas/propuesta.py:42
-msgid ""
-"Todavía no has generado ninguna propuesta. Empieza por pegar una vacante."
+#: cv_adaptativo/web/vistas/propuesta.py:41
+msgid "Todavía no has generado ninguna propuesta. Empieza por pegar una vacante."
 msgstr "You haven't generated a proposal yet. Start by pasting a job posting."
 
-#: cv_adaptativo/web/vistas/propuesta.py:81
+#: cv_adaptativo/web/vistas/propuesta.py:80
 msgid "Esa propuesta ya no está disponible, genera una nueva."
 msgstr "That proposal is no longer available, generate a new one."
 
-#: cv_adaptativo/web/vistas/propuesta.py:94
+#: cv_adaptativo/web/vistas/propuesta.py:93
 msgid "Tu perfil ya no tiene plantilla de «Sobre mí»."
 msgstr "Your profile no longer has an “About me” template."
 
-#: cv_adaptativo/web/vistas/propuesta.py:111
+#: cv_adaptativo/web/vistas/propuesta.py:110
 msgid "«Sobre mí» actualizado."
 msgstr "“About me” updated."
 
-#: cv_adaptativo/web/vistas/propuesta.py:128
+#: cv_adaptativo/web/vistas/propuesta.py:127
 msgid "Skill actualizada."
 msgstr "Skill updated."
 
-#: cv_adaptativo/web/vistas/propuesta.py:157
+#: cv_adaptativo/web/vistas/propuesta.py:156
 msgid "Experiencia actualizada."
 msgstr "Experience updated."
 
-#: cv_adaptativo/web/vistas/propuesta.py:168
+#: cv_adaptativo/web/vistas/propuesta.py:167
 msgid "Sección desconocida."
 msgstr "Unknown section."
 
-#: cv_adaptativo/web/vistas/propuesta.py:178
+#: cv_adaptativo/web/vistas/propuesta.py:177
 msgid "Configura tu clave de API en Ajustes antes de regenerar."
 msgstr "Set up your API key in Settings before regenerating."
 
-#: cv_adaptativo/web/vistas/propuesta.py:200
+#: cv_adaptativo/web/vistas/propuesta.py:199
 msgid "Sección regenerada."
 msgstr "Section regenerated."
 
-#: cv_adaptativo/web/vistas/propuesta.py:207
+#: cv_adaptativo/web/vistas/propuesta.py:206
 msgid "Propuesta descartada."
 msgstr "Proposal discarded."
 
-#: cv_adaptativo/web/vistas/propuesta.py:238
+#: cv_adaptativo/web/vistas/propuesta.py:237
 #, python-format
 msgid "CV guardado en el archivo para %(empresa)s."
 msgstr "CV saved to the archive for %(empresa)s."
 
-#: cv_adaptativo/web/vistas/soporte.py:36
+#: cv_adaptativo/web/vistas/soporte.py:35
 msgid "Cuéntanos qué ha pasado, o qué se te ha ocurrido, antes de enviarlo."
 msgstr "Tell us what happened, or what came to mind, before sending it."
 
 #~ msgid ""
-#~ "La clave es siempre tuya y se guarda solo en este ordenador, fuera del "
-#~ "repositorio."
+#~ "La clave es siempre tuya y se "
+#~ "guarda solo en este ordenador, fuera "
+#~ "del repositorio."
 #~ msgstr ""
-#~ "The key is always yours and is stored only on this computer, outside the "
-#~ "repository."
+#~ "The key is always yours and is "
+#~ "stored only on this computer, outside"
+#~ " the repository."
 
 #~ msgid "tiene nivel gratuito, crea una cuenta gratis y pega aquí tu clave."
 #~ msgstr "has a free tier, create a free account and paste your key here."
 
 #~ msgid "Empieza por"
 #~ msgstr "It starts with"
+

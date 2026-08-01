@@ -150,6 +150,17 @@ section[id] { scroll-margin-top: 4.5rem; }
   margin-bottom: 0.5rem;
 }
 
+/* Aviso de demo pública, deliberadamente distinto del aviso verde de marca
+   para que no se confunda con un flash normal. */
+.aviso-demo {
+  background: #fff4e0;
+  border-bottom: 1px solid #e0a942;
+  color: #6b4a11;
+  text-align: center;
+  padding: 0.6rem 1rem;
+  font-size: 0.9rem;
+}
+
 /* Tarjetas */
 
 .tarjeta {

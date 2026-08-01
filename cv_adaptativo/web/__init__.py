@@ -12,6 +12,7 @@ errores — no sabe nada de ninguna pantalla en concreto.
 """
 from __future__ import annotations
 
+import os
 import secrets
 from pathlib import Path
 
@@ -21,9 +22,19 @@ from flask_babel import Babel, get_locale
 from cv_adaptativo.web.rutas import raiz_datos
 
 RAIZ_PERFIL_POR_DEFECTO = raiz_datos() / "perfil"
+# El Space de Hugging Face arranca la app con `CV_ADAPTATIVO_DEMO=1` (ver
+# Dockerfile del Space). En modo demo, varios desconocidos comparten el mismo
+# perfil de ejemplo y el mismo proceso: `contexto.ajustes_actuales()` guarda
+# la clave de API en la sesión de cada visitante en vez de en `ajustes.json`,
+# para que nadie vea la clave que otro visitante haya probado.
+MODO_DEMO_POR_DEFECTO = os.environ.get("CV_ADAPTATIVO_DEMO") == "1"
 
 
-def crear_app(raiz_perfil: Path | None = None, ruta_ajustes: Path | None = None) -> Flask:
+def crear_app(
+    raiz_perfil: Path | None = None,
+    ruta_ajustes: Path | None = None,
+    modo_demo: bool | None = None,
+) -> Flask:
     from cv_adaptativo.perfil.errores import ErrorPerfil
     from cv_adaptativo.perfil.modelo import IDIOMAS
     from cv_adaptativo.web import ajustes as modulo_ajustes
@@ -37,6 +48,7 @@ def crear_app(raiz_perfil: Path | None = None, ruta_ajustes: Path | None = None)
     app.config["SECRET_KEY"] = secrets.token_hex(32)
     app.config["RAIZ_PERFIL"] = raiz_perfil or RAIZ_PERFIL_POR_DEFECTO
     app.config["RUTA_AJUSTES"] = ruta_ajustes or modulo_ajustes.RUTA_POR_DEFECTO
+    app.config["MODO_DEMO"] = MODO_DEMO_POR_DEFECTO if modo_demo is None else modo_demo
     app.config["LANGUAGES"] = modulo_ajustes.IDIOMAS_INTERFAZ
     app.config["BABEL_DEFAULT_LOCALE"] = modulo_ajustes.IDIOMA_POR_DEFECTO
     # Los catálogos viven en cv_adaptativo/translations/, un nivel por encima
@@ -58,7 +70,11 @@ def crear_app(raiz_perfil: Path | None = None, ruta_ajustes: Path | None = None)
 
     @app.context_processor
     def _inyectar_globales():
-        return {"idiomas": IDIOMAS, "etiquetas_estado": ETIQUETAS_ESTADO}
+        return {
+            "idiomas": IDIOMAS,
+            "etiquetas_estado": ETIQUETAS_ESTADO,
+            "modo_demo": app.config["MODO_DEMO"],
+        }
 
     @app.errorhandler(404)
     def _pagina_no_encontrada(_error):

@@ -20,7 +20,7 @@ def portada():
 
 @bp.route("/perfil")
 def ver_perfil():
-    ajustes = modulo_ajustes.cargar_ajustes(contexto.ruta_ajustes())
+    ajustes = contexto.ajustes_actuales()
     return render_template("perfil.html", perfil=contexto.perfil_actual(), orden_perfil=ajustes.orden_perfil)
 
 
@@ -31,9 +31,9 @@ def guardar_orden_perfil():
     orden inválido no es un fallo del usuario que haya que explicarle, se
     resuelve solo cayendo al orden por defecto (`orden_perfil_valido`)."""
     datos = request.get_json(silent=True) or {}
-    ajustes = modulo_ajustes.cargar_ajustes(contexto.ruta_ajustes())
+    ajustes = contexto.ajustes_actuales()
     ajustes.orden_perfil = modulo_ajustes.orden_perfil_valido(datos.get("orden"))
-    modulo_ajustes.guardar_ajustes(ajustes, contexto.ruta_ajustes())
+    contexto.guardar_ajustes_actuales(ajustes)
     return jsonify({"ok": True})
 
 
@@ -117,7 +117,7 @@ def sugerir_keywords():
     El usuario revisa y amplía lo que se le propone — nunca se guarda solo.
     """
     datos = request.get_json(silent=True) or {}
-    ajustes = modulo_ajustes.cargar_ajustes(contexto.ruta_ajustes())
+    ajustes = contexto.ajustes_actuales()
     if not ajustes.configurado():
         return jsonify(
             {

@@ -11,6 +11,12 @@
   data-texto-pensando="{{ _('Pensando…') }}"
   data-texto-fallo-keywords="{{ _('No se han podido proponer keywords.') }}"
 >
+  {% if modo_demo %}
+    <div class="aviso-demo">
+      {{ _('Demo pública compartida: cualquier visitante ve el mismo perfil de ejemplo y puede reiniciarse en cualquier momento. Tu clave de API solo se guarda en tu sesión de este navegador, nunca en el servidor.') }}
+    </div>
+  {% endif %}
+
   <header class="cabecera">
     <div class="ancho">
       <a class="marca" href="{{ url_for('cv_adaptativo.ver_perfil') }}">CV Adaptativo</a>
@@ -42,7 +48,11 @@
 
   <footer class="pie ancho">
     <p>
-      {{ _('Corre en tu ordenador. Tus datos no salen de aquí.') }}
+      {% if modo_demo %}
+        {{ _('Demo pública. Instala la app en tu ordenador para que tus datos no salgan de él.') }}
+      {% else %}
+        {{ _('Corre en tu ordenador. Tus datos no salen de aquí.') }}
+      {% endif %}
       · <a href="{{ url_for('cv_adaptativo.terminos') }}">{{ _('Términos y condiciones') }}</a>
     </p>
   </footer>

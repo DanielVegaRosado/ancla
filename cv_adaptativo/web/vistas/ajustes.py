@@ -15,11 +15,11 @@ def ver_ajustes():
     if request.method == "GET":
         return render_template(
             "ajustes.html",
-            ajustes=modulo_ajustes.cargar_ajustes(contexto.ruta_ajustes()),
+            ajustes=contexto.ajustes_actuales(),
             url_conseguir_clave=URL_CONSEGUIR_CLAVE,
         )
 
-    actuales = modulo_ajustes.cargar_ajustes(contexto.ruta_ajustes())
+    actuales = contexto.ajustes_actuales()
     nuevos = modulo_ajustes.Ajustes(
         proveedor=modulo_ajustes.proveedor_valido(request.form.get("proveedor")),
         clave_api=request.form.get("clave_api", "").strip(),
@@ -28,7 +28,7 @@ def ver_ajustes():
         orden_perfil=actuales.orden_perfil,
         idioma=modulo_ajustes.idioma_valido(request.form.get("idioma")),
     )
-    modulo_ajustes.guardar_ajustes(nuevos, contexto.ruta_ajustes())
+    contexto.guardar_ajustes_actuales(nuevos)
 
     # Aviso, no bloqueo, y solo para Groq: no todas las claves tienen por qué
     # llevar siempre este prefijo (p. ej. si Groq cambia su formato), así que

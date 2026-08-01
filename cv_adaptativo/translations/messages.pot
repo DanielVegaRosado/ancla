@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-07-31 11:29+0200\n"
+"POT-Creation-Date: 2026-08-01 08:53+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -585,7 +585,7 @@ msgstr ""
 msgid "Tu perfil no tiene plantilla de «Sobre mí»: créala antes de adaptar el CV."
 msgstr ""
 
-#: cv_adaptativo/seleccion/motor.py:84 cv_adaptativo/web/vistas/adaptar.py:29
+#: cv_adaptativo/seleccion/motor.py:84 cv_adaptativo/web/vistas/adaptar.py:28
 msgid "Pega el texto de la vacante antes de generar la propuesta."
 msgstr ""
 
@@ -607,11 +607,11 @@ msgid ""
 "propuesta."
 msgstr ""
 
-#: cv_adaptativo/soporte/mensajes.py:152 cv_adaptativo/web/vistas/soporte.py:21
+#: cv_adaptativo/soporte/mensajes.py:152 cv_adaptativo/web/vistas/soporte.py:20
 msgid "Problema"
 msgstr ""
 
-#: cv_adaptativo/soporte/mensajes.py:152 cv_adaptativo/web/vistas/soporte.py:22
+#: cv_adaptativo/soporte/mensajes.py:152 cv_adaptativo/web/vistas/soporte.py:21
 msgid "Sugerencia"
 msgstr ""
 
@@ -790,7 +790,7 @@ msgid "Todavía no has añadido ninguna skill personal."
 msgstr ""
 
 #: cv_adaptativo/web/templates/adaptar.html:2
-#: cv_adaptativo/web/templates/base.html:19
+#: cv_adaptativo/web/templates/base.html:25
 #: cv_adaptativo/web/templates/cvs.html:39
 msgid "Adaptar"
 msgstr ""
@@ -854,7 +854,7 @@ msgstr ""
 
 #: cv_adaptativo/web/templates/ajustes.html:2
 #: cv_adaptativo/web/templates/ajustes.html:4
-#: cv_adaptativo/web/templates/base.html:24
+#: cv_adaptativo/web/templates/base.html:30
 msgid "Ajustes"
 msgstr ""
 
@@ -973,40 +973,53 @@ msgstr ""
 msgid "No se han podido proponer keywords."
 msgstr ""
 
-#: cv_adaptativo/web/templates/base.html:18
+#: cv_adaptativo/web/templates/base.html:16
+msgid ""
+"Demo pública compartida: cualquier visitante ve el mismo perfil de "
+"ejemplo y puede reiniciarse en cualquier momento. Tu clave de API solo se"
+" guarda en tu sesión de este navegador, nunca en el servidor."
+msgstr ""
+
+#: cv_adaptativo/web/templates/base.html:24
 #: cv_adaptativo/web/templates/perfil.html:2
 #: cv_adaptativo/web/templates/perfil.html:4
 msgid "Mi perfil"
 msgstr ""
 
-#: cv_adaptativo/web/templates/base.html:20
+#: cv_adaptativo/web/templates/base.html:26
 #: cv_adaptativo/web/templates/propuesta.html:2
 msgid "Propuesta"
 msgstr ""
 
-#: cv_adaptativo/web/templates/base.html:21
+#: cv_adaptativo/web/templates/base.html:27
 #: cv_adaptativo/web/templates/cv_detalle.html:4
 #: cv_adaptativo/web/templates/cvs.html:2
 #: cv_adaptativo/web/templates/cvs.html:4
 msgid "Mis CVs"
 msgstr ""
 
-#: cv_adaptativo/web/templates/base.html:22
+#: cv_adaptativo/web/templates/base.html:28
 msgid "Plantillas Canva"
 msgstr ""
 
-#: cv_adaptativo/web/templates/base.html:23
+#: cv_adaptativo/web/templates/base.html:29
 #: cv_adaptativo/web/templates/soporte.html:2
 #: cv_adaptativo/web/templates/terminos.html:29
 #: cv_adaptativo/web/templates/terminos.html:60
 msgid "Soporte"
 msgstr ""
 
-#: cv_adaptativo/web/templates/base.html:45
+#: cv_adaptativo/web/templates/base.html:52
+msgid ""
+"Demo pública. Instala la app en tu ordenador para que tus datos no salgan"
+" de él."
+msgstr ""
+
+#: cv_adaptativo/web/templates/base.html:54
 msgid "Corre en tu ordenador. Tus datos no salen de aquí."
 msgstr ""
 
-#: cv_adaptativo/web/templates/base.html:46
+#: cv_adaptativo/web/templates/base.html:56
 #: cv_adaptativo/web/templates/terminos.html:2
 #: cv_adaptativo/web/templates/terminos.html:4
 msgid "Términos y condiciones"
@@ -1885,13 +1898,13 @@ msgstr ""
 msgid "puedes escribir a"
 msgstr ""
 
-#: cv_adaptativo/web/vistas/adaptar.py:36
+#: cv_adaptativo/web/vistas/adaptar.py:35
 msgid ""
 "Tu perfil todavía no tiene experiencia, skills o «Sobre mí». Complétalo "
 "antes de adaptar un CV."
 msgstr ""
 
-#: cv_adaptativo/web/vistas/adaptar.py:62
+#: cv_adaptativo/web/vistas/adaptar.py:61
 msgid "Configura tu clave de API en Ajustes antes de generar una propuesta."
 msgstr ""
 
@@ -1927,28 +1940,28 @@ msgstr ""
 msgid "Archivo adjuntado."
 msgstr ""
 
-#: cv_adaptativo/web/vistas/importar.py:48
+#: cv_adaptativo/web/vistas/importar.py:47
 msgid "Configura tu clave de API en Ajustes antes de importar un CV."
 msgstr ""
 
-#: cv_adaptativo/web/vistas/importar.py:82
+#: cv_adaptativo/web/vistas/importar.py:81
 msgid "Sube un fichero o pega el texto de tu CV antes de continuar."
 msgstr ""
 
-#: cv_adaptativo/web/vistas/importar.py:89
+#: cv_adaptativo/web/vistas/importar.py:88
 msgid "No hay ninguna importación pendiente de revisar."
 msgstr ""
 
-#: cv_adaptativo/web/vistas/importar.py:98
+#: cv_adaptativo/web/vistas/importar.py:97
 msgid "Esa importación ya no está disponible, vuelve a subir el CV."
 msgstr ""
 
-#: cv_adaptativo/web/vistas/importar.py:150
+#: cv_adaptativo/web/vistas/importar.py:149
 #, python-format
 msgid "%(cantidad)s elemento(s) añadidos al perfil."
 msgstr ""
 
-#: cv_adaptativo/web/vistas/importar.py:154
+#: cv_adaptativo/web/vistas/importar.py:153
 #, python-format
 msgid ""
 "%(cantidad)s elemento(s) no se pudieron guardar por falta de datos "
@@ -1956,7 +1969,7 @@ msgid ""
 " «Mi perfil»."
 msgstr ""
 
-#: cv_adaptativo/web/vistas/importar.py:221
+#: cv_adaptativo/web/vistas/importar.py:220
 msgid "Importación descartada. No se ha guardado nada."
 msgstr ""
 
@@ -2114,52 +2127,52 @@ msgstr ""
 msgid "Corporativa Clásica"
 msgstr ""
 
-#: cv_adaptativo/web/vistas/propuesta.py:42
+#: cv_adaptativo/web/vistas/propuesta.py:41
 msgid "Todavía no has generado ninguna propuesta. Empieza por pegar una vacante."
 msgstr ""
 
-#: cv_adaptativo/web/vistas/propuesta.py:81
+#: cv_adaptativo/web/vistas/propuesta.py:80
 msgid "Esa propuesta ya no está disponible, genera una nueva."
 msgstr ""
 
-#: cv_adaptativo/web/vistas/propuesta.py:94
+#: cv_adaptativo/web/vistas/propuesta.py:93
 msgid "Tu perfil ya no tiene plantilla de «Sobre mí»."
 msgstr ""
 
-#: cv_adaptativo/web/vistas/propuesta.py:111
+#: cv_adaptativo/web/vistas/propuesta.py:110
 msgid "«Sobre mí» actualizado."
 msgstr ""
 
-#: cv_adaptativo/web/vistas/propuesta.py:128
+#: cv_adaptativo/web/vistas/propuesta.py:127
 msgid "Skill actualizada."
 msgstr ""
 
-#: cv_adaptativo/web/vistas/propuesta.py:157
+#: cv_adaptativo/web/vistas/propuesta.py:156
 msgid "Experiencia actualizada."
 msgstr ""
 
-#: cv_adaptativo/web/vistas/propuesta.py:168
+#: cv_adaptativo/web/vistas/propuesta.py:167
 msgid "Sección desconocida."
 msgstr ""
 
-#: cv_adaptativo/web/vistas/propuesta.py:178
+#: cv_adaptativo/web/vistas/propuesta.py:177
 msgid "Configura tu clave de API en Ajustes antes de regenerar."
 msgstr ""
 
-#: cv_adaptativo/web/vistas/propuesta.py:200
+#: cv_adaptativo/web/vistas/propuesta.py:199
 msgid "Sección regenerada."
 msgstr ""
 
-#: cv_adaptativo/web/vistas/propuesta.py:207
+#: cv_adaptativo/web/vistas/propuesta.py:206
 msgid "Propuesta descartada."
 msgstr ""
 
-#: cv_adaptativo/web/vistas/propuesta.py:238
+#: cv_adaptativo/web/vistas/propuesta.py:237
 #, python-format
 msgid "CV guardado en el archivo para %(empresa)s."
 msgstr ""
 
-#: cv_adaptativo/web/vistas/soporte.py:36
+#: cv_adaptativo/web/vistas/soporte.py:35
 msgid "Cuéntanos qué ha pasado, o qué se te ha ocurrido, antes de enviarlo."
 msgstr ""
 
