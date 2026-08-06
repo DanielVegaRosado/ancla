@@ -179,6 +179,84 @@ def test_borrar_todas_las_experiencias_las_quita_todas(cliente_web, tmp_path: Pa
     assert almacen.cargar_perfil(raiz).experiencias == []
 
 
+def test_editar_una_experiencia_no_contamina_otra(cliente_web, tmp_path: Path):
+    """Regresión: dos experiencias del perfil real de Daniel (ml-developer y
+    data-engineer) aparecieron con contenido cruzado — el bullet/stack de una
+    metido en la otra. No se encontró ningún camino en el código que pudiera
+    causarlo (el id sale siempre de la URL, `guardar_experiencia` escribe solo
+    en el fichero de ese id), así que probablemente fue un despiste editando a
+    mano. Este test deja constancia de que editar A, por la ruta real HTTP,
+    dos veces seguidas, nunca toca B — si algún día vuelve a pasar, es un bug
+    real y este test lo pilla."""
+    raiz = tmp_path / "perfil"
+    almacen.guardar_experiencia(
+        raiz,
+        Experiencia(
+            id="proyecto-a",
+            titulo=Bilingue(es="Proyecto A", en="Project A"),
+            periodo=Bilingue(es="2024", en="2024"),
+            bullets=Bilingue(es=["Bullet A"], en=["Bullet A EN"]),
+            stack=Bilingue(es="Stack A", en="Stack A"),
+            keywords=["a"],
+        ),
+    )
+    almacen.guardar_experiencia(
+        raiz,
+        Experiencia(
+            id="proyecto-b",
+            titulo=Bilingue(es="Proyecto B", en="Project B"),
+            periodo=Bilingue(es="2025", en="2025"),
+            bullets=Bilingue(es=["Bullet B"], en=["Bullet B EN"]),
+            stack=Bilingue(es="Stack B", en="Stack B"),
+            keywords=["b"],
+        ),
+    )
+
+    respuesta = cliente_web.post(
+        "/perfil/experiencias/proyecto-a/editar",
+        data={
+            "titulo_es": "Proyecto A editado",
+            "titulo_en": "Project A edited",
+            "periodo_es": "2024",
+            "periodo_en": "2024",
+            "bullets_es": "Bullet A nuevo",
+            "bullets_en": "Bullet A new",
+            "stack_es": "Stack A nuevo",
+            "stack_en": "Stack A new",
+            "keywords": "a, nuevo",
+        },
+    )
+    assert respuesta.status_code == 302
+
+    perfil = almacen.cargar_perfil(raiz)
+    b = perfil.experiencia("proyecto-b")
+    assert b.titulo["es"] == "Proyecto B"
+    assert b.bullets["es"] == ["Bullet B"]
+    assert b.stack["es"] == "Stack B"
+
+    # Editar B justo después tampoco debe revertir ni tocar A.
+    cliente_web.post(
+        "/perfil/experiencias/proyecto-b/editar",
+        data={
+            "titulo_es": "Proyecto B editado",
+            "titulo_en": "Project B edited",
+            "periodo_es": "2025",
+            "periodo_en": "2025",
+            "bullets_es": "Bullet B nuevo",
+            "bullets_en": "Bullet B new",
+            "stack_es": "Stack B nuevo",
+            "stack_en": "Stack B new",
+            "keywords": "b, nuevo",
+        },
+    )
+
+    perfil = almacen.cargar_perfil(raiz)
+    a = perfil.experiencia("proyecto-a")
+    assert a.titulo["es"] == "Proyecto A editado"
+    assert a.bullets["es"] == ["Bullet A nuevo"]
+    assert a.stack["es"] == "Stack A nuevo"
+
+
 def test_borrar_todas_las_skills_tecnicas_no_toca_las_personales(cliente_web, tmp_path: Path):
     raiz = tmp_path / "perfil"
     almacen.guardar_skill(raiz, Skill(id="python", nombre=Bilingue(es="Python", en="Python")))
