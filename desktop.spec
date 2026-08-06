@@ -21,10 +21,8 @@ import sys
 
 NOMBRE = "Ancla"
 CARPETA_ICONOS = "empaquetado/iconos"
-# Icono de prueba: pendiente del icono y el nombre definitivos (ver
-# historial.md, 2026-07-24). Sustituir aquí cuando estén listos.
-ICONO_WINDOWS = f"{CARPETA_ICONOS}/icono_prueba.ico"
-ICONO_MACOS = f"{CARPETA_ICONOS}/icono_prueba.icns"
+ICONO_WINDOWS = f"{CARPETA_ICONOS}/ancla.ico"
+ICONO_MACOS = f"{CARPETA_ICONOS}/ancla.icns"
 
 a = Analysis(
     ["desktop.py"],
