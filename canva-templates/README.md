@@ -1,6 +1,6 @@
 # Starting templates
 
-CV Adaptativo doesn't lay out your CV. It gives you the text already chosen, and the
+Ancla doesn't lay out your CV. It gives you the text already chosen, and the
 design stays yours in Canva. These two templates are a starting point if you don't
 already have your own design. One page, in Spanish, and the only real difference
 between them is the visual style.

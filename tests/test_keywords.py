@@ -8,8 +8,8 @@ usuario con la clave equivocada no tiene forma de saber qué revisar.
 """
 from __future__ import annotations
 
-from cv_adaptativo.ia.cliente import ErrorIA
-from cv_adaptativo.perfil import keywords
+from ancla.ia.cliente import ErrorIA
+from ancla.perfil import keywords
 
 
 class ClienteFalso:

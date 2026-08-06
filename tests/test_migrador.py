@@ -10,7 +10,7 @@ from __future__ import annotations
 import hashlib
 from pathlib import Path
 
-from cv_adaptativo.perfil import almacen, migrador
+from ancla.perfil import almacen, migrador
 
 EXPERIENCIA_TXT = """ID: data-analyst-urban-mobility
 TITULO_ES: Data Analyst — Urban Mobility Pipeline

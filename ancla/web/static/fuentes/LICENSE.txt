@@ -1,0 +1,11 @@
+IBM Plex Sans (pesos 400, 600 y 700; subconjunto latino)
+
+Copyright (c) 2017 IBM Corp. Con Reserved Font Name "Plex".
+
+Este tipo de letra se distribuye bajo la SIL Open Font License, versión 1.1,
+disponible en: https://scripts.sil.org/OFL
+
+Descargado una sola vez desde Google Fonts y alojado aquí en local para que
+Ancla no dependa de ningún CDN externo en tiempo de ejecución: el
+propio proyecto promete que ningún dato sale del ordenador del usuario, y una
+fuente cargada desde un CDN de terceros en cada visita contradice esa promesa.

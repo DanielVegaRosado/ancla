@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block titulo %}{{ cv.empresa }} · Ancla{% endblock %}
+{% block contenido %}
+  <p><a href="{{ url_for('ancla.listar_cvs') }}">← {{ _('Mis CVs') }}</a></p>
+  <h1>{{ cv.empresa }}{% if cv.puesto %} · {{ cv.puesto }}{% endif %}</h1>
+  <p class="ayuda">
+    {{ cv.fecha }}{% if cv.hora %} · {{ cv.hora.strftime('%H:%M') }}{% endif %}
+    · {{ _("Español") if cv.propuesta.idioma == "es" else _("Inglés") }}
+    · <span class="insignia insignia-{{ cv.estado.value }}">{{ etiquetas_estado[cv.estado] }}</span>
+  </p>
+
+  <div class="dos-columnas">
+    <section class="tarjeta">
+      <h2>{{ _('Cambiar estado') }}</h2>
+      <form class="pila" method="post" action="{{ url_for('ancla.cambiar_estado_cv', id_=cv.id) }}">
+        <select name="estado">
+          {% for estado in estados %}
+            <option value="{{ estado.value }}" {{ "selected" if estado == cv.estado else "" }}>{{ etiquetas_estado[estado] }}</option>
+          {% endfor %}
+        </select>
+        <button type="submit" class="boton-primario">{{ _('Actualizar estado') }}</button>
+      </form>
+    </section>
+
+    <section class="tarjeta">
+      <h2>{{ _('Adjuntar CV final') }}</h2>
+      <p class="ayuda">{{ _('El PDF u otro formato que hayas montado tú (Canva u otra herramienta).') }}</p>
+      <form class="pila" method="post" action="{{ url_for('ancla.adjuntar_cv', id_=cv.id) }}" enctype="multipart/form-data">
+        <input type="file" name="adjunto" required>
+        <button type="submit" class="boton-primario">{{ _('Adjuntar') }}</button>
+      </form>
+      {% if cv.adjunto %}<p class="ayuda">{{ _('Ya adjuntado:') }} {{ cv.adjunto }}</p>{% endif %}
+    </section>
+  </div>
+
+  {% if cv.notas %}
+    <section class="tarjeta">
+      <h2>{{ _('Notas') }}</h2>
+      <p>{{ cv.notas }}</p>
+    </section>
+  {% endif %}
+
+  <textarea id="copia-todo" hidden>{{ texto_plano }}</textarea>
+  <textarea id="copia-todo-md" hidden>{{ texto_markdown }}</textarea>
+  <div class="barra-acciones">
+    <button type="button" class="boton" data-copiar="copia-todo">{{ _('Copiar todo (texto plano)') }}</button>
+    <button type="button" class="boton" data-copiar="copia-todo-md">{{ _('Copiar todo (con motivos, Markdown)') }}</button>
+  </div>
+
+  <section class="tarjeta">
+    <h2>{{ _('Propuesta guardada') }}</h2>
+    <div class="bloque-texto">{{ texto_markdown }}</div>
+  </section>
+
+  <details>
+    <summary>{{ _('Texto original de la vacante') }}</summary>
+    <div class="bloque-texto">{{ cv.vacante }}</div>
+  </details>
+{% endblock %}

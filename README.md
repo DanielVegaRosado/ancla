@@ -1,4 +1,4 @@
-# CV Adaptativo
+# Ancla
 
 **Doesn't generate your CV. Selects from facts you've already verified.**
 
@@ -153,7 +153,7 @@ The current icon is a placeholder, pending the final design.
 ```bash
 pip install -r requirements-desktop.txt
 python desktop.py       # try it from source
-pyinstaller --noconfirm desktop.spec   # builds dist/CV Adaptativo.exe (or .app on macOS)
+pyinstaller --noconfirm desktop.spec   # builds dist/Ancla.exe (or .app on macOS)
 ```
 
 PyInstaller doesn't cross-compile for a different OS than the one running it: a

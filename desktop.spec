@@ -19,7 +19,7 @@ la vez, uno en cada sistema operativo.
 """
 import sys
 
-NOMBRE = "CV Adaptativo"
+NOMBRE = "Ancla"
 CARPETA_ICONOS = "empaquetado/iconos"
 # Icono de prueba: pendiente del icono y el nombre definitivos (ver
 # historial.md, 2026-07-24). Sustituir aquí cuando estén listos.
@@ -31,8 +31,8 @@ a = Analysis(
     pathex=[],
     binaries=[],
     datas=[
-        ("cv_adaptativo/web/templates", "cv_adaptativo/web/templates"),
-        ("cv_adaptativo/web/static", "cv_adaptativo/web/static"),
+        ("ancla/web/templates", "ancla/web/templates"),
+        ("ancla/web/static", "ancla/web/static"),
     ],
     hiddenimports=[
         # pywebview elige el backend según el sistema operativo en tiempo
@@ -69,5 +69,5 @@ if sys.platform == "darwin":
         exe,
         name=f"{NOMBRE}.app",
         icon=ICONO_MACOS,
-        bundle_identifier="com.danielvegarosado.cvadaptativo",
+        bundle_identifier="com.danielvegarosado.ancla",
     )

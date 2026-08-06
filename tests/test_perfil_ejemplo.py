@@ -5,7 +5,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from cv_adaptativo.perfil import almacen, validacion
+from ancla.perfil import almacen, validacion
 
 RAIZ = Path(__file__).resolve().parents[1] / "perfil-ejemplo"
 
@@ -29,7 +29,7 @@ def test_perfil_ejemplo_tiene_suficientes_skills_para_rellenar_sobre_mi():
     """Con menos de 3 skills por grupo, "Sobre mí" se queda con los huecos a
     la vista (ver `AVISO_SOBRE_MI_INCOMPLETO` en `seleccion/motor.py`) — el
     perfil de ejemplo tiene que enseñar el caso bueno, no ese aviso."""
-    from cv_adaptativo.perfil.modelo import N_GRUPO_SOBRE_MI
+    from ancla.perfil.modelo import N_GRUPO_SOBRE_MI
 
     perfil = almacen.cargar_perfil(RAIZ)
     assert len(perfil.skills) >= N_GRUPO_SOBRE_MI * 2

@@ -9,9 +9,9 @@ from __future__ import annotations
 
 import pytest
 
-from cv_adaptativo.perfil import serializacion
-from cv_adaptativo.perfil.errores import ErrorPerfil
-from cv_adaptativo.perfil.modelo import Bilingue, Experiencia, Skill, SobreMi
+from ancla.perfil import serializacion
+from ancla.perfil.errores import ErrorPerfil
+from ancla.perfil.modelo import Bilingue, Experiencia, Skill, SobreMi
 
 
 # --------------------------------------------------------------------------

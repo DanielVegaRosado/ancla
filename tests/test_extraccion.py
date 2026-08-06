@@ -12,7 +12,7 @@ import sys
 
 import pytest
 
-from cv_adaptativo.perfil.extraccion import ErrorExtraccion, extraer_texto
+from ancla.perfil.extraccion import ErrorExtraccion, extraer_texto
 
 
 def _pdf_minimo(texto: str) -> bytes:

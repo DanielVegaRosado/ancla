@@ -11,9 +11,9 @@ from pathlib import Path
 
 import pytest
 
-from cv_adaptativo.perfil import almacen
-from cv_adaptativo.perfil.almacen import ErrorPerfil
-from cv_adaptativo.perfil.modelo import Bilingue, Experiencia, Skill, SobreMi
+from ancla.perfil import almacen
+from ancla.perfil.almacen import ErrorPerfil
+from ancla.perfil.modelo import Bilingue, Experiencia, Skill, SobreMi
 
 
 def _experiencia(id: str = "ml-telco-churn") -> Experiencia:
@@ -255,7 +255,7 @@ def test_borrar_todas_las_experiencias_no_toca_las_skills(tmp_path: Path):
 
 
 def test_borrar_todas_las_skills_personales_y_todos_los_idiomas(tmp_path: Path):
-    from cv_adaptativo.perfil.modelo import IdiomaHablado
+    from ancla.perfil.modelo import IdiomaHablado
 
     almacen.guardar_skill_personal(tmp_path, _skill("trabajo-en-equipo"))
     almacen.guardar_idioma(

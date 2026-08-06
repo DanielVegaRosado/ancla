@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import pytest
 
-from cv_adaptativo.perfil.modelo import (
+from ancla.perfil.modelo import (
     Bilingue,
     Experiencia,
     ExperienciaSeleccionada,

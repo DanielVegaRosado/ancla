@@ -1,0 +1,42 @@
+<section class="tarjeta panel-perfil" id="experiencias" data-panel-arrastrable data-clave="experiencias">
+  <div class="fila-tarjeta">
+    <div class="titulo-panel">
+      <span class="manija-arrastrar" title="{{ _('Arrastrar para reordenar') }}" aria-hidden="true">⠿</span>
+      <div>
+        <h2>{{ _('Experiencia') }} ({{ perfil.experiencias|length }})</h2>
+        <p class="ayuda">{{ _('Proyectos y puestos disponibles para elegir en cada adaptación.') }}</p>
+      </div>
+    </div>
+    <div class="acciones">
+      <a class="boton boton-primario" href="{{ url_for('ancla.nueva_experiencia') }}">{{ _('Añadir experiencia') }}</a>
+      {% if perfil.experiencias %}
+        <form class="en-linea" method="post" action="{{ url_for('ancla.borrar_todas_experiencias') }}" data-confirmar="{{ _('¿Borrar TODAS las %(cantidad)s experiencias? Esta acción no se puede deshacer.', cantidad=perfil.experiencias|length) }}">
+          <button type="submit" class="boton boton-pequeno boton-peligro">{{ _('Borrar todas') }}</button>
+        </form>
+      {% endif %}
+    </div>
+  </div>
+
+  {% if perfil.experiencias %}
+    <div class="lista-tarjetas">
+      {% for experiencia in perfil.experiencias %}
+        <div class="tarjeta">
+          <div class="fila-tarjeta">
+            <div>
+              <h3>{{ experiencia.titulo["es"] }}</h3>
+              <p class="ayuda">{{ experiencia.periodo["es"] }} · {{ experiencia.bullets["es"]|length }} {{ _('bullets') }} · id: {{ experiencia.id }}</p>
+            </div>
+            <div class="acciones">
+              <a class="boton boton-pequeno" href="{{ url_for('ancla.editar_experiencia', id_=experiencia.id) }}">{{ _('Editar') }}</a>
+              <form class="en-linea" method="post" action="{{ url_for('ancla.borrar_experiencia', id_=experiencia.id) }}" data-confirmar="{{ _('¿Borrar «%(titulo)s»? Esta acción no se puede deshacer.', titulo=experiencia.titulo['es']) }}">
+                <button type="submit" class="boton-pequeno boton-peligro">{{ _('Borrar') }}</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p class="vacio">{{ _('Todavía no has añadido ninguna experiencia.') }}</p>
+  {% endif %}
+</section>

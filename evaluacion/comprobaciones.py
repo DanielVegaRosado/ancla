@@ -11,8 +11,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from cv_adaptativo.perfil.modelo import Perfil, Propuesta
-from cv_adaptativo.texto import normalizar
+from ancla.perfil.modelo import Perfil, Propuesta
+from ancla.texto import normalizar
 
 
 @dataclass(frozen=True)

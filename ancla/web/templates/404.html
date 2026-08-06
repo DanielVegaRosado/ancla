@@ -1,0 +1,6 @@
+{% extends "base.html" %}
+{% block titulo %}{{ _('Página no encontrada') }} · Ancla{% endblock %}
+{% block contenido %}
+  <h1>{{ _('Página no encontrada') }}</h1>
+  <p class="ayuda">{{ _('No existe esta dirección.') }} <a href="{{ url_for('ancla.ver_perfil') }}">{{ _('Volver a Mi perfil.') }}</a></p>
+{% endblock %}

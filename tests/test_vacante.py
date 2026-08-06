@@ -7,7 +7,7 @@ segundos; un CV archivado con la empresa equivocada, no.
 """
 from __future__ import annotations
 
-from cv_adaptativo.vacante.analisis import extraer_datos
+from ancla.vacante.analisis import extraer_datos
 
 
 def test_etiquetas_explicitas_en_español():

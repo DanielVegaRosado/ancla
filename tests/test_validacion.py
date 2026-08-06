@@ -6,8 +6,8 @@ pantalla y tiene que saber qué fichero abrir.
 """
 from __future__ import annotations
 
-from cv_adaptativo.perfil import validacion
-from cv_adaptativo.perfil.modelo import (
+from ancla.perfil import validacion
+from ancla.perfil.modelo import (
     Bilingue,
     Experiencia,
     IdiomaHablado,

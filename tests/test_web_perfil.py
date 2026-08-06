@@ -11,8 +11,8 @@ from pathlib import Path
 
 import pytest
 
-from cv_adaptativo.perfil import almacen
-from cv_adaptativo.perfil.modelo import (
+from ancla.perfil import almacen
+from ancla.perfil.modelo import (
     Bilingue,
     Experiencia,
     IdiomaHablado,
@@ -20,8 +20,8 @@ from cv_adaptativo.perfil.modelo import (
     SeleccionSobreMi,
     Skill,
 )
-from cv_adaptativo.web import borrador as modulo_borrador
-from cv_adaptativo.web import crear_app
+from ancla.web import borrador as modulo_borrador
+from ancla.web import crear_app
 
 
 @pytest.fixture
@@ -265,7 +265,7 @@ def test_la_propuesta_muestra_skills_personales_e_idiomas_del_perfil(cliente_web
     almacen.guardar_skill_personal(
         raiz, Skill(id="equipo", nombre=Bilingue(es="Trabajo en equipo", en="Teamwork"))
     )
-    from cv_adaptativo.perfil.modelo import IdiomaHablado
+    from ancla.perfil.modelo import IdiomaHablado
 
     almacen.guardar_idioma(
         raiz,
@@ -332,7 +332,7 @@ def test_guardar_la_propuesta_captura_la_hora(cliente_web, tmp_path: Path):
 
     cliente_web.post("/propuesta/guardar", data={"empresa": "ACME", "puesto": "Dev"})
 
-    from cv_adaptativo.archivo import repositorio
+    from ancla.archivo import repositorio
 
     guardados = repositorio.listar(raiz)
     assert len(guardados) == 1
@@ -345,7 +345,7 @@ def test_guardar_la_propuesta_captura_la_hora(cliente_web, tmp_path: Path):
 
 
 def test_la_pantalla_de_plantillas_enlaza_las_dos_plantillas(cliente_web):
-    from cv_adaptativo.web.vistas.plantillas import (
+    from ancla.web.vistas.plantillas import (
         URL_CORPORATIVA_CLASICA,
         URL_MINIMALISTA_CALIDA,
     )

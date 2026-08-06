@@ -7,15 +7,15 @@ from pathlib import Path
 
 import pytest
 
-from cv_adaptativo.archivo import repositorio as archivo
-from cv_adaptativo.perfil.modelo import (
+from ancla.archivo import repositorio as archivo
+from ancla.perfil.modelo import (
     CVGuardado,
     EstadoCV,
     ExperienciaSeleccionada,
     Propuesta,
     SeleccionSobreMi,
 )
-from cv_adaptativo.web import crear_app
+from ancla.web import crear_app
 
 
 @pytest.fixture

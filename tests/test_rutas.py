@@ -10,7 +10,7 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
-from cv_adaptativo.web.rutas import raiz_datos
+from ancla.web.rutas import raiz_datos
 
 
 def test_sin_empaquetar_usa_la_raiz_del_repositorio():
@@ -18,7 +18,7 @@ def test_sin_empaquetar_usa_la_raiz_del_repositorio():
 
 
 def test_empaquetada_usa_la_carpeta_del_ejecutable_no_la_temporal(monkeypatch, tmp_path: Path):
-    ejecutable = tmp_path / "CV Adaptativo.exe"
+    ejecutable = tmp_path / "Ancla.exe"
     monkeypatch.setattr(sys, "frozen", True, raising=False)
     monkeypatch.setattr(sys, "executable", str(ejecutable))
 

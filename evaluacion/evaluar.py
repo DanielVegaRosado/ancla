@@ -39,13 +39,13 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-from cv_adaptativo.ia.cliente import ErrorIA
-from cv_adaptativo.ia.groq import ClienteGroq
-from cv_adaptativo.perfil import almacen
-from cv_adaptativo.perfil.modelo import N_EXPERIENCIAS, N_SKILLS, Perfil, Propuesta
-from cv_adaptativo.propuesta import formato
-from cv_adaptativo.seleccion import motor, prompt
-from cv_adaptativo.web.ajustes import cargar_ajustes
+from ancla.ia.cliente import ErrorIA
+from ancla.ia.groq import ClienteGroq
+from ancla.perfil import almacen
+from ancla.perfil.modelo import N_EXPERIENCIAS, N_SKILLS, Perfil, Propuesta
+from ancla.propuesta import formato
+from ancla.seleccion import motor, prompt
+from ancla.web.ajustes import cargar_ajustes
 from evaluacion.comprobaciones import Comprobacion, comprobar
 
 RAIZ = Path(__file__).resolve().parent.parent

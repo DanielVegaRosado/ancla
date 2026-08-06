@@ -11,9 +11,9 @@ from __future__ import annotations
 import json
 
 
-from cv_adaptativo.ia.cliente import ErrorIA
-from cv_adaptativo.perfil.importador import analizar_cv
-from cv_adaptativo.perfil.modelo import Bilingue, Experiencia, IdiomaHablado, Perfil, Skill
+from ancla.ia.cliente import ErrorIA
+from ancla.perfil.importador import analizar_cv
+from ancla.perfil.modelo import Bilingue, Experiencia, IdiomaHablado, Perfil, Skill
 
 
 class ClienteFalso:
@@ -70,7 +70,7 @@ def test_nada_se_guarda_aqui():
     almacen dentro de este módulo."""
     import inspect
 
-    import cv_adaptativo.perfil.importador as modulo
+    import ancla.perfil.importador as modulo
 
     codigo = inspect.getsource(modulo)
     assert "almacen." not in codigo

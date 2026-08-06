@@ -6,18 +6,18 @@ from pathlib import Path
 
 import pytest
 
-from cv_adaptativo.archivo import repositorio, serializacion
-from cv_adaptativo.ia.cliente import ErrorIA
-from cv_adaptativo.ia.groq import ClienteGroq
-from cv_adaptativo.perfil.errores import ErrorPerfil
-from cv_adaptativo.perfil.modelo import (
+from ancla.archivo import repositorio, serializacion
+from ancla.ia.cliente import ErrorIA
+from ancla.ia.groq import ClienteGroq
+from ancla.perfil.errores import ErrorPerfil
+from ancla.perfil.modelo import (
     CVGuardado,
     EstadoCV,
     ExperienciaSeleccionada,
     Propuesta,
     SeleccionSobreMi,
 )
-from cv_adaptativo.soporte import mensajes
+from ancla.soporte import mensajes
 
 
 def _cv(id: str = "2026-07-24_acme_data-engineer", **cambios) -> CVGuardado:
@@ -212,7 +212,7 @@ def test_la_llamada_al_sdk_lleva_max_tokens_y_reasoning_effort_bajo(monkeypatch)
     "razonando" y se quedaba sin espacio para terminar el JSON. Este test
     solo fija que los dos parámetros llegan de verdad a la llamada del SDK,
     para que nadie los quite sin darse cuenta al tocar este fichero."""
-    import cv_adaptativo.ia.groq as modulo_groq
+    import ancla.ia.groq as modulo_groq
 
     llamadas = []
 

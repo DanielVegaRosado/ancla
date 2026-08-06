@@ -6,8 +6,8 @@ from pathlib import Path
 
 import pytest
 
-from cv_adaptativo.web import ajustes as modulo_ajustes
-from cv_adaptativo.web import crear_app
+from ancla.web import ajustes as modulo_ajustes
+from ancla.web import crear_app
 
 
 @pytest.fixture

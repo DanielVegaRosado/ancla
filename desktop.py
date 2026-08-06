@@ -14,12 +14,12 @@ import threading
 import time
 
 HOST = "127.0.0.1"
-PUERTO = int(os.environ.get("CV_ADAPTATIVO_PUERTO", "5000"))
-TITULO = "CV Adaptativo"
+PUERTO = int(os.environ.get("ANCLA_PUERTO", "5000"))
+TITULO = "Ancla"
 
 
 def _arrancar_servidor() -> None:
-    from cv_adaptativo.web import crear_app
+    from ancla.web import crear_app
 
     crear_app().run(host=HOST, port=PUERTO, debug=False, use_reloader=False)
 

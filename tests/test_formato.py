@@ -1,7 +1,7 @@
 """Tests del render de propuestas a texto y markdown."""
 from __future__ import annotations
 
-from cv_adaptativo.perfil.modelo import (
+from ancla.perfil.modelo import (
     Bilingue,
     Experiencia,
     ExperienciaSeleccionada,
@@ -11,7 +11,7 @@ from cv_adaptativo.perfil.modelo import (
     SeleccionSobreMi,
     Skill,
 )
-from cv_adaptativo.propuesta.formato import a_markdown, a_texto
+from ancla.propuesta.formato import a_markdown, a_texto
 
 
 def _perfil() -> Perfil:

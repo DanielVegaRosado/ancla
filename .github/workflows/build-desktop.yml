@@ -35,12 +35,12 @@ jobs:
         if: runner.os == 'Windows'
         uses: actions/upload-artifact@v4
         with:
-          name: CV-Adaptativo-Windows
-          path: dist/CV Adaptativo.exe
+          name: Ancla-Windows
+          path: dist/Ancla.exe
 
       - name: Subir el .app (macOS)
         if: runner.os == 'macOS'
         uses: actions/upload-artifact@v4
         with:
-          name: CV-Adaptativo-macOS
-          path: dist/CV Adaptativo.app
+          name: Ancla-macOS
+          path: dist/Ancla.app

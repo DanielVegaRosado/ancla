@@ -8,10 +8,10 @@ from pathlib import Path
 
 import pytest
 
-from cv_adaptativo.perfil import almacen
-from cv_adaptativo.perfil.modelo import Bilingue, Experiencia, IdiomaHablado, Skill
-from cv_adaptativo.web import crear_app
-from cv_adaptativo.web import importacion as modulo_importacion
+from ancla.perfil import almacen
+from ancla.perfil.modelo import Bilingue, Experiencia, IdiomaHablado, Skill
+from ancla.web import crear_app
+from ancla.web import importacion as modulo_importacion
 
 
 @pytest.fixture
@@ -382,7 +382,7 @@ def _docx_de_prueba() -> bytes:
 
 
 def test_de_punta_a_punta_subir_analizar_revisar_y_guardar(cliente_web, tmp_path, monkeypatch):
-    import cv_adaptativo.web.vistas.importar as vista_importar
+    import ancla.web.vistas.importar as vista_importar
 
     monkeypatch.setattr(
         vista_importar,

@@ -12,8 +12,8 @@ import json
 
 import pytest
 
-from cv_adaptativo.ia.cliente import ErrorIA
-from cv_adaptativo.perfil.modelo import (
+from ancla.ia.cliente import ErrorIA
+from ancla.perfil.modelo import (
     N_GRUPO_SOBRE_MI,
     Bilingue,
     Experiencia,
@@ -22,7 +22,7 @@ from cv_adaptativo.perfil.modelo import (
     Skill,
     SobreMi,
 )
-from cv_adaptativo.seleccion.motor import MOTIVO_AUSENTE, adaptar
+from ancla.seleccion.motor import MOTIVO_AUSENTE, adaptar
 
 VACANTE = """\
 Backend Engineer en Nubelia

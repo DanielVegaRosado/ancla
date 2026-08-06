@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block titulo %}{{ _('Importar CV') }} · Ancla{% endblock %}
+{% block contenido %}
+  <h1>{{ _('Importar desde un CV') }}</h1>
+  <p class="ayuda">
+    {{ _('Sube tu CV en PDF o Word, o pega el texto directamente. La IA propone qué experiencias y skills añadir a tu perfil.') }}
+    <strong>{{ _('Nada se guarda todavía') }}</strong>. {{ _('En el siguiente paso revisas, editas y confirmas una por una lo que quieres quedarte.') }}
+  </p>
+
+  <form class="pila tarjeta" method="post" enctype="multipart/form-data">
+    <div class="campo">
+      <label for="fichero">{{ _('Sube tu CV (PDF o .docx)') }}</label>
+      <input type="file" id="fichero" name="fichero" accept=".pdf,.docx">
+    </div>
+
+    <div class="campo">
+      <label for="texto">{{ _('O pega el texto de tu CV') }}</label>
+      <textarea id="texto" name="texto" class="alta" placeholder="{{ _('Pega aquí el contenido de tu CV si prefieres no subir un fichero') }}"></textarea>
+    </div>
+
+    <div class="barra-acciones">
+      <button type="submit" class="boton-primario">{{ _('Analizar') }}</button>
+    </div>
+  </form>
+
+  <p class="ayuda">
+    {{ _('Si tu PDF es una imagen escaneada (sin texto real dentro), no se podrá leer. Usa la opción de pegar el texto a mano en ese caso.') }}
+  </p>
+{% endblock %}

@@ -10,17 +10,17 @@ from pathlib import Path
 
 import pytest
 
-from cv_adaptativo.ia.cliente import ErrorIA
-from cv_adaptativo.perfil.modelo import (
+from ancla.ia.cliente import ErrorIA
+from ancla.perfil.modelo import (
     ExperienciaSeleccionada,
     Propuesta,
     SeleccionSobreMi,
 )
-from cv_adaptativo.web import ajustes as modulo_ajustes
-from cv_adaptativo.web import borrador as modulo_borrador
-from cv_adaptativo.web import crear_app
-from cv_adaptativo.web.proveedores import crear_cliente
-from cv_adaptativo.web.util import (
+from ancla.web import ajustes as modulo_ajustes
+from ancla.web import borrador as modulo_borrador
+from ancla.web import crear_app
+from ancla.web.proveedores import crear_cliente
+from ancla.web.util import (
     csv_a_lista,
     lineas_a_lista,
     lista_a_csv,
@@ -318,14 +318,14 @@ def test_terminos_explica_que_los_datos_no_salen_del_ordenador(cliente_web):
 
 
 def test_terminos_enlaza_al_repositorio_publico(cliente_web):
-    from cv_adaptativo.soporte.mensajes import REPOSITORIO
+    from ancla.soporte.mensajes import REPOSITORIO
 
     respuesta = cliente_web.get("/terminos")
     assert REPOSITORIO.encode("utf-8") in respuesta.data
 
 
 def test_terminos_identifica_al_autor_y_da_contacto(cliente_web):
-    from cv_adaptativo.soporte.mensajes import CORREO_SOPORTE
+    from ancla.soporte.mensajes import CORREO_SOPORTE
 
     respuesta = cliente_web.get("/terminos")
     assert "Daniel Vega Rosado".encode("utf-8") in respuesta.data
