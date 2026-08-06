@@ -10,6 +10,10 @@ instead of being invented.
 Every adaptation is saved. Your base of facts grows, and your archive of
 applications grows with it.
 
+**[Try it online](https://ancla.onrender.com)** — no install needed, runs against a shared
+example profile. Free-tier hosting spins down after inactivity, so the first load can take up to
+a minute. For your own data, run it locally (see below) or use the desktop app.
+
 - Runs **on your computer**. Your data never leaves it: no accounts, no cloud.
 - Uses **your own AI key**. Groq has a free tier, and several paid providers
   (OpenAI, Anthropic, Mistral, OpenRouter, or any other with a compatible API) are
