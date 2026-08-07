@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block titulo %}{{ _('Plantillas') }} · Ancla{% endblock %}
+{% block contenido %}
+  <h1>{{ _('Plantillas de partida') }}</h1>
+  <p class="ayuda">
+    {{ _('La app no maqueta tu CV, te da el texto ya elegido, y el diseño sigue siendo tuyo en Canva. Estas dos plantillas son el punto de partida si aún no tienes tu propio diseño. Una página, en español, y lo único que cambia entre ellas es el estilo.') }}
+  </p>
+
+  <div class="lista-tarjetas">
+    {% for plantilla in canva_templates %}
+      <div class="tarjeta">
+        <h3>{{ plantilla.nombre }}</h3>
+        <a class="boton boton-primario" href="{{ plantilla.url }}" target="_blank" rel="noopener">
+          {{ _('Abrir en Canva →') }}
+        </a>
+      </div>
+    {% endfor %}
+  </div>
+
+  <p class="ayuda">
+    {{ _('Duplica la que más te guste en tu cuenta (Archivo → Hacer una copia) antes de editarla, para no tocar el original. Luego pega el texto de tu Propuesta y exporta como PDF cuando esté lista.') }}
+  </p>
+{% endblock %}

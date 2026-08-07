@@ -1,7 +1,6 @@
-# Dependencias extra para empaquetar y ejecutar la versión de escritorio
-# (ventana nativa en vez de pestaña del navegador). No hacen falta para usar
-# la app desde el código fuente con `python run.py`: ese camino solo
-# necesita requirements.txt.
+# Extra dependencies to package and run the desktop version (native window
+# instead of a browser tab). Not needed to use the app from source with
+# `python run.py`: that path only needs requirements.txt.
 -r requirements.txt
 pywebview>=5.0
 pyinstaller>=6.0

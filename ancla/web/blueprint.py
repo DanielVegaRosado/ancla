@@ -1,11 +1,10 @@
-"""El único `Blueprint` de la app, en su propio módulo.
+"""The app's single `Blueprint`, in its own module.
 
-Cada pantalla registra sus rutas aquí (`ancla/web/vistas/*.py`) en vez
-de tener un blueprint por pantalla: los nombres de endpoint (`ancla.
-ver_perfil`, etc.) son los mismos de siempre, así que ninguna plantilla que
-use `url_for` tiene que cambiar. Vive en su propio fichero para que las
-vistas puedan importarlo sin depender unas de otras ni crear un ciclo con
-`ancla.web.vistas`.
+Every screen registers its routes here (`ancla/web/vistas/*.py`) instead of
+having one blueprint per screen: endpoint names (`ancla.ver_perfil`, etc.)
+stay the same as always, so no template using `url_for` has to change.
+Lives in its own file so views can import it without depending on each
+other or creating a cycle with `ancla.web.views`.
 """
 from __future__ import annotations
 

@@ -1,0 +1,24 @@
+title:
+  es: Data Engineer · Plataforma de e-commerce
+  en: Data Engineer · E-commerce Platform
+period:
+  es: 2023 · 2025
+  en: 2023 · 2025
+status: ''
+bullets:
+  es:
+  - Construí el pipeline de datos que unifica ventas de 3 canales distintos en un único almacén analítico
+  - Automaticé los informes semanales de negocio, ahorrando unas 6 horas de trabajo manual cada semana
+  - Documenté el esquema de datos para que el equipo de producto pudiera hacer sus propias consultas sin depender de ingeniería
+  en:
+  - Built the data pipeline that unifies sales from 3 different channels into a single analytics warehouse
+  - Automated weekly business reports, saving about 6 hours of manual work every week
+  - Documented the data schema so the product team could run their own queries without depending on engineering
+stack:
+  es: Python, SQL, Airflow, PostgreSQL
+  en: Python, SQL, Airflow, PostgreSQL
+keywords:
+- data engineer
+- etl
+- sql
+- data pipelines

@@ -1,7 +1,7 @@
-nombre:
+name:
   es: AWS
   en: AWS
-categoria: cloud
+category: cloud
 keywords:
 - aws
 - cloud

@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block titulo %}Ancla{% endblock %}</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='estilo.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body
   data-texto-copiado="{{ _('Copiado') }}"
@@ -19,15 +19,15 @@
 
   <header class="cabecera">
     <div class="ancho">
-      <a class="marca" href="{{ url_for('ancla.ver_perfil') }}">Ancla</a>
+      <a class="marca" href="{{ url_for('ancla.view_profile') }}">Ancla</a>
       <nav class="nav">
-        <a href="{{ url_for('ancla.ver_perfil') }}" class="{{ 'activo' if request.endpoint == 'ancla.ver_perfil' else '' }}">{{ _('Mi perfil') }}</a>
-        <a href="{{ url_for('ancla.adaptar') }}" class="{{ 'activo' if request.endpoint == 'ancla.adaptar' else '' }}">{{ _('Adaptar') }}</a>
-        <a href="{{ url_for('ancla.ver_propuesta') }}" class="{{ 'activo' if request.endpoint == 'ancla.ver_propuesta' else '' }}">{{ _('Propuesta') }}</a>
-        <a href="{{ url_for('ancla.listar_cvs') }}" class="{{ 'activo' if request.endpoint in ('ancla.listar_cvs', 'ancla.ver_cv') else '' }}">{{ _('Mis CVs') }}</a>
-        <a href="{{ url_for('ancla.plantillas') }}" class="{{ 'activo' if request.endpoint == 'ancla.plantillas' else '' }}">{{ _('Plantillas Canva') }}</a>
-        <a href="{{ url_for('ancla.soporte') }}" class="{{ 'activo' if request.endpoint == 'ancla.soporte' else '' }}">{{ _('Soporte') }}</a>
-        <a href="{{ url_for('ancla.ver_ajustes') }}" class="{{ 'activo' if request.endpoint == 'ancla.ver_ajustes' else '' }}">{{ _('Ajustes') }}</a>
+        <a href="{{ url_for('ancla.view_profile') }}" class="{{ 'activo' if request.endpoint == 'ancla.view_profile' else '' }}">{{ _('Mi perfil') }}</a>
+        <a href="{{ url_for('ancla.adapt') }}" class="{{ 'activo' if request.endpoint == 'ancla.adapt' else '' }}">{{ _('Adaptar') }}</a>
+        <a href="{{ url_for('ancla.view_proposal') }}" class="{{ 'activo' if request.endpoint == 'ancla.view_proposal' else '' }}">{{ _('Propuesta') }}</a>
+        <a href="{{ url_for('ancla.list_cvs') }}" class="{{ 'activo' if request.endpoint in ('ancla.list_cvs', 'ancla.view_cv') else '' }}">{{ _('Mis CVs') }}</a>
+        <a href="{{ url_for('ancla.canva_templates') }}" class="{{ 'activo' if request.endpoint == 'ancla.canva_templates' else '' }}">{{ _('Plantillas Canva') }}</a>
+        <a href="{{ url_for('ancla.support') }}" class="{{ 'activo' if request.endpoint == 'ancla.support' else '' }}">{{ _('Soporte') }}</a>
+        <a href="{{ url_for('ancla.view_settings') }}" class="{{ 'activo' if request.endpoint == 'ancla.view_settings' else '' }}">{{ _('Ajustes') }}</a>
       </nav>
     </div>
   </header>
@@ -53,7 +53,7 @@
       {% else %}
         {{ _('Corre en tu ordenador. Tus datos no salen de aquí.') }}
       {% endif %}
-      · <a href="{{ url_for('ancla.terminos') }}">{{ _('Términos y condiciones') }}</a>
+      · <a href="{{ url_for('ancla.terms') }}">{{ _('Términos y condiciones') }}</a>
     </p>
   </footer>
 

@@ -20,22 +20,22 @@
 
     <div class="lista-tarjetas" data-lista-cvs>
       {% for cv in cvs %}
-        <div class="tarjeta" data-estado="{{ cv.estado.value }}">
+        <div class="tarjeta" data-estado="{{ cv.status.value }}">
           <div class="fila-tarjeta">
             <div>
-              <h3><a href="{{ url_for('ancla.ver_cv', id_=cv.id) }}">{{ cv.empresa }}{% if cv.puesto %} · {{ cv.puesto }}{% endif %}</a></h3>
+              <h3><a href="{{ url_for('ancla.view_cv', id_=cv.id) }}">{{ cv.company }}{% if cv.position %} · {{ cv.position }}{% endif %}</a></h3>
               <p class="ayuda">
-                {{ cv.fecha }}{% if cv.hora %} · {{ cv.hora.strftime('%H:%M') }}{% endif %}
-                · {{ _("Español") if cv.propuesta.idioma == "es" else _("Inglés") }}
+                {{ cv.date }}{% if cv.time %} · {{ cv.time.strftime('%H:%M') }}{% endif %}
+                · {{ _("Español") if cv.proposal.language == "es" else _("Inglés") }}
               </p>
             </div>
-            <span class="insignia insignia-{{ cv.estado.value }}">{{ etiquetas_estado[cv.estado] }}</span>
+            <span class="insignia insignia-{{ cv.status.value }}">{{ etiquetas_estado[cv.status] }}</span>
           </div>
         </div>
       {% endfor %}
     </div>
     <p class="ayuda vacio" data-sin-resultados hidden>{{ _('Ningún CV con ese estado todavía.') }}</p>
   {% else %}
-    <p class="vacio">{{ _('Todavía no has guardado ningún CV. Empieza en') }} <a href="{{ url_for('ancla.adaptar') }}">{{ _('Adaptar') }}</a>.</p>
+    <p class="vacio">{{ _('Todavía no has guardado ningún CV. Empieza en') }} <a href="{{ url_for('ancla.adapt') }}">{{ _('Adaptar') }}</a>.</p>
   {% endif %}
 {% endblock %}

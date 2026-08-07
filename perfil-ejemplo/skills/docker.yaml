@@ -1,7 +1,7 @@
-nombre:
+name:
   es: Docker
   en: Docker
-categoria: herramienta
+category: herramienta
 keywords:
 - docker
 - contenedores

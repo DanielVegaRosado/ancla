@@ -1,5 +1,5 @@
-"""Tests HTTP de la pantalla Mis CVs, en particular el resumen por estado
-que se enseña arriba del archivo (panel de cifras)."""
+"""HTTP tests for the My CVs screen, in particular the per-status summary
+shown above the archive (the figures panel)."""
 from __future__ import annotations
 
 from datetime import date
@@ -7,47 +7,47 @@ from pathlib import Path
 
 import pytest
 
-from ancla.archivo import repositorio as archivo
-from ancla.perfil.modelo import (
-    CVGuardado,
-    EstadoCV,
-    ExperienciaSeleccionada,
-    Propuesta,
-    SeleccionSobreMi,
+from ancla.archive import repository as archivo
+from ancla.profile.model import (
+    CVStatus,
+    SavedCV,
+    SelectedAboutMe,
+    SelectedExperience,
+    Proposal,
 )
-from ancla.web import crear_app
+from ancla.web import create_app
 
 
 @pytest.fixture
 def cliente_web(tmp_path: Path):
-    app = crear_app(raiz_perfil=tmp_path / "perfil", ruta_ajustes=tmp_path / "ajustes.json")
+    app = create_app(raiz_perfil=tmp_path / "perfil", settings_path=tmp_path / "ajustes.json")
     app.config["TESTING"] = True
     return app.test_client()
 
 
-def _cv(id: str, estado: EstadoCV = EstadoCV.BORRADOR) -> CVGuardado:
-    return CVGuardado(
+def _cv(id: str, estado: CVStatus = CVStatus.DRAFT) -> SavedCV:
+    return SavedCV(
         id=id,
-        fecha=date(2026, 7, 24),
-        empresa="ACME",
-        puesto="Data Engineer",
-        vacante="Buscamos alguien con Python y SQL.",
-        estado=estado,
-        propuesta=Propuesta(
-            idioma="es",
-            sobre_mi=SeleccionSobreMi(grupo_a=[], grupo_b=[], texto="", motivo=""),
+        date=date(2026, 7, 24),
+        company="ACME",
+        position="Data Engineer",
+        posting="Buscamos alguien con Python y SQL.",
+        status=estado,
+        proposal=Proposal(
+            language="es",
+            about_me=SelectedAboutMe(group_a=[], group_b=[], text="", reason=""),
             skills=["python"],
-            motivo_skills="Requisito explícito.",
-            experiencias=[ExperienciaSeleccionada(id="ml-telco", motivo="Encaja.")],
+            skills_reason="Requisito explícito.",
+            experiences=[SelectedExperience(id="ml-telco", reason="Encaja.")],
         ),
     )
 
 
 def test_el_resumen_por_estado_cuenta_cada_cv_una_vez(cliente_web, tmp_path: Path):
-    raiz = tmp_path / "perfil"
-    archivo.guardar(raiz, _cv("cv-1", EstadoCV.ENVIADO))
-    archivo.guardar(raiz, _cv("cv-2", EstadoCV.ENVIADO))
-    archivo.guardar(raiz, _cv("cv-3", EstadoCV.ENTREVISTA))
+    root = tmp_path / "perfil"
+    archivo.save(root, _cv("cv-1", CVStatus.SENT))
+    archivo.save(root, _cv("cv-2", CVStatus.SENT))
+    archivo.save(root, _cv("cv-3", CVStatus.INTERVIEW))
 
     respuesta = cliente_web.get("/cvs")
 

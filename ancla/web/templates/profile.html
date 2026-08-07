@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block titulo %}{{ _('Mi perfil') }} · Ancla{% endblock %}
+{% block contenido %}
+  <h1>{{ _('Mi perfil') }}</h1>
+  <p class="ayuda">
+    {{ _('Tu base de hechos verificados. El motor de selección elige de aquí para cada vacante, nunca inventa nada que no esté aquí.') }}
+    {% if perfil.is_empty() %}
+      <a href="{{ url_for('ancla.import_cv') }}">{{ _('¿Ya tienes un CV? Impórtalo') }}</a>
+      {{ _('en vez de escribirlo todo a mano.') }}
+    {% else %}
+      <a href="{{ url_for('ancla.import_cv') }}">{{ _('¿Tienes otro CV que añadir?') }}</a>
+      {{ _('Impórtalo para sumar lo que falte, sin duplicar lo que ya tienes.') }}
+    {% endif %}
+  </p>
+
+  {% if not perfil.is_empty() %}
+    <div class="bento">
+      <a class="bento-tarjeta" href="#experiencias">
+        <span class="bento-cifra">{{ perfil.experiences|length }}</span>
+        <span class="bento-etiqueta">{{ _('Experiencias') }}</span>
+      </a>
+      <a class="bento-tarjeta" href="#skills">
+        <span class="bento-cifra">{{ perfil.skills|length }}</span>
+        <span class="bento-etiqueta">{{ _('Skills técnicas') }}</span>
+      </a>
+      <a class="bento-tarjeta" href="#skills-personales">
+        <span class="bento-cifra">{{ perfil.personal_skills|length }}</span>
+        <span class="bento-etiqueta">{{ _('Skills personales') }}</span>
+      </a>
+      <a class="bento-tarjeta" href="#idiomas">
+        <span class="bento-cifra">{{ perfil.languages|length }}</span>
+        <span class="bento-etiqueta">{{ _('Idiomas') }}</span>
+      </a>
+    </div>
+  {% endif %}
+
+  <section class="tarjeta">
+    <div class="fila-tarjeta">
+      <div>
+        <h2>{{ _('Sobre mí') }}</h2>
+        <p class="ayuda">{{ _('La plantilla fija de tu bloque «Sobre mí», con seis huecos que rellena el sistema.') }}</p>
+      </div>
+      <div class="acciones">
+        <a class="boton" href="{{ url_for('ancla.edit_about_me') }}">
+          {{ _("Editar") if perfil.about_me else _("Definir plantilla") }}
+        </a>
+      </div>
+    </div>
+    {% if perfil.about_me %}
+      <div class="bloque-texto">{{ perfil.about_me.template["es"] }}</div>
+    {% else %}
+      <p class="vacio">{{ _('Todavía no has definido la plantilla de «Sobre mí».') }}</p>
+    {% endif %}
+  </section>
+
+  <p class="ayuda">
+    {{ _('Arrastra el asa') }} <span aria-hidden="true">⠿</span> {{ _('de cada panel para cambiar el orden en el que se ven aquí abajo. Se recuerda para la próxima vez.') }}
+  </p>
+
+  <div data-paneles-perfil>
+    {% set plantillas_panel = {
+      "experiencias": "_section_experiences.html",
+      "skills": "_section_skills.html",
+      "skills_personales": "_section_personal_skills.html",
+      "idiomas": "_section_languages.html",
+    } %}
+    {% for clave in orden_perfil %}
+      {% include plantillas_panel[clave] %}
+    {% endfor %}
+  </div>
+{% endblock %}

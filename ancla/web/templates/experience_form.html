@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% block titulo %}{{ _("Nueva experiencia") if nueva else _("Editar experiencia") }} · Ancla{% endblock %}
+{% block contenido %}
+  <h1>{{ _("Nueva experiencia") if nueva else _("Editar experiencia") }}</h1>
+
+  {% if errors %}
+    <div class="errores">
+      <ul>{% for error in errors %}<li>{{ error }}</li>{% endfor %}</ul>
+    </div>
+  {% endif %}
+
+  <form class="pila" method="post">
+    {% if nueva %}
+      <div class="campo">
+        <label for="titulo_es">{{ _('Título (ES)') }}</label>
+        <input type="text" id="titulo_es" name="titulo_es" data-fuente-id="id" required
+               value="{{ experiencia.title['es'] if experiencia else '' }}">
+      </div>
+      <div class="campo">
+        <label for="id">{{ _('Identificador') }}</label>
+        <input type="text" id="id" name="id" data-id-manual placeholder="{{ _('se genera del título si lo dejas vacío') }}"
+               value="{{ experiencia.id if experiencia else '' }}">
+        <p class="ayuda">{{ _('Se usa como referencia estable en el archivo de CVs: no se puede cambiar después.') }}</p>
+      </div>
+    {% else %}
+      <div class="campo">
+        <label for="titulo_es">{{ _('Título (ES)') }}</label>
+        <input type="text" id="titulo_es" name="titulo_es" required value="{{ experiencia.title['es'] }}">
+      </div>
+      <p class="ayuda">{{ _('Identificador:') }} {{ experiencia.id }} ({{ _('fijo') }})</p>
+    {% endif %}
+
+    <div class="campo">
+      <label for="titulo_en">{{ _('Título (EN)') }}</label>
+      <input type="text" id="titulo_en" name="titulo_en" required value="{{ experiencia.title['en'] if experiencia else '' }}">
+    </div>
+
+    <div class="dos-columnas">
+      <div class="campo">
+        <label for="periodo_es">{{ _('Periodo (ES)') }}</label>
+        <input type="text" id="periodo_es" name="periodo_es" placeholder="2023-2024" required
+               value="{{ experiencia.period['es'] if experiencia else '' }}">
+      </div>
+      <div class="campo">
+        <label for="periodo_en">{{ _('Periodo (EN)') }}</label>
+        <input type="text" id="periodo_en" name="periodo_en" placeholder="2023-2024" required
+               value="{{ experiencia.period['en'] if experiencia else '' }}">
+      </div>
+    </div>
+
+    <div class="campo">
+      <label for="bullets_es">{{ _('Bullets (ES): uno por línea, tal cual quieres que aparezcan') }}</label>
+      <textarea id="bullets_es" name="bullets_es" class="alta">{{ experiencia.bullets['es']|lista_a_lineas if experiencia else '' }}</textarea>
+    </div>
+    <div class="campo">
+      <label for="bullets_en">{{ _('Bullets (EN)') }}</label>
+      <textarea id="bullets_en" name="bullets_en" class="alta">{{ experiencia.bullets['en']|lista_a_lineas if experiencia else '' }}</textarea>
+    </div>
+
+    <div class="dos-columnas">
+      <div class="campo">
+        <label for="stack_es">{{ _('Stack (ES)') }}</label>
+        <input type="text" id="stack_es" name="stack_es" value="{{ experiencia.stack['es'] if experiencia else '' }}">
+      </div>
+      <div class="campo">
+        <label for="stack_en">{{ _('Stack (EN)') }}</label>
+        <input type="text" id="stack_en" name="stack_en" value="{{ experiencia.stack['en'] if experiencia else '' }}">
+      </div>
+    </div>
+
+    <div class="campo">
+      <label for="keywords">{{ _('Keywords') }}</label>
+      <input type="text" id="keywords" name="keywords" value="{{ experiencia.keywords|lista_a_csv if experiencia else '' }}">
+      <p class="ayuda">
+        {{ _('Las propone la IA a partir del título, el stack y lo que hiciste. No salen nunca en tu CV, sirven para reconocer esta experiencia cuando una oferta use otras palabras. Revísalas y añade las que falten.') }}
+      </p>
+      <div class="barra-acciones">
+        <button type="button" class="boton"
+                data-sugerir-keywords
+                data-tipo="experiencia"
+                data-campos="titulo_es:titulo,stack_es:stack,bullets_es:bullets"
+                data-destino="keywords">{{ _('Proponer con IA') }}</button>
+      </div>
+      <p class="ayuda" data-aviso-keywords hidden></p>
+    </div>
+
+    <div class="campo">
+      <label for="estado">{{ _('Estado (opcional, notas internas)') }}</label>
+      <input type="text" id="estado" name="estado" value="{{ experiencia.estado if experiencia else '' }}">
+    </div>
+
+    <div class="barra-acciones">
+      <button type="submit" class="boton-primario">{{ _('Guardar') }}</button>
+      <a class="boton" href="{{ url_for('ancla.view_profile') }}">{{ _('Cancelar') }}</a>
+    </div>
+  </form>
+{% endblock %}

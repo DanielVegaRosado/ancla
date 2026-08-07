@@ -1,0 +1,42 @@
+<section class="tarjeta panel-perfil" id="idiomas" data-panel-arrastrable data-clave="idiomas">
+  <div class="fila-tarjeta">
+    <div class="titulo-panel">
+      <span class="manija-arrastrar" title="{{ _('Arrastrar para reordenar') }}" aria-hidden="true">⠿</span>
+      <div>
+        <h2>{{ _('Idiomas') }} ({{ perfil.languages|length }})</h2>
+        <p class="ayuda">{{ _('Siempre completos en la Propuesta, sin selección de IA.') }}</p>
+      </div>
+    </div>
+    <div class="acciones">
+      <a class="boton boton-primario" href="{{ url_for('ancla.new_language') }}">{{ _('Añadir idioma') }}</a>
+      {% if perfil.languages %}
+        <form class="en-linea" method="post" action="{{ url_for('ancla.delete_all_languages') }}" data-confirmar="{{ _('¿Borrar TODOS los %(cantidad)s idiomas? Esta acción no se puede deshacer.', cantidad=perfil.languages|length) }}">
+          <button type="submit" class="boton boton-pequeno boton-peligro">{{ _('Borrar todos') }}</button>
+        </form>
+      {% endif %}
+    </div>
+  </div>
+
+  {% if perfil.languages %}
+    <div class="lista-tarjetas">
+      {% for idioma in perfil.languages %}
+        <div class="tarjeta">
+          <div class="fila-tarjeta">
+            <div>
+              <h3>{{ idioma.name["es"] }}</h3>
+              <p class="ayuda">{{ idioma.level["es"] }} · id: {{ idioma.id }}</p>
+            </div>
+            <div class="acciones">
+              <a class="boton boton-pequeno" href="{{ url_for('ancla.edit_language', id_=idioma.id) }}">{{ _('Editar') }}</a>
+              <form class="en-linea" method="post" action="{{ url_for('ancla.delete_language', id_=idioma.id) }}" data-confirmar="{{ _('¿Borrar «%(nombre)s»? Esta acción no se puede deshacer.', nombre=idioma.name['es']) }}">
+                <button type="submit" class="boton-pequeno boton-peligro">{{ _('Borrar') }}</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p class="vacio">{{ _('Todavía no has añadido ningún idioma.') }}</p>
+  {% endif %}
+</section>

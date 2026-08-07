@@ -1,7 +1,7 @@
-nombre:
+name:
   es: FastAPI
   en: FastAPI
-categoria: framework
+category: framework
 keywords:
 - fastapi
 - api rest

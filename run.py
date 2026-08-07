@@ -1,15 +1,16 @@
-"""Arranca la app en local: `python run.py`.
+"""Starts the app locally: `python run.py`.
 
-Abre el navegador solo. Para el usuario esto es una aplicación: ejecuta un
-fichero y se le abre una ventana; no vuelve a ver la terminal.
+Just opens the browser. To the user this is an application: they run a
+file and a window opens; they never see the terminal again.
 
-**Sin `debug=True`.** El depurador de Werkzeug enseña una consola que ejecuta
-código Python arbitrario en cuanto salta una excepción, y esto lo va a arrancar
-gente desconocida en su propio ordenador. Para desarrollar:
+**No `debug=True`.** Werkzeug's debugger shows a console that runs arbitrary
+Python code the moment an exception is raised, and this is going to be
+started by strangers on their own computer. To develop:
 `flask --app ancla.web run --debug`.
 
-Escucha solo en `127.0.0.1` a propósito: los datos son de quien ejecuta la app
-y no tienen por qué quedar expuestos al resto de la red.
+Listens only on `127.0.0.1` on purpose: the data belongs to whoever is
+running the app, and there is no reason for it to be exposed to the rest
+of the network.
 """
 from __future__ import annotations
 
@@ -17,23 +18,23 @@ import os
 import threading
 import webbrowser
 
-from ancla.web import crear_app
+from ancla.web import create_app
 
 HOST = "127.0.0.1"
-PUERTO = int(os.environ.get("ANCLA_PUERTO", "5000"))
-SEGUNDOS_ANTES_DE_ABRIR = 1.0
+PORT = int(os.environ.get("ANCLA_PUERTO", "5000"))
+SECONDS_BEFORE_OPENING = 1.0
 
 
 def main() -> None:
-    url = f"http://{HOST}:{PUERTO}"
-    # El navegador se abre desde un hilo aparte y con un respiro: si se abriera
-    # antes de que el servidor escuche, el usuario vería un error de conexión y
-    # pensaría que la app está rota.
-    threading.Timer(SEGUNDOS_ANTES_DE_ABRIR, webbrowser.open, args=[url]).start()
+    url = f"http://{HOST}:{PORT}"
+    # The browser opens from a separate thread and with a small delay: if it
+    # opened before the server was listening, the user would see a connection
+    # error and think the app is broken.
+    threading.Timer(SECONDS_BEFORE_OPENING, webbrowser.open, args=[url]).start()
 
-    print(f"Ancla — abriendo {url}")
-    print("Deja esta ventana abierta mientras uses la app. Ctrl+C para cerrarla.")
-    crear_app().run(host=HOST, port=PUERTO, debug=False)
+    print(f"Ancla — opening {url}")
+    print("Leave this window open while you use the app. Ctrl+C to close it.")
+    create_app().run(host=HOST, port=PORT, debug=False)
 
 
 if __name__ == "__main__":

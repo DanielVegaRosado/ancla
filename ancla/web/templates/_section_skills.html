@@ -1,0 +1,42 @@
+<section class="tarjeta panel-perfil" id="skills" data-panel-arrastrable data-clave="skills">
+  <div class="fila-tarjeta">
+    <div class="titulo-panel">
+      <span class="manija-arrastrar" title="{{ _('Arrastrar para reordenar') }}" aria-hidden="true">⠿</span>
+      <div>
+        <h2>{{ _('Skills técnicas') }} ({{ perfil.skills|length }})</h2>
+        <p class="ayuda">{{ _('Tecnologías y herramientas disponibles para elegir en cada adaptación.') }}</p>
+      </div>
+    </div>
+    <div class="acciones">
+      <a class="boton boton-primario" href="{{ url_for('ancla.new_skill') }}">{{ _('Añadir skill') }}</a>
+      {% if perfil.skills %}
+        <form class="en-linea" method="post" action="{{ url_for('ancla.delete_all_skills') }}" data-confirmar="{{ _('¿Borrar TODAS las %(cantidad)s skills técnicas? Esta acción no se puede deshacer.', cantidad=perfil.skills|length) }}">
+          <button type="submit" class="boton boton-pequeno boton-peligro">{{ _('Borrar todas') }}</button>
+        </form>
+      {% endif %}
+    </div>
+  </div>
+
+  {% if perfil.skills %}
+    <div class="lista-tarjetas">
+      {% for skill in perfil.skills %}
+        <div class="tarjeta">
+          <div class="fila-tarjeta">
+            <div>
+              <h3>{{ skill.name["es"] }}</h3>
+              <p class="ayuda">{{ skill.category or _("sin categoría") }} · id: {{ skill.id }}</p>
+            </div>
+            <div class="acciones">
+              <a class="boton boton-pequeno" href="{{ url_for('ancla.edit_skill', id_=skill.id) }}">{{ _('Editar') }}</a>
+              <form class="en-linea" method="post" action="{{ url_for('ancla.delete_skill', id_=skill.id) }}" data-confirmar="{{ _('¿Borrar «%(nombre)s»? Esta acción no se puede deshacer.', nombre=skill.name['es']) }}">
+                <button type="submit" class="boton-pequeno boton-peligro">{{ _('Borrar') }}</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p class="vacio">{{ _('Todavía no has añadido ninguna skill.') }}</p>
+  {% endif %}
+</section>
