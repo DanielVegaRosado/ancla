@@ -62,7 +62,7 @@ def adapt():
         return redirect(url_for("ancla.view_settings"))
 
     try:
-        propuesta = motor.adapt(perfil, vacante_texto, idioma, cliente, N_EXPERIENCES, N_SKILLS)
+        propuesta = engine.adapt(perfil, vacante_texto, idioma, cliente, N_EXPERIENCES, N_SKILLS)
     except (AIError, ValueError) as error:
         flash(str(error))
         return render_template("adapt.html", vacante=vacante_texto, idioma=idioma)

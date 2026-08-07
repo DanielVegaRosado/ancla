@@ -178,7 +178,7 @@ def regenerate_section(seccion: str):
         return redirect(url_for("ancla.view_settings"))
 
     try:
-        nueva_propuesta = motor.adapt(
+        nueva_propuesta = engine.adapt(
             context.current_profile(), borrador.vacante, borrador.propuesta.language, cliente, N_EXPERIENCES, N_SKILLS
         )
     except (AIError, ValueError) as error:

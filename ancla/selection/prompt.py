@@ -1,7 +1,7 @@
 """The prompt for the engine's single model call.
 
 Kept separate from the engine on purpose: the prompt is what gets tweaked
-most as real usage comes in, and `motor.py` should not change every time a
+most as real usage comes in, and `engine.py` should not change every time a
 sentence gets refined. This module only builds text; it calls nothing.
 
 The logic comes from the personal skill `/cv-adaptativo`, already tested by
