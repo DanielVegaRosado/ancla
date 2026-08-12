@@ -80,6 +80,31 @@ _FABRICAS: dict[str, Callable[[str, str, str], AIClient]] = {
 
 
 def create_client(proveedor: str, clave_api: str, url_base: str = "", modelo: str = "") -> AIClient:
+    if proveedor == "personalizado":
+        from flask import has_app_context
+
+        from ancla.web import context
+
+        # `has_app_context()` first: this function has no Flask context of
+        # its own (existing callers like `test_crear_cliente_con_...` in
+        # tests/test_web.py call it with no app pushed at all), and
+        # `context.demo_mode()` reads `current_app.config`, which raises
+        # `RuntimeError` outside one.
+        if has_app_context() and context.demo_mode():
+            # `url_base` is free text with no host/scheme check: outside the
+            # demo it is the owner pointing at their own machine, but here
+            # any anonymous visitor could aim the shared server at an
+            # internal address (SSRF) and read the connect/auth error back
+            # as a signal of what is reachable.
+            raise AIError(
+                _(
+                    "El proveedor personalizado no está disponible en esta demo pública: "
+                    "dejaría que el servidor compartido hiciera peticiones a cualquier "
+                    "dirección escrita por un visitante. Prueba con Groq, OpenAI, "
+                    "Mistral, OpenRouter o Anthropic."
+                )
+            )
+
     factory = _FABRICAS.get(proveedor)
     if factory is None:
         raise AIError(_("Proveedor de IA desconocido: «%(proveedor)s».", proveedor=proveedor))

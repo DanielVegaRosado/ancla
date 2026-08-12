@@ -13,11 +13,18 @@ dispatch function — open for extension, closed for modification.
 from __future__ import annotations
 
 import io
+import zipfile
 from typing import Callable
 
 from flask_babel import gettext as _
 
+from ancla.profile import zip_safety
+
 MIN_CARACTERES_UTILES = 40
+# A .docx is a zip: a crafted small file could claim a huge uncompressed
+# size (zip bomb). MAX_CONTENT_LENGTH in web/__init__.py already bounds the
+# compressed upload, but not what it expands to — this bounds that.
+MAX_BYTES_DESCOMPRIMIDOS_DOCX = 100 * 1024 * 1024  # 100 MB
 
 
 class ExtractionError(Exception):
@@ -56,6 +63,18 @@ def _text_from_docx(datos: bytes) -> str:
         raise ExtractionError(
             _("Falta la librería «python-docx». Instálala con: pip install -r requirements.txt")
         ) from exc
+
+    try:
+        with zipfile.ZipFile(io.BytesIO(datos)) as zip_:
+            tamano_descomprimido = zip_safety.uncompressed_size(zip_)
+    except zipfile.BadZipFile as exc:
+        raise ExtractionError(
+            _("No se ha podido leer el documento: ¿es un .docx válido?")
+        ) from exc
+    if tamano_descomprimido > MAX_BYTES_DESCOMPRIMIDOS_DOCX:
+        raise ExtractionError(
+            _("El documento «.docx» es sospechosamente grande al descomprimirlo. No se ha procesado.")
+        )
 
     try:
         documento = docx.Document(io.BytesIO(datos))

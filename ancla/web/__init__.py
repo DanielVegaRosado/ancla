@@ -18,10 +18,15 @@ from pathlib import Path
 
 from flask import Flask, flash, redirect, render_template, request, url_for
 from flask_babel import Babel, get_locale
+from flask_babel import gettext as _
 
 from ancla.web.routes import data_root
 
 RAIZ_PERFIL_POR_DEFECTO = data_root() / "perfil"
+# Caps any single upload (CV import, profile zip restore). Flask enforces
+# this before the view even runs, so it protects the shared Render demo
+# from a stranger exhausting memory with an oversized request body.
+TAMANO_MAXIMO_SUBIDA = 20 * 1024 * 1024  # 20 MB
 # The Hugging Face Space starts the app with `ANCLA_DEMO=1` (see the
 # Space's Dockerfile). In demo mode, several strangers share the same
 # example profile and the same process: `contexto.ajustes_actuales()`
@@ -46,6 +51,7 @@ def create_app(
 
     app = Flask(__name__)
     app.config["SECRET_KEY"] = secrets.token_hex(32)
+    app.config["MAX_CONTENT_LENGTH"] = TAMANO_MAXIMO_SUBIDA
     app.config["RAIZ_PERFIL"] = raiz_perfil or RAIZ_PERFIL_POR_DEFECTO
     app.config["RUTA_AJUSTES"] = settings_path or modulo_ajustes.RUTA_POR_DEFECTO
     app.config["MODO_DEMO"] = MODO_DEMO_POR_DEFECTO if demo_mode is None else demo_mode
@@ -79,6 +85,16 @@ def create_app(
     @app.errorhandler(404)
     def _page_not_found(_error):
         return render_template("404.html"), 404
+
+    @app.errorhandler(413)
+    def _payload_too_large(_error):
+        flash(
+            _(
+                "El fichero es demasiado grande (máximo %(maximo)s MB).",
+                maximo=TAMANO_MAXIMO_SUBIDA // (1024 * 1024),
+            )
+        )
+        return redirect(request.referrer or url_for("ancla.view_profile"))
 
     @app.errorhandler(ProfileError)
     def _profile_error(error: ProfileError):

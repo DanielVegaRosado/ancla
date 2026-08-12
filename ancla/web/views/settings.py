@@ -20,8 +20,21 @@ def view_settings():
         )
 
     actuales = context.current_settings()
+    proveedor = modulo_ajustes.valid_provider(request.form.get("proveedor"))
+    if proveedor == "personalizado" and context.demo_mode():
+        # Same restriction enforced in `web/providers.py` at the point the
+        # AI call is made — this one just avoids the visitor saving a
+        # setting that would fail later anyway.
+        flash(
+            _(
+                "El proveedor personalizado no está disponible en esta demo pública "
+                "(evita que el servidor compartido llame a direcciones arbitrarias). "
+                "Prueba con Groq, OpenAI, Mistral, OpenRouter o Anthropic."
+            )
+        )
+        proveedor = modulo_ajustes.PROVEEDOR_POR_DEFECTO
     nuevos = modulo_ajustes.Settings(
-        proveedor=modulo_ajustes.valid_provider(request.form.get("proveedor")),
+        proveedor=proveedor,
         clave_api=request.form.get("clave_api", "").strip(),
         url_base=request.form.get("url_base", "").strip(),
         modelo=request.form.get("modelo", "").strip(),

@@ -48,9 +48,13 @@ from typing import Any
 
 from flask_babel import gettext as _
 
-from ancla.profile import serialization
+from ancla.profile import serialization, zip_safety
 from ancla.profile.errors import ProfileError
 from ancla.profile.model import AboutMe, Experience, Profile, Skill, SpokenLanguage
+
+# A zip can claim a huge uncompressed size while staying small on disk (zip
+# bomb). This bounds what a restored backup is allowed to expand to.
+MAX_BYTES_DESCOMPRIMIDOS_ZIP = 200 * 1024 * 1024  # 200 MB
 
 # Re-exported on purpose: whoever saves the profile wants to catch its error
 # without needing to know it lives in another module.
@@ -394,6 +398,15 @@ def import_zip(root: Path, origen: Path) -> None:
         with zipfile.ZipFile(origen) as zip_:
             for miembro in zip_.namelist():
                 _check_within(root, miembro, origen)
+            tamano_descomprimido = zip_safety.uncompressed_size(zip_)
+            if tamano_descomprimido > MAX_BYTES_DESCOMPRIMIDOS_ZIP:
+                raise ProfileError(
+                    _(
+                        "«%(nombre)s» ocupa demasiado al descomprimirlo. No se ha "
+                        "importado nada.",
+                        nombre=origen.name,
+                    )
+                )
             root.mkdir(parents=True, exist_ok=True)
             zip_.extractall(root)
     except zipfile.BadZipFile as exc:
