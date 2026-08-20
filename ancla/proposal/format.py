@@ -72,7 +72,7 @@ def experience_text(experiencia: Experience, idioma: Language) -> str:
     return "\n".join(_experience_block(experiencia, idioma))
 
 
-def _skill_names(propuesta: Proposal, perfil: Profile) -> list[str]:
+def skill_names(propuesta: Proposal, perfil: Profile) -> list[str]:
     """`Proposal.skills` are `Skill` ids, not already-written text: resolved
     against the profile so that correcting a skill's name propagates across
     the whole archive. A skill that no longer exists is omitted."""
@@ -96,7 +96,7 @@ def to_text(propuesta: Proposal, perfil: Profile) -> str:
 
     bloques.append(f"{encabezados['sobre_mi']}\n\n{propuesta.about_me.text}")
 
-    nombres_skills = _skill_names(propuesta, perfil)
+    nombres_skills = skill_names(propuesta, perfil)
     if nombres_skills:
         bloques.append(f"{encabezados['skills']}\n\n" + " · ".join(nombres_skills))
 
@@ -134,7 +134,7 @@ def to_markdown(propuesta: Proposal, perfil: Profile) -> str:
     if propuesta.about_me.reason:
         partes.append(f"> {textos['motivo']}: {propuesta.about_me.reason}")
 
-    nombres_skills = _skill_names(propuesta, perfil)
+    nombres_skills = skill_names(propuesta, perfil)
     if nombres_skills:
         lista_skills = "\n".join(f"{n}. {skill}" for n, skill in enumerate(nombres_skills, start=1))
         partes.append(f"{textos['skills']}\n\n{lista_skills}")

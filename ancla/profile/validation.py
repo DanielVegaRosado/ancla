@@ -30,6 +30,7 @@ from flask_babel import gettext as _
 from ancla.profile.model import (
     LANGUAGES,
     AboutMe,
+    Education,
     Experience,
     Language,
     Profile,
@@ -212,6 +213,37 @@ def validate_language(idioma: SpokenLanguage) -> list[str]:
     return problemas
 
 
+def validate_education(educacion: Education) -> list[str]:
+    """Like `validar_idioma` minus the keywords/level requirement: education
+    never feeds a gap check, it is just shown in full."""
+    etiqueta = (
+        _('Educación «%(id)s»', id=educacion.id) if educacion.id else _("Una educación")
+    )
+    problemas: list[str] = []
+
+    if not educacion.id.strip():
+        problemas.append(
+            _(
+                "Hay una educación sin identificador. El identificador es el nombre "
+                "del fichero, por ejemplo «grado-ingenieria.yaml»."
+            )
+        )
+    for idioma in LANGUAGES:
+        nombre = _language_name(idioma)
+        if not educacion.title[idioma].strip():
+            problemas.append(_("%(etiqueta)s: falta la titulación en %(nombre)s.", etiqueta=etiqueta, nombre=nombre))
+        if not educacion.institution[idioma].strip():
+            problemas.append(_("%(etiqueta)s: falta el centro en %(nombre)s.", etiqueta=etiqueta, nombre=nombre))
+        if not educacion.period[idioma].strip():
+            problemas.append(
+                _(
+                    "%(etiqueta)s: falta el periodo en %(nombre)s (por ejemplo «2023 - 2027»).",
+                    etiqueta=etiqueta, nombre=nombre,
+                )
+            )
+    return problemas
+
+
 def validate_about_me(sobre_mi: AboutMe) -> list[str]:
     """Checks that the template has all 6 gaps, in both ES and EN."""
     problemas: list[str] = []
@@ -282,6 +314,7 @@ def validate_profile(perfil: Profile) -> list[str]:
         [skill.id for skill in perfil.personal_skills], _("skills personales")
     )
     problemas += _duplicates([idioma.id for idioma in perfil.languages], _("idiomas"))
+    problemas += _duplicates([educacion.id for educacion in perfil.education], _("educación"))
 
     if perfil.about_me is None:
         problemas.append(
@@ -304,6 +337,8 @@ def validate_profile(perfil: Profile) -> list[str]:
         problemas += validate_personal_skill(skill)
     for idioma in perfil.languages:
         problemas += validate_language(idioma)
+    for educacion in perfil.education:
+        problemas += validate_education(educacion)
     return problemas
 
 

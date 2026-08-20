@@ -25,7 +25,7 @@
         <a href="{{ url_for('ancla.adapt') }}" class="{{ 'activo' if request.endpoint == 'ancla.adapt' else '' }}">{{ _('Adaptar') }}</a>
         <a href="{{ url_for('ancla.view_proposal') }}" class="{{ 'activo' if request.endpoint == 'ancla.view_proposal' else '' }}">{{ _('Propuesta') }}</a>
         <a href="{{ url_for('ancla.list_cvs') }}" class="{{ 'activo' if request.endpoint in ('ancla.list_cvs', 'ancla.view_cv') else '' }}">{{ _('Mis CVs') }}</a>
-        <a href="{{ url_for('ancla.canva_templates') }}" class="{{ 'activo' if request.endpoint == 'ancla.canva_templates' else '' }}">{{ _('Plantillas Canva') }}</a>
+        <a href="{{ url_for('ancla.canva_templates') }}" class="{{ 'activo' if request.endpoint == 'ancla.canva_templates' else '' }}">{{ _('Plantillas') }}</a>
         <a href="{{ url_for('ancla.support') }}" class="{{ 'activo' if request.endpoint == 'ancla.support' else '' }}">{{ _('Soporte') }}</a>
         <a href="{{ url_for('ancla.view_settings') }}" class="{{ 'activo' if request.endpoint == 'ancla.view_settings' else '' }}">{{ _('Ajustes') }}</a>
       </nav>

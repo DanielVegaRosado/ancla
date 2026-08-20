@@ -1,11 +1,11 @@
 """My profile screen: editing experiences, skills, and the About me template."""
 from __future__ import annotations
 
-from flask import flash, jsonify, redirect, render_template, request, url_for
+from flask import abort, flash, jsonify, redirect, render_template, request, send_file, url_for
 from flask_babel import gettext as _
 
 from ancla.profile import store, keywords, validation
-from ancla.profile.model import AboutMe, Bilingual, Experience, Skill, SpokenLanguage
+from ancla.profile.model import AboutMe, Bilingual, Education, Experience, Skill, SpokenLanguage
 from ancla.web import settings as modulo_ajustes
 from ancla.web import context
 from ancla.web.blueprint import bp
@@ -354,6 +354,137 @@ def delete_all_languages():
     store.delete_all_languages(context.root())
     flash(_("%(cantidad)s idioma(s) borrados.", cantidad=n) if n else _("No había ningún idioma que borrar."))
     return redirect(url_for("ancla.view_profile"))
+
+
+# --------------------------------------------------------------------------
+# Education: same approach as languages (separate catalog, always shown in
+# full, never chosen by the AI). No keywords: nothing checks education
+# against a job posting's gaps.
+# --------------------------------------------------------------------------
+
+
+def _education_from_form(id_: str) -> Education:
+    f = request.form
+    return Education(
+        id=id_,
+        title=Bilingual(es=f.get("titulo_es", "").strip(), en=f.get("titulo_en", "").strip()),
+        institution=Bilingual(es=f.get("centro_es", "").strip(), en=f.get("centro_en", "").strip()),
+        period=Bilingual(es=f.get("periodo_es", "").strip(), en=f.get("periodo_en", "").strip()),
+    )
+
+
+@bp.route("/perfil/educacion/nueva", methods=["GET", "POST"])
+def new_education():
+    if request.method == "GET":
+        return render_template("education_form.html", educacion=None, errors=[], nueva=True)
+
+    id_ = slugify(request.form.get("id") or request.form.get("titulo_es", ""))
+    if context.current_profile().education_entry(id_) is not None:
+        errors = [_("Ya existe una educación con el identificador «%(id)s».", id=id_)]
+        return render_template("education_form.html", educacion=None, errors=errors, nueva=True)
+
+    educacion = _education_from_form(id_)
+    errors = validation.validate_education(educacion)
+    if errors:
+        return render_template("education_form.html", educacion=educacion, errors=errors, nueva=True)
+
+    store.save_education(context.root(), educacion)
+    flash(_("Educación «%(titulo)s» guardada.", titulo=educacion.title["es"]))
+    return redirect(url_for("ancla.view_profile"))
+
+
+@bp.route("/perfil/educacion/<id_>/editar", methods=["GET", "POST"])
+def edit_education(id_: str):
+    existente = context.current_profile().education_entry(id_)
+    if existente is None:
+        flash(_("No existe la educación «%(id)s».", id=id_))
+        return redirect(url_for("ancla.view_profile"))
+
+    if request.method == "GET":
+        return render_template("education_form.html", educacion=existente, errors=[], nueva=False)
+
+    educacion = _education_from_form(id_)
+    errors = validation.validate_education(educacion)
+    if errors:
+        return render_template("education_form.html", educacion=educacion, errors=errors, nueva=False)
+
+    store.save_education(context.root(), educacion)
+    flash(_("Educación «%(titulo)s» actualizada.", titulo=educacion.title["es"]))
+    return redirect(url_for("ancla.view_profile"))
+
+
+@bp.route("/perfil/educacion/<id_>/borrar", methods=["POST"])
+def delete_education(id_: str):
+    store.delete_education(context.root(), id_)
+    flash(_("Educación borrada."))
+    return redirect(url_for("ancla.view_profile"))
+
+
+@bp.route("/perfil/educacion/borrar-todas", methods=["POST"])
+def delete_all_education():
+    n = len(context.current_profile().education)
+    store.delete_all_education(context.root())
+    flash(_("%(cantidad)s educación(es) borradas.", cantidad=n) if n else _("No había ninguna educación que borrar."))
+    return redirect(url_for("ancla.view_profile"))
+
+
+# --------------------------------------------------------------------------
+# Contact: free-form lines (phone, email, city, LinkedIn...), not bilingual
+# — a phone number or a URL reads the same in any language. Same "always
+# shown in full" rule as everything else in this section.
+# --------------------------------------------------------------------------
+
+
+@bp.route("/perfil/contacto", methods=["GET", "POST"])
+def edit_contact():
+    if request.method == "GET":
+        perfil = context.current_profile()
+        return render_template(
+            "contact_form.html", nombre=perfil.name, titular=perfil.headline, contacto=perfil.contact
+        )
+
+    nombre = request.form.get("nombre", "").strip()
+    titular = Bilingual(
+        es=request.form.get("titular_es", "").strip(),
+        en=request.form.get("titular_en", "").strip(),
+    )
+    lineas = lines_to_list(request.form.get("lineas", ""))
+    store.save_contact(context.root(), nombre, titular, lineas)
+    flash(_("Contacto guardado."))
+    return redirect(url_for("ancla.view_profile"))
+
+
+# --------------------------------------------------------------------------
+# Photo: a single file, replaced whole on every upload (see
+# `profile/store.py::save_photo`).
+# --------------------------------------------------------------------------
+
+
+@bp.route("/perfil/foto", methods=["POST"])
+def upload_photo():
+    fichero = request.files.get("foto")
+    if fichero is None or not fichero.filename:
+        flash(_("No se ha seleccionado ninguna foto."))
+        return redirect(url_for("ancla.view_profile"))
+
+    store.save_photo(context.root(), fichero.filename, fichero.read())
+    flash(_("Foto de perfil guardada."))
+    return redirect(url_for("ancla.view_profile"))
+
+
+@bp.route("/perfil/foto/borrar", methods=["POST"])
+def delete_photo():
+    store.delete_photo(context.root())
+    flash(_("Foto de perfil borrada."))
+    return redirect(url_for("ancla.view_profile"))
+
+
+@bp.route("/perfil/foto/archivo")
+def photo_file():
+    ruta = store.photo_path(context.root())
+    if ruta is None:
+        abort(404)
+    return send_file(ruta)
 
 
 @bp.route("/perfil/sobre-mi", methods=["GET", "POST"])

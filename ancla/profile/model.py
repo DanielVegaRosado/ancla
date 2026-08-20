@@ -43,6 +43,21 @@ class Bilingual(Generic[T]):
             raise ValueError(f"Unsupported language: {language!r}")
         return self.es if language == "es" else self.en
 
+    @staticmethod
+    def from_sidecar(valor: object, fallback: T) -> "Bilingual[T]":
+        """Parses a YAML field that's either a plain scalar (applies to
+        both languages) or an `{es: ..., en: ...}` mapping — the shape a
+        template sidecar (`docx-templates/*.yaml`, `canva-templates/*.yaml`)
+        uses for a bilingual name. Missing pieces fall back to `fallback`,
+        never raise: a sidecar with a name problem should still show
+        *something* rather than disappear from the list."""
+        if isinstance(valor, dict):
+            es = valor.get("es") or fallback
+            return Bilingual(es=es, en=valor.get("en") or es)
+        if valor:
+            return Bilingual(es=valor, en=valor)
+        return Bilingual(es=fallback, en=fallback)
+
 
 # --------------------------------------------------------------------------
 # Profile: the user's base of verified facts
@@ -90,6 +105,21 @@ class SpokenLanguage:
     name: Bilingual[str]
     level: Bilingual[str]
     keywords: list[str] = field(default_factory=list)
+
+
+@dataclass(frozen=True)
+class Education:
+    """A degree or course from the personal base.
+
+    Same shape and same rules as `SpokenLanguage`: never sent to
+    `selection/engine.py`, always shown in full on the Proposal and in a
+    `.docx` export — a real CV does not trim education per job posting.
+    """
+
+    id: str
+    title: Bilingual[str]
+    institution: Bilingual[str]
+    period: Bilingual[str]
 
 
 @dataclass(frozen=True)
@@ -144,7 +174,26 @@ class Profile:
     skills: list[Skill] = field(default_factory=list)
     personal_skills: list[Skill] = field(default_factory=list)
     languages: list[SpokenLanguage] = field(default_factory=list)
+    education: list[Education] = field(default_factory=list)
     about_me: AboutMe | None = None
+    # Not bilingual: a person's own name reads the same in any language.
+    # Lives here, not in `web/settings.py`, because it is a fact about the
+    # user like the rest of the profile, not local installation
+    # configuration — it also fills a `.docx` template's `{{ nombre }}` tag.
+    name: str = ""
+    # Contact details (phone, email, city, LinkedIn...) are free-form lines,
+    # not bilingual: a phone number or a URL reads the same in any language.
+    contact: list[str] = field(default_factory=list)
+    # The line under the name on a CV ("Data Engineer", "Ingeniero
+    # Informático"...). Bilingual, unlike `contact`: a role title is part of
+    # the CV's own language, not a language-neutral fact like a phone number
+    # or a URL — a CV generated in English has to show the English role.
+    headline: Bilingual[str] = field(default_factory=lambda: Bilingual(es="", en=""))
+    # Filename of the profile photo inside the profile folder (e.g.
+    # "photo.jpg"), resolved against `root` by `profile/store.py`. Empty
+    # means no photo — never a path, so the profile stays a plain dataclass
+    # with no notion of where it was loaded from.
+    photo: str = ""
 
     def experience(self, id: str) -> Experience | None:
         return next((e for e in self.experiences if e.id == id), None)
@@ -157,6 +206,9 @@ class Profile:
 
     def language(self, id: str) -> SpokenLanguage | None:
         return next((i for i in self.languages if i.id == id), None)
+
+    def education_entry(self, id: str) -> Education | None:
+        return next((e for e in self.education if e.id == id), None)
 
     def is_empty(self) -> bool:
         return not self.experiences and not self.skills
@@ -225,9 +277,11 @@ class CVStatus(str, Enum):
 class SavedCV:
     """An archived adaptation, to look up, duplicate, or reuse.
 
-    `attachment` is the path to the final CV the user put together on their
-    own, in whatever format (PDF, docx, image): the app copies it and links
-    to it, it does not validate or convert it.
+    `attachments` are the final CVs the user put together on their own, in
+    whatever format (PDF, docx, image): the app copies each one and links
+    to it, it does not validate or convert them. More than one is normal —
+    the same posting can end up with the CV exported in different
+    templates, or a PDF alongside the .docx it came from.
 
     `time` is optional (`None` if unknown) so a CV saved before this field
     existed still reads fine: not having the time is not a broken file, just
@@ -241,6 +295,6 @@ class SavedCV:
     posting: str
     proposal: Proposal
     status: CVStatus = CVStatus.DRAFT
-    attachment: str | None = None
+    attachments: list[str] = field(default_factory=list)
     notes: str = ""
     time: time | None = None

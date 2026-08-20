@@ -26,13 +26,13 @@ def test_el_orden_por_defecto_es_experiencias_primero(cliente_web):
 def test_guardar_un_orden_valido_lo_persiste_y_se_refleja_al_recargar(cliente_web, tmp_path: Path):
     respuesta = cliente_web.post(
         "/perfil/orden",
-        json={"orden": ["idiomas", "skills", "skills_personales", "experiencias"]},
+        json={"orden": ["idiomas", "skills", "skills_personales", "experiencias", "educacion"]},
     )
     assert respuesta.status_code == 200
     assert respuesta.get_json() == {"ok": True}
 
     guardados = modulo_ajustes.load_settings(tmp_path / "ajustes.json")
-    assert guardados.orden_perfil == ["idiomas", "skills", "skills_personales", "experiencias"]
+    assert guardados.orden_perfil == ["idiomas", "skills", "skills_personales", "experiencias", "educacion"]
 
     html = cliente_web.get("/perfil").data.decode("utf-8")
     assert html.index('id="idiomas"') < html.index('id="skills"') < html.index('id="experiencias"')
@@ -64,10 +64,13 @@ def test_un_cuerpo_vacio_no_revienta(cliente_web):
 def test_guardar_la_clave_de_api_no_resetea_un_orden_ya_guardado(cliente_web, tmp_path: Path):
     """Real bug caught while building this: the Settings form used to
     create a brand-new `Settings` from scratch and wiped out the order."""
-    cliente_web.post("/perfil/orden", json={"orden": ["idiomas", "skills", "skills_personales", "experiencias"]})
+    cliente_web.post(
+        "/perfil/orden",
+        json={"orden": ["idiomas", "skills", "skills_personales", "experiencias", "educacion"]},
+    )
 
     cliente_web.post("/ajustes", data={"proveedor": "groq", "clave_api": "gsk_test123"})
 
     guardados = modulo_ajustes.load_settings(tmp_path / "ajustes.json")
     assert guardados.clave_api == "gsk_test123"
-    assert guardados.orden_perfil == ["idiomas", "skills", "skills_personales", "experiencias"]
+    assert guardados.orden_perfil == ["idiomas", "skills", "skills_personales", "experiencias", "educacion"]

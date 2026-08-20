@@ -23,13 +23,24 @@
     </section>
 
     <section class="tarjeta">
-      <h2>{{ _('Adjuntar CV final') }}</h2>
-      <p class="ayuda">{{ _('El PDF u otro formato que hayas montado tú (Canva u otra herramienta).') }}</p>
+      <h2>{{ _('Guardar CV final') }}</h2>
+      <p class="ayuda">{{ _('Guarda aquí los .docx o PDF que hayas descargado para esta vacante. Puedes guardar varios, por ejemplo el mismo CV en distintas plantillas.') }}</p>
       <form class="pila" method="post" action="{{ url_for('ancla.attach_cv', id_=cv.id) }}" enctype="multipart/form-data">
         <input type="file" name="adjunto" required>
-        <button type="submit" class="boton-primario">{{ _('Adjuntar') }}</button>
+        <button type="submit" class="boton-primario">{{ _('Guardar') }}</button>
       </form>
-      {% if cv.attachment %}<p class="ayuda">{{ _('Ya adjuntado:') }} {{ cv.attachment }}</p>{% endif %}
+      {% if adjuntos %}
+        <div class="pila" style="margin-top: 0.75rem;">
+          {% for nombre_archivo, nombre_visible in adjuntos %}
+            <div class="fila-tarjeta">
+              <a href="{{ url_for('ancla.cv_attachment_file', id_=cv.id, nombre_archivo=nombre_archivo) }}" target="_blank" rel="noopener">{{ nombre_visible }}</a>
+              <form class="en-linea" method="post" action="{{ url_for('ancla.remove_cv_attachment', id_=cv.id, nombre_archivo=nombre_archivo) }}" data-confirmar="{{ _('¿Borrar «%(nombre)s»?', nombre=nombre_visible) }}">
+                <button type="submit" class="boton-pequeno boton-peligro">{{ _('Borrar') }}</button>
+              </form>
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
     </section>
   </div>
 
@@ -46,6 +57,23 @@
     <button type="button" class="boton" data-copiar="copia-todo">{{ _('Copiar todo (texto plano)') }}</button>
     <button type="button" class="boton" data-copiar="copia-todo-md">{{ _('Copiar todo (con motivos, Markdown)') }}</button>
   </div>
+
+  <section class="tarjeta">
+    <h2>{{ _('Descargar CV maquetado (.docx)') }}</h2>
+    {% if plantillas_docx %}
+      <form class="en-linea" method="post" action="{{ url_for('ancla.export_cv', id_=cv.id) }}">
+        <select name="plantilla_id">
+          {% for plantilla in plantillas_docx %}
+            <option value="{{ plantilla.id }}">{{ plantilla.name[cv.proposal.language] }} ({{ plantilla.capacity_experiences }} {{ _('experiencias') }})</option>
+          {% endfor %}
+        </select>
+        <button type="submit" class="boton boton-primario">{{ _('Descargar .docx') }}</button>
+      </form>
+      <p class="ayuda">{{ _('El documento se rellena tal cual: sin IA, sin tocar tus textos ni el diseño de la plantilla.') }}</p>
+    {% else %}
+      <p class="ayuda">{{ _('Todavía no hay ninguna plantilla .docx en «docx-templates/».') }}</p>
+    {% endif %}
+  </section>
 
   <section class="tarjeta">
     <h2>{{ _('Propuesta guardada') }}</h2>

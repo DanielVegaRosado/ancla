@@ -1,23 +1,31 @@
-# Starting templates
+# Template gallery (previews)
 
-Ancla doesn't lay out your CV. It gives you the text already chosen, and the
-design stays yours in Canva. These two templates are a starting point if you don't
-already have your own design. One page, in Spanish, and the only real difference
-between them is the visual style.
+Ancla doesn't design a CV layout from scratch — it fills an existing one
+(see `docx-templates/README.md` for the `.docx` templates that actually
+get filled and downloaded). This folder is upstream of that: the original
+Canva designs, kept here only as PDF previews shown inline on the app's
+Templates screen — never a redirect out to canva.com.
 
-- **Warm Minimalist** · https://www.canva.com/design/DAHHeNVzaGM/mggPEzw06NPeboGC6D5wCQ/edit
-- **Classic Corporate** · https://www.canva.com/design/DAHHeKwDZM4/RKBBp6YcMzbNCAdErRfSrQ/edit
+## Adding a template
 
-## How to use them
+Each entry is a pair of files with the same name:
 
-1. Open whichever template you like best and duplicate it into your own Canva
-   account (*File → Make a copy*, so you don't edit the original).
-2. Generate your proposal under **Adapt → Proposal**.
-3. Copy each block ("Copy" next to each section, or "Copy all") and paste it into
-   place in Canva.
-4. Export as a PDF once it's ready. The app never touches that PDF. It only gives
-   you the text.
+- `<name>.pdf` — the template exported from Canva as a PDF, for preview only.
+- `<name>.yaml` — a sidecar with one field, `nombre`: either a plain string
+  (same name in both languages) or `{es: ..., en: ...}` for a different
+  name per interface language, e.g.:
 
-These templates aren't part of the codebase and aren't subject to the selection
-engine's never-invent rules. They're design, managed by hand by Daniel, the same
-way the final CVs are.
+  ```yaml
+  nombre:
+    es: Corporativa Clásica
+    en: Classic Corporate
+  ```
+
+Drop both files here and it shows up. No code change needed —
+`ancla/design/gallery.py` discovers them by scanning this folder, and a
+`.pdf` without its `.yaml` (or with one that fails to parse) is skipped
+rather than breaking the screen for everyone else.
+
+These previews aren't part of the codebase and aren't subject to the
+selection engine's never-invent rules. They're design, managed by hand by
+Daniel, the same way the final CVs are.

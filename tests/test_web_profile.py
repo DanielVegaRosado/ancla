@@ -147,6 +147,128 @@ def test_editar_un_idioma_que_no_existe_avisa_y_redirige(cliente_web):
 
 
 # --------------------------------------------------------------------------
+# Education
+# --------------------------------------------------------------------------
+
+
+def test_crear_educacion_la_deja_ver_en_mi_perfil(cliente_web):
+    respuesta = cliente_web.post(
+        "/perfil/educacion/nueva",
+        data={
+            "titulo_es": "Grado en Ingeniería Informática",
+            "titulo_en": "BSc in Computer Engineering",
+            "centro_es": "UEMC",
+            "centro_en": "UEMC",
+            "periodo_es": "2023 — 2027",
+            "periodo_en": "2023 — 2027",
+        },
+        follow_redirects=True,
+    )
+    assert respuesta.status_code == 200
+    assert "Ingeniería Informática".encode("utf-8") in respuesta.data
+
+
+def test_crear_educacion_sin_centro_muestra_el_error(cliente_web):
+    respuesta = cliente_web.post(
+        "/perfil/educacion/nueva",
+        data={
+            "titulo_es": "Grado", "titulo_en": "Degree",
+            "centro_es": "", "centro_en": "UEMC",
+            "periodo_es": "2023", "periodo_en": "2023",
+        },
+    )
+    assert "falta el centro en español".encode("utf-8") in respuesta.data
+
+
+def test_borrar_educacion_la_quita_del_perfil(cliente_web, tmp_path: Path):
+    cliente_web.post(
+        "/perfil/educacion/nueva",
+        data={
+            "titulo_es": "Máster", "titulo_en": "Master's", "id": "master",
+            "centro_es": "UEMC", "centro_en": "UEMC",
+            "periodo_es": "2027", "periodo_en": "2027",
+        },
+    )
+    cliente_web.post("/perfil/educacion/master/borrar")
+    perfil = store.load_profile(tmp_path / "perfil")
+    assert perfil.education_entry("master") is None
+
+
+def test_editar_una_educacion_que_no_existe_avisa_y_redirige(cliente_web):
+    respuesta = cliente_web.get("/perfil/educacion/no-existe/editar", follow_redirects=True)
+    assert "No existe la educación".encode("utf-8") in respuesta.data
+
+
+# --------------------------------------------------------------------------
+# Contact
+# --------------------------------------------------------------------------
+
+
+def test_guardar_contacto_lo_deja_ver_en_mi_perfil(cliente_web, tmp_path: Path):
+    respuesta = cliente_web.post(
+        "/perfil/contacto",
+        data={
+            "nombre": "Daniel Vega",
+            "titular_es": "Ingeniero Informático",
+            "titular_en": "Computer Engineer",
+            "lineas": "+34 600 000 000\ntu@email.com",
+        },
+        follow_redirects=True,
+    )
+    assert respuesta.status_code == 200
+    perfil = store.load_profile(tmp_path / "perfil")
+    assert perfil.name == "Daniel Vega"
+    assert perfil.contact == ["+34 600 000 000", "tu@email.com"]
+    assert perfil.headline == Bilingual(es="Ingeniero Informático", en="Computer Engineer")
+    assert "tu@email.com".encode("utf-8") in respuesta.data
+    assert "Ingeniero Inform".encode("utf-8") in respuesta.data
+    assert "Daniel Vega".encode("utf-8") in respuesta.data
+
+
+# --------------------------------------------------------------------------
+# Photo
+# --------------------------------------------------------------------------
+
+
+def test_subir_foto_la_guarda_en_el_perfil(cliente_web, tmp_path: Path):
+    from io import BytesIO
+
+    respuesta = cliente_web.post(
+        "/perfil/foto",
+        data={"foto": (BytesIO(b"contenido-de-imagen-falso"), "mi-foto.png")},
+        content_type="multipart/form-data",
+        follow_redirects=True,
+    )
+    assert respuesta.status_code == 200
+    perfil = store.load_profile(tmp_path / "perfil")
+    assert perfil.photo == "photo.png"
+
+
+def test_subir_foto_sin_fichero_avisa_sin_fallar(cliente_web):
+    respuesta = cliente_web.post("/perfil/foto", data={}, follow_redirects=True)
+    assert respuesta.status_code == 200
+    assert "No se ha seleccionado ninguna foto".encode("utf-8") in respuesta.data
+
+
+def test_borrar_foto_la_quita_del_perfil(cliente_web, tmp_path: Path):
+    from io import BytesIO
+
+    cliente_web.post(
+        "/perfil/foto",
+        data={"foto": (BytesIO(b"contenido"), "foto.jpg")},
+        content_type="multipart/form-data",
+    )
+    cliente_web.post("/perfil/foto/borrar")
+    perfil = store.load_profile(tmp_path / "perfil")
+    assert perfil.photo == ""
+
+
+def test_la_ruta_de_archivo_de_foto_da_404_sin_foto(cliente_web):
+    respuesta = cliente_web.get("/perfil/foto/archivo")
+    assert respuesta.status_code == 404
+
+
+# --------------------------------------------------------------------------
 # Bulk delete: clearing an entire section at once, not just one by one
 # --------------------------------------------------------------------------
 
@@ -417,24 +539,6 @@ def test_guardar_la_propuesta_captura_la_hora(cliente_web, tmp_path: Path):
     guardados = repository.list_all(root)
     assert len(guardados) == 1
     assert guardados[0].time is not None
-
-
-# --------------------------------------------------------------------------
-# Templates: secondary screen, linked from the footer and from Proposal
-# --------------------------------------------------------------------------
-
-
-def test_la_pantalla_de_plantillas_enlaza_las_dos_plantillas(cliente_web):
-    from ancla.web.views.canva_templates import (
-        URL_CORPORATIVA_CLASICA,
-        URL_MINIMALISTA_CALIDA,
-    )
-
-    respuesta = cliente_web.get("/plantillas")
-    assert respuesta.status_code == 200
-    html = respuesta.data.decode("utf-8")
-    assert URL_MINIMALISTA_CALIDA in html
-    assert URL_CORPORATIVA_CLASICA in html
 
 
 def test_el_encabezado_de_cualquier_pantalla_enlaza_a_plantillas(cliente_web):

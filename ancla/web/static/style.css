@@ -181,6 +181,66 @@ section[id] { scroll-margin-top: 4.5rem; }
   gap: 0.75rem;
 }
 
+.visor-pdf {
+  display: block;
+  width: 100%;
+  height: 80vh;
+  border: 1px solid var(--borde);
+  border-radius: var(--radio-tarjeta);
+}
+
+/* Galería de plantillas */
+
+.lista-tarjetas-plantillas {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1.25rem;
+}
+
+.tarjeta-plantilla {
+  padding: 0;
+  overflow: hidden;
+  transition: box-shadow 200ms ease, border-color 200ms ease;
+}
+
+.tarjeta-plantilla:hover {
+  box-shadow: var(--sombra-alta);
+  border-color: var(--acento);
+}
+
+.tarjeta-plantilla-vista {
+  position: relative;
+  aspect-ratio: 1 / 1.414;
+  background: var(--fondo-suave);
+  border-bottom: 1px solid var(--borde);
+  overflow: hidden;
+}
+
+.tarjeta-plantilla-vista embed {
+  position: absolute;
+  /* El visor de PDF de Chrome deja a veces un margen residual en algunos
+     archivos (aunque la página en sí no lo tenga). Se sobreescala un poco
+     y se recorta con overflow:hidden en el contenedor para que ese margen
+     quede siempre fuera de la vista, en vez de romper el encuadre. */
+  inset: -4%;
+  width: 108%;
+  height: 108%;
+  border: 0;
+  pointer-events: none;
+}
+
+.tarjeta-plantilla-cuerpo {
+  padding: 1rem 1.1rem 1.1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.tarjeta-plantilla-cuerpo h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+
 /* Resumen tipo panel: cifras rápidas del perfil de un vistazo */
 
 .bento {

@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block titulo %}{{ _("Nueva educación") if nueva else _("Editar educación") }} · Ancla{% endblock %}
+{% block contenido %}
+  <h1>{{ _("Nueva educación") if nueva else _("Editar educación") }}</h1>
+  <p class="ayuda">
+    {{ _('No pasa por selección de IA: en la Propuesta y en la exportación a .docx se muestra siempre completa, igual que idiomas y skills personales.') }}
+  </p>
+
+  {% if errors %}
+    <div class="errores">
+      <ul>{% for error in errors %}<li>{{ error }}</li>{% endfor %}</ul>
+    </div>
+  {% endif %}
+
+  <form class="pila" method="post">
+    {% if nueva %}
+      <div class="campo">
+        <label for="titulo_es">{{ _('Titulación (ES)') }}</label>
+        <input type="text" id="titulo_es" name="titulo_es" data-fuente-id="id" required
+               placeholder="Grado en Ingeniería Informática" value="{{ educacion.title['es'] if educacion else '' }}">
+      </div>
+      <div class="campo">
+        <label for="id">{{ _('Identificador') }}</label>
+        <input type="text" id="id" name="id" data-id-manual placeholder="{{ _('se genera del nombre si lo dejas vacío') }}"
+               value="{{ educacion.id if educacion else '' }}">
+        <p class="ayuda">{{ _('Se usa como referencia estable: no se puede cambiar después.') }}</p>
+      </div>
+    {% else %}
+      <div class="campo">
+        <label for="titulo_es">{{ _('Titulación (ES)') }}</label>
+        <input type="text" id="titulo_es" name="titulo_es" required value="{{ educacion.title['es'] }}">
+      </div>
+      <p class="ayuda">{{ _('Identificador:') }} {{ educacion.id }} ({{ _('fijo') }})</p>
+    {% endif %}
+
+    <div class="campo">
+      <label for="titulo_en">{{ _('Titulación (EN)') }}</label>
+      <input type="text" id="titulo_en" name="titulo_en" required
+             placeholder="BSc in Computer Engineering" value="{{ educacion.title['en'] if educacion else '' }}">
+    </div>
+
+    <div class="campo">
+      <label for="centro_es">{{ _('Centro (ES)') }}</label>
+      <input type="text" id="centro_es" name="centro_es" required
+             placeholder="UEMC" value="{{ educacion.institution['es'] if educacion else '' }}">
+    </div>
+
+    <div class="campo">
+      <label for="centro_en">{{ _('Centro (EN)') }}</label>
+      <input type="text" id="centro_en" name="centro_en" required
+             placeholder="UEMC" value="{{ educacion.institution['en'] if educacion else '' }}">
+    </div>
+
+    <div class="campo">
+      <label for="periodo_es">{{ _('Periodo (ES)') }}</label>
+      <input type="text" id="periodo_es" name="periodo_es" required
+             placeholder="2023 — 2027" value="{{ educacion.period['es'] if educacion else '' }}">
+    </div>
+
+    <div class="campo">
+      <label for="periodo_en">{{ _('Periodo (EN)') }}</label>
+      <input type="text" id="periodo_en" name="periodo_en" required
+             placeholder="2023 — 2027" value="{{ educacion.period['en'] if educacion else '' }}">
+    </div>
+
+    <div class="barra-acciones">
+      <button type="submit" class="boton-primario">{{ _('Guardar') }}</button>
+      <a class="boton" href="{{ url_for('ancla.view_profile') }}">{{ _('Cancelar') }}</a>
+    </div>
+  </form>
+{% endblock %}

@@ -1,0 +1,26 @@
+nombre:
+  es: Minimalista Cálida
+  en: Warm Minimalist
+capacidad_experiencias: 4
+geometria:
+  ancho_columna: 322.848
+  ancho_columna_titulo: 243.168
+  alto_pagina: 842.25
+  margen_inferior_seguridad: 35.0
+  altura_hasta_experiencia: 84.0
+  altura_tras_experiencia: 36.0
+  tamano_nombre_primero: 50
+  tamano_nombre_resto: 34
+  tamano_titular: 13
+  tamano_texto_antes_experiencia: 0.0
+  linea_texto_antes_experiencia: 0.0
+  tamano_texto_tras_experiencia: 9.5
+  linea_texto_tras_experiencia: 1.35
+  tamano_titulo: 11
+  tamano_cuerpo: 9.5
+  tamano_stack: 9.0
+  espacio_titulo: 7.0
+  espacio_bullet: 1.5
+  linea_bullet: 1.15
+  calibracion: 1.19
+  fuente: Montserrat

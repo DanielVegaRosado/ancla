@@ -14,7 +14,16 @@ import pytest
 
 from ancla.profile import store
 from ancla.profile.store import ProfileError
-from ancla.profile.model import AboutMe, Bilingual, Experience, Skill
+from ancla.profile.model import AboutMe, Bilingual, Education, Experience, Skill
+
+
+def _educacion(id: str = "grado") -> Education:
+    return Education(
+        id=id,
+        title=Bilingual(es="Grado en Ingeniería Informática", en="BSc in Computer Engineering"),
+        institution=Bilingual(es="UEMC", en="UEMC"),
+        period=Bilingual(es="2023 — 2027", en="2023 — 2027"),
+    )
 
 
 def _experiencia(id: str = "ml-telco-churn") -> Experience:
@@ -281,6 +290,89 @@ def test_borrar_todas_sobre_una_carpeta_que_no_existe_no_falla(tmp_path: Path):
     store.delete_all_skills(tmp_path)
     store.delete_all_personal_skills(tmp_path)
     store.delete_all_languages(tmp_path)
+
+
+# --------------------------------------------------------------------------
+# Education, contact, photo
+# --------------------------------------------------------------------------
+
+
+def test_guardar_y_cargar_educacion_hace_ida_y_vuelta(tmp_path: Path):
+    store.save_education(tmp_path, _educacion())
+    perfil = store.load_profile(tmp_path)
+    assert perfil.education == [_educacion()]
+    assert perfil.education_entry("grado") == _educacion()
+
+
+def test_borrar_educacion(tmp_path: Path):
+    store.save_education(tmp_path, _educacion())
+    store.delete_education(tmp_path, "grado")
+    assert store.load_profile(tmp_path).education == []
+
+
+def test_borrar_todas_las_educaciones(tmp_path: Path):
+    store.save_education(tmp_path, _educacion("grado"))
+    store.save_education(tmp_path, _educacion("master"))
+    store.delete_all_education(tmp_path)
+    assert store.load_profile(tmp_path).education == []
+
+
+def test_sin_fichero_de_contacto_el_perfil_no_tiene_contacto_ni_titular(tmp_path: Path):
+    perfil = store.load_profile(tmp_path)
+    assert perfil.name == ""
+    assert perfil.contact == []
+    assert perfil.headline == Bilingual(es="", en="")
+
+
+def test_guardar_y_cargar_contacto_hace_ida_y_vuelta(tmp_path: Path):
+    lineas = ["+34 600 000 000", "tu@email.com", "Valladolid"]
+    titular = Bilingual(es="Ingeniero Informático", en="Computer Engineer")
+    store.save_contact(tmp_path, "Daniel Vega", titular, lineas)
+    perfil = store.load_profile(tmp_path)
+    assert perfil.name == "Daniel Vega"
+    assert perfil.contact == lineas
+    assert perfil.headline == titular
+
+
+def test_un_titular_viejo_sin_es_en_se_aplica_a_los_dos_idiomas(tmp_path: Path):
+    """`headline` era un texto plano antes de hacerse bilingüe — un perfil
+    real guardado con el formato viejo tiene que seguir cargando, con ese
+    mismo texto en los dos idiomas hasta que el usuario lo separe a mano."""
+    (tmp_path / "contact.yaml").write_text("headline: Ingeniero Informático\n", encoding="utf-8")
+    perfil = store.load_profile(tmp_path)
+    assert perfil.headline == Bilingual(es="Ingeniero Informático", en="Ingeniero Informático")
+
+
+def test_sin_foto_el_perfil_no_tiene_foto(tmp_path: Path):
+    assert store.load_profile(tmp_path).photo == ""
+    assert store.photo_path(tmp_path) is None
+
+
+def test_guardar_y_cargar_foto_hace_ida_y_vuelta(tmp_path: Path):
+    store.save_photo(tmp_path, "foto.png", b"contenido-de-imagen-falso")
+    perfil = store.load_profile(tmp_path)
+    assert perfil.photo == "photo.png"
+    assert store.photo_path(tmp_path) == tmp_path / "photo.png"
+    assert (tmp_path / "photo.png").read_bytes() == b"contenido-de-imagen-falso"
+
+
+def test_subir_una_foto_nueva_reemplaza_la_anterior_aunque_cambie_la_extension(tmp_path: Path):
+    store.save_photo(tmp_path, "foto.jpg", b"version-jpg")
+    store.save_photo(tmp_path, "foto.png", b"version-png")
+
+    perfil = store.load_profile(tmp_path)
+    assert perfil.photo == "photo.png"
+    assert not (tmp_path / "photo.jpg").exists()
+
+
+def test_guardar_una_foto_con_formato_no_admitido_da_error(tmp_path: Path):
+    with pytest.raises(ProfileError):
+        store.save_photo(tmp_path, "foto.gif", b"contenido")
+
+
+def test_borrar_foto_sin_que_exista_no_falla(tmp_path: Path):
+    store.delete_photo(tmp_path)
+    assert store.load_profile(tmp_path).photo == ""
 
 
 # --------------------------------------------------------------------------

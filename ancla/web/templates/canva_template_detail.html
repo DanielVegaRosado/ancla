@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block titulo %}{{ plantilla.name[idioma] }} · Ancla{% endblock %}
+{% block contenido %}
+  <p><a href="{{ url_for('ancla.canva_templates') }}">← {{ _('Plantillas') }}</a></p>
+  <h1>{{ plantilla.name[idioma] }}</h1>
+  <embed
+    class="visor-pdf"
+    src="{{ url_for('ancla.canva_template_file', id=plantilla.id) }}"
+    type="application/pdf"
+  >
+{% endblock %}

@@ -9,7 +9,10 @@ copied, backed up, and carried over to another computer.
       skills/*.yaml
       personal-skills/*.yaml
       languages/*.yaml
+      education/*.yaml
       about-me.yaml
+      contact.yaml
+      photo.<jpg|png|webp>
       cvs/*.yaml
       cvs/attachments/
 
@@ -50,7 +53,7 @@ from flask_babel import gettext as _
 
 from ancla.profile import serialization, zip_safety
 from ancla.profile.errors import ProfileError
-from ancla.profile.model import AboutMe, Experience, Profile, Skill, SpokenLanguage
+from ancla.profile.model import AboutMe, Bilingual, Education, Experience, Profile, Skill, SpokenLanguage
 
 # A zip can claim a huge uncompressed size while staying small on disk (zip
 # bomb). This bounds what a restored backup is allowed to expand to.
@@ -89,8 +92,15 @@ CARPETA_EXPERIENCIA = "experience"
 CARPETA_SKILLS = "skills"
 CARPETA_SKILLS_PERSONALES = "personal-skills"
 CARPETA_IDIOMAS = "languages"
+CARPETA_EDUCACION = "education"
 CARPETA_CVS = "cvs"
 FICHERO_SOBRE_MI = "about-me.yaml"
+FICHERO_CONTACTO = "contact.yaml"
+# Any extension under this stem is "the" profile photo — a single file, not
+# a folder of ids like experience/skills, so the extension the user
+# actually uploaded (jpg, png...) is preserved instead of forcing a convert.
+NOMBRE_FOTO = "photo"
+EXTENSIONES_FOTO = (".jpg", ".jpeg", ".png", ".webp")
 
 EXTENSIONES = (".yaml", ".yml")
 
@@ -108,6 +118,7 @@ def load_profile(root: Path) -> Profile:
     """Loads the full profile. A missing folder yields an empty Profile,
     not an error: that is the normal state the first time the app is opened."""
     root = Path(root)
+    nombre, titular, lineas_contacto = _contact_from(root / FICHERO_CONTACTO)
     return Profile(
         experiences=[
             serialization.parse_experience(_read(ruta), ruta.stem, ruta.name)
@@ -125,7 +136,15 @@ def load_profile(root: Path) -> Profile:
             serialization.parse_language(_read(ruta), ruta.stem, ruta.name)
             for ruta in _files(root / CARPETA_IDIOMAS)
         ],
+        education=[
+            serialization.parse_education(_read(ruta), ruta.stem, ruta.name)
+            for ruta in _files(root / CARPETA_EDUCACION)
+        ],
         about_me=_about_me_from(root / FICHERO_SOBRE_MI),
+        name=nombre,
+        contact=lineas_contacto,
+        headline=titular,
+        photo=_photo_filename(root),
     )
 
 
@@ -134,6 +153,21 @@ def _about_me_from(ruta: Path) -> AboutMe | None:
     if not ruta.is_file():
         return None
     return serialization.parse_about_me(_read(ruta), ruta.name)
+
+
+def _contact_from(ruta: Path) -> tuple[str, Bilingual[str], list[str]]:
+    """No file means no name, no headline, and no contact lines yet — same
+    "not present is not an error" rule as everything else here."""
+    if not ruta.is_file():
+        return "", Bilingual(es="", en=""), []
+    return serialization.parse_contact(_read(ruta), ruta.name)
+
+
+def _photo_filename(root: Path) -> str:
+    """The profile photo's filename, whatever its extension — `photo_path`
+    resolves it against `root` when something actually needs the file."""
+    ruta = photo_path(root)
+    return ruta.name if ruta is not None else ""
 
 
 def _files(carpeta: Path) -> list[Path]:
@@ -199,8 +233,46 @@ def save_language(root: Path, idioma: SpokenLanguage) -> None:
     write_yaml(language_path(root, idioma.id), serialization.dump_language(idioma))
 
 
+def save_education(root: Path, educacion: Education) -> None:
+    """Writes (or overwrites) `education/<id>.yaml`."""
+    write_yaml(education_path(root, educacion.id), serialization.dump_education(educacion))
+
+
 def save_about_me(root: Path, sobre_mi: AboutMe) -> None:
     write_yaml(about_me_path(root), serialization.dump_about_me(sobre_mi))
+
+
+def save_contact(root: Path, name: str, headline: Bilingual[str], lineas: list[str]) -> None:
+    write_yaml(contact_path(root), serialization.dump_contact(name, headline, lineas))
+
+
+def save_photo(root: Path, filename: str, contenido: bytes) -> None:
+    """Replaces the profile photo. Only one can exist at a time: any
+    previous `photo.*` is removed first so a re-upload in a different
+    format (jpg -> png) does not leave two files behind."""
+    extension = Path(filename).suffix.lower()
+    if extension not in EXTENSIONES_FOTO:
+        raise ProfileError(
+            _(
+                "«%(nombre)s» no es un formato de foto admitido. Usa JPG, PNG o WEBP.",
+                nombre=filename,
+            )
+        )
+    delete_photo(root)
+    ruta = Path(root) / f"{NOMBRE_FOTO}{extension}"
+    ruta.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        ruta.write_bytes(contenido)
+    except OSError as exc:
+        raise ProfileError(
+            _("No se pudo guardar la foto: %(detalle)s.", detalle=exc.strerror)
+        ) from exc
+
+
+def delete_photo(root: Path) -> None:
+    existente = photo_path(root)
+    if existente is not None:
+        _delete(existente)
 
 
 def delete_experience(root: Path, id: str) -> None:
@@ -220,6 +292,10 @@ def delete_language(root: Path, id: str) -> None:
     _delete(language_path(root, id))
 
 
+def delete_education(root: Path, id: str) -> None:
+    _delete(education_path(root, id))
+
+
 def delete_all_experiences(root: Path) -> None:
     """Deletes every file in `experience/`. A whole-section action, not a
     one-by-one loop — same "not present is not a failure" logic."""
@@ -236,6 +312,10 @@ def delete_all_personal_skills(root: Path) -> None:
 
 def delete_all_languages(root: Path) -> None:
     _delete_folder(Path(root) / CARPETA_IDIOMAS)
+
+
+def delete_all_education(root: Path) -> None:
+    _delete_folder(Path(root) / CARPETA_EDUCACION)
 
 
 def _delete_folder(carpeta: Path) -> None:
@@ -321,8 +401,27 @@ def language_path(root: Path, id: str) -> Path:
     return _path(Path(root) / CARPETA_IDIOMAS, id)
 
 
+def education_path(root: Path, id: str) -> Path:
+    return _path(Path(root) / CARPETA_EDUCACION, id)
+
+
 def about_me_path(root: Path) -> Path:
     return Path(root) / FICHERO_SOBRE_MI
+
+
+def contact_path(root: Path) -> Path:
+    return Path(root) / FICHERO_CONTACTO
+
+
+def photo_path(root: Path) -> Path | None:
+    """The profile photo's actual path, whatever its extension — `None` if
+    none was ever uploaded."""
+    root = Path(root)
+    for extension in EXTENSIONES_FOTO:
+        candidata = root / f"{NOMBRE_FOTO}{extension}"
+        if candidata.is_file():
+            return candidata
+    return None
 
 
 def _path(carpeta: Path, id: str) -> Path:

@@ -10,6 +10,7 @@ from ancla.profile import validation
 from ancla.profile.model import (
     AboutMe,
     Bilingual,
+    Education,
     Experience,
     Profile,
     Skill,
@@ -52,6 +53,16 @@ def _idioma(**cambios) -> SpokenLanguage:
         keywords=["advanced english"],
     )
     return SpokenLanguage(**{**base, **cambios})
+
+
+def _educacion(**cambios) -> Education:
+    base = dict(
+        id="grado",
+        title=Bilingual(es="Grado en Ingeniería Informática", en="BSc in Computer Engineering"),
+        institution=Bilingual(es="UEMC", en="UEMC"),
+        period=Bilingual(es="2023 — 2027", en="2023 — 2027"),
+    )
+    return Education(**{**base, **cambios})
 
 
 def _sobre_mi(es: str = PLANTILLA, en: str = PLANTILLA) -> AboutMe:
@@ -276,6 +287,22 @@ def test_avisa_de_un_idioma_sin_palabras_clave():
     idioma = _idioma(keywords=[])
     problemas = validation.validate_language(idioma)
     assert any("hueco" in problema for problema in problemas)
+
+
+def test_una_educacion_completa_no_tiene_ningun_problema():
+    assert validation.validate_education(_educacion()) == []
+
+
+def test_detecta_que_falta_el_centro_de_una_educacion():
+    educacion = _educacion(institution=Bilingual(es="UEMC", en=""))
+    problemas = validation.validate_education(educacion)
+    assert any("centro" in problema and "inglés" in problema for problema in problemas)
+
+
+def test_una_educacion_no_necesita_palabras_clave():
+    """A diferencia de skills/idiomas: la educación nunca se compara contra
+    los huecos de una vacante, así que no necesita keywords."""
+    assert validation.validate_education(_educacion()) == []
 
 
 def test_un_perfil_sin_skills_personales_ni_idiomas_es_valido():

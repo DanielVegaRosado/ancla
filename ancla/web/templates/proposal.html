@@ -14,9 +14,27 @@
     <button type="button" class="boton" data-copiar="copia-todo-md">{{ _('Copiar todo (con motivos, Markdown)') }}</button>
   </div>
   <p class="ayuda">
-    {{ _('¿Aún no tienes tu CV en Canva?') }}
-    <a href="{{ url_for('ancla.canva_templates') }}">{{ _('Empieza desde una plantilla →') }}</a>
+    {{ _('¿Todavía no tienes un diseño para tu CV?') }}
+    <a href="{{ url_for('ancla.canva_templates') }}">{{ _('Mira las plantillas de partida →') }}</a>
   </p>
+
+  <!-- Exportar a plantilla .docx (Camino A) -->
+  <section class="tarjeta">
+    <h2>{{ _('Descargar CV maquetado (.docx)') }}</h2>
+    {% if plantillas_docx %}
+      <form class="en-linea" method="post" action="{{ url_for('ancla.export_proposal') }}">
+        <select name="plantilla_id">
+          {% for plantilla in plantillas_docx %}
+            <option value="{{ plantilla.id }}">{{ plantilla.name[propuesta.language] }} ({{ plantilla.capacity_experiences }} {{ _('experiencias') }})</option>
+          {% endfor %}
+        </select>
+        <button type="submit" class="boton boton-primario">{{ _('Descargar .docx') }}</button>
+      </form>
+      <p class="ayuda">{{ _('El documento se rellena tal cual: sin IA, sin tocar tus textos ni el diseño de la plantilla.') }}</p>
+    {% else %}
+      <p class="ayuda">{{ _('Todavía no hay ninguna plantilla .docx en «docx-templates/».') }}</p>
+    {% endif %}
+  </section>
 
   <!-- Sobre mí -->
   <section class="tarjeta">

@@ -36,7 +36,7 @@ def dump_cv(cv: SavedCV) -> dict[str, Any]:
         "company": cv.company,
         "position": cv.position,
         "status": cv.status.value,
-        "attachment": cv.attachment or "",
+        "attachments": list(cv.attachments),
         "notes": cv.notes,
         "posting": cv.posting,
         "proposal": _dump_proposal(cv.proposal),
@@ -53,7 +53,7 @@ def parse_cv(datos: dict[str, Any], id: str) -> SavedCV:
         position=to_text(datos.get("position")),
         posting=to_text(datos.get("posting")),
         status=_parse_status(datos.get("status")),
-        attachment=to_text(datos.get("attachment")) or None,
+        attachments=_parse_attachments(datos),
         notes=to_text(datos.get("notes")),
         proposal=_parse_proposal(_as_dict(datos.get("proposal"))),
     )
@@ -135,6 +135,17 @@ def _parse_time(valor: Any) -> time | None:
         except ValueError:
             return None
     return valor
+
+
+def _parse_attachments(datos: dict[str, Any]) -> list[str]:
+    """`attachments` (a list) replaced the old single `attachment` field —
+    a CV saved before that change still has just the one, and reads fine
+    as a one-item list until the CV is saved again."""
+    lista = datos.get("attachments")
+    if isinstance(lista, list):
+        return [nombre for nombre in to_texts(lista) if nombre]
+    antiguo = to_text(datos.get("attachment"))
+    return [antiguo] if antiguo else []
 
 
 def _parse_status(valor: Any) -> CVStatus:

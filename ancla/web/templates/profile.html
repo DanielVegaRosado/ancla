@@ -31,6 +31,10 @@
         <span class="bento-cifra">{{ perfil.languages|length }}</span>
         <span class="bento-etiqueta">{{ _('Idiomas') }}</span>
       </a>
+      <a class="bento-tarjeta" href="#educacion">
+        <span class="bento-cifra">{{ perfil.education|length }}</span>
+        <span class="bento-etiqueta">{{ _('Educación') }}</span>
+      </a>
     </div>
   {% endif %}
 
@@ -53,6 +57,50 @@
     {% endif %}
   </section>
 
+  <div class="dos-columnas">
+    <section class="tarjeta">
+      <div class="fila-tarjeta">
+        <div>
+          <h2>{{ _('Contacto') }}</h2>
+          <p class="ayuda">{{ _('Tu nombre, titulación/rol, teléfono, email, ciudad, LinkedIn... Se muestra siempre completo.') }}</p>
+        </div>
+        <div class="acciones">
+          <a class="boton" href="{{ url_for('ancla.edit_contact') }}">
+            {{ _("Editar") if (perfil.name or perfil.contact or perfil.headline.es or perfil.headline.en) else _("Añadir contacto") }}
+          </a>
+        </div>
+      </div>
+      {% if perfil.name %}
+        <p><strong>{{ perfil.name }}</strong></p>
+      {% endif %}
+      {% if perfil.headline.es or perfil.headline.en %}
+        <p>{{ perfil.headline.es or perfil.headline.en }}</p>
+      {% endif %}
+      {% if perfil.contact %}
+        <div class="bloque-texto">{{ perfil.contact|join('\n') }}</div>
+      {% elif not perfil.name %}
+        <p class="vacio">{{ _('Todavía no has añadido tu contacto.') }}</p>
+      {% endif %}
+    </section>
+
+    <section class="tarjeta">
+      <h2>{{ _('Foto de perfil') }}</h2>
+      <p class="ayuda">{{ _('Opcional. Si la subes, aparece en las plantillas .docx que tengan sitio para una foto.') }}</p>
+      {% if perfil.photo %}
+        <img src="{{ url_for('ancla.photo_file') }}" alt="{{ _('Foto de perfil') }}" style="max-width: 8rem; border-radius: 50%; display: block; margin-bottom: 0.75rem;">
+      {% endif %}
+      <form class="en-linea" method="post" action="{{ url_for('ancla.upload_photo') }}" enctype="multipart/form-data">
+        <input type="file" name="foto" accept=".jpg,.jpeg,.png,.webp" required>
+        <button type="submit" class="boton boton-pequeno">{{ _('Subir') if not perfil.photo else _('Reemplazar') }}</button>
+      </form>
+      {% if perfil.photo %}
+        <form class="en-linea" method="post" action="{{ url_for('ancla.delete_photo') }}" data-confirmar="{{ _('¿Borrar la foto de perfil?') }}">
+          <button type="submit" class="boton boton-pequeno boton-peligro">{{ _('Borrar foto') }}</button>
+        </form>
+      {% endif %}
+    </section>
+  </div>
+
   <p class="ayuda">
     {{ _('Arrastra el asa') }} <span aria-hidden="true">⠿</span> {{ _('de cada panel para cambiar el orden en el que se ven aquí abajo. Se recuerda para la próxima vez.') }}
   </p>
@@ -63,6 +111,7 @@
       "skills": "_section_skills.html",
       "skills_personales": "_section_personal_skills.html",
       "idiomas": "_section_languages.html",
+      "educacion": "_section_education.html",
     } %}
     {% for clave in orden_perfil %}
       {% include plantillas_panel[clave] %}

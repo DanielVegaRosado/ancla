@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block titulo %}{{ _('Contacto') }} · Ancla{% endblock %}
+{% block contenido %}
+  <h1>{{ _('Contacto') }}</h1>
+  <p class="ayuda">
+    {{ _('La titulación/rol se muestra en el idioma del CV que generes. Las líneas de contacto (teléfono, email, ciudad, LinkedIn...) no son bilingües: se leen igual en cualquier idioma y se muestran siempre completas, igual que idiomas o skills personales.') }}
+  </p>
+
+  <form class="pila" method="post">
+    <div class="campo">
+      <label for="nombre">{{ _('Tu nombre') }}</label>
+      <input type="text" id="nombre" name="nombre" placeholder="{{ _('Nombre Apellido') }}" value="{{ nombre or '' }}">
+      <p class="ayuda">{{ _('Rellena el campo «nombre» al exportar tu propuesta a una plantilla .docx.') }}</p>
+    </div>
+    <div class="campo">
+      <label for="titular_es">{{ _('Titulación o rol (ES)') }}</label>
+      <input type="text" id="titular_es" name="titular_es" placeholder="Ingeniero Informático" value="{{ titular['es'] if titular else '' }}">
+    </div>
+    <div class="campo">
+      <label for="titular_en">{{ _('Titulación o rol (EN)') }}</label>
+      <input type="text" id="titular_en" name="titular_en" placeholder="Computer Engineer" value="{{ titular['en'] if titular else '' }}">
+      <p class="ayuda">{{ _('La línea que va justo debajo de tu nombre en el CV.') }}</p>
+    </div>
+    <div class="campo">
+      <label for="lineas">{{ _('Líneas de contacto') }}</label>
+      <textarea id="lineas" name="lineas" class="alta" placeholder="+34 600 000 000&#10;tu@email.com&#10;Ciudad, País&#10;linkedin.com/in/tu-usuario">{{ contacto|lista_a_lineas }}</textarea>
+    </div>
+
+    <div class="barra-acciones">
+      <button type="submit" class="boton-primario">{{ _('Guardar') }}</button>
+      <a class="boton" href="{{ url_for('ancla.view_profile') }}">{{ _('Cancelar') }}</a>
+    </div>
+  </form>
+{% endblock %}

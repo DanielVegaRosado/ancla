@@ -334,7 +334,7 @@ def test_terminos_identifica_al_autor_y_da_contacto(cliente_web):
 
 def test_terminos_menciona_la_licencia_sin_garantia(cliente_web):
     respuesta = cliente_web.get("/terminos")
-    assert "licencia MIT".encode("utf-8") in respuesta.data
+    assert "licencia AGPL-3.0".encode("utf-8") in respuesta.data
     assert "tal cual".encode("utf-8") in respuesta.data
 
 

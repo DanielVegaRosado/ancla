@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block titulo %}{{ _('Exportar CV') }} · Ancla{% endblock %}
+{% block contenido %}
+  <h1>{{ _('Esta plantilla no tiene sitio para todas') }}</h1>
+  <p class="ayuda">
+    {{ _('«%(plantilla)s» tiene sitio para %(capacidad)s experiencias y la propuesta tiene %(total)s.',
+         plantilla=plantilla.name[idioma], capacidad=plantilla.capacity_experiences, total=incluidas|length + excluidas|length) }}
+  </p>
+
+  <section class="tarjeta">
+    <h2>{{ _('Se quedarían fuera') }}</h2>
+    {% for seleccionada, experiencia in excluidas %}
+      <div class="tarjeta">
+        <h3>{{ experiencia.title[idioma] }} · {{ experiencia.period[idioma] }}</h3>
+        {% if seleccionada.reason %}<p class="motivo">{{ _('Motivo:') }} {{ seleccionada.reason }}</p>{% endif %}
+      </div>
+    {% endfor %}
+  </section>
+
+  <div class="dos-columnas">
+    <form method="post" action="{{ accion_exportar }}">
+      <input type="hidden" name="plantilla_id" value="{{ plantilla.id }}">
+      <input type="hidden" name="desbordamiento" value="relevantes">
+      <button type="submit" class="boton-primario">{{ _('Quedarme solo con las más relevantes') }}</button>
+    </form>
+    <form method="post" action="{{ accion_exportar }}">
+      <input type="hidden" name="plantilla_id" value="{{ plantilla.id }}">
+      <input type="hidden" name="desbordamiento" value="todas">
+      <button type="submit" class="boton">{{ _('Incluirlas todas (varias páginas)') }}</button>
+    </form>
+  </div>
+
+  <p class="ayuda"><a href="{{ volver }}">{{ _('← Volver') }}</a></p>
+{% endblock %}

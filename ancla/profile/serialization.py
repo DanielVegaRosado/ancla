@@ -26,7 +26,7 @@ import yaml
 from flask_babel import gettext as _
 
 from ancla.profile.errors import ProfileError
-from ancla.profile.model import AboutMe, Bilingual, Experience, Skill, SpokenLanguage
+from ancla.profile.model import AboutMe, Bilingual, Education, Experience, Skill, SpokenLanguage
 
 
 # --------------------------------------------------------------------------
@@ -123,8 +123,25 @@ def parse_language(datos: dict[str, Any], id: str, origen: str) -> SpokenLanguag
     )
 
 
+def parse_education(datos: dict[str, Any], id: str, origen: str) -> Education:
+    return Education(
+        id=id,
+        title=_bilingual_text(datos, "title", origen),
+        institution=_bilingual_text(datos, "institution", origen),
+        period=_bilingual_text(datos, "period", origen),
+    )
+
+
 def parse_about_me(datos: dict[str, Any], origen: str) -> AboutMe:
     return AboutMe(template=_bilingual_text(datos, "template", origen))
+
+
+def parse_contact(datos: dict[str, Any], origen: str) -> tuple[str, Bilingual[str], list[str]]:
+    return (
+        _text(datos.get("name")),
+        _bilingual_text(datos, "headline", origen),
+        _as_list(datos.get("lines"), "lines", None, origen),
+    )
 
 
 # --------------------------------------------------------------------------
@@ -162,8 +179,20 @@ def dump_language(idioma: SpokenLanguage) -> dict[str, Any]:
     }
 
 
+def dump_education(educacion: Education) -> dict[str, Any]:
+    return {
+        "title": _dump_bilingual(educacion.title),
+        "institution": _dump_bilingual(educacion.institution),
+        "period": _dump_bilingual(educacion.period),
+    }
+
+
 def dump_about_me(sobre_mi: AboutMe) -> dict[str, Any]:
     return {"template": _dump_bilingual(sobre_mi.template)}
+
+
+def dump_contact(name: str, headline: Bilingual[str], lineas: list[str]) -> dict[str, Any]:
+    return {"name": name, "headline": _dump_bilingual(headline), "lines": [_text(linea) for linea in lineas]}
 
 
 # --------------------------------------------------------------------------

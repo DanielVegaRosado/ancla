@@ -27,10 +27,10 @@ PROVEEDORES = ("groq", "openai", "anthropic", "mistral", "openrouter", "personal
 # is fixed.
 PROVEEDORES_CON_MODELO = ("openai", "anthropic", "mistral", "openrouter", "personalizado")
 
-# The four "My profile" sections the user can reorder by dragging. "About
-# me" is not here: it is the profile's template, not a catalog, and always
-# comes first.
-SECCIONES_PERFIL = ("experiencias", "skills", "skills_personales", "idiomas")
+# The "My profile" sections the user can reorder by dragging. "About me"
+# and "Contact" are not here: they are single fixed blocks, not catalogs,
+# and always come first, right after the summary counters.
+SECCIONES_PERFIL = ("experiencias", "skills", "skills_personales", "idiomas", "educacion")
 
 IDIOMA_POR_DEFECTO = "es"
 # Manual selector in the header, never auto-detection: the preference is

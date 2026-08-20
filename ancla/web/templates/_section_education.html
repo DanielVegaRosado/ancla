@@ -1,0 +1,42 @@
+<section class="tarjeta panel-perfil" id="educacion" data-panel-arrastrable data-clave="educacion">
+  <div class="fila-tarjeta">
+    <div class="titulo-panel">
+      <span class="manija-arrastrar" title="{{ _('Arrastrar para reordenar') }}" aria-hidden="true">⠿</span>
+      <div>
+        <h2>{{ _('Educación') }} ({{ perfil.education|length }})</h2>
+        <p class="ayuda">{{ _('Siempre completa en la Propuesta y al exportar a .docx, sin selección de IA.') }}</p>
+      </div>
+    </div>
+    <div class="acciones">
+      <a class="boton boton-primario" href="{{ url_for('ancla.new_education') }}">{{ _('Añadir educación') }}</a>
+      {% if perfil.education %}
+        <form class="en-linea" method="post" action="{{ url_for('ancla.delete_all_education') }}" data-confirmar="{{ _('¿Borrar TODAS las %(cantidad)s entradas de educación? Esta acción no se puede deshacer.', cantidad=perfil.education|length) }}">
+          <button type="submit" class="boton boton-pequeno boton-peligro">{{ _('Borrar todas') }}</button>
+        </form>
+      {% endif %}
+    </div>
+  </div>
+
+  {% if perfil.education %}
+    <div class="lista-tarjetas">
+      {% for educacion in perfil.education %}
+        <div class="tarjeta">
+          <div class="fila-tarjeta">
+            <div>
+              <h3>{{ educacion.title["es"] }}</h3>
+              <p class="ayuda">{{ educacion.institution["es"] }} · {{ educacion.period["es"] }} · id: {{ educacion.id }}</p>
+            </div>
+            <div class="acciones">
+              <a class="boton boton-pequeno" href="{{ url_for('ancla.edit_education', id_=educacion.id) }}">{{ _('Editar') }}</a>
+              <form class="en-linea" method="post" action="{{ url_for('ancla.delete_education', id_=educacion.id) }}" data-confirmar="{{ _('¿Borrar «%(titulo)s»? Esta acción no se puede deshacer.', titulo=educacion.title['es']) }}">
+                <button type="submit" class="boton-pequeno boton-peligro">{{ _('Borrar') }}</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p class="vacio">{{ _('Todavía no has añadido ninguna educación.') }}</p>
+  {% endif %}
+</section>

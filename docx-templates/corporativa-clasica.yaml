@@ -1,0 +1,26 @@
+nombre:
+  es: Corporativa Clásica
+  en: Classic Corporate
+capacidad_experiencias: 5
+geometria:
+  ancho_columna: 306.8352
+  ancho_columna_titulo: 230.0352
+  alto_pagina: 841.92
+  margen_inferior_seguridad: 35.0
+  altura_hasta_experiencia: 115.5
+  altura_tras_experiencia: 0.0
+  tamano_nombre_primero: 22.5
+  tamano_nombre_resto: 0.0
+  tamano_titular: 10.5
+  tamano_texto_antes_experiencia: 10.5
+  linea_texto_antes_experiencia: 1.35
+  tamano_texto_tras_experiencia: 0.0
+  linea_texto_tras_experiencia: 0.0
+  tamano_titulo: 10.5
+  tamano_cuerpo: 9.5
+  tamano_stack: 9.0
+  espacio_titulo: 8.0
+  espacio_bullet: 1.5
+  linea_bullet: 1.1
+  calibracion: 1.09
+  fuente: Aileron

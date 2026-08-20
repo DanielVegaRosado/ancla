@@ -9,6 +9,7 @@ from flask import flash, redirect, render_template, request, url_for
 from flask_babel import gettext as _
 
 from ancla.ai.client import AIError
+from ancla.export import templates as plantillas_docx
 from ancla.profile.model import (
     N_EXPERIENCES,
     N_SKILLS,
@@ -71,6 +72,7 @@ def view_proposal():
         texto_plano=to_text(propuesta, perfil),
         texto_markdown=to_markdown(propuesta, perfil),
         hoy=date.today().isoformat(),
+        plantillas_docx=plantillas_docx.list_templates(context.docx_templates_root()),
     )
 
 

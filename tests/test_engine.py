@@ -340,6 +340,36 @@ def test_completa_desde_el_perfil_y_lo_dice_en_el_motivo():
     assert completadas[0].id == "pipeline-datos"
 
 
+def test_completa_por_el_stack_aunque_no_tenga_keywords():
+    """An experience with no `keywords` filled in must still be able to
+    surface in the fallback ranking through its own tech stack — before
+    this, `_matches` only looked at `keywords`, so an experience without
+    any stayed invisible to the fallback no matter how clearly its stack
+    matched the posting."""
+
+    def _sin_keywords(id_: str, stack: str) -> Experience:
+        return Experience(
+            id=id_,
+            title=Bilingual(es="Proyecto", en="Project"),
+            period=Bilingual(es="2025", en="2025"),
+            bullets=Bilingual(es=["Bullet original"], en=["Original bullet"]),
+            stack=Bilingual(es=stack, en=stack),
+            keywords=[],
+        )
+
+    perfil = _perfil()
+    perfil = Profile(
+        experiences=[
+            _sin_keywords("cluster-k8s", "Kubernetes"),  # "Kubernetes" is a requisito in VACANTE
+            _sin_keywords("app-movil", "Swift"),  # matches nothing in VACANTE
+        ],
+        skills=perfil.skills,
+        about_me=perfil.about_me,
+    )
+    propuesta, _ = _adaptar(_respuesta(experiencias=[]), perfil=perfil, n_experiencias=1)
+    assert propuesta.experiences[0].id == "cluster-k8s"
+
+
 def test_al_completar_skills_lo_avisa_en_el_motivo():
     propuesta, _ = _adaptar(_respuesta(skills=["python"]), n_skills=9)
     assert len(propuesta.skills) == 9
@@ -386,6 +416,21 @@ def test_descarta_un_hueco_de_idioma_redactado_en_prosa():
     respuesta = _respuesta(huecos=["Kubernetes", "Nivel avanzado de inglés"])
     propuesta, _ = _adaptar(respuesta, perfil=perfil)
     assert propuesta.gaps == ["Kubernetes"]
+
+
+def test_un_hueco_no_se_descarta_por_una_coincidencia_de_subcadena():
+    """A short skill name like "R" must not match as a substring of an
+    unrelated word — that would silently hide a real gap from the user.
+    Plain `in` would find "r" inside "Terraform" and wrongly clear it."""
+    perfil = _perfil()
+    perfil = Profile(
+        experiences=perfil.experiences,
+        skills=[*perfil.skills, Skill(id="r", name=Bilingual(es="R", en="R"), keywords=["R"])],
+        about_me=perfil.about_me,
+    )
+    respuesta = _respuesta(huecos=["Kubernetes", "Terraform"])
+    propuesta, _ = _adaptar(respuesta, perfil=perfil)
+    assert propuesta.gaps == ["Kubernetes", "Terraform"]
 
 
 def test_descarta_un_hueco_de_skill_personal_por_nombre():

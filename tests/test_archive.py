@@ -1,6 +1,7 @@
 """Tests for the CV archive, the Groq client, and support."""
 from __future__ import annotations
 
+import dataclasses
 from datetime import date, time
 from pathlib import Path
 
@@ -152,14 +153,94 @@ def test_cambiar_estado_no_toca_el_resto(tmp_path: Path):
 
 def test_adjuntar_copia_el_archivo_sea_del_formato_que_sea(tmp_path: Path):
     repository.save(tmp_path, _cv())
-    origen = tmp_path / "CV_final.docx"
+    origen = tmp_path / "temporal"
     origen.write_bytes(b"contenido")
 
-    destino = repository.attach(tmp_path, _cv().id, origen)
+    destino = repository.attach(tmp_path, _cv().id, origen, "CV_final.docx")
 
     assert destino.exists() and destino.suffix == ".docx"
     assert origen.exists(), "el original del usuario no se mueve ni se borra"
-    assert repository.list_all(tmp_path)[0].attachment == destino.name
+    assert repository.list_all(tmp_path)[0].attachments == [destino.name]
+
+
+def test_adjuntar_varias_veces_no_sobrescribe_las_anteriores(tmp_path: Path):
+    repository.save(tmp_path, _cv())
+    origen = tmp_path / "temporal"
+
+    origen.write_bytes(b"corporativa")
+    repository.attach(tmp_path, _cv().id, origen, "corporativa.docx")
+    origen.write_bytes(b"minimalista")
+    repository.attach(tmp_path, _cv().id, origen, "minimalista.pdf")
+
+    adjuntos = repository.list_all(tmp_path)[0].attachments
+    assert len(adjuntos) == 2
+    assert adjuntos[0] != adjuntos[1]
+
+
+def test_adjuntar_el_mismo_nombre_dos_veces_no_colisiona(tmp_path: Path):
+    repository.save(tmp_path, _cv())
+    origen = tmp_path / "temporal"
+    origen.write_bytes(b"contenido")
+
+    repository.attach(tmp_path, _cv().id, origen, "cv.pdf")
+    repository.attach(tmp_path, _cv().id, origen, "cv.pdf")
+
+    adjuntos = repository.list_all(tmp_path)[0].attachments
+    assert len(adjuntos) == 2
+    assert len(set(adjuntos)) == 2
+
+
+def test_attachment_path_devuelve_none_sin_adjunto(tmp_path: Path):
+    repository.save(tmp_path, _cv())
+    cv = repository.list_all(tmp_path)[0]
+    assert repository.attachment_path(tmp_path, cv, "cv.pdf") is None
+
+
+def test_attachment_path_apunta_al_archivo_ya_copiado(tmp_path: Path):
+    repository.save(tmp_path, _cv())
+    origen = tmp_path / "temporal"
+    origen.write_bytes(b"contenido")
+    repository.attach(tmp_path, _cv().id, origen, "CV_final.docx")
+
+    cv = repository.list_all(tmp_path)[0]
+    ruta = repository.attachment_path(tmp_path, cv, cv.attachments[0])
+
+    assert ruta is not None
+    assert ruta.read_bytes() == b"contenido"
+
+
+def test_attachment_path_no_sirve_un_nombre_que_no_es_adjunto_de_ese_cv(tmp_path: Path):
+    """Guarda contra servir un fichero cualquiera de la carpeta compartida
+    de adjuntos, aunque el nombre exista de verdad en disco (adjunto de
+    otro CV)."""
+    repository.save(tmp_path, _cv())
+    origen = tmp_path / "temporal"
+    origen.write_bytes(b"contenido")
+    destino = repository.attach(tmp_path, _cv().id, origen, "cv.pdf")
+
+    otro_cv = dataclasses.replace(_cv(), id="otro-cv")
+    assert repository.attachment_path(tmp_path, otro_cv, destino.name) is None
+
+
+def test_borrar_un_adjunto_deja_los_demas(tmp_path: Path):
+    repository.save(tmp_path, _cv())
+    origen = tmp_path / "temporal"
+    origen.write_bytes(b"contenido")
+    a = repository.attach(tmp_path, _cv().id, origen, "corporativa.docx")
+    b = repository.attach(tmp_path, _cv().id, origen, "minimalista.pdf")
+
+    repository.remove_attachment(tmp_path, _cv().id, a.name)
+
+    cv = repository.list_all(tmp_path)[0]
+    assert cv.attachments == [b.name]
+    assert not a.exists()
+    assert b.exists()
+
+
+def test_borrar_un_adjunto_que_no_existe_no_da_error(tmp_path: Path):
+    repository.save(tmp_path, _cv())
+    repository.remove_attachment(tmp_path, _cv().id, "no-existe.pdf")
+    assert repository.list_all(tmp_path)[0].attachments == []
 
 
 def test_un_id_con_travesia_de_rutas_no_escribe_fuera_del_perfil(tmp_path: Path):

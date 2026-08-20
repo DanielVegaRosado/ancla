@@ -18,11 +18,11 @@
   <form class="pila" method="post">
     <div class="campo">
       <label for="plantilla_es">{{ _('Plantilla (ES)') }}</label>
-      <textarea id="plantilla_es" name="plantilla_es" class="alta" required>{{ sobre_mi.plantilla["es"] if sobre_mi else "" }}</textarea>
+      <textarea id="plantilla_es" name="plantilla_es" class="alta" required>{{ sobre_mi.template["es"] if sobre_mi else "" }}</textarea>
     </div>
     <div class="campo">
       <label for="plantilla_en">{{ _('Plantilla (EN)') }}</label>
-      <textarea id="plantilla_en" name="plantilla_en" class="alta" required>{{ sobre_mi.plantilla["en"] if sobre_mi else "" }}</textarea>
+      <textarea id="plantilla_en" name="plantilla_en" class="alta" required>{{ sobre_mi.template["en"] if sobre_mi else "" }}</textarea>
     </div>
 
     <div class="barra-acciones">

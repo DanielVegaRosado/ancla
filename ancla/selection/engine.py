@@ -26,6 +26,7 @@ model falls short it is topped up from the profile, never by inventing.
 from __future__ import annotations
 
 import json
+import re
 from typing import Any
 
 from flask_babel import gettext as _
@@ -217,7 +218,8 @@ def _id_and_reason(elemento: Any) -> tuple[str, str]:
 
 
 def _by_relevance(elementos: list[Any], vacante: str) -> list[Any]:
-    """Deterministic ordering by keyword overlap with the job posting.
+    """Deterministic ordering by how many of an item's `_candidate_phrases`
+    (keywords, plus its own title/stack or name) show up in the job posting.
 
     Only used to top up whatever the model did not choose. Not meant to be
     clever: meant to be explainable and to not spend another call.
@@ -230,13 +232,46 @@ def _by_relevance(elementos: list[Any], vacante: str) -> list[Any]:
     return [elemento for _, elemento in ordenados]
 
 
+def _contains_phrase(texto: str, frase: str) -> bool:
+    """Whether `frase` appears in `texto` as a whole word or phrase, not
+    merely as a substring of a longer, unrelated word. Plain `in` would
+    treat a short skill name like "R" or "C" as present inside almost any
+    text, silently producing a false match."""
+    if not frase:
+        return False
+    return re.search(rf"\b{re.escape(frase)}\b", texto) is not None
+
+
+def _candidate_phrases(elemento: Experience | Skill) -> list[str]:
+    """Phrases worth checking against the job posting, beyond the explicit
+    `keywords` list — which the user may not have filled in at all. An
+    experience's own tech stack, or a skill's own name, are real relevance
+    signals in themselves; without them, an item with no `keywords` set can
+    never surface here even when it is clearly on topic.
+
+    The title is deliberately left out: it is prose ("Backend Engineer at
+    Nubelia"), and checking it as one whole phrase would only match a
+    posting that quotes it verbatim, while checking it word by word would
+    let stopwords ("de", "en", "y"...) count as false relevance signals —
+    both against this module's own "explainable, not clever" rule.
+    """
+    frases = list(elemento.keywords)
+    if isinstance(elemento, Experience):
+        frases.extend(elemento.stack["es"].split(","))
+        frases.extend(elemento.stack["en"].split(","))
+    else:
+        frases.append(elemento.name["es"])
+        frases.append(elemento.name["en"])
+    return list(dict.fromkeys(frase.strip() for frase in frases if frase.strip()))
+
+
 def _matches(
     elemento: Experience | Skill, vacante_normalizada: str
 ) -> list[str]:
     return [
-        palabra
-        for palabra in elemento.keywords
-        if normalize(palabra) and normalize(palabra) in vacante_normalizada
+        frase
+        for frase in _candidate_phrases(elemento)
+        if normalize(frase) and _contains_phrase(vacante_normalizada, normalize(frase))
     ]
 
 
@@ -405,6 +440,6 @@ def _gap_covered(hueco: str, perfil: Profile) -> bool:
 
 def _name_or_keyword_in(clave: str, nombre: Bilingual[str], keywords: list[str]) -> bool:
     nombres = (normalize(nombre["es"]), normalize(nombre["en"]))
-    if any(n and (n in clave or clave in n) for n in nombres):
+    if any(n and (_contains_phrase(clave, n) or _contains_phrase(n, clave)) for n in nombres):
         return True
-    return any(kw.strip() and normalize(kw) in clave for kw in keywords)
+    return any(kw.strip() and _contains_phrase(clave, normalize(kw)) for kw in keywords)

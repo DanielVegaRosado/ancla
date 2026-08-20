@@ -23,6 +23,8 @@ from flask_babel import gettext as _
 from ancla.web.routes import data_root
 
 RAIZ_PERFIL_POR_DEFECTO = data_root() / "perfil"
+RAIZ_PLANTILLAS_DOCX_POR_DEFECTO = data_root() / "docx-templates"
+RAIZ_PLANTILLAS_CANVA_POR_DEFECTO = data_root() / "canva-templates"
 # Caps any single upload (CV import, profile zip restore). Flask enforces
 # this before the view even runs, so it protects the shared Render demo
 # from a stranger exhausting memory with an oversized request body.
@@ -39,6 +41,8 @@ def create_app(
     raiz_perfil: Path | None = None,
     settings_path: Path | None = None,
     demo_mode: bool | None = None,
+    docx_templates_root: Path | None = None,
+    canva_templates_root: Path | None = None,
 ) -> Flask:
     from ancla.profile.errors import ProfileError
     from ancla.profile.model import LANGUAGES
@@ -46,7 +50,7 @@ def create_app(
     from ancla.web import context
     from ancla.web import views  # noqa: F401 — registers the routes on bp when imported
     from ancla.web.blueprint import bp
-    from ancla.web.presentation import ETIQUETAS_ESTADO
+    from ancla.web.presentation import etiquetas_estado
     from ancla.web.util import list_to_csv, list_to_lines
 
     app = Flask(__name__)
@@ -54,6 +58,8 @@ def create_app(
     app.config["MAX_CONTENT_LENGTH"] = TAMANO_MAXIMO_SUBIDA
     app.config["RAIZ_PERFIL"] = raiz_perfil or RAIZ_PERFIL_POR_DEFECTO
     app.config["RUTA_AJUSTES"] = settings_path or modulo_ajustes.RUTA_POR_DEFECTO
+    app.config["RAIZ_PLANTILLAS_DOCX"] = docx_templates_root or RAIZ_PLANTILLAS_DOCX_POR_DEFECTO
+    app.config["RAIZ_PLANTILLAS_CANVA"] = canva_templates_root or RAIZ_PLANTILLAS_CANVA_POR_DEFECTO
     app.config["MODO_DEMO"] = MODO_DEMO_POR_DEFECTO if demo_mode is None else demo_mode
     app.config["LANGUAGES"] = modulo_ajustes.IDIOMAS_INTERFAZ
     app.config["BABEL_DEFAULT_LOCALE"] = modulo_ajustes.IDIOMA_POR_DEFECTO
@@ -78,7 +84,7 @@ def create_app(
     def _inject_globals():
         return {
             "idiomas": LANGUAGES,
-            "etiquetas_estado": ETIQUETAS_ESTADO,
+            "etiquetas_estado": etiquetas_estado(),
             "modo_demo": app.config["MODO_DEMO"],
         }
 

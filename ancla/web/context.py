@@ -26,6 +26,14 @@ def settings_path() -> Path:
     return current_app.config["RUTA_AJUSTES"]
 
 
+def docx_templates_root() -> Path:
+    return current_app.config["RAIZ_PLANTILLAS_DOCX"]
+
+
+def canva_templates_root() -> Path:
+    return current_app.config["RAIZ_PLANTILLAS_CANVA"]
+
+
 def demo_mode() -> bool:
     return current_app.config["MODO_DEMO"]
 
