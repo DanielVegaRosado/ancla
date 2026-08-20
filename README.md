@@ -21,6 +21,8 @@ a minute. For your own data, run it locally (see below) or use the desktop app.
 - Fills a ready-made template for you. Pick one of the [built-in
   designs](canva-templates/README.md) and download a finished `.docx`,
   already laid out — no copy-pasting into another tool.
+- **Your whole profile in one file.** Download it as a `.zip` from Settings
+  any time — a backup, or a way to move to another computer.
 - **Free and open source, and it stays that way.** Your data never leaves your
   computer, no accounts, no cloud. Future paid features (the kind that need a
   server, like conversational support) will be optional additions — never a
@@ -57,6 +59,7 @@ it's ready (see *Desktop app* below). It's still work in progress today.
 | Import from an existing CV (PDF/Word) | ✅ |
 | Fill a `.docx` template with the proposal | ✅ |
 | Support and template gallery | ✅ |
+| Profile backup (download as `.zip`) | ✅ |
 | Sample profile to try the app with | ✅ |
 | Multiple AI providers (Groq, OpenAI, Anthropic, Mistral, OpenRouter, custom) | ✅ |
 
@@ -146,6 +149,9 @@ version once v1.1 itself is done.
   instead of leaving it entirely to the model's judgement.
 - Log the real feedback from each company (what stage you were rejected at, what
   they told you) so the system can suggest concrete improvements to your profile.
+- Restore a profile from a `.zip` backup. The download side is done (see
+  *Status* above); restoring needs its own confirmation screen first, since
+  it replaces whatever profile is already on that computer.
 
 ## Development
 
@@ -159,7 +165,8 @@ python run.py  # serves the web app at http://127.0.0.1:5000
 
 Work in progress: a single executable (no installer) that opens the app in its own
 window instead of a browser tab, using [pywebview](https://pywebview.flowrl.com/).
-The current icon is a placeholder, pending the final design.
+No release has been published yet — `.github/workflows/build-desktop.yml` builds
+both a `.exe` and a `.app` when a `v*` tag is pushed.
 
 ```bash
 pip install -r requirements-desktop.txt
