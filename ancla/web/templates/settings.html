@@ -59,6 +59,16 @@
     </div>
   </form>
 
+  {% if not modo_demo %}
+  <section class="tarjeta">
+    <h2>{{ _('Copia de seguridad') }}</h2>
+    <p class="ayuda">
+      {{ _('Descarga todo tu perfil (experiencias, skills, idiomas, foto y adjuntos) en un único archivo .zip — para guardarlo como copia de seguridad o llevarlo a otro ordenador.') }}
+    </p>
+    <a class="boton" href="{{ url_for('ancla.export_profile_zip') }}">{{ _('Descargar copia de seguridad (.zip)') }}</a>
+  </section>
+  {% endif %}
+
   <section class="tarjeta" data-mostrar-si-proveedor="groq">
     <h2>{{ _('Límite diario del nivel gratuito de Groq') }}</h2>
     <p class="ayuda">

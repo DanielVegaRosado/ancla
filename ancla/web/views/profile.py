@@ -1,7 +1,10 @@
 """My profile screen: editing experiences, skills, and the About me template."""
 from __future__ import annotations
 
-from flask import abort, flash, jsonify, redirect, render_template, request, send_file, url_for
+import tempfile
+from pathlib import Path
+
+from flask import Response, abort, flash, jsonify, redirect, render_template, request, send_file, url_for
 from flask_babel import gettext as _
 
 from ancla.profile import store, keywords, validation
@@ -502,3 +505,22 @@ def edit_about_me():
     store.save_about_me(context.root(), sobre_mi)
     flash(_("Plantilla de «Sobre mí» guardada."))
     return redirect(url_for("ancla.view_profile"))
+
+
+@bp.route("/perfil/exportar-zip")
+def export_profile_zip():
+    """Downloads the whole profile folder (attachments included) as a
+    single .zip, for backup or moving to another computer. Built in a
+    temp file (`export_zip` needs a real path to write atomically) and
+    streamed as bytes, the same pattern as the .docx export in `export.py`
+    — a `send_file` on the temp path would race its own cleanup, since the
+    response isn't actually sent until after this function returns.
+    """
+    with tempfile.TemporaryDirectory() as carpeta_temporal:
+        ruta_zip = store.export_zip(context.root(), Path(carpeta_temporal) / "ancla-perfil.zip")
+        datos = ruta_zip.read_bytes()
+    return Response(
+        datos,
+        mimetype="application/zip",
+        headers={"Content-Disposition": 'attachment; filename="ancla-perfil.zip"'},
+    )
