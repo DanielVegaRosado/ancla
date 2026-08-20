@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-08-19 17:33+0200\n"
+"POT-Creation-Date: 2026-08-20 10:14+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1852,7 +1852,7 @@ msgstr ""
 msgid "Crea una cuenta gratis en console.groq.com"
 msgstr ""
 
-#: ancla/web/templates/settings.html:26 ancla/web/templates/settings.html:73
+#: ancla/web/templates/settings.html:26 ancla/web/templates/settings.html:83
 msgid "Clave de API"
 msgstr ""
 
@@ -1894,28 +1894,43 @@ msgstr ""
 msgid "Guardar ajustes"
 msgstr ""
 
-#: ancla/web/templates/settings.html:63
+#: ancla/web/templates/settings.html:64
+msgid "Copia de seguridad"
+msgstr ""
+
+#: ancla/web/templates/settings.html:66
+msgid ""
+"Descarga todo tu perfil (experiencias, skills, idiomas, foto y adjuntos) "
+"en un único archivo .zip, para guardarlo como copia de seguridad o "
+"llevarlo a otro ordenador."
+msgstr ""
+
+#: ancla/web/templates/settings.html:68
+msgid "Descargar copia de seguridad (.zip)"
+msgstr ""
+
+#: ancla/web/templates/settings.html:73
 msgid "Límite diario del nivel gratuito de Groq"
 msgstr ""
 
-#: ancla/web/templates/settings.html:65
+#: ancla/web/templates/settings.html:75
 msgid ""
 "El nivel gratuito de Groq permite 30 peticiones por minuto, 1.000 "
 "peticiones al día, 8.000 tokens por minuto y"
 msgstr ""
 
-#: ancla/web/templates/settings.html:66
+#: ancla/web/templates/settings.html:76
 msgid "200.000 tokens al día"
 msgstr ""
 
-#: ancla/web/templates/settings.html:66
+#: ancla/web/templates/settings.html:76
 msgid ""
 "Cada adaptación o importación de CV es una sola petición, pero puede "
 "gastar varios miles de tokens, así que el límite que más se nota con uso "
 "normal es el diario, no el de cada minuto."
 msgstr ""
 
-#: ancla/web/templates/settings.html:69
+#: ancla/web/templates/settings.html:79
 msgid ""
 "Si ves el aviso \"Has agotado la cuota gratuita de Groq\", casi siempre "
 "es este límite diario. Groq no indica cuánto queda exactamente, y se "
@@ -1923,7 +1938,7 @@ msgid ""
 "bastante más que unos minutos en volver a funcionar."
 msgstr ""
 
-#: ancla/web/templates/settings.html:72
+#: ancla/web/templates/settings.html:82
 msgid ""
 "Como cada cuenta de Groq gratuita tiene su propio límite independiente, "
 "una forma sencilla de no quedarte nunca sin margen es crear una segunda "
@@ -1931,7 +1946,7 @@ msgid ""
 "la que tienes puesta aquí, pega la otra en"
 msgstr ""
 
-#: ancla/web/templates/settings.html:73
+#: ancla/web/templates/settings.html:83
 msgid "y sigue trabajando mientras la primera se recupera."
 msgstr ""
 
@@ -2230,198 +2245,198 @@ msgstr ""
 msgid "Importación descartada. No se ha guardado nada."
 msgstr ""
 
-#: ancla/web/views/profile.py:64
+#: ancla/web/views/profile.py:67
 #, python-format
 msgid "Ya existe una experiencia con el identificador «%(id)s»."
 msgstr ""
 
-#: ancla/web/views/profile.py:73
+#: ancla/web/views/profile.py:76
 #, python-format
 msgid "Experiencia «%(titulo)s» guardada."
 msgstr ""
 
-#: ancla/web/views/profile.py:81
+#: ancla/web/views/profile.py:84
 #, python-format
 msgid "No existe la experiencia «%(id)s»."
 msgstr ""
 
-#: ancla/web/views/profile.py:93
+#: ancla/web/views/profile.py:96
 #, python-format
 msgid "Experiencia «%(titulo)s» actualizada."
 msgstr ""
 
-#: ancla/web/views/profile.py:100
+#: ancla/web/views/profile.py:103
 msgid "Experiencia borrada."
 msgstr ""
 
-#: ancla/web/views/profile.py:108
+#: ancla/web/views/profile.py:111
 #, python-format
 msgid "%(cantidad)s experiencia(s) borradas."
 msgstr ""
 
-#: ancla/web/views/profile.py:108
+#: ancla/web/views/profile.py:111
 msgid "No había ninguna experiencia que borrar."
 msgstr ""
 
-#: ancla/web/views/profile.py:128
+#: ancla/web/views/profile.py:131
 msgid ""
 "Configura tu clave de API en Ajustes para que la IA te proponga keywords."
 " Mientras tanto, escríbelas a mano."
 msgstr ""
 
-#: ancla/web/views/profile.py:137
+#: ancla/web/views/profile.py:140
 msgid "No se pudo contactar con el proveedor."
 msgstr ""
 
-#: ancla/web/views/profile.py:174
+#: ancla/web/views/profile.py:177
 #, python-format
 msgid "Ya existe una skill con el identificador «%(id)s»."
 msgstr ""
 
-#: ancla/web/views/profile.py:183
+#: ancla/web/views/profile.py:186
 #, python-format
 msgid "Skill «%(nombre)s» guardada."
 msgstr ""
 
-#: ancla/web/views/profile.py:191
+#: ancla/web/views/profile.py:194
 #, python-format
 msgid "No existe la skill «%(id)s»."
 msgstr ""
 
-#: ancla/web/views/profile.py:203
+#: ancla/web/views/profile.py:206
 #, python-format
 msgid "Skill «%(nombre)s» actualizada."
 msgstr ""
 
-#: ancla/web/views/profile.py:210
+#: ancla/web/views/profile.py:213
 msgid "Skill borrada."
 msgstr ""
 
-#: ancla/web/views/profile.py:218
+#: ancla/web/views/profile.py:221
 #, python-format
 msgid "%(cantidad)s skill(s) borradas."
 msgstr ""
 
-#: ancla/web/views/profile.py:218
+#: ancla/web/views/profile.py:221
 msgid "No había ninguna skill que borrar."
 msgstr ""
 
-#: ancla/web/views/profile.py:236
+#: ancla/web/views/profile.py:239
 #, python-format
 msgid "Ya existe una skill personal con el identificador «%(id)s»."
 msgstr ""
 
-#: ancla/web/views/profile.py:245
+#: ancla/web/views/profile.py:248
 #, python-format
 msgid "Skill personal «%(nombre)s» guardada."
 msgstr ""
 
-#: ancla/web/views/profile.py:253
+#: ancla/web/views/profile.py:256
 #, python-format
 msgid "No existe la skill personal «%(id)s»."
 msgstr ""
 
-#: ancla/web/views/profile.py:265
+#: ancla/web/views/profile.py:268
 #, python-format
 msgid "Skill personal «%(nombre)s» actualizada."
 msgstr ""
 
-#: ancla/web/views/profile.py:272
+#: ancla/web/views/profile.py:275
 msgid "Skill personal borrada."
 msgstr ""
 
-#: ancla/web/views/profile.py:281
+#: ancla/web/views/profile.py:284
 #, python-format
 msgid "%(cantidad)s skill(s) personal(es) borradas."
 msgstr ""
 
-#: ancla/web/views/profile.py:283
+#: ancla/web/views/profile.py:286
 msgid "No había ninguna skill personal que borrar."
 msgstr ""
 
-#: ancla/web/views/profile.py:311
+#: ancla/web/views/profile.py:314
 #, python-format
 msgid "Ya existe un idioma con el identificador «%(id)s»."
 msgstr ""
 
-#: ancla/web/views/profile.py:320
+#: ancla/web/views/profile.py:323
 #, python-format
 msgid "Idioma «%(nombre)s» guardado."
 msgstr ""
 
-#: ancla/web/views/profile.py:328
+#: ancla/web/views/profile.py:331
 #, python-format
 msgid "No existe el idioma «%(id)s»."
 msgstr ""
 
-#: ancla/web/views/profile.py:340
+#: ancla/web/views/profile.py:343
 #, python-format
 msgid "Idioma «%(nombre)s» actualizado."
 msgstr ""
 
-#: ancla/web/views/profile.py:347
+#: ancla/web/views/profile.py:350
 msgid "Idioma borrado."
 msgstr ""
 
-#: ancla/web/views/profile.py:355
+#: ancla/web/views/profile.py:358
 #, python-format
 msgid "%(cantidad)s idioma(s) borrados."
 msgstr ""
 
-#: ancla/web/views/profile.py:355
+#: ancla/web/views/profile.py:358
 msgid "No había ningún idioma que borrar."
 msgstr ""
 
-#: ancla/web/views/profile.py:383
+#: ancla/web/views/profile.py:386
 #, python-format
 msgid "Ya existe una educación con el identificador «%(id)s»."
 msgstr ""
 
-#: ancla/web/views/profile.py:392
+#: ancla/web/views/profile.py:395
 #, python-format
 msgid "Educación «%(titulo)s» guardada."
 msgstr ""
 
-#: ancla/web/views/profile.py:400
+#: ancla/web/views/profile.py:403
 #, python-format
 msgid "No existe la educación «%(id)s»."
 msgstr ""
 
-#: ancla/web/views/profile.py:412
+#: ancla/web/views/profile.py:415
 #, python-format
 msgid "Educación «%(titulo)s» actualizada."
 msgstr ""
 
-#: ancla/web/views/profile.py:419
+#: ancla/web/views/profile.py:422
 msgid "Educación borrada."
 msgstr ""
 
-#: ancla/web/views/profile.py:427
+#: ancla/web/views/profile.py:430
 #, python-format
 msgid "%(cantidad)s educación(es) borradas."
 msgstr ""
 
-#: ancla/web/views/profile.py:427
+#: ancla/web/views/profile.py:430
 msgid "No había ninguna educación que borrar."
 msgstr ""
 
-#: ancla/web/views/profile.py:453
+#: ancla/web/views/profile.py:456
 msgid "Contacto guardado."
 msgstr ""
 
-#: ancla/web/views/profile.py:467
+#: ancla/web/views/profile.py:470
 msgid "No se ha seleccionado ninguna foto."
 msgstr ""
 
-#: ancla/web/views/profile.py:471
+#: ancla/web/views/profile.py:474
 msgid "Foto de perfil guardada."
 msgstr ""
 
-#: ancla/web/views/profile.py:478
+#: ancla/web/views/profile.py:481
 msgid "Foto de perfil borrada."
 msgstr ""
 
-#: ancla/web/views/profile.py:503
+#: ancla/web/views/profile.py:506
 msgid "Plantilla de «Sobre mí» guardada."
 msgstr ""
 
