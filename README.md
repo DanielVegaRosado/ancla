@@ -18,8 +18,13 @@ a minute. For your own data, run it locally (see below) or use the desktop app.
 - Uses **your own AI key**. Groq has a free tier, and several paid providers
   (OpenAI, Anthropic, Mistral, OpenRouter, or any other with a compatible API) are
   also supported.
-- Gives you the text. The design stays yours (Canva or any other tool). If you don't
-  have a CV design yet, there are [two starting templates](canva-templates/README.md).
+- Fills a ready-made template for you. Pick one of the [built-in
+  designs](canva-templates/README.md) and download a finished `.docx`,
+  already laid out — no copy-pasting into another tool.
+- **Free and open source, and it stays that way.** Your data never leaves your
+  computer, no accounts, no cloud. Future paid features (the kind that need a
+  server, like conversational support) will be optional additions — never a
+  limit on what's free today.
 
 ## Getting started
 
@@ -33,8 +38,9 @@ a minute. For your own data, run it locally (see below) or use the desktop app.
 6. Fill in your profile, either by hand under "My profile" or by importing an
    existing CV (PDF or Word) and reviewing what it finds before saving it.
 7. Paste a job posting under "Adapt" and generate the proposal.
-8. Copy the result into Canva or any other tool to lay it out. The app gives you
-   the content, not the finished PDF.
+8. Pick a template and export it: a ready-made `.docx` downloads, already
+   filled in and laid out. Open it in Word, LibreOffice or Google Docs and
+   export to PDF from there — Ancla doesn't generate the PDF itself.
 
 If you'd rather not touch a terminal, the desktop version skips steps 2 to 4 once
 it's ready (see *Desktop app* below). It's still work in progress today.
@@ -49,7 +55,8 @@ it's ready (see *Desktop app* below). It's still work in progress today.
 | Web interface (bilingual ES/EN) | ✅ |
 | CV archive | ✅ |
 | Import from an existing CV (PDF/Word) | ✅ |
-| Support and templates | ✅ |
+| Fill a `.docx` template with the proposal | ✅ |
+| Support and template gallery | ✅ |
 | Sample profile to try the app with | ✅ |
 | Multiple AI providers (Groq, OpenAI, Anthropic, Mistral, OpenRouter, custom) | ✅ |
 
@@ -62,14 +69,15 @@ try the app without writing their whole profile first.
 ## What this app guarantees
 
 1. "Never invents" isn't a marketing promise. It's open source, so you can read
-   `seleccion/motor.py` yourself and confirm that an ID missing from your profile is
+   `ancla/selection/engine.py` yourself and confirm that an ID missing from your profile is
    discarded no matter what the model returns.
 2. An explicit reason behind every choice, not just a score.
 3. Zero account, zero cloud. Also verifiable by reading the code, not a line like
    "securely synced to the cloud."
 4. Free, no paywall, using your own key. Groq's free tier costs nothing to start with.
-5. Doesn't compete on templates. It leaves that to Canva and focuses only on the
-   selection problem.
+5. Doesn't design a layout from scratch. It fills one of the [built-in
+   `.docx` templates](canva-templates/README.md), never composing a page itself.
+   Using your own template isn't supported yet.
 
 ## What criteria the AI follows
 
@@ -77,7 +85,7 @@ There are two moments where an AI model makes decisions, and both follow the sam
 principle: **the guarantee comes from the code, not from an instruction the model
 could ignore.**
 
-### Adapting your profile to a job posting (`seleccion/`)
+### Adapting your profile to a job posting (`ancla/selection/`)
 
 The model only returns *IDs* from your catalogue, never new text, so whatever ends
 up on your CV is, literally, something you wrote yourself. Rules:
@@ -93,7 +101,7 @@ up on your CV is, literally, something you wrote yourself. Rules:
 5. Given several candidate experience entries, it prioritises ones covering
    **different** requirements over repeating the same tech stack.
 
-### Importing an existing CV (`perfil/importador.py`)
+### Importing an existing CV (`ancla/profile/importer.py`)
 
 Here the risk isn't the model inventing a gap: it's **over-paraphrasing** while
 reading your CV (turning "collaborated with the team" into "led a team of 5"). The
@@ -138,7 +146,6 @@ version once v1.1 itself is done.
   instead of leaving it entirely to the model's judgement.
 - Log the real feedback from each company (what stage you were rejected at, what
   they told you) so the system can suggest concrete improvements to your profile.
-- Edit the CV proposal directly inside the app.
 
 ## Development
 
@@ -167,4 +174,7 @@ builds both at once in the cloud (one per OS) when triggered manually or when a
 
 ## License
 
-MIT
+AGPL-3.0. If you run a modified version of Ancla as a network service, you
+must make your changes available to its users — the same guarantee that
+stops anyone from taking this code, closing it, and competing with it in
+secret.
