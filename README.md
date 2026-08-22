@@ -44,8 +44,8 @@ a minute. For your own data, run it locally (see below) or use the desktop app.
    filled in and laid out. Open it in Word, LibreOffice or Google Docs and
    export to PDF from there — Ancla doesn't generate the PDF itself.
 
-If you'd rather not touch a terminal, the desktop version skips steps 2 to 4 once
-it's ready (see *Desktop app* below). It's still work in progress today.
+If you'd rather not touch a terminal, the desktop version skips steps 2 to 4 —
+see *Desktop app* below for a ready-to-run download.
 
 ## Status (v1)
 
@@ -163,10 +163,15 @@ python run.py  # serves the web app at http://127.0.0.1:5000
 
 ## Desktop app
 
-Work in progress: a single executable (no installer) that opens the app in its own
-window instead of a browser tab, using [pywebview](https://pywebview.flowrl.com/).
-No release has been published yet — `.github/workflows/build-desktop.yml` builds
-both a `.exe` and a `.app` when a `v*` tag is pushed.
+A single executable (no installer) that opens the app in its own window instead
+of a browser tab, using [pywebview](https://pywebview.flowrl.com/). Grab the
+latest build from [Releases](../../releases/latest): `Ancla.exe` for Windows,
+`Ancla-macOS.zip` for macOS. Neither is code-signed, so Windows and macOS will
+warn you the first time you open it — that's expected, not a sign anything's
+wrong; click through ("more info" → "run anyway" on Windows, right-click →
+open on macOS).
+
+Prefer to build it yourself?
 
 ```bash
 pip install -r requirements-desktop.txt
