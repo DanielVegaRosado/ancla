@@ -4,48 +4,57 @@
 
 You keep a database of your experience and skills. For every job posting, the app
 chooses what to show and tells you why. It never writes anything you didn't write
-yourself: if the posting asks for something you don't have, it's flagged as a gap
+yourself, if the posting asks for something you don't have, it's flagged as a gap
 instead of being invented.
 
 Every adaptation is saved. Your base of facts grows, and your archive of
 applications grows with it.
 
-**[Try it online](https://ancla.onrender.com)** — no install needed, runs against a shared
+**[Try it online](https://ancla.onrender.com)** with no install at all. It runs against a shared
 example profile. Free-tier hosting spins down after inactivity, so the first load can take up to
-a minute. For your own data, run it locally (see below) or use the desktop app.
+a minute. For your own data, download the app or run it locally.
 
 - Runs **on your computer**. Your data never leaves it: no accounts, no cloud.
 - Uses **your own AI key**. Groq has a free tier, and several paid providers
   (OpenAI, Anthropic, Mistral, OpenRouter, or any other with a compatible API) are
   also supported.
 - Fills a ready-made template for you. Pick one of the [built-in
-  designs](canva-templates/README.md) and download a finished `.docx`,
-  already laid out — no copy-pasting into another tool.
-- **Your whole profile in one file.** Download it as a `.zip` from Settings
-  any time — a backup, or a way to move to another computer.
-- **Free and open source, and it stays that way.** Your data never leaves your
-  computer, no accounts, no cloud. Future paid features (the kind that need a
-  server, like conversational support) will be optional additions — never a
-  limit on what's free today.
+  designs](canva-templates/README.md) and download a finished `.docx`, already laid
+  out, so you never have to copy-paste it into another tool.
+- Your whole profile downloads as a single `.zip` from Settings, whenever you want a
+  backup or you're moving to another computer.
+- Free and open source, and it stays that way. Paid features may show up later for
+  the kind of thing that needs a server, like conversational support, but they'll be
+  additions on top. What's free today stays free.
 
 ## Getting started
 
-1. Clone this repository and open the `app/` folder.
-2. Install Python 3.11 or newer if you don't already have it.
+Two ways to run it. Pick one.
+
+**Download it** (no Python, no terminal). Grab `Ancla.exe` for Windows or
+`Ancla-macOS.zip` for macOS from [Releases](../../releases/latest) and double-click
+it. Read *Desktop app* below first: the app isn't code-signed yet, so your operating
+system will warn you the first time you open it.
+
+**Or run it from the source code**, if you'd rather:
+
+1. Install Python 3.11 or newer if you don't already have it.
+2. Clone this repository and open the `app/` folder.
 3. Install the dependencies: `pip install -r requirements.txt`.
 4. Start the app: `python run.py`. It opens on its own at `http://127.0.0.1:5000`.
-5. Go to Settings and pick an AI provider. Groq's free tier works out of the box,
+5. Optional: run the test suite with `python -m pytest tests/ -q`.
+
+Either way, once the app is open:
+
+1. Go to Settings and pick an AI provider. Groq's free tier works out of the box,
    you just need an account and a key. Paste your key, and the model name too if
    you picked a provider other than Groq.
-6. Fill in your profile, either by hand under "My profile" or by importing an
+2. Fill in your profile, either by hand under "My profile" or by importing an
    existing CV (PDF or Word) and reviewing what it finds before saving it.
-7. Paste a job posting under "Adapt" and generate the proposal.
-8. Pick a template and export it: a ready-made `.docx` downloads, already
+3. Paste a job posting under "Adapt" and generate the proposal.
+4. Pick a template and export it: a ready-made `.docx` downloads, already
    filled in and laid out. Open it in Word, LibreOffice or Google Docs and
-   export to PDF from there — Ancla doesn't generate the PDF itself.
-
-If you'd rather not touch a terminal, the desktop version skips steps 2 to 4 —
-see *Desktop app* below for a ready-to-run download.
+   export to PDF from there. Ancla doesn't generate the PDF itself.
 
 ## Status (v1)
 
@@ -153,23 +162,22 @@ version once v1.1 itself is done.
   *Status* above); restoring needs its own confirmation screen first, since
   it replaces whatever profile is already on that computer.
 
-## Development
-
-```bash
-pip install -r requirements.txt
-python -m pytest tests/ -q
-python run.py  # serves the web app at http://127.0.0.1:5000
-```
-
 ## Desktop app
 
-A single executable (no installer) that opens the app in its own window instead
-of a browser tab, using [pywebview](https://pywebview.flowrl.com/). Grab the
-latest build from [Releases](../../releases/latest): `Ancla.exe` for Windows,
-`Ancla-macOS.zip` for macOS. Neither is code-signed, so Windows and macOS will
-warn you the first time you open it — that's expected, not a sign anything's
-wrong; click through ("more info" → "run anyway" on Windows, right-click →
-open on macOS).
+The `.exe` and `.app` from *Getting started* above are built with
+[pywebview](https://pywebview.flowrl.com/), a single file, no installer, that
+opens the app in its own window instead of a browser tab.
+
+Neither is code-signed yet, so Windows and macOS will warn you the first time
+you open it. That's expected and doesn't mean anything is wrong. On the
+regular SmartScreen prompt, click through ("more
+info" → "run anyway" on Windows, right-click → open on macOS). If Windows
+blocks the app outright without offering that option, you've hit Smart App
+Control, a stricter Windows 11 feature that's on by default on new installs.
+The only way past it right now is switching it off in Settings → Privacy &
+security → Windows Security → App & browser control, and that's a one-way
+switch until Windows gets reinstalled. We've applied for free code signing
+through SignPath Foundation to fix this properly. See *Code signing* below.
 
 Prefer to build it yourself?
 
@@ -184,9 +192,28 @@ PyInstaller doesn't cross-compile for a different OS than the one running it: a
 builds both at once in the cloud (one per OS) when triggered manually or when a
 `v*` tag is pushed.
 
+### Code signing
+
+Ancla has applied to [SignPath Foundation](https://signpath.org/)'s free
+code signing program for open source projects, so the desktop builds can
+carry a real publisher signature instead of triggering SmartScreen and Smart
+App Control warnings. SignPath's terms require projects to publish a signing
+policy, so here it is.
+
+Daniel Vega Rosado is the project's sole maintainer and acts as author,
+reviewer and approver for every signing request. The desktop build makes no
+network call of its own: the only outbound request it ever sends is the one
+you trigger by adapting a job posting, straight to the AI provider and key
+you configured in Settings. Nothing about you or your usage gets collected
+or tracked. Full detail is in the in-app Terms and Conditions screen.
+
+Once approved, this line goes here: *"Code signing for Ancla is provided by
+[SignPath.io](https://signpath.io/), certificates by
+[SignPath Foundation](https://signpath.org/)."*
+
 ## License
 
 AGPL-3.0. If you run a modified version of Ancla as a network service, you
-must make your changes available to its users — the same guarantee that
+must make your changes available to its users, the same guarantee that
 stops anyone from taking this code, closing it, and competing with it in
 secret.

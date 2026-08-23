@@ -1,28 +1,29 @@
 # -*- mode: python ; coding: utf-8 -*-
-"""Empaqueta desktop.py como ejecutable único con PyInstaller.
+"""Packages desktop.py as a single executable with PyInstaller.
 
-Un solo .spec para Windows y macOS, con la diferencia real entre los dos
-sistemas resuelta con `sys.platform`, no con dos ficheros separados:
+One .spec for both Windows and macOS, with the real difference between them
+resolved through `sys.platform` rather than two separate files:
 
-- Windows: el `.exe` de `EXE(...)` YA es "el programa" — un fichero suelto,
-  doble clic y arranca. Es justo el ejecutable portable que se quiere.
-- macOS: un binario Unix suelto no es lo que alguien espera poder abrir
-  haciendo doble clic desde Finder ni lleva icono propio. Hace falta
-  envolverlo en un `.app` (con `BUNDLE(...)`) — técnicamente es una carpeta,
-  pero Finder la trata como un único icono, que es el mismo comportamiento
-  que en Windows, solo que así es como macOS lo resuelve de forma nativa.
+- Windows: the `.exe` from `EXE(...)` already is "the program", a standalone
+  file you double-click. That's exactly the portable executable we want.
+- macOS: a bare Unix binary isn't something you can double-click from Finder,
+  and it carries no icon of its own. It has to be wrapped in a `.app` via
+  `BUNDLE(...)`. Technically that's a folder, but Finder treats it as a single
+  icon, which is how macOS natively gives you the same behaviour as Windows.
 
-PyInstaller no compila cruzado: este .spec genera el .exe si se ejecuta EN
-Windows, y el .app si se ejecuta EN macOS. Ver el workflow de GitHub
-Actions (`.github/workflows/build-desktop.yml`) para compilar los dos a
-la vez, uno en cada sistema operativo.
+PyInstaller doesn't cross-compile: this .spec produces the .exe when run ON
+Windows and the .app when run ON macOS. See the GitHub Actions workflow
+(`.github/workflows/build-desktop.yml`) to build both at once, one per
+operating system.
 """
 import sys
 
-NOMBRE = "Ancla"
-CARPETA_ICONOS = "empaquetado/iconos"
-ICONO_WINDOWS = f"{CARPETA_ICONOS}/ancla.ico"
-ICONO_MACOS = f"{CARPETA_ICONOS}/ancla.icns"
+NAME = "Ancla"
+VERSION = "1.0.0"
+ICONS_FOLDER = "empaquetado/iconos"
+WINDOWS_ICON = f"{ICONS_FOLDER}/ancla.ico"
+MACOS_ICON = f"{ICONS_FOLDER}/ancla.icns"
+WINDOWS_VERSION_INFO = "empaquetado/version_info.txt"
 
 a = Analysis(
     ["desktop.py"],
@@ -33,18 +34,18 @@ a = Analysis(
         ("ancla/web/static", "ancla/web/static"),
     ],
     hiddenimports=[
-        # pywebview elige el backend según el sistema operativo en tiempo
-        # de ejecución (no con imports estáticos), y eso es precisamente lo
-        # que el análisis estático de PyInstaller puede no detectar solo.
+        # pywebview picks its backend at runtime based on the operating system,
+        # not through static imports, which is precisely what PyInstaller's
+        # static analysis can fail to detect on its own.
         "webview.platforms.winforms" if sys.platform == "win32" else "webview.platforms.cocoa",
     ],
     hookspath=[],
-    # pywebview soporta varios backends (winforms, Qt...) y elige el que
-    # toque en tiempo de ejecución, pero `hiddenimports` de arriba ya fuerza
-    # cuál usar en cada sistema. Si en el entorno de compilación hay más de
-    # unas bindings de Qt instaladas a la vez (p. ej. PyQt5 y PySide6 en un
-    # conda "base" con muchos paquetes), PyInstaller aborta el build porque
-    # no puede empaquetar las dos a la vez — y aquí no hace falta ninguna.
+    # pywebview supports several backends (winforms, Qt...) and picks one at
+    # runtime, but `hiddenimports` above already forces which one to use per
+    # system. If the build environment has more than one set of Qt bindings
+    # installed at once (say PyQt5 and PySide6 in a busy conda "base"),
+    # PyInstaller aborts the build because it can't package both, and none of
+    # them are needed here anyway.
     excludes=["PyQt5", "PyQt6", "PySide2", "PySide6"],
     noarchive=False,
 )
@@ -56,16 +57,22 @@ exe = EXE(
     a.binaries,
     a.datas,
     [],
-    name=NOMBRE if sys.platform != "darwin" else "desktop",
-    console=False,  # ventana, no consola detrás
+    name=NAME if sys.platform != "darwin" else "desktop",
+    console=False,  # a window, not a console behind it
     onefile=True,
-    icon=ICONO_WINDOWS if sys.platform == "win32" else ICONO_MACOS,
+    icon=WINDOWS_ICON if sys.platform == "win32" else MACOS_ICON,
+    # SignPath Foundation requires signed binaries to carry consistent product
+    # name and version metadata. macOS takes it from BUNDLE()'s `version` below;
+    # the PE resource only applies on Windows, since version_info.txt uses
+    # PyInstaller's Windows-only VSVersionInfo format.
+    version=WINDOWS_VERSION_INFO if sys.platform == "win32" else None,
 )
 
 if sys.platform == "darwin":
     app = BUNDLE(
         exe,
-        name=f"{NOMBRE}.app",
-        icon=ICONO_MACOS,
+        name=f"{NAME}.app",
+        icon=MACOS_ICON,
         bundle_identifier="com.danielvegarosado.ancla",
+        version=VERSION,
     )
