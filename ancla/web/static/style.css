@@ -437,6 +437,21 @@ input:focus, select:focus, textarea:focus {
   margin-top: 1rem;
 }
 
+/* Botones para marcar los huecos del «Sobre mí»: van pegados al textarea,
+   no separados como una barra de acciones, porque son parte de escribirlo. */
+.barra-huecos {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+button:disabled, .boton:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+button:disabled:hover, .boton:disabled:hover { background: var(--fondo); }
+
 form.en-linea { display: inline; }
 
 /* Insignias */

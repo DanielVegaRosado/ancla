@@ -3,10 +3,13 @@
 {% block contenido %}
   <h1>{{ _('Plantilla de «Sobre mí»') }}</h1>
   <p class="ayuda">
-    {{ _('El texto es tuyo y se copia tal cual, salvo seis huecos que rellena el sistema con nombres de skills que ya tienes:') }}
-    <code>{GRUPO_A_1}</code> {{ _('a') }} <code>{GRUPO_A_3}</code> ({{ _('conceptos o dominios') }})
-    {{ _('y') }} <code>{GRUPO_B_1}</code> {{ _('a') }} <code>{GRUPO_B_3}</code> ({{ _('lenguajes y tecnologías concretas') }}).
-    {{ _('El resto de la plantilla no cambia nunca.') }}
+    {{ _('Escribe tu «Sobre mí» con tus palabras, en español y en inglés. Luego marca seis huecos: selecciona en el texto las palabras que quieras sustituir y pulsa el botón del hueco. El sistema los rellena con nombres de skills que ya tienes, y el resto del texto no cambia nunca.') }}
+  </p>
+  <p class="ayuda">
+    {% for hueco in huecos_a %}<code>{{ hueco }}</code>{% if not loop.last %}, {% endif %}{% endfor %}
+    {{ _('se rellenan con conceptos o dominios;') }}
+    {% for hueco in huecos_b %}<code>{{ hueco }}</code>{% if not loop.last %}, {% endif %}{% endfor %}
+    {{ _('con lenguajes y tecnologías concretas. El mismo hueco recibe la misma skill en los dos idiomas, así que colócalo en el mismo sitio de la frase.') }}
   </p>
 
   {% if errors %}
@@ -15,14 +18,29 @@
     </div>
   {% endif %}
 
-  <form class="pila" method="post">
+  <form class="pila" method="post" data-sobre-mi>
+    {% for campo, idioma, etiqueta in [('plantilla_es', 'es', _('Plantilla (ES)')), ('plantilla_en', 'en', _('Plantilla (EN)'))] %}
+      <div class="campo">
+        <label for="{{ campo }}">{{ etiqueta }}</label>
+        <textarea id="{{ campo }}" name="{{ campo }}" class="alta" required>{{ sobre_mi.template[idioma] if sobre_mi else "" }}</textarea>
+        <div class="barra-huecos">
+          <span class="ayuda">{{ _('Marcar hueco:') }}</span>
+          {% for hueco in huecos_a + huecos_b %}
+            <button type="button" class="boton boton-pequeno" data-hueco="{{ hueco }}" data-destino="{{ campo }}">{{ hueco }}</button>
+          {% endfor %}
+        </div>
+      </div>
+    {% endfor %}
+
     <div class="campo">
-      <label for="plantilla_es">{{ _('Plantilla (ES)') }}</label>
-      <textarea id="plantilla_es" name="plantilla_es" class="alta" required>{{ sobre_mi.template["es"] if sobre_mi else "" }}</textarea>
-    </div>
-    <div class="campo">
-      <label for="plantilla_en">{{ _('Plantilla (EN)') }}</label>
-      <textarea id="plantilla_en" name="plantilla_en" class="alta" required>{{ sobre_mi.template["en"] if sobre_mi else "" }}</textarea>
+      <p class="ayuda">
+        {{ _('Si prefieres empezar con una propuesta, la IA puede señalar los seis huecos sobre lo que ya has escrito. Nunca reescribe tu texto: solo sustituye las palabras que señala, y lo que no encaje te lo deja a ti.') }}
+      </p>
+      <div class="barra-acciones">
+        <button type="button" class="boton" data-proponer-huecos>{{ _('Proponer huecos con IA') }}</button>
+        <button type="button" class="boton" data-deshacer-huecos hidden>{{ _('Deshacer la propuesta') }}</button>
+      </div>
+      <ul class="avisos" data-avisos-huecos hidden></ul>
     </div>
 
     <div class="barra-acciones">
@@ -30,4 +48,9 @@
       <a class="boton" href="{{ url_for('ancla.view_profile') }}">{{ _('Cancelar') }}</a>
     </div>
   </form>
+
+  <script
+    src="{{ url_for('static', filename='about_me.js') }}"
+    data-texto-fallo="{{ _('No se han podido proponer los huecos.') }}"
+  ></script>
 {% endblock %}

@@ -7,8 +7,17 @@ from pathlib import Path
 from flask import Response, abort, flash, jsonify, redirect, render_template, request, send_file, url_for
 from flask_babel import gettext as _
 
-from ancla.profile import store, keywords, validation
-from ancla.profile.model import AboutMe, Bilingual, Education, Experience, Skill, SpokenLanguage
+from ancla.ai.client import AIClient
+from ancla.profile import store, gaps, keywords, validation
+from ancla.profile.model import (
+    N_ABOUT_ME_GROUP,
+    AboutMe,
+    Bilingual,
+    Education,
+    Experience,
+    Skill,
+    SpokenLanguage,
+)
 from ancla.web import settings as modulo_ajustes
 from ancla.web import context
 from ancla.web.blueprint import bp
@@ -24,7 +33,12 @@ def home():
 @bp.route("/perfil")
 def view_profile():
     ajustes = context.current_settings()
-    return render_template("profile.html", perfil=context.current_profile(), orden_perfil=ajustes.orden_perfil)
+    return render_template(
+        "profile.html",
+        perfil=context.current_profile(),
+        orden_perfil=ajustes.orden_perfil,
+        ia_configurada=ajustes.configured(),
+    )
 
 
 @bp.route("/perfil/orden", methods=["POST"])
@@ -46,12 +60,12 @@ def _experience_from_form(id_: str) -> Experience:
     return Experience(
         id=id_,
         title=Bilingual(es=f.get("titulo_es", "").strip(), en=f.get("titulo_en", "").strip()),
-        period=Bilingual(es=f.get("periodo_es", "").strip(), en=f.get("periodo_en", "").strip()),
+        period=f.get("periodo", "").strip(),
         bullets=Bilingual(
             es=lines_to_list(f.get("bullets_es", "")),
             en=lines_to_list(f.get("bullets_en", "")),
         ),
-        stack=Bilingual(es=f.get("stack_es", "").strip(), en=f.get("stack_en", "").strip()),
+        stack=f.get("stack", "").strip(),
         keywords=csv_to_list(f.get("keywords", "")),
         status=f.get("estado", "").strip(),
     )
@@ -112,6 +126,27 @@ def delete_all_experiences():
     return redirect(url_for("ancla.view_profile"))
 
 
+def _ai_client() -> tuple[AIClient | None, str]:
+    """The provider set in Settings, or the reason there is none, written
+    for the user to read.
+
+    Both AI helpers on the profile forms are accelerators over something
+    that already works by hand, so neither of them may fail with an
+    exception: whoever is writing has to be able to carry on, and to know
+    whether the problem is their key or the provider.
+    """
+    ajustes = context.current_settings()
+    if not ajustes.configured():
+        return None, _(
+            "Configura tu clave de API en Ajustes para que la IA te eche una "
+            "mano. Mientras tanto, puedes hacerlo a mano."
+        )
+    try:
+        return create_client(ajustes.proveedor, ajustes.clave_api, ajustes.url_base, ajustes.modelo), ""
+    except Exception:
+        return None, _("No se pudo contactar con el proveedor.")
+
+
 @bp.route("/perfil/keywords", methods=["POST"])
 def suggest_keywords():
     """Suggests keywords for the skill or experience currently being written.
@@ -122,22 +157,9 @@ def suggest_keywords():
     never saved on its own.
     """
     datos = request.get_json(silent=True) or {}
-    ajustes = context.current_settings()
-    if not ajustes.configured():
-        return jsonify(
-            {
-                "keywords": [],
-                "aviso": _(
-                    "Configura tu clave de API en Ajustes para que la IA "
-                    "te proponga keywords. Mientras tanto, escríbelas a mano."
-                ),
-            }
-        )
-
-    try:
-        cliente = create_client(ajustes.proveedor, ajustes.clave_api, ajustes.url_base, ajustes.modelo)
-    except Exception:
-        return jsonify({"keywords": [], "aviso": _("No se pudo contactar con el proveedor.")})
+    cliente, motivo = _ai_client()
+    if cliente is None:
+        return jsonify({"keywords": [], "aviso": motivo})
 
     if datos.get("tipo") == "experiencia":
         sugerencia = keywords.suggest_for_experience(
@@ -371,8 +393,8 @@ def _education_from_form(id_: str) -> Education:
     return Education(
         id=id_,
         title=Bilingual(es=f.get("titulo_es", "").strip(), en=f.get("titulo_en", "").strip()),
-        institution=Bilingual(es=f.get("centro_es", "").strip(), en=f.get("centro_en", "").strip()),
-        period=Bilingual(es=f.get("periodo_es", "").strip(), en=f.get("periodo_en", "").strip()),
+        institution=f.get("centro", "").strip(),
+        period=f.get("periodo", "").strip(),
     )
 
 
@@ -490,21 +512,64 @@ def photo_file():
     return send_file(ruta)
 
 
+def _render_about_me_form(sobre_mi: AboutMe | None, errors: list[str]):
+    """The six gaps reach the screen from `AboutMe` itself, never written
+    out again here: they are typed character for character, and a help text
+    naming them differently from what the system accepts leaves the user
+    unable to save."""
+    huecos = (sobre_mi or AboutMe(template=Bilingual(es="", en=""))).gaps()
+    return render_template(
+        "about_me_form.html",
+        sobre_mi=sobre_mi,
+        errors=errors,
+        huecos_a=huecos[:N_ABOUT_ME_GROUP],
+        huecos_b=huecos[N_ABOUT_ME_GROUP:],
+    )
+
+
 @bp.route("/perfil/sobre-mi", methods=["GET", "POST"])
 def edit_about_me():
     perfil = context.current_profile()
     if request.method == "GET":
-        return render_template("about_me_form.html", sobre_mi=perfil.about_me, errors=[])
+        return _render_about_me_form(perfil.about_me, [])
 
     f = request.form
     sobre_mi = AboutMe(template=Bilingual(es=f.get("plantilla_es", ""), en=f.get("plantilla_en", "")))
     errors = validation.validate_about_me(sobre_mi)
     if errors:
-        return render_template("about_me_form.html", sobre_mi=sobre_mi, errors=errors)
+        return _render_about_me_form(sobre_mi, errors)
 
     store.save_about_me(context.root(), sobre_mi)
     flash(_("Plantilla de «Sobre mí» guardada."))
     return redirect(url_for("ancla.view_profile"))
+
+
+@bp.route("/perfil/sobre-mi/huecos", methods=["POST"])
+def suggest_about_me_gaps():
+    """Proposes where the six gaps go over the text already in the form.
+
+    Only the technical skills are passed on: personal skills and spoken
+    languages never reach a prompt. Always returns 200 with a usable
+    template — the one that came in, if nothing could be proposed — because
+    marking the gaps by hand is the way this screen is completed, and this
+    is only the accelerator on top of it.
+    """
+    datos = request.get_json(silent=True) or {}
+    sobre_mi = AboutMe(
+        template=Bilingual(es=datos.get("plantilla_es", ""), en=datos.get("plantilla_en", ""))
+    )
+    cliente, motivo = _ai_client()
+    if cliente is None:
+        return jsonify({"plantilla_es": sobre_mi.template["es"], "plantilla_en": sobre_mi.template["en"], "avisos": [motivo]})
+
+    propuesta = gaps.suggest_gaps(cliente, sobre_mi, context.current_profile().skills)
+    return jsonify(
+        {
+            "plantilla_es": propuesta.about_me.template["es"],
+            "plantilla_en": propuesta.about_me.template["en"],
+            "avisos": propuesta.avisos,
+        }
+    )
 
 
 @bp.route("/perfil/exportar-zip")
