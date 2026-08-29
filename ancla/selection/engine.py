@@ -257,8 +257,7 @@ def _candidate_phrases(elemento: Experience | Skill) -> list[str]:
     """
     frases = list(elemento.keywords)
     if isinstance(elemento, Experience):
-        frases.extend(elemento.stack["es"].split(","))
-        frases.extend(elemento.stack["en"].split(","))
+        frases.extend(elemento.stack.split(","))
     else:
         frases.append(elemento.name["es"])
         frases.append(elemento.name["en"])

@@ -32,9 +32,9 @@ def cliente_web(tmp_path: Path):
         Experience(
             id="api-pagos",
             title=Bilingual(es="API de pagos", en="Payments API"),
-            period=Bilingual(es="2025", en="2025"),
+            period="2025",
             bullets=Bilingual(es=["Bullet"], en=["Bullet"]),
-            stack=Bilingual(es="Python", en="Python"),
+            stack="Python",
         ),
     )
     store.save_skill(root, Skill(id="python", name=Bilingual(es="Python", en="Python")))

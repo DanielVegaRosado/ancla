@@ -21,8 +21,8 @@ def _educacion(id: str = "grado") -> Education:
     return Education(
         id=id,
         title=Bilingual(es="Grado en Ingeniería Informática", en="BSc in Computer Engineering"),
-        institution=Bilingual(es="UEMC", en="UEMC"),
-        period=Bilingual(es="2023 — 2027", en="2023 — 2027"),
+        institution="UEMC",
+        period="2023 — 2027",
     )
 
 
@@ -30,12 +30,12 @@ def _experiencia(id: str = "ml-telco-churn") -> Experience:
     return Experience(
         id=id,
         title=Bilingual(es="ML Developer — Telco", en="ML Developer — Telco"),
-        period=Bilingual(es="2026 - ACTUALIDAD", en="2026 - PRESENT"),
+        period="2026 - ACTUALIDAD",
         bullets=Bilingual(
             es=["Pipeline completo: diseño, pruebas y evaluación.", "Optuna, 50 iteraciones."],
             en=["Full pipeline: design, testing, evaluation", "Optuna, 50 trials"],
         ),
-        stack=Bilingual(es="Python · Scikit-Learn", en="Python · Scikit-Learn"),
+        stack="Python · Scikit-Learn",
         keywords=["machine learning", "optuna"],
         status="actualidad",
     )

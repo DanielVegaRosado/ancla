@@ -129,9 +129,9 @@ def build_context(
             {
                 "puesto": _sin_guion_no_separable(experiencia.title[idioma]),
                 "empresa": "",
-                "fechas": experiencia.period[idioma],
+                "fechas": experiencia.period,
                 "bullets": [_sin_guion_no_separable(b) for b in experiencia.bullets[idioma]],
-                "stack": _sin_guion_no_separable(experiencia.stack[idioma]),
+                "stack": _sin_guion_no_separable(experiencia.stack),
             }
             for experiencia in experiencias
         ],
@@ -143,8 +143,8 @@ def build_context(
         "educacion": [
             {
                 "titulo": _sin_guion_no_separable(entrada.title[idioma]),
-                "centro": _sin_guion_no_separable(entrada.institution[idioma]),
-                "fechas": entrada.period[idioma],
+                "centro": _sin_guion_no_separable(entrada.institution),
+                "fechas": entrada.period,
             }
             for entrada in perfil.education
         ],

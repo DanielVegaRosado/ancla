@@ -39,7 +39,7 @@ from ancla.profile.model import (
 )
 
 
-def _language_name(idioma: Language) -> str:
+def language_name(idioma: Language) -> str:
     # A function, not a module-level dict: `_()` has to be evaluated on every
     # call (the current request's language), not once at import time.
     return {"es": _("español"), "en": _("inglés")}[idioma]
@@ -64,24 +64,25 @@ def validate_experience(experiencia: Experience) -> list[str]:
             )
         )
 
+    if not experiencia.period.strip():
+        problemas.append(
+            _(
+                "%(etiqueta)s: falta el periodo (por ejemplo «2025 - ACTUALIDAD»).",
+                etiqueta=etiqueta,
+            )
+        )
+    if not experiencia.stack.strip():
+        problemas.append(
+            _(
+                "%(etiqueta)s: falta el stack (las tecnologías que usaste).",
+                etiqueta=etiqueta,
+            )
+        )
+
     for idioma in LANGUAGES:
-        nombre = _language_name(idioma)
+        nombre = language_name(idioma)
         if not experiencia.title[idioma].strip():
             problemas.append(_("%(etiqueta)s: falta el título en %(nombre)s.", etiqueta=etiqueta, nombre=nombre))
-        if not experiencia.period[idioma].strip():
-            problemas.append(
-                _(
-                    "%(etiqueta)s: falta el periodo en %(nombre)s (por ejemplo «2025 - ACTUALIDAD»).",
-                    etiqueta=etiqueta, nombre=nombre,
-                )
-            )
-        if not experiencia.stack[idioma].strip():
-            problemas.append(
-                _(
-                    "%(etiqueta)s: falta el stack en %(nombre)s (las tecnologías que usaste).",
-                    etiqueta=etiqueta, nombre=nombre,
-                )
-            )
         problemas += _bullet_problems(experiencia.bullets[idioma], etiqueta, nombre)
 
     if not experiencia.keywords:
@@ -124,7 +125,7 @@ def validate_skill(skill: Skill) -> list[str]:
     for idioma in LANGUAGES:
         if not skill.name[idioma].strip():
             problemas.append(
-                _("%(etiqueta)s: falta el nombre en %(nombre)s.", etiqueta=etiqueta, nombre=_language_name(idioma))
+                _("%(etiqueta)s: falta el nombre en %(nombre)s.", etiqueta=etiqueta, nombre=language_name(idioma))
             )
     if not skill.category.strip():
         problemas.append(
@@ -162,7 +163,7 @@ def validate_personal_skill(skill: Skill) -> list[str]:
     for idioma in LANGUAGES:
         if not skill.name[idioma].strip():
             problemas.append(
-                _("%(etiqueta)s: falta el nombre en %(nombre)s.", etiqueta=etiqueta, nombre=_language_name(idioma))
+                _("%(etiqueta)s: falta el nombre en %(nombre)s.", etiqueta=etiqueta, nombre=language_name(idioma))
             )
     if not skill.keywords:
         problemas.append(
@@ -191,7 +192,7 @@ def validate_language(idioma: SpokenLanguage) -> list[str]:
             )
         )
     for cod in LANGUAGES:
-        nombre_cod = _language_name(cod)
+        nombre_cod = language_name(cod)
         if not idioma.name[cod].strip():
             problemas.append(_("%(etiqueta)s: falta el nombre en %(nombre)s.", etiqueta=etiqueta, nombre=nombre_cod))
         if not idioma.level[cod].strip():
@@ -228,19 +229,20 @@ def validate_education(educacion: Education) -> list[str]:
                 "del fichero, por ejemplo «grado-ingenieria.yaml»."
             )
         )
+    if not educacion.institution.strip():
+        problemas.append(_("%(etiqueta)s: falta el centro.", etiqueta=etiqueta))
+    if not educacion.period.strip():
+        problemas.append(
+            _(
+                "%(etiqueta)s: falta el periodo (por ejemplo «2023 - 2027»).",
+                etiqueta=etiqueta,
+            )
+        )
+
     for idioma in LANGUAGES:
-        nombre = _language_name(idioma)
+        nombre = language_name(idioma)
         if not educacion.title[idioma].strip():
             problemas.append(_("%(etiqueta)s: falta la titulación en %(nombre)s.", etiqueta=etiqueta, nombre=nombre))
-        if not educacion.institution[idioma].strip():
-            problemas.append(_("%(etiqueta)s: falta el centro en %(nombre)s.", etiqueta=etiqueta, nombre=nombre))
-        if not educacion.period[idioma].strip():
-            problemas.append(
-                _(
-                    "%(etiqueta)s: falta el periodo en %(nombre)s (por ejemplo «2023 - 2027»).",
-                    etiqueta=etiqueta, nombre=nombre,
-                )
-            )
     return problemas
 
 
@@ -250,7 +252,7 @@ def validate_about_me(sobre_mi: AboutMe) -> list[str]:
     huecos = set(sobre_mi.gaps())
 
     for idioma in LANGUAGES:
-        nombre = _language_name(idioma)
+        nombre = language_name(idioma)
         texto = sobre_mi.template[idioma]
         if not texto.strip():
             problemas.append(_("El «Sobre mí» está vacío en %(nombre)s.", nombre=nombre))

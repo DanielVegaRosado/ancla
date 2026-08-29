@@ -109,11 +109,11 @@ def _migrate_experiences(
         experiencia = Experience(
             id=id_,
             title=_bilingual(campos, "TITULO"),
-            period=_bilingual(campos, "PERIODO"),
+            period=_single(campos, "PERIODO"),
             bullets=Bilingual(
                 es=_as_list(campos, "BULLETS_ES"), en=_as_list(campos, "BULLETS_EN")
             ),
-            stack=_bilingual(campos, "STACK"),
+            stack=_single(campos, "STACK"),
             keywords=_words(campos.get("KEYWORDS", "")),
             status=campos.get("ESTADO", "").strip(),
         )
@@ -241,6 +241,13 @@ def _bilingual(campos: dict[str, str], prefijo: str) -> Bilingual[str]:
         es=campos.get(f"{prefijo}_ES", "").strip(),
         en=campos.get(f"{prefijo}_EN", "").strip(),
     )
+
+
+def _single(campos: dict[str, str], prefijo: str) -> str:
+    """Like `_bilingual`, but for a field that stopped being bilingual
+    (`period`, `stack`): the old `.txt` format still has `_ES`/`_EN`
+    variants, so this keeps `_ES`, falling back to `_EN`."""
+    return campos.get(f"{prefijo}_ES", "").strip() or campos.get(f"{prefijo}_EN", "").strip()
 
 
 def _as_list(campos: dict[str, str], campo: str) -> list[str]:

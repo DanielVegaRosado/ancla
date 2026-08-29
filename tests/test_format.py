@@ -18,12 +18,12 @@ def _perfil() -> Profile:
     experiencia = Experience(
         id="proyecto-x",
         title=Bilingual(es="Ingeniero de Datos", en="Data Engineer"),
-        period=Bilingual(es="2023 — 2024", en="2023 — 2024"),
+        period="2023 — 2024",
         bullets=Bilingual(
             es=["Diseñé el pipeline de ingesta", "Reduje el coste un 30%"],
             en=["Designed the ingestion pipeline", "Cut cost by 30%"],
         ),
-        stack=Bilingual(es="Python, Airflow, GCP", en="Python, Airflow, GCP"),
+        stack="Python, Airflow, GCP",
     )
     skills = [
         Skill(id="python", name=Bilingual(es="Python", en="Python")),

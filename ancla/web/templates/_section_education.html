@@ -24,7 +24,7 @@
           <div class="fila-tarjeta">
             <div>
               <h3>{{ educacion.title["es"] }}</h3>
-              <p class="ayuda">{{ educacion.institution["es"] }} · {{ educacion.period["es"] }} · id: {{ educacion.id }}</p>
+              <p class="ayuda">{{ educacion.institution }} · {{ educacion.period }} · id: {{ educacion.id }}</p>
             </div>
             <div class="acciones">
               <a class="boton boton-pequeno" href="{{ url_for('ancla.edit_education', id_=educacion.id) }}">{{ _('Editar') }}</a>

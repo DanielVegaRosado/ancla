@@ -126,9 +126,9 @@ def test_una_experiencia_ya_en_el_perfil_no_se_repite_pero_las_skills_nuevas_si(
             Experience(
                 id="ml-developer",
                 title=Bilingual(es="ML Developer", en="ML Developer"),
-                period=Bilingual(es="2026 - actualidad", en="2026 - present"),
+                period="2026 - actualidad",
                 bullets=Bilingual(es=["Pipeline completo"], en=["Full pipeline"]),
-                stack=Bilingual(es="Python, Optuna", en="Python, Optuna"),
+                stack="Python, Optuna",
             )
         ],
     )

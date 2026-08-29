@@ -33,9 +33,9 @@ def _experiencia(id: str) -> Experience:
     return Experience(
         id=id,
         title=Bilingual(es=id, en=id),
-        period=Bilingual(es="2026", en="2026"),
+        period="2026",
         bullets=Bilingual(es=["algo"], en=["something"]),
-        stack=Bilingual(es="Python", en="Python"),
+        stack="Python",
         keywords=["python"],
     )
 

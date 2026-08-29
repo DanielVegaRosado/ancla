@@ -97,9 +97,9 @@ def parse_experience(datos: dict[str, Any], id: str, origen: str) -> Experience:
     return Experience(
         id=id,
         title=_bilingual_text(datos, "title", origen),
-        period=_bilingual_text(datos, "period", origen),
+        period=_plain_text(datos, "period", origen),
         bullets=_bilingual_list(datos, "bullets", origen),
-        stack=_bilingual_text(datos, "stack", origen),
+        stack=_plain_text(datos, "stack", origen),
         keywords=_keywords(datos, origen),
         status=_text(datos.get("status")),
     )
@@ -127,8 +127,8 @@ def parse_education(datos: dict[str, Any], id: str, origen: str) -> Education:
     return Education(
         id=id,
         title=_bilingual_text(datos, "title", origen),
-        institution=_bilingual_text(datos, "institution", origen),
-        period=_bilingual_text(datos, "period", origen),
+        institution=_plain_text(datos, "institution", origen),
+        period=_plain_text(datos, "period", origen),
     )
 
 
@@ -152,13 +152,13 @@ def parse_contact(datos: dict[str, Any], origen: str) -> tuple[str, Bilingual[st
 def dump_experience(experiencia: Experience) -> dict[str, Any]:
     return {
         "title": _dump_bilingual(experiencia.title),
-        "period": _dump_bilingual(experiencia.period),
+        "period": experiencia.period,
         "status": experiencia.status,
         "bullets": {
             "es": [_text(b) for b in experiencia.bullets["es"]],
             "en": [_text(b) for b in experiencia.bullets["en"]],
         },
-        "stack": _dump_bilingual(experiencia.stack),
+        "stack": experiencia.stack,
         "keywords": list(experiencia.keywords),
     }
 
@@ -182,8 +182,8 @@ def dump_language(idioma: SpokenLanguage) -> dict[str, Any]:
 def dump_education(educacion: Education) -> dict[str, Any]:
     return {
         "title": _dump_bilingual(educacion.title),
-        "institution": _dump_bilingual(educacion.institution),
-        "period": _dump_bilingual(educacion.period),
+        "institution": educacion.institution,
+        "period": educacion.period,
     }
 
 
@@ -227,6 +227,29 @@ def _bilingual_text(datos: dict[str, Any], campo: str, origen: str) -> Bilingual
             )
         )
     return Bilingual(es=_text(valor), en=_text(valor))
+
+
+def _plain_text(datos: dict[str, Any], campo: str, origen: str) -> str:
+    """Like `_bilingual_text`, but for a field that is not bilingual
+    (`period`, `stack`, `institution`). Still accepts the old `{es: ..., en:
+    ...}` shape written by a profile saved before this field stopped being
+    bilingual: it keeps `es`, falling back to `en` if `es` is empty, rather
+    than raising over a file nobody asked to rewrite."""
+    valor = datos.get(campo)
+    if valor is None:
+        return ""
+    if isinstance(valor, dict):
+        return _text(valor.get("es")) or _text(valor.get("en"))
+    if isinstance(valor, (list, tuple)):
+        raise ProfileError(
+            _(
+                "En «%(origen)s», el campo «%(campo)s» es una lista y debería ser un "
+                "texto.",
+                origen=origen,
+                campo=campo,
+            )
+        )
+    return _text(valor)
 
 
 def _bilingual_list(

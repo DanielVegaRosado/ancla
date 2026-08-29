@@ -139,13 +139,13 @@
           {% if experiencia %}
             <textarea id="copia-experiencia-{{ loop.index0 }}" hidden>{{ texto_bloque }}</textarea>
             <div class="cabecera-bloque">
-              <h3>{{ experiencia.title[propuesta.language] }} · {{ experiencia.period[propuesta.language] }}</h3>
+              <h3>{{ experiencia.title[propuesta.language] }} · {{ experiencia.period }}</h3>
               <button type="button" class="boton boton-pequeno" data-copiar="copia-experiencia-{{ loop.index0 }}">{{ _('Copiar') }}</button>
             </div>
             <ul>
               {% for bullet in experiencia.bullets[propuesta.language] %}<li>{{ bullet }}</li>{% endfor %}
             </ul>
-            <p class="ayuda">{{ experiencia.stack[propuesta.language] }}</p>
+            <p class="ayuda">{{ experiencia.stack }}</p>
           {% else %}
             <p class="vacio">{{ _('«%(id)s» ya no existe en tu perfil.', id=seleccionada.id) }}</p>
           {% endif %}

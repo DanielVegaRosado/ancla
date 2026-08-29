@@ -156,9 +156,9 @@ def test_lo_migrado_se_puede_volver_a_cargar_como_perfil(tmp_path: Path):
 
     experiencia = perfil.experience("data-analyst-urban-mobility")
     assert experiencia.title["en"] == "Data Analyst — Urban Mobility Pipeline"
-    assert experiencia.period["es"] == "2025 - ACTUALIDAD"
+    assert experiencia.period == "2025 - ACTUALIDAD"
     assert experiencia.status == "actualidad"
-    assert experiencia.stack["es"] == "Python · Pandas · NumPy"
+    assert experiencia.stack == "Python · Pandas · NumPy"
     assert experiencia.keywords == ["etl", "limpieza de datos", "pandas", "numpy"]
 
 
@@ -207,16 +207,16 @@ def test_el_sobre_mi_conserva_los_seis_huecos(tmp_path: Path):
         assert hueco in sobre_mi.template["en"]
 
 
-def test_un_periodo_incoherente_se_migra_tal_cual(tmp_path: Path):
-    """ES saying TERMINADO and EN saying PRESENT is the user's business, not
-    the migrator's: it is never "fixed" on its own."""
+def test_un_periodo_con_es_y_en_distintos_se_queda_con_el_de_espanol(tmp_path: Path):
+    """`period` stopped being bilingual: a `.txt` still declaring PERIODO_ES
+    and PERIODO_EN with different values keeps the Spanish one, since the
+    app is Spanish-first."""
     destino = tmp_path / "perfil"
     migrator.migrate(_origen(tmp_path), destino)
 
     experiencia = store.load_profile(destino).experience("quantum-computing-hzh")
 
-    assert experiencia.period["es"] == "2026 - TERMINADO"
-    assert experiencia.period["en"] == "2026 - PRESENT"
+    assert experiencia.period == "2026 - TERMINADO"
 
 
 # --------------------------------------------------------------------------

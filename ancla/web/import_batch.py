@@ -62,9 +62,9 @@ def _to_experience(datos: dict) -> Experience:
     return Experience(
         id=datos["id"],
         title=Bilingual(**datos["title"]),
-        period=Bilingual(**datos["period"]),
+        period=datos["period"],
         bullets=Bilingual(**datos["bullets"]),
-        stack=Bilingual(**datos["stack"]),
+        stack=datos["stack"],
         keywords=list(datos.get("keywords", [])),
         status=datos.get("status", ""),
     )

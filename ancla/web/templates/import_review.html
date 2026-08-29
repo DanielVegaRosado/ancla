@@ -32,15 +32,9 @@
                 <input type="text" name="exp-{{ loop.index0 }}-titulo_en" value="{{ experiencia.title['en'] }}">
               </div>
             </div>
-            <div class="dos-columnas">
-              <div class="campo">
-                <label>{{ _('Periodo (ES)') }}</label>
-                <input type="text" name="exp-{{ loop.index0 }}-periodo_es" value="{{ experiencia.period['es'] }}">
-              </div>
-              <div class="campo">
-                <label>{{ _('Periodo (EN)') }}</label>
-                <input type="text" name="exp-{{ loop.index0 }}-periodo_en" value="{{ experiencia.period['en'] }}">
-              </div>
+            <div class="campo">
+              <label>{{ _('Periodo') }}</label>
+              <input type="text" name="exp-{{ loop.index0 }}-periodo" value="{{ experiencia.period }}">
             </div>
             <div class="dos-columnas">
               <div class="campo">
@@ -52,15 +46,9 @@
                 <textarea name="exp-{{ loop.index0 }}-bullets_en">{{ experiencia.bullets['en']|join('\n') }}</textarea>
               </div>
             </div>
-            <div class="dos-columnas">
-              <div class="campo">
-                <label>{{ _('Stack (ES)') }}</label>
-                <input type="text" name="exp-{{ loop.index0 }}-stack_es" value="{{ experiencia.stack['es'] }}">
-              </div>
-              <div class="campo">
-                <label>{{ _('Stack (EN)') }}</label>
-                <input type="text" name="exp-{{ loop.index0 }}-stack_en" value="{{ experiencia.stack['en'] }}">
-              </div>
+            <div class="campo">
+              <label>{{ _('Stack') }}</label>
+              <input type="text" name="exp-{{ loop.index0 }}-stack" value="{{ experiencia.stack }}">
             </div>
           </div>
         {% endfor %}

@@ -59,10 +59,10 @@ _MOTIVOS_MD = {
 
 
 def _experience_block(experiencia: Experience, idioma: Language) -> list[str]:
-    lineas = [f"{experiencia.title[idioma]} — {experiencia.period[idioma]}"]
+    lineas = [f"{experiencia.title[idioma]} — {experiencia.period}"]
     lineas.extend(f"- {bullet}" for bullet in experiencia.bullets[idioma])
-    if experiencia.stack[idioma]:
-        lineas.append(experiencia.stack[idioma])
+    if experiencia.stack:
+        lineas.append(experiencia.stack)
     return lineas
 
 

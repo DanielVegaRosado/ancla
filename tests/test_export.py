@@ -31,16 +31,16 @@ def _perfil() -> Profile:
         Experience(
             id="proyecto-a",
             title=Bilingual(es="Ingeniero de Datos · ACME", en="Data Engineer · ACME"),
-            period=Bilingual(es="2023 — 2024", en="2023 — 2024"),
+            period="2023 — 2024",
             bullets=Bilingual(es=["Bullet A1", "Bullet A2"], en=["Bullet A1 EN", "Bullet A2 EN"]),
-            stack=Bilingual(es="Python", en="Python"),
+            stack="Python",
         ),
         Experience(
             id="proyecto-b",
             title=Bilingual(es="Backend Developer · Nubelia", en="Backend Developer · Nubelia"),
-            period=Bilingual(es="2021 — 2023", en="2021 — 2023"),
+            period="2021 — 2023",
             bullets=Bilingual(es=["Bullet B1"], en=["Bullet B1 EN"]),
-            stack=Bilingual(es="Go", en="Go"),
+            stack="Go",
         ),
     ]
     skills = [Skill(id="python", name=Bilingual(es="Python", en="Python"))]
@@ -50,8 +50,8 @@ def _perfil() -> Profile:
         Education(
             id="grado",
             title=Bilingual(es="Grado en Ingeniería Informática", en="BSc in Computer Engineering"),
-            institution=Bilingual(es="UEMC", en="UEMC"),
-            period=Bilingual(es="2023 — 2027", en="2023 — 2027"),
+            institution="UEMC",
+            period="2023 — 2027",
         )
     ]
     return Profile(

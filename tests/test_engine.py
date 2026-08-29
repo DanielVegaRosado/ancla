@@ -61,9 +61,9 @@ def _experiencia(id: str, titulo_es: str, titulo_en: str, keywords: list[str]):
     return Experience(
         id=id,
         title=Bilingual(es=titulo_es, en=titulo_en),
-        period=Bilingual(es="2025", en="2025"),
+        period="2025",
         bullets=Bilingual(es=[f"Bullet original de {id}"], en=[f"Original bullet {id}"]),
-        stack=Bilingual(es="Python", en="Python"),
+        stack="Python",
         keywords=keywords,
     )
 
@@ -351,9 +351,9 @@ def test_completa_por_el_stack_aunque_no_tenga_keywords():
         return Experience(
             id=id_,
             title=Bilingual(es="Proyecto", en="Project"),
-            period=Bilingual(es="2025", en="2025"),
+            period="2025",
             bullets=Bilingual(es=["Bullet original"], en=["Original bullet"]),
-            stack=Bilingual(es=stack, en=stack),
+            stack=stack,
             keywords=[],
         )
 

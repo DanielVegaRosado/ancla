@@ -75,9 +75,13 @@ class Experience:
 
     id: str
     title: Bilingual[str]
-    period: Bilingual[str]
+    # Not bilingual: a date range ("2023-2024") reads the same in any
+    # language, same reasoning as `Profile.contact`.
+    period: str
     bullets: Bilingual[list[str]]
-    stack: Bilingual[str]
+    # Not bilingual: technology names ("Python, Django, PostgreSQL") are
+    # proper nouns, same reasoning as `period`.
+    stack: str
     keywords: list[str] = field(default_factory=list)
     status: str = ""
 
@@ -118,8 +122,11 @@ class Education:
 
     id: str
     title: Bilingual[str]
-    institution: Bilingual[str]
-    period: Bilingual[str]
+    # Not bilingual: an institution's own name ("UEMC") is a proper noun,
+    # same reasoning as `Experience.stack`.
+    institution: str
+    # Not bilingual: same reasoning as `Experience.period`.
+    period: str
 
 
 @dataclass(frozen=True)

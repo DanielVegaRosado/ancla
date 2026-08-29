@@ -102,12 +102,15 @@ experiencia (lenguajes, librerías, herramientas del stack) — esas sí son ski
 aparte aunque no estén en una lista de skills separada, y ante la duda de si una \
 tecnología concreta cuenta o no, inclúyela: es preferible algo de redundancia a que \
 falte una tecnología real que sí se menciona.
+10. "periodo" (de una experiencia) y "stack" son un único texto, no una versión por \
+idioma: fechas y nombres de tecnología se leen igual en cualquier idioma. No los \
+traduzcas ni los dupliques.
 
 Responde ÚNICAMENTE con este JSON, sin texto alrededor ni bloques de código:
 {
   "experiencias": [
-    {"titulo": {"es": "", "en": ""}, "periodo": {"es": "", "en": ""},
-     "bullets": {"es": [], "en": []}, "stack": {"es": "", "en": ""},
+    {"titulo": {"es": "", "en": ""}, "periodo": "",
+     "bullets": {"es": [], "en": []}, "stack": "",
      "keywords": []}
   ],
   "skills": [
@@ -270,9 +273,9 @@ def _to_experience(datos: dict, ids_usados: set[str]) -> Experience | None:
     return Experience(
         id=id_,
         title=titulo,
-        period=_bilingual(datos.get("periodo")),
+        period=_single_text(datos.get("periodo")),
         bullets=_bilingual_list(datos.get("bullets")),
-        stack=_bilingual(datos.get("stack")),
+        stack=_single_text(datos.get("stack")),
         keywords=to_texts(datos.get("keywords")),
     )
 
@@ -306,6 +309,16 @@ def _to_language(datos: dict, ids_usados: set[str]) -> SpokenLanguage | None:
 def _bilingual(datos: object) -> Bilingual[str]:
     datos = datos if isinstance(datos, dict) else {}
     return Bilingual(es=to_text(datos.get("es")), en=to_text(datos.get("en")))
+
+
+def _single_text(datos: object) -> str:
+    """Like `_bilingual`, but for a field asked as one value ("periodo",
+    "stack"). Still tolerates the model returning an `{es, en}` pair despite
+    rule 10 of the prompt — takes `es`, falling back to `en`, rather than
+    losing the whole field over a prompt slip."""
+    if isinstance(datos, dict):
+        return to_text(datos.get("es")) or to_text(datos.get("en"))
+    return to_text(datos)
 
 
 def _bilingual_list(datos: object) -> Bilingual[list[str]]:

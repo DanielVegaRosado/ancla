@@ -66,9 +66,9 @@ def test_perfil_busca_por_id_y_devuelve_none_si_no_existe():
     experiencia = Experience(
         id="ml-telco-churn",
         title=Bilingual(es="ML Developer", en="ML Developer"),
-        period=Bilingual(es="2026 - ACTUALIDAD", en="2026 - PRESENT"),
+        period="2026 - ACTUALIDAD",
         bullets=Bilingual(es=["Pipeline completo"], en=["Full pipeline"]),
-        stack=Bilingual(es="Python · Optuna", en="Python · Optuna"),
+        stack="Python · Optuna",
         keywords=["machine learning"],
     )
     skill = Skill(id="python", name=Bilingual(es="Python", en="Python"))

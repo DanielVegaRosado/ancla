@@ -11,7 +11,7 @@
     <h2>{{ _('Se quedarían fuera') }}</h2>
     {% for seleccionada, experiencia in excluidas %}
       <div class="tarjeta">
-        <h3>{{ experiencia.title[idioma] }} · {{ experiencia.period[idioma] }}</h3>
+        <h3>{{ experiencia.title[idioma] }} · {{ experiencia.period }}</h3>
         {% if seleccionada.reason %}<p class="motivo">{{ _('Motivo:') }} {{ seleccionada.reason }}</p>{% endif %}
       </div>
     {% endfor %}

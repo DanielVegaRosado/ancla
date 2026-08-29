@@ -87,7 +87,7 @@ def test_un_numero_suelto_se_lee_como_texto():
     """`period: 2026` is an integer to YAML, but on the CV it is a date."""
     experiencia = serialization.parse_experience({"period": 2026}, "x", "x.yaml")
 
-    assert experiencia.period["es"] == "2026"
+    assert experiencia.period == "2026"
 
 
 def test_los_campos_que_faltan_no_revientan():
@@ -177,12 +177,12 @@ def _experiencia() -> Experience:
     return Experience(
         id="ml-telco-churn",
         title=Bilingual(es="ML Developer", en="ML Developer"),
-        period=Bilingual(es="2026 - ACTUALIDAD", en="2026 - PRESENT"),
+        period="2026 - ACTUALIDAD",
         bullets=Bilingual(
             es=["Pipeline completo: diseño, pruebas y evaluación."],
             en=["Full pipeline: design, testing, evaluation"],
         ),
-        stack=Bilingual(es="Python · Optuna", en="Python · Optuna"),
+        stack="Python · Optuna",
         keywords=["machine learning"],
         status="actualidad",
     )

@@ -27,9 +27,9 @@ def _experiencia(**cambios) -> Experience:
     base = dict(
         id="ml-telco-churn",
         title=Bilingual(es="ML Developer", en="ML Developer"),
-        period=Bilingual(es="2026 - ACTUALIDAD", en="2026 - PRESENT"),
+        period="2026 - ACTUALIDAD",
         bullets=Bilingual(es=["Pipeline completo"], en=["Full pipeline"]),
-        stack=Bilingual(es="Python · Optuna", en="Python · Optuna"),
+        stack="Python · Optuna",
         keywords=["machine learning"],
     )
     return Experience(**{**base, **cambios})
@@ -59,8 +59,8 @@ def _educacion(**cambios) -> Education:
     base = dict(
         id="grado",
         title=Bilingual(es="Grado en Ingeniería Informática", en="BSc in Computer Engineering"),
-        institution=Bilingual(es="UEMC", en="UEMC"),
-        period=Bilingual(es="2023 — 2027", en="2023 — 2027"),
+        institution="UEMC",
+        period="2023 — 2027",
     )
     return Education(**{**base, **cambios})
 
@@ -135,9 +135,9 @@ def test_los_mensajes_van_en_castellano_y_sin_jerga():
         Experience(
             id="a-medias",
             title=Bilingual(es="", en=""),
-            period=Bilingual(es="", en=""),
+            period="",
             bullets=Bilingual(es=[], en=[]),
-            stack=Bilingual(es="", en=""),
+            stack="",
         )
     )
 
@@ -294,9 +294,9 @@ def test_una_educacion_completa_no_tiene_ningun_problema():
 
 
 def test_detecta_que_falta_el_centro_de_una_educacion():
-    educacion = _educacion(institution=Bilingual(es="UEMC", en=""))
+    educacion = _educacion(institution="")
     problemas = validation.validate_education(educacion)
-    assert any("centro" in problema and "inglés" in problema for problema in problemas)
+    assert any("centro" in problema for problema in problemas)
 
 
 def test_una_educacion_no_necesita_palabras_clave():

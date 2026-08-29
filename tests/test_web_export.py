@@ -43,9 +43,9 @@ def _perfil_en_disco(root: Path) -> None:
             Experience(
                 id=id_,
                 title=Bilingual(es=titulo, en=titulo),
-                period=Bilingual(es="2023", en="2023"),
+                period="2023",
                 bullets=Bilingual(es=["Bullet"], en=["Bullet"]),
-                stack=Bilingual(es="Python", en="Python"),
+                stack="Python",
             ),
         )
     store.save_skill(root, Skill(id="python", name=Bilingual(es="Python", en="Python")))

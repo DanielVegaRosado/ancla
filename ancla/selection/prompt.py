@@ -95,10 +95,10 @@ def catalog(perfil: Profile, idioma: Language) -> str:
 
 def _experience_to_text(exp, idioma: Language) -> list[str]:
     lineas = [f"- id: {exp.id}", f"  título: {exp.title[idioma]}"]
-    if exp.period[idioma]:
-        lineas.append(f"  periodo: {exp.period[idioma]}")
-    if exp.stack[idioma]:
-        lineas.append(f"  stack: {exp.stack[idioma]}")
+    if exp.period:
+        lineas.append(f"  periodo: {exp.period}")
+    if exp.stack:
+        lineas.append(f"  stack: {exp.stack}")
     if exp.keywords:
         lineas.append(f"  keywords: {', '.join(exp.keywords)}")
     if exp.status:

@@ -40,27 +40,15 @@
     </div>
 
     <div class="campo">
-      <label for="centro_es">{{ _('Centro (ES)') }}</label>
-      <input type="text" id="centro_es" name="centro_es" required
-             placeholder="UEMC" value="{{ educacion.institution['es'] if educacion else '' }}">
+      <label for="centro">{{ _('Centro') }}</label>
+      <input type="text" id="centro" name="centro" required
+             placeholder="UEMC" value="{{ educacion.institution if educacion else '' }}">
     </div>
 
     <div class="campo">
-      <label for="centro_en">{{ _('Centro (EN)') }}</label>
-      <input type="text" id="centro_en" name="centro_en" required
-             placeholder="UEMC" value="{{ educacion.institution['en'] if educacion else '' }}">
-    </div>
-
-    <div class="campo">
-      <label for="periodo_es">{{ _('Periodo (ES)') }}</label>
-      <input type="text" id="periodo_es" name="periodo_es" required
-             placeholder="2023 — 2027" value="{{ educacion.period['es'] if educacion else '' }}">
-    </div>
-
-    <div class="campo">
-      <label for="periodo_en">{{ _('Periodo (EN)') }}</label>
-      <input type="text" id="periodo_en" name="periodo_en" required
-             placeholder="2023 — 2027" value="{{ educacion.period['en'] if educacion else '' }}">
+      <label for="periodo">{{ _('Periodo') }}</label>
+      <input type="text" id="periodo" name="periodo" required
+             placeholder="2023 — 2027" value="{{ educacion.period if educacion else '' }}">
     </div>
 
     <div class="barra-acciones">
