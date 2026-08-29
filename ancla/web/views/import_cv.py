@@ -26,8 +26,9 @@ from ancla.web.util import lines_to_list
 
 @bp.route("/perfil/importar", methods=["GET", "POST"])
 def import_cv():
+    ajustes = context.current_settings()
     if request.method == "GET":
-        return render_template("import.html")
+        return render_template("import.html", ia_configurada=ajustes.configured())
 
     fichero = request.files.get("fichero")
     texto_pegado = request.form.get("texto", "").strip()
@@ -36,14 +37,13 @@ def import_cv():
         texto_cv = _input_text(fichero, texto_pegado)
     except ExtractionError as error:
         flash(str(error))
-        return render_template("import.html")
+        return render_template("import.html", ia_configurada=ajustes.configured())
 
-    ajustes = context.current_settings()
     try:
         cliente = create_client(ajustes.proveedor, ajustes.clave_api, ajustes.url_base, ajustes.modelo)
     except AIError as error:
         flash(str(error))
-        return render_template("import.html")
+        return render_template("import.html", ia_configurada=ajustes.configured())
     if not cliente.available():
         flash(_("Configura tu clave de API en Ajustes antes de importar un CV."))
         return redirect(url_for("ancla.view_settings"))
@@ -59,7 +59,7 @@ def import_cv():
     ):
         for aviso in resultado.avisos:
             flash(aviso)
-        return render_template("import.html")
+        return render_template("import.html", ia_configurada=ajustes.configured())
 
     modulo_importacion.save_import(
         context.root(),
@@ -168,18 +168,12 @@ def _edited_experience(form, indice: int, original: Experience) -> Experience:
             es=form.get(f"{prefijo}-titulo_es", original.title["es"]).strip(),
             en=form.get(f"{prefijo}-titulo_en", original.title["en"]).strip(),
         ),
-        period=Bilingual(
-            es=form.get(f"{prefijo}-periodo_es", original.period["es"]).strip(),
-            en=form.get(f"{prefijo}-periodo_en", original.period["en"]).strip(),
-        ),
+        period=form.get(f"{prefijo}-periodo", original.period).strip(),
         bullets=Bilingual(
             es=lines_to_list(form.get(f"{prefijo}-bullets_es", "")),
             en=lines_to_list(form.get(f"{prefijo}-bullets_en", "")),
         ),
-        stack=Bilingual(
-            es=form.get(f"{prefijo}-stack_es", original.stack["es"]).strip(),
-            en=form.get(f"{prefijo}-stack_en", original.stack["en"]).strip(),
-        ),
+        stack=form.get(f"{prefijo}-stack", original.stack).strip(),
     )
 
 

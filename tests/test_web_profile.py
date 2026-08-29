@@ -15,6 +15,7 @@ import pytest
 
 from ancla.profile import store
 from ancla.profile.model import (
+    AboutMe,
     Bilingual,
     Experience,
     SpokenLanguage,
@@ -23,6 +24,7 @@ from ancla.profile.model import (
     Skill,
 )
 from ancla.web import draft as modulo_borrador
+from ancla.web import settings as modulo_ajustes
 from ancla.web import create_app
 
 
@@ -157,10 +159,8 @@ def test_crear_educacion_la_deja_ver_en_mi_perfil(cliente_web):
         data={
             "titulo_es": "Grado en Ingeniería Informática",
             "titulo_en": "BSc in Computer Engineering",
-            "centro_es": "UEMC",
-            "centro_en": "UEMC",
-            "periodo_es": "2023 — 2027",
-            "periodo_en": "2023 — 2027",
+            "centro": "UEMC",
+            "periodo": "2023 — 2027",
         },
         follow_redirects=True,
     )
@@ -173,11 +173,11 @@ def test_crear_educacion_sin_centro_muestra_el_error(cliente_web):
         "/perfil/educacion/nueva",
         data={
             "titulo_es": "Grado", "titulo_en": "Degree",
-            "centro_es": "", "centro_en": "UEMC",
-            "periodo_es": "2023", "periodo_en": "2023",
+            "centro": "",
+            "periodo": "2023",
         },
     )
-    assert "falta el centro en español".encode("utf-8") in respuesta.data
+    assert "falta el centro".encode("utf-8") in respuesta.data
 
 
 def test_borrar_educacion_la_quita_del_perfil(cliente_web, tmp_path: Path):
@@ -185,8 +185,8 @@ def test_borrar_educacion_la_quita_del_perfil(cliente_web, tmp_path: Path):
         "/perfil/educacion/nueva",
         data={
             "titulo_es": "Máster", "titulo_en": "Master's", "id": "master",
-            "centro_es": "UEMC", "centro_en": "UEMC",
-            "periodo_es": "2027", "periodo_en": "2027",
+            "centro": "UEMC",
+            "periodo": "2027",
         },
     )
     cliente_web.post("/perfil/educacion/master/borrar")
@@ -280,9 +280,9 @@ def test_borrar_todas_las_experiencias_las_quita_todas(cliente_web, tmp_path: Pa
         Experience(
             id="proyecto-1",
             title=Bilingual(es="Proyecto 1", en="Project 1"),
-            period=Bilingual(es="2024", en="2024"),
+            period="2024",
             bullets=Bilingual(es=["Hecho 1"], en=["Done 1"]),
-            stack=Bilingual(es="Python", en="Python"),
+            stack="Python",
         ),
     )
     store.save_experience(
@@ -290,9 +290,9 @@ def test_borrar_todas_las_experiencias_las_quita_todas(cliente_web, tmp_path: Pa
         Experience(
             id="proyecto-2",
             title=Bilingual(es="Proyecto 2", en="Project 2"),
-            period=Bilingual(es="2025", en="2025"),
+            period="2025",
             bullets=Bilingual(es=["Hecho 2"], en=["Done 2"]),
-            stack=Bilingual(es="SQL", en="SQL"),
+            stack="SQL",
         ),
     )
 
@@ -318,9 +318,9 @@ def test_editar_una_experiencia_no_contamina_otra(cliente_web, tmp_path: Path):
         Experience(
             id="proyecto-a",
             title=Bilingual(es="Proyecto A", en="Project A"),
-            period=Bilingual(es="2024", en="2024"),
+            period="2024",
             bullets=Bilingual(es=["Bullet A"], en=["Bullet A EN"]),
-            stack=Bilingual(es="Stack A", en="Stack A"),
+            stack="Stack A",
             keywords=["a"],
         ),
     )
@@ -329,9 +329,9 @@ def test_editar_una_experiencia_no_contamina_otra(cliente_web, tmp_path: Path):
         Experience(
             id="proyecto-b",
             title=Bilingual(es="Proyecto B", en="Project B"),
-            period=Bilingual(es="2025", en="2025"),
+            period="2025",
             bullets=Bilingual(es=["Bullet B"], en=["Bullet B EN"]),
-            stack=Bilingual(es="Stack B", en="Stack B"),
+            stack="Stack B",
             keywords=["b"],
         ),
     )
@@ -341,12 +341,10 @@ def test_editar_una_experiencia_no_contamina_otra(cliente_web, tmp_path: Path):
         data={
             "titulo_es": "Proyecto A editado",
             "titulo_en": "Project A edited",
-            "periodo_es": "2024",
-            "periodo_en": "2024",
+            "periodo": "2024",
             "bullets_es": "Bullet A nuevo",
             "bullets_en": "Bullet A new",
-            "stack_es": "Stack A nuevo",
-            "stack_en": "Stack A new",
+            "stack": "Stack A nuevo",
             "keywords": "a, nuevo",
         },
     )
@@ -356,7 +354,7 @@ def test_editar_una_experiencia_no_contamina_otra(cliente_web, tmp_path: Path):
     b = perfil.experience("proyecto-b")
     assert b.title["es"] == "Proyecto B"
     assert b.bullets["es"] == ["Bullet B"]
-    assert b.stack["es"] == "Stack B"
+    assert b.stack == "Stack B"
 
     # Editing B right after must not revert or touch A either.
     cliente_web.post(
@@ -364,12 +362,10 @@ def test_editar_una_experiencia_no_contamina_otra(cliente_web, tmp_path: Path):
         data={
             "titulo_es": "Proyecto B editado",
             "titulo_en": "Project B edited",
-            "periodo_es": "2025",
-            "periodo_en": "2025",
+            "periodo": "2025",
             "bullets_es": "Bullet B nuevo",
             "bullets_en": "Bullet B new",
-            "stack_es": "Stack B nuevo",
-            "stack_en": "Stack B new",
+            "stack": "Stack B nuevo",
             "keywords": "b, nuevo",
         },
     )
@@ -378,7 +374,7 @@ def test_editar_una_experiencia_no_contamina_otra(cliente_web, tmp_path: Path):
     a = perfil.experience("proyecto-a")
     assert a.title["es"] == "Proyecto A editado"
     assert a.bullets["es"] == ["Bullet A nuevo"]
-    assert a.stack["es"] == "Stack A nuevo"
+    assert a.stack == "Stack A nuevo"
 
 
 def test_borrar_todas_las_skills_tecnicas_no_toca_las_personales(cliente_web, tmp_path: Path):
@@ -563,3 +559,183 @@ def test_la_propuesta_enlaza_a_plantillas_junto_a_copiar_todo(cliente_web, tmp_p
     )
     respuesta = cliente_web.get("/propuesta")
     assert b'href="/plantillas"' in respuesta.data
+
+
+# --------------------------------------------------------------------------
+# "About me" template
+# --------------------------------------------------------------------------
+
+
+def test_la_ayuda_del_sobre_mi_nombra_los_huecos_que_el_sistema_reconoce(cliente_web):
+    """The gaps are written in two places —`modelo.py` and this form's help
+    text— and the user has to type them by hand, character for character.
+    They drifted apart once (the help said `{GRUPO_A_1}`, the system only
+    accepted `{GROUP_A_1}`), which left anyone following the on-screen
+    instructions unable to save. This ties the two together."""
+    html = cliente_web.get("/perfil/sobre-mi").data.decode("utf-8")
+
+    for hueco in AboutMe(template=Bilingual(es="", en="")).gaps():
+        assert hueco in html
+
+
+def test_el_sobre_mi_escrito_siguiendo_la_ayuda_se_guarda(cliente_web, tmp_path: Path):
+    """The path of someone starting with an empty profile: they read the
+    help, copy the gaps as shown, and save."""
+    plantilla = (
+        "Desarrollador con base en {GROUP_A_1}, {GROUP_A_2} y {GROUP_A_3}, "
+        "que trabaja con {GROUP_B_1}, {GROUP_B_2} y {GROUP_B_3}."
+    )
+
+    respuesta = cliente_web.post(
+        "/perfil/sobre-mi",
+        data={"plantilla_es": plantilla, "plantilla_en": plantilla},
+    )
+
+    assert respuesta.status_code == 302
+    assert store.load_profile(tmp_path / "perfil").about_me.template["es"] == plantilla
+
+
+def test_la_pantalla_del_sobre_mi_trae_un_boton_por_hueco(cliente_web):
+    """La vía sin IA: los seis huecos se marcan seleccionando texto y pulsando
+    su botón, sin clave de API y sin ninguna llamada. Es lo que garantiza que
+    la pantalla se pueda completar aunque no haya proveedor."""
+    html = cliente_web.get("/perfil/sobre-mi").data.decode("utf-8")
+
+    for hueco in AboutMe(template=Bilingual(es="", en="")).gaps():
+        assert f'data-hueco="{hueco}"' in html
+
+
+def test_proponer_huecos_sin_clave_devuelve_el_texto_intacto_y_avisa(cliente_web):
+    respuesta = cliente_web.post(
+        "/perfil/sobre-mi/huecos",
+        json={"plantilla_es": "Trabajo con Python.", "plantilla_en": "I work with Python."},
+    )
+
+    assert respuesta.status_code == 200
+    datos = respuesta.get_json()
+    assert datos["plantilla_es"] == "Trabajo con Python."
+    assert datos["avisos"]
+
+
+def test_proponer_huecos_no_le_ensena_al_modelo_skills_personales_ni_idiomas(
+    cliente_web, monkeypatch, tmp_path: Path
+):
+    """Regla 7 comprobada en el camino real, no prometida: los dos catálogos
+    aparte no pueden llegar a ningún prompt."""
+    import ancla.web.views.profile as vista_perfil
+
+    cliente_web.post(
+        "/perfil/skills-personales/nueva",
+        data={"nombre_es": "Trabajo en equipo", "nombre_en": "Teamwork", "keywords": "team"},
+    )
+    cliente_web.post(
+        "/perfil/idiomas/nuevo",
+        data={
+            "nombre_es": "Alemán",
+            "nombre_en": "German",
+            "nivel_es": "B2",
+            "nivel_en": "B2",
+            "keywords": "aleman",
+        },
+    )
+    cliente_web.post(
+        "/perfil/skills/nueva",
+        data={"nombre_es": "Python", "nombre_en": "Python", "categoria": "lenguaje", "keywords": "python"},
+    )
+    cliente_web.post("/ajustes", data={"proveedor": "groq", "clave_api": "gsk_test123"})
+
+    perfil = store.load_profile(tmp_path / "perfil")
+    assert perfil.personal_skills and perfil.languages and perfil.skills
+
+    peticiones: list[str] = []
+
+    class ClienteEspia:
+        def available(self):
+            return True
+
+        def complete(self, sistema, usuario):
+            peticiones.append(sistema + "\n" + usuario)
+            return "{}"
+
+    monkeypatch.setattr(
+        vista_perfil, "create_client", lambda *args, **kwargs: ClienteEspia()
+    )
+
+    cliente_web.post(
+        "/perfil/sobre-mi/huecos",
+        json={
+            "plantilla_es": "Trabajo con Python.",
+            "plantilla_en": "I work with Python.",
+        },
+    )
+
+    assert peticiones, "no se ha llegado a llamar al modelo"
+    enviado = peticiones[0]
+    assert "Python" in enviado
+    for prohibido in ("Trabajo en equipo", "Teamwork", "Alemán", "German"):
+        assert prohibido not in enviado
+
+
+# --------------------------------------------------------------------------
+# Importing a CV as the way into an empty profile
+# --------------------------------------------------------------------------
+
+
+def _configure_key(tmp_path: Path) -> None:
+    modulo_ajustes.save_settings(
+        modulo_ajustes.Settings(proveedor="groq", clave_api="gsk-de-prueba"),
+        tmp_path / "ajustes.json",
+    )
+
+
+def test_un_perfil_vacio_abre_con_el_formulario_de_importar(cliente_web, tmp_path: Path):
+    _configure_key(tmp_path)
+
+    html = cliente_web.get("/perfil").data.decode("utf-8")
+
+    assert 'name="fichero"' in html
+    assert 'action="/perfil/importar"' in html
+
+
+def test_sin_clave_configurada_el_perfil_vacio_no_ensena_un_formulario_condenado(
+    cliente_web, tmp_path: Path
+):
+    """A file input cannot be repopulated from the server, so offering the
+    form without a key would throw away the file the user just chose."""
+    html = cliente_web.get("/perfil").data.decode("utf-8")
+
+    assert 'name="fichero"' not in html
+    assert "/ajustes" in html
+
+
+def test_con_datos_el_perfil_ofrece_importar_sin_incrustar_el_formulario(
+    cliente_web, tmp_path: Path
+):
+    _configure_key(tmp_path)
+    store.save_skill(
+        tmp_path / "perfil",
+        Skill(id="python", name=Bilingual(es="Python", en="Python"), category="lenguaje"),
+    )
+
+    html = cliente_web.get("/perfil").data.decode("utf-8")
+
+    assert 'name="fichero"' not in html
+    assert 'href="/perfil/importar"' in html
+
+
+def test_la_pantalla_de_importar_tampoco_ensena_el_formulario_sin_clave(cliente_web):
+    """Same dead end as on the profile card, reached by URL instead: the
+    screen is linkable and bookmarkable, so the check cannot live only in
+    the card that usually opens it."""
+    html = cliente_web.get("/perfil/importar").data.decode("utf-8")
+
+    assert 'name="fichero"' not in html
+    assert "/ajustes" in html
+
+
+def test_la_pantalla_de_importar_ensena_el_formulario_con_clave(cliente_web, tmp_path: Path):
+    _configure_key(tmp_path)
+
+    html = cliente_web.get("/perfil/importar").data.decode("utf-8")
+
+    assert 'name="fichero"' in html

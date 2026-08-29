@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-08-20 10:14+0200\n"
+"POT-Creation-Date: 2026-08-29 11:13+0200\n"
 "PO-Revision-Date: 2026-07-30 12:46+0200\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -16,7 +16,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Generated-By: Babel 2.17.0\n"
+"Generated-By: Babel 2.18.0\n"
 
 #: ancla/ai/anthropic.py:50
 #, python-format
@@ -303,9 +303,31 @@ msgstr ""
 "No text could be extracted from “%(nombre)s”. If it's a scanned PDF (an "
 "image, not real text), paste the content in by hand."
 
-#: ancla/profile/keywords.py:93
+#: ancla/profile/gaps.py:109
+msgid "Escribe primero tu «Sobre mí» en los dos idiomas."
+msgstr "Write your “About me” in both languages first."
+
+#: ancla/profile/gaps.py:112 ancla/profile/keywords.py:93
 msgid "No hay ninguna clave de API configurada. Ve a Ajustes."
 msgstr "No API key is set up. Go to Settings."
+
+#: ancla/profile/gaps.py:118
+#, python-format
+msgid "No se han podido proponer los huecos: %(error)s"
+msgstr "The gaps could not be suggested: %(error)s"
+
+#: ancla/profile/gaps.py:124
+msgid "El modelo no ha devuelto una respuesta interpretable. Vuelve a intentarlo."
+msgstr "The model didn't return a response that could be parsed. Try again."
+
+#: ancla/profile/gaps.py:229
+#, python-format
+msgid ""
+"En %(idioma)s no se han podido colocar estos huecos: %(huecos)s. Márcalos"
+" tú: selecciona las palabras y pulsa el botón del hueco."
+msgstr ""
+"These gaps could not be placed in %(idioma)s: %(huecos)s. Mark them "
+"yourself: select the words and click the gap's button."
 
 #: ancla/profile/keywords.py:102
 msgid "No se pudo contactar con el proveedor de IA."
@@ -353,7 +375,12 @@ msgstr ""
 "In “%(origen)s”, the field “%(campo)s” is a list and should be plain "
 "text, or “es:” and “en:” each with their own text."
 
-#: ancla/profile/serialization.py:255
+#: ancla/profile/serialization.py:246
+#, python-format
+msgid "En «%(origen)s», el campo «%(campo)s» es una lista y debería ser un texto."
+msgstr "In “%(origen)s”, the field “%(campo)s” is a list and should be plain text."
+
+#: ancla/profile/serialization.py:278
 #, python-format
 msgid ""
 "En «%(origen)s», el campo «%(campo)s»%(sufijo)s debería ser una lista: "
@@ -484,24 +511,20 @@ msgstr ""
 
 #: ancla/profile/validation.py:70
 #, python-format
+msgid "%(etiqueta)s: falta el periodo (por ejemplo «2025 - ACTUALIDAD»)."
+msgstr "%(etiqueta)s: missing the period (e.g. “2025 - PRESENT”)."
+
+#: ancla/profile/validation.py:77
+#, python-format
+msgid "%(etiqueta)s: falta el stack (las tecnologías que usaste)."
+msgstr "%(etiqueta)s: missing the tech stack (the technologies you used)."
+
+#: ancla/profile/validation.py:85
+#, python-format
 msgid "%(etiqueta)s: falta el título en %(nombre)s."
 msgstr "%(etiqueta)s: missing the title in %(nombre)s."
 
-#: ancla/profile/validation.py:74
-#, python-format
-msgid ""
-"%(etiqueta)s: falta el periodo en %(nombre)s (por ejemplo «2025 - "
-"ACTUALIDAD»)."
-msgstr "%(etiqueta)s: missing the period in %(nombre)s (e.g. “2025 - PRESENT”)."
-
-#: ancla/profile/validation.py:81
-#, python-format
-msgid "%(etiqueta)s: falta el stack en %(nombre)s (las tecnologías que usaste)."
-msgstr ""
-"%(etiqueta)s: missing the tech stack in %(nombre)s (the technologies you "
-"used)."
-
-#: ancla/profile/validation.py:90
+#: ancla/profile/validation.py:91
 #, python-format
 msgid ""
 "%(etiqueta)s: no tiene palabras clave, así que casi nunca se elegirá para"
@@ -510,40 +533,40 @@ msgstr ""
 "%(etiqueta)s: has no keywords, so it will almost never be picked for a "
 "CV. Add the terms a company would use to look for it."
 
-#: ancla/profile/validation.py:100
+#: ancla/profile/validation.py:101
 #, python-format
 msgid "%(etiqueta)s: no tiene ningún punto en %(nombre)s."
 msgstr "%(etiqueta)s: has no bullet points in %(nombre)s."
 
-#: ancla/profile/validation.py:104
+#: ancla/profile/validation.py:105
 #, python-format
 msgid "%(etiqueta)s: hay algún punto vacío en %(nombre)s; escríbelo o quítalo."
 msgstr ""
 "%(etiqueta)s: there's an empty bullet point in %(nombre)s; write it in or"
 " remove it."
 
-#: ancla/profile/validation.py:114
+#: ancla/profile/validation.py:115
 #, python-format
 msgid "Skill «%(id)s»"
 msgstr "Skill “%(id)s”"
 
-#: ancla/profile/validation.py:114
+#: ancla/profile/validation.py:115
 msgid "Una skill"
 msgstr "A skill"
 
-#: ancla/profile/validation.py:120
+#: ancla/profile/validation.py:121
 msgid ""
 "Hay una skill sin identificador. El identificador es el nombre del "
 "fichero, por ejemplo «python.yaml»."
 msgstr "There's a skill with no ID. The ID is the file name, e.g. “python.yaml”."
 
-#: ancla/profile/validation.py:127 ancla/profile/validation.py:165
-#: ancla/profile/validation.py:196
+#: ancla/profile/validation.py:128 ancla/profile/validation.py:166
+#: ancla/profile/validation.py:197
 #, python-format
 msgid "%(etiqueta)s: falta el nombre en %(nombre)s."
 msgstr "%(etiqueta)s: missing the name in %(nombre)s."
 
-#: ancla/profile/validation.py:132
+#: ancla/profile/validation.py:133
 #, python-format
 msgid ""
 "%(etiqueta)s: no tiene categoría. Se usa para agrupar las skills del CV y"
@@ -552,7 +575,7 @@ msgstr ""
 "%(etiqueta)s: has no category. It's used to group the skills on the CV "
 "and to spread them across “About me”."
 
-#: ancla/profile/validation.py:140
+#: ancla/profile/validation.py:141
 #, python-format
 msgid ""
 "%(etiqueta)s: no tiene palabras clave, así que casi nunca se elegirá para"
@@ -561,16 +584,16 @@ msgstr ""
 "%(etiqueta)s: has no keywords, so it will almost never be picked for a "
 "CV. Add how job postings refer to it."
 
-#: ancla/profile/validation.py:152
+#: ancla/profile/validation.py:153
 #, python-format
 msgid "Skill personal «%(id)s»"
 msgstr "Personal skill “%(id)s”"
 
-#: ancla/profile/validation.py:152
+#: ancla/profile/validation.py:153
 msgid "Una skill personal"
 msgstr "A personal skill"
 
-#: ancla/profile/validation.py:158
+#: ancla/profile/validation.py:159
 msgid ""
 "Hay una skill personal sin identificador. El identificador es el nombre "
 "del fichero, por ejemplo «trabajo-en-equipo.yaml»."
@@ -578,7 +601,7 @@ msgstr ""
 "There's a personal skill with no ID. The ID is the file name, e.g. "
 "“teamwork.yaml”."
 
-#: ancla/profile/validation.py:170
+#: ancla/profile/validation.py:171
 #, python-format
 msgid ""
 "%(etiqueta)s: no tiene palabras clave, así que puede que una vacante la "
@@ -588,16 +611,16 @@ msgstr ""
 "%(etiqueta)s: has no keywords, so a job posting might still flag it as a "
 "gap even though you already have it. Add how it's named in job postings."
 
-#: ancla/profile/validation.py:183
+#: ancla/profile/validation.py:184
 #, python-format
 msgid "Idioma «%(id)s»"
 msgstr "Language “%(id)s”"
 
-#: ancla/profile/validation.py:183
+#: ancla/profile/validation.py:184
 msgid "Un idioma"
 msgstr "A language"
 
-#: ancla/profile/validation.py:189
+#: ancla/profile/validation.py:190
 msgid ""
 "Hay un idioma sin identificador. El identificador es el nombre del "
 "fichero, por ejemplo «ingles.yaml»."
@@ -605,12 +628,12 @@ msgstr ""
 "There's a language with no ID. The ID is the file name, e.g. "
 "“english.yaml”."
 
-#: ancla/profile/validation.py:200
+#: ancla/profile/validation.py:201
 #, python-format
 msgid "%(etiqueta)s: falta el nivel en %(nombre)s (por ejemplo «C1 — Avanzado»)."
 msgstr "%(etiqueta)s: missing the level in %(nombre)s (e.g. “C1 — Advanced”)."
 
-#: ancla/profile/validation.py:207
+#: ancla/profile/validation.py:208
 #, python-format
 msgid ""
 "%(etiqueta)s: no tiene palabras clave, así que puede que una vacante lo "
@@ -621,16 +644,16 @@ msgstr ""
 "gap even though you already have it. Add how it's named in job postings "
 "(e.g. “advanced English”, “fluent”)."
 
-#: ancla/profile/validation.py:220
+#: ancla/profile/validation.py:221
 #, python-format
 msgid "Educación «%(id)s»"
 msgstr "Education entry “%(id)s”"
 
-#: ancla/profile/validation.py:220
+#: ancla/profile/validation.py:221
 msgid "Una educación"
 msgstr "An education entry"
 
-#: ancla/profile/validation.py:227
+#: ancla/profile/validation.py:228
 msgid ""
 "Hay una educación sin identificador. El identificador es el nombre del "
 "fichero, por ejemplo «grado-ingenieria.yaml»."
@@ -638,27 +661,27 @@ msgstr ""
 "There's an education entry with no ID. The ID is the file name, e.g. "
 "“grado-ingenieria.yaml”."
 
-#: ancla/profile/validation.py:234
+#: ancla/profile/validation.py:233
+#, python-format
+msgid "%(etiqueta)s: falta el centro."
+msgstr "%(etiqueta)s: missing the institution."
+
+#: ancla/profile/validation.py:237
+#, python-format
+msgid "%(etiqueta)s: falta el periodo (por ejemplo «2023 - 2027»)."
+msgstr "%(etiqueta)s: missing the period (e.g. “2023 - 2027”)."
+
+#: ancla/profile/validation.py:245
 #, python-format
 msgid "%(etiqueta)s: falta la titulación en %(nombre)s."
 msgstr "%(etiqueta)s: missing the title in %(nombre)s."
 
-#: ancla/profile/validation.py:236
-#, python-format
-msgid "%(etiqueta)s: falta el centro en %(nombre)s."
-msgstr "%(etiqueta)s: missing the institution in %(nombre)s."
-
-#: ancla/profile/validation.py:240
-#, python-format
-msgid "%(etiqueta)s: falta el periodo en %(nombre)s (por ejemplo «2023 - 2027»)."
-msgstr "%(etiqueta)s: missing the period in %(nombre)s (e.g. “2023 - 2027”)."
-
-#: ancla/profile/validation.py:256
+#: ancla/profile/validation.py:258
 #, python-format
 msgid "El «Sobre mí» está vacío en %(nombre)s."
 msgstr "“About me” is empty in %(nombre)s."
 
-#: ancla/profile/validation.py:263
+#: ancla/profile/validation.py:265
 #, python-format
 msgid ""
 "Al «Sobre mí» en %(nombre)s le faltan estos huecos: %(huecos)s. "
@@ -667,7 +690,7 @@ msgstr ""
 "“About me” in %(nombre)s is missing these placeholders: %(huecos)s. Write"
 " them exactly as shown, wherever you want the chosen skills to go."
 
-#: ancla/profile/validation.py:274
+#: ancla/profile/validation.py:276
 #, python-format
 msgid ""
 "El «Sobre mí» en %(nombre)s tiene huecos que el sistema no sabe rellenar:"
@@ -676,7 +699,7 @@ msgstr ""
 "“About me” in %(nombre)s has placeholders the system doesn't know how to "
 "fill in: %(desconocidos)s. The valid ones are: %(validos)s."
 
-#: ancla/profile/validation.py:291
+#: ancla/profile/validation.py:293
 msgid ""
 "El perfil está vacío. Añade al menos una experiencia y una skill antes de"
 " generar un CV: la app solo puede elegir entre lo que tú hayas escrito."
@@ -684,11 +707,11 @@ msgstr ""
 "Your profile is empty. Add at least one experience entry and one skill "
 "before generating a CV: the app can only choose from what you've written."
 
-#: ancla/profile/validation.py:299
+#: ancla/profile/validation.py:301
 msgid "No hay ninguna experiencia, así que el CV saldría sin proyectos."
 msgstr "There's no experience, so the CV would have no projects."
 
-#: ancla/profile/validation.py:304
+#: ancla/profile/validation.py:306
 msgid ""
 "No hay ninguna skill, así que el CV saldría sin la sección técnica y el "
 "«Sobre mí» no se podría componer."
@@ -696,28 +719,28 @@ msgstr ""
 "There are no skills, so the CV would have no technical skills section and"
 " “About me” couldn't be put together."
 
-#: ancla/profile/validation.py:310 ancla/web/templates/cv_detail.html:67
+#: ancla/profile/validation.py:312 ancla/web/templates/cv_detail.html:67
 #: ancla/web/templates/proposal.html:28
 msgid "experiencias"
 msgstr "experience entries"
 
-#: ancla/profile/validation.py:312
+#: ancla/profile/validation.py:314
 msgid "skills"
 msgstr "skills"
 
-#: ancla/profile/validation.py:314
+#: ancla/profile/validation.py:316
 msgid "skills personales"
 msgstr "personal skills"
 
-#: ancla/profile/validation.py:316
+#: ancla/profile/validation.py:318
 msgid "idiomas"
 msgstr "languages"
 
-#: ancla/profile/validation.py:317
+#: ancla/profile/validation.py:319
 msgid "educación"
 msgstr "education"
 
-#: ancla/profile/validation.py:322
+#: ancla/profile/validation.py:324
 msgid ""
 "Falta el «Sobre mí». Escríbelo en «Mi perfil»: es el bloque que abre el "
 "CV y el único que la app compone."
@@ -725,7 +748,7 @@ msgstr ""
 "“About me” is missing. Write it in “My Profile”: it's the block that "
 "opens the CV, and the only one the app puts together."
 
-#: ancla/profile/validation.py:358
+#: ancla/profile/validation.py:360
 #, python-format
 msgid ""
 "Hay %(que)s con el mismo identificador (%(repetidos)s). Cada una tiene "
@@ -838,6 +861,34 @@ msgstr "This address doesn't exist."
 msgid "Volver a Mi perfil."
 msgstr "Back to My Profile."
 
+#: ancla/web/templates/_import_form.html:13
+msgid "Sube tu CV (PDF o .docx)"
+msgstr "Upload your CV (PDF or .docx)"
+
+#: ancla/web/templates/_import_form.html:18
+msgid "O pega el texto de tu CV"
+msgstr "Or paste your CV text"
+
+#: ancla/web/templates/_import_form.html:19
+msgid "Pega aquí el contenido de tu CV si prefieres no subir un fichero"
+msgstr "Paste your CV content here if you'd rather not upload a file"
+
+#: ancla/web/templates/_import_form.html:23
+msgid "Analizar"
+msgstr "Analyse"
+
+#: ancla/web/templates/_import_form.html:28
+msgid ""
+"Para leer tu CV hace falta una clave de API: es gratis en Groq y se queda"
+" en tu ordenador."
+msgstr ""
+"To read your CV you need an API key: it is free on Groq and stays on your "
+"computer."
+
+#: ancla/web/templates/_import_form.html:31
+msgid "Configurar mi clave"
+msgstr "Set up my key"
+
 #: ancla/web/templates/_section_education.html:4
 #: ancla/web/templates/_section_experiences.html:4
 #: ancla/web/templates/_section_languages.html:4
@@ -847,7 +898,7 @@ msgid "Arrastrar para reordenar"
 msgstr "Drag to reorder"
 
 #: ancla/web/templates/_section_education.html:6
-#: ancla/web/templates/profile.html:36
+#: ancla/web/templates/profile.html:59
 msgid "Educación"
 msgstr "Education"
 
@@ -882,7 +933,7 @@ msgstr "Delete all"
 #: ancla/web/templates/_section_languages.html:30
 #: ancla/web/templates/_section_personal_skills.html:30
 #: ancla/web/templates/_section_skills.html:30
-#: ancla/web/templates/profile.html:49 ancla/web/templates/profile.html:69
+#: ancla/web/templates/profile.html:72 ancla/web/templates/profile.html:92
 msgid "Editar"
 msgstr "Edit"
 
@@ -936,8 +987,8 @@ msgid "Todavía no has añadido ninguna experiencia."
 msgstr "You haven't added any experience yet."
 
 #: ancla/web/templates/_section_languages.html:6
-#: ancla/web/templates/import_review.html:123
-#: ancla/web/templates/profile.html:32 ancla/web/templates/proposal.html:201
+#: ancla/web/templates/import_review.html:111
+#: ancla/web/templates/profile.html:55 ancla/web/templates/proposal.html:201
 msgid "Idiomas"
 msgstr "Languages"
 
@@ -970,8 +1021,8 @@ msgid "Todavía no has añadido ningún idioma."
 msgstr "You haven't added any languages yet."
 
 #: ancla/web/templates/_section_personal_skills.html:6
-#: ancla/web/templates/import_review.html:99
-#: ancla/web/templates/profile.html:28 ancla/web/templates/proposal.html:184
+#: ancla/web/templates/import_review.html:87
+#: ancla/web/templates/profile.html:51 ancla/web/templates/proposal.html:184
 msgid "Skills personales"
 msgstr "Personal skills"
 
@@ -995,7 +1046,7 @@ msgid "Todavía no has añadido ninguna skill personal."
 msgstr "You haven't added any personal skills yet."
 
 #: ancla/web/templates/_section_skills.html:6
-#: ancla/web/templates/profile.html:24 ancla/web/templates/proposal.html:83
+#: ancla/web/templates/profile.html:47 ancla/web/templates/proposal.html:83
 msgid "Skills técnicas"
 msgstr "Technical skills"
 
@@ -1029,61 +1080,82 @@ msgstr "“About me” template"
 
 #: ancla/web/templates/about_me_form.html:6
 msgid ""
-"El texto es tuyo y se copia tal cual, salvo seis huecos que rellena el "
-"sistema con nombres de skills que ya tienes:"
+"Escribe tu «Sobre mí» con tus palabras, en español y en inglés. Luego "
+"marca seis huecos: selecciona en el texto las palabras que quieras "
+"sustituir y pulsa el botón del hueco. El sistema los rellena con nombres "
+"de skills que ya tienes, y el resto del texto no cambia nunca."
 msgstr ""
-"The text is yours and is copied as-is, except for six gaps the system "
-"fills in with names of skills you already have:"
+"Write your “About me” in your own words, in Spanish and in English. Then "
+"mark six gaps: select the words you want replaced and click that gap's "
+"button. The system fills them with names of skills you already have, and "
+"the rest of the text never changes."
 
-#: ancla/web/templates/about_me_form.html:7
-#: ancla/web/templates/about_me_form.html:8
-msgid "a"
-msgstr "to"
+#: ancla/web/templates/about_me_form.html:10
+msgid "se rellenan con conceptos o dominios;"
+msgstr "are filled with concepts or domains;"
 
-#: ancla/web/templates/about_me_form.html:7
-msgid "conceptos o dominios"
-msgstr "concepts or domains"
+#: ancla/web/templates/about_me_form.html:12
+msgid ""
+"con lenguajes y tecnologías concretas. El mismo hueco recibe la misma "
+"skill en los dos idiomas, así que colócalo en el mismo sitio de la frase."
+msgstr ""
+"with specific languages and technologies. The same gap gets the same "
+"skill in both languages, so put it at the same point in the sentence."
 
-#: ancla/web/templates/about_me_form.html:8
-msgid "y"
-msgstr "and"
-
-#: ancla/web/templates/about_me_form.html:8
-msgid "lenguajes y tecnologías concretas"
-msgstr "specific languages and technologies"
-
-#: ancla/web/templates/about_me_form.html:9
-msgid "El resto de la plantilla no cambia nunca."
-msgstr "The rest of the template never changes."
-
-#: ancla/web/templates/about_me_form.html:20
+#: ancla/web/templates/about_me_form.html:22
 msgid "Plantilla (ES)"
 msgstr "Template (ES)"
 
-#: ancla/web/templates/about_me_form.html:24
+#: ancla/web/templates/about_me_form.html:22
 msgid "Plantilla (EN)"
 msgstr "Template (EN)"
 
-#: ancla/web/templates/about_me_form.html:29
+#: ancla/web/templates/about_me_form.html:27
+msgid "Marcar hueco:"
+msgstr "Mark gap:"
+
+#: ancla/web/templates/about_me_form.html:37
+msgid ""
+"Si prefieres empezar con una propuesta, la IA puede señalar los seis "
+"huecos sobre lo que ya has escrito. Nunca reescribe tu texto: solo "
+"sustituye las palabras que señala, y lo que no encaje te lo deja a ti."
+msgstr ""
+"If you would rather start from a proposal, the AI can point out the six "
+"gaps over what you have already written. It never rewrites your text: it "
+"only replaces the words it points at, and leaves the rest to you."
+
+#: ancla/web/templates/about_me_form.html:40
+msgid "Proponer huecos con IA"
+msgstr "Suggest gaps with AI"
+
+#: ancla/web/templates/about_me_form.html:41
+msgid "Deshacer la propuesta"
+msgstr "Undo the proposal"
+
+#: ancla/web/templates/about_me_form.html:47
 #: ancla/web/templates/contact_form.html:30
 #: ancla/web/templates/cv_detail.html:30
-#: ancla/web/templates/education_form.html:67
-#: ancla/web/templates/experience_form.html:93
+#: ancla/web/templates/education_form.html:55
+#: ancla/web/templates/experience_form.html:80
 #: ancla/web/templates/language_form.html:71
 #: ancla/web/templates/personal_skill_form.html:59
 #: ancla/web/templates/proposal.html:122 ancla/web/templates/skill_form.html:61
 msgid "Guardar"
 msgstr "Save"
 
-#: ancla/web/templates/about_me_form.html:30
+#: ancla/web/templates/about_me_form.html:48
 #: ancla/web/templates/contact_form.html:31
-#: ancla/web/templates/education_form.html:68
-#: ancla/web/templates/experience_form.html:94
+#: ancla/web/templates/education_form.html:56
+#: ancla/web/templates/experience_form.html:81
 #: ancla/web/templates/language_form.html:72
 #: ancla/web/templates/personal_skill_form.html:60
 #: ancla/web/templates/skill_form.html:62
 msgid "Cancelar"
 msgstr "Cancel"
+
+#: ancla/web/templates/about_me_form.html:54
+msgid "No se han podido proponer los huecos."
+msgstr "The gaps could not be suggested."
 
 #: ancla/web/templates/adapt.html:2 ancla/web/templates/base.html:25
 #: ancla/web/templates/cvs.html:39
@@ -1230,7 +1302,7 @@ msgid "Todavía no hay plantillas que mostrar."
 msgstr "No templates to show yet."
 
 #: ancla/web/templates/contact_form.html:2
-#: ancla/web/templates/contact_form.html:4 ancla/web/templates/profile.html:64
+#: ancla/web/templates/contact_form.html:4 ancla/web/templates/profile.html:87
 msgid "Contacto"
 msgstr "Contact"
 
@@ -1415,24 +1487,14 @@ msgid "Titulación (EN)"
 msgstr "Degree (EN)"
 
 #: ancla/web/templates/education_form.html:43
-msgid "Centro (ES)"
-msgstr "Institution (ES)"
+msgid "Centro"
+msgstr "Institution"
 
 #: ancla/web/templates/education_form.html:49
-msgid "Centro (EN)"
-msgstr "Institution (EN)"
-
-#: ancla/web/templates/education_form.html:55
-#: ancla/web/templates/experience_form.html:40
-#: ancla/web/templates/import_review.html:37
-msgid "Periodo (ES)"
-msgstr "Period (ES)"
-
-#: ancla/web/templates/education_form.html:61
-#: ancla/web/templates/experience_form.html:45
-#: ancla/web/templates/import_review.html:41
-msgid "Periodo (EN)"
-msgstr "Period (EN)"
+#: ancla/web/templates/experience_form.html:39
+#: ancla/web/templates/import_review.html:36
+msgid "Periodo"
+msgstr "Period"
 
 #: ancla/web/templates/experience_form.html:2
 #: ancla/web/templates/experience_form.html:4
@@ -1470,32 +1532,27 @@ msgstr ""
 msgid "Título (EN)"
 msgstr "Title (EN)"
 
-#: ancla/web/templates/experience_form.html:52
+#: ancla/web/templates/experience_form.html:45
 msgid "Bullets (ES): uno por línea, tal cual quieres que aparezcan"
 msgstr "Bullet points (ES): one per line, exactly as you want them to appear"
 
-#: ancla/web/templates/experience_form.html:56
+#: ancla/web/templates/experience_form.html:49
 msgid "Bullets (EN)"
 msgstr "Bullet points (EN)"
 
-#: ancla/web/templates/experience_form.html:62
-#: ancla/web/templates/import_review.html:57
-msgid "Stack (ES)"
-msgstr "Tech stack (ES)"
+#: ancla/web/templates/experience_form.html:54
+#: ancla/web/templates/import_review.html:50
+msgid "Stack"
+msgstr "Tech stack"
 
-#: ancla/web/templates/experience_form.html:66
-#: ancla/web/templates/import_review.html:61
-msgid "Stack (EN)"
-msgstr "Tech stack (EN)"
-
-#: ancla/web/templates/experience_form.html:72
+#: ancla/web/templates/experience_form.html:59
 #: ancla/web/templates/language_form.html:55
 #: ancla/web/templates/personal_skill_form.html:43
 #: ancla/web/templates/skill_form.html:45
 msgid "Keywords"
 msgstr "Keywords"
 
-#: ancla/web/templates/experience_form.html:75
+#: ancla/web/templates/experience_form.html:62
 msgid ""
 "Las propone la IA a partir del título, el stack y lo que hiciste. No "
 "salen nunca en tu CV, sirven para reconocer esta experiencia cuando una "
@@ -1506,14 +1563,14 @@ msgstr ""
 "experience when a job posting uses different words. Review them and add "
 "any that are missing."
 
-#: ancla/web/templates/experience_form.html:82
+#: ancla/web/templates/experience_form.html:69
 #: ancla/web/templates/language_form.html:65
 #: ancla/web/templates/personal_skill_form.html:53
 #: ancla/web/templates/skill_form.html:55
 msgid "Proponer con IA"
 msgstr "Suggest with AI"
 
-#: ancla/web/templates/experience_form.html:88
+#: ancla/web/templates/experience_form.html:75
 msgid "Estado (opcional, notas internas)"
 msgstr "Status (optional, internal notes)"
 
@@ -1556,7 +1613,7 @@ msgstr "Include all of them (multiple pages)"
 msgid "← Volver"
 msgstr "← Back"
 
-#: ancla/web/templates/import.html:2
+#: ancla/web/templates/import.html:2 ancla/web/templates/profile.html:33
 msgid "Importar CV"
 msgstr "Import CV"
 
@@ -1572,7 +1629,7 @@ msgstr ""
 "Upload your CV as a PDF or Word file, or paste the text directly. The AI "
 "suggests which experience and skills to add to your profile."
 
-#: ancla/web/templates/import.html:7
+#: ancla/web/templates/import.html:7 ancla/web/templates/profile.html:20
 msgid "Nada se guarda todavía"
 msgstr "Nothing is saved yet"
 
@@ -1584,23 +1641,7 @@ msgstr ""
 "On the next step you review, edit and confirm, one by one, what you want "
 "to keep."
 
-#: ancla/web/templates/import.html:12
-msgid "Sube tu CV (PDF o .docx)"
-msgstr "Upload your CV (PDF or .docx)"
-
-#: ancla/web/templates/import.html:17
-msgid "O pega el texto de tu CV"
-msgstr "Or paste your CV text"
-
-#: ancla/web/templates/import.html:18
-msgid "Pega aquí el contenido de tu CV si prefieres no subir un fichero"
-msgstr "Paste your CV content here if you'd rather not upload a file"
-
-#: ancla/web/templates/import.html:22
-msgid "Analizar"
-msgstr "Analyse"
-
-#: ancla/web/templates/import.html:27
+#: ancla/web/templates/import.html:14
 msgid ""
 "Si tu PDF es una imagen escaneada (sin texto real dentro), no se podrá "
 "leer. Usa la opción de pegar el texto a mano en ese caso."
@@ -1627,7 +1668,7 @@ msgstr ""
 " is yours."
 
 #: ancla/web/templates/import_review.html:17
-#: ancla/web/templates/profile.html:20
+#: ancla/web/templates/profile.html:43
 msgid "Experiencias"
 msgstr "Experience"
 
@@ -1635,24 +1676,24 @@ msgstr "Experience"
 msgid "Guardar esta experiencia"
 msgstr "Save this experience"
 
-#: ancla/web/templates/import_review.html:47
+#: ancla/web/templates/import_review.html:41
 msgid "Bullets (ES, uno por línea)"
 msgstr "Bullet points (ES, one per line)"
 
-#: ancla/web/templates/import_review.html:51
+#: ancla/web/templates/import_review.html:45
 msgid "Bullets (EN, uno por línea)"
 msgstr "Bullet points (EN, one per line)"
 
-#: ancla/web/templates/import_review.html:71
+#: ancla/web/templates/import_review.html:59
 msgid "Skills"
 msgstr "Skills"
 
-#: ancla/web/templates/import_review.html:77
+#: ancla/web/templates/import_review.html:65
 msgid "Guardar esta skill"
 msgstr "Save this skill"
 
-#: ancla/web/templates/import_review.html:81
-#: ancla/web/templates/import_review.html:109
+#: ancla/web/templates/import_review.html:69
+#: ancla/web/templates/import_review.html:97
 #: ancla/web/templates/personal_skill_form.html:18
 #: ancla/web/templates/personal_skill_form.html:30
 #: ancla/web/templates/skill_form.html:15
@@ -1660,56 +1701,56 @@ msgstr "Save this skill"
 msgid "Nombre (ES)"
 msgstr "Name (ES)"
 
-#: ancla/web/templates/import_review.html:85
-#: ancla/web/templates/import_review.html:113
+#: ancla/web/templates/import_review.html:73
+#: ancla/web/templates/import_review.html:101
 #: ancla/web/templates/personal_skill_form.html:37
 #: ancla/web/templates/skill_form.html:34
 msgid "Nombre (EN)"
 msgstr "Name (EN)"
 
-#: ancla/web/templates/import_review.html:90
+#: ancla/web/templates/import_review.html:78
 #: ancla/web/templates/skill_form.html:39
 msgid "Categoría"
 msgstr "Category"
 
-#: ancla/web/templates/import_review.html:105
+#: ancla/web/templates/import_review.html:93
 msgid "Guardar esta skill personal"
 msgstr "Save this personal skill"
 
-#: ancla/web/templates/import_review.html:129
+#: ancla/web/templates/import_review.html:117
 msgid "Guardar este idioma"
 msgstr "Save this language"
 
-#: ancla/web/templates/import_review.html:133
+#: ancla/web/templates/import_review.html:121
 #: ancla/web/templates/language_form.html:18
 #: ancla/web/templates/language_form.html:30
 msgid "Idioma (ES)"
 msgstr "Language (ES)"
 
-#: ancla/web/templates/import_review.html:137
+#: ancla/web/templates/import_review.html:125
 #: ancla/web/templates/language_form.html:37
 msgid "Idioma (EN)"
 msgstr "Language (EN)"
 
-#: ancla/web/templates/import_review.html:143
+#: ancla/web/templates/import_review.html:131
 #: ancla/web/templates/language_form.html:43
 msgid "Nivel (ES)"
 msgstr "Level (ES)"
 
-#: ancla/web/templates/import_review.html:147
+#: ancla/web/templates/import_review.html:135
 #: ancla/web/templates/language_form.html:49
 msgid "Nivel (EN)"
 msgstr "Level (EN)"
 
-#: ancla/web/templates/import_review.html:157
+#: ancla/web/templates/import_review.html:145
 msgid "Guardar lo seleccionado"
 msgstr "Save selection"
 
-#: ancla/web/templates/import_review.html:161
+#: ancla/web/templates/import_review.html:149
 msgid "¿Descartar toda la importación? No se guardará nada de esto."
 msgstr "Discard the whole import? None of this will be saved."
 
-#: ancla/web/templates/import_review.html:162
+#: ancla/web/templates/import_review.html:150
 msgid "Descartar todo"
 msgstr "Discard all"
 
@@ -1789,29 +1830,41 @@ msgstr ""
 "Your base of verified facts. The selection engine picks from here for "
 "each job posting; it never makes up anything that isn't here."
 
-#: ancla/web/templates/profile.html:8
-msgid "¿Ya tienes un CV? Impórtalo"
-msgstr "Already have a CV? Import it"
+#: ancla/web/templates/profile.html:17
+msgid "Importa tu CV"
+msgstr "Import your CV"
 
-#: ancla/web/templates/profile.html:9
-msgid "en vez de escribirlo todo a mano."
-msgstr "instead of typing it all in by hand."
+#: ancla/web/templates/profile.html:19
+msgid ""
+"Sube tu CV en PDF o Word, o pega el texto, y la IA propone qué añadir a "
+"tu perfil."
+msgstr ""
+"Upload your CV as a PDF or Word file, or paste the text, and the AI "
+"suggests what to add to your profile."
 
-#: ancla/web/templates/profile.html:11
+#: ancla/web/templates/profile.html:20
+msgid "Revisas y confirmas antes."
+msgstr "You review and confirm first."
+
+#: ancla/web/templates/profile.html:24
+msgid "¿Prefieres escribirlo a mano? Empieza por tus experiencias, más abajo."
+msgstr "Prefer to type it yourself? Start with your experience, further down."
+
+#: ancla/web/templates/profile.html:29
 msgid "¿Tienes otro CV que añadir?"
 msgstr "Have another CV to add?"
 
-#: ancla/web/templates/profile.html:12
+#: ancla/web/templates/profile.html:30
 msgid "Impórtalo para sumar lo que falte, sin duplicar lo que ya tienes."
 msgstr ""
 "Import it to add what's missing, without duplicating what you already "
 "have."
 
-#: ancla/web/templates/profile.html:44 ancla/web/templates/proposal.html:42
+#: ancla/web/templates/profile.html:67 ancla/web/templates/proposal.html:42
 msgid "Sobre mí"
 msgstr "About me"
 
-#: ancla/web/templates/profile.html:45
+#: ancla/web/templates/profile.html:68
 msgid ""
 "La plantilla fija de tu bloque «Sobre mí», con seis huecos que rellena el"
 " sistema."
@@ -1819,15 +1872,15 @@ msgstr ""
 "The fixed template for your “About me” block, with six gaps the system "
 "fills in."
 
-#: ancla/web/templates/profile.html:49
+#: ancla/web/templates/profile.html:72
 msgid "Definir plantilla"
 msgstr "Define template"
 
-#: ancla/web/templates/profile.html:56
+#: ancla/web/templates/profile.html:79
 msgid "Todavía no has definido la plantilla de «Sobre mí»."
 msgstr "You haven't defined your “About me” template yet."
 
-#: ancla/web/templates/profile.html:65
+#: ancla/web/templates/profile.html:88
 msgid ""
 "Tu nombre, titulación/rol, teléfono, email, ciudad, LinkedIn... Se "
 "muestra siempre completo."
@@ -1835,19 +1888,19 @@ msgstr ""
 "Your name, title/role, phone, email, city, LinkedIn... Always shown in "
 "full."
 
-#: ancla/web/templates/profile.html:69
+#: ancla/web/templates/profile.html:92
 msgid "Añadir contacto"
 msgstr "Add contact"
 
-#: ancla/web/templates/profile.html:82
+#: ancla/web/templates/profile.html:105
 msgid "Todavía no has añadido tu contacto."
 msgstr "You haven't added your contact yet."
 
-#: ancla/web/templates/profile.html:87 ancla/web/templates/profile.html:90
+#: ancla/web/templates/profile.html:110 ancla/web/templates/profile.html:113
 msgid "Foto de perfil"
 msgstr "Profile photo"
 
-#: ancla/web/templates/profile.html:88
+#: ancla/web/templates/profile.html:111
 msgid ""
 "Opcional. Si la subes, aparece en las plantillas .docx que tengan sitio "
 "para una foto."
@@ -1855,27 +1908,27 @@ msgstr ""
 "Optional. If you upload one, it shows up in .docx templates that have "
 "room for a photo."
 
-#: ancla/web/templates/profile.html:94
+#: ancla/web/templates/profile.html:117
 msgid "Subir"
 msgstr "Upload"
 
-#: ancla/web/templates/profile.html:94
+#: ancla/web/templates/profile.html:117
 msgid "Reemplazar"
 msgstr "Replace"
 
-#: ancla/web/templates/profile.html:97
+#: ancla/web/templates/profile.html:120
 msgid "¿Borrar la foto de perfil?"
 msgstr "Delete your profile photo?"
 
-#: ancla/web/templates/profile.html:98
+#: ancla/web/templates/profile.html:121
 msgid "Borrar foto"
 msgstr "Delete photo"
 
-#: ancla/web/templates/profile.html:105
+#: ancla/web/templates/profile.html:128
 msgid "Arrastra el asa"
 msgstr "Drag the handle"
 
-#: ancla/web/templates/profile.html:105
+#: ancla/web/templates/profile.html:128
 msgid ""
 "de cada panel para cambiar el orden en el que se ven aquí abajo. Se "
 "recuerda para la próxima vez."
@@ -2506,204 +2559,204 @@ msgstr ""
 "one language, or keywords, was missing). Add them by hand in “My "
 "Profile”."
 
-#: ancla/web/views/import_cv.py:221
+#: ancla/web/views/import_cv.py:215
 msgid "Importación descartada. No se ha guardado nada."
 msgstr "Import discarded. Nothing was saved."
 
-#: ancla/web/views/profile.py:67
+#: ancla/web/views/profile.py:81
 #, python-format
 msgid "Ya existe una experiencia con el identificador «%(id)s»."
 msgstr "An experience with the ID “%(id)s” already exists."
 
-#: ancla/web/views/profile.py:76
+#: ancla/web/views/profile.py:90
 #, python-format
 msgid "Experiencia «%(titulo)s» guardada."
 msgstr "Experience “%(titulo)s” saved."
 
-#: ancla/web/views/profile.py:84
+#: ancla/web/views/profile.py:98
 #, python-format
 msgid "No existe la experiencia «%(id)s»."
 msgstr "The experience “%(id)s” does not exist."
 
-#: ancla/web/views/profile.py:96
+#: ancla/web/views/profile.py:110
 #, python-format
 msgid "Experiencia «%(titulo)s» actualizada."
 msgstr "Experience “%(titulo)s” updated."
 
-#: ancla/web/views/profile.py:103
+#: ancla/web/views/profile.py:117
 msgid "Experiencia borrada."
 msgstr "Experience deleted."
 
-#: ancla/web/views/profile.py:111
+#: ancla/web/views/profile.py:125
 #, python-format
 msgid "%(cantidad)s experiencia(s) borradas."
 msgstr "%(cantidad)s experience item(s) deleted."
 
-#: ancla/web/views/profile.py:111
+#: ancla/web/views/profile.py:125
 msgid "No había ninguna experiencia que borrar."
 msgstr "There was no experience to delete."
 
-#: ancla/web/views/profile.py:131
+#: ancla/web/views/profile.py:141
 msgid ""
-"Configura tu clave de API en Ajustes para que la IA te proponga keywords."
-" Mientras tanto, escríbelas a mano."
+"Configura tu clave de API en Ajustes para que la IA te eche una mano. "
+"Mientras tanto, puedes hacerlo a mano."
 msgstr ""
-"Set up your API key in Settings so the AI can suggest keywords for you. "
-"In the meantime, write them in by hand."
+"Set up your API key in Settings so the AI can lend a hand. In the "
+"meantime, you can do it yourself."
 
-#: ancla/web/views/profile.py:140
+#: ancla/web/views/profile.py:147
 msgid "No se pudo contactar con el proveedor."
 msgstr "Could not reach the provider."
 
-#: ancla/web/views/profile.py:177
+#: ancla/web/views/profile.py:199
 #, python-format
 msgid "Ya existe una skill con el identificador «%(id)s»."
 msgstr "A skill with the ID “%(id)s” already exists."
 
-#: ancla/web/views/profile.py:186
+#: ancla/web/views/profile.py:208
 #, python-format
 msgid "Skill «%(nombre)s» guardada."
 msgstr "Skill “%(nombre)s” saved."
 
-#: ancla/web/views/profile.py:194
+#: ancla/web/views/profile.py:216
 #, python-format
 msgid "No existe la skill «%(id)s»."
 msgstr "The skill “%(id)s” does not exist."
 
-#: ancla/web/views/profile.py:206
+#: ancla/web/views/profile.py:228
 #, python-format
 msgid "Skill «%(nombre)s» actualizada."
 msgstr "Skill “%(nombre)s” updated."
 
-#: ancla/web/views/profile.py:213
+#: ancla/web/views/profile.py:235
 msgid "Skill borrada."
 msgstr "Skill deleted."
 
-#: ancla/web/views/profile.py:221
+#: ancla/web/views/profile.py:243
 #, python-format
 msgid "%(cantidad)s skill(s) borradas."
 msgstr "%(cantidad)s skill(s) deleted."
 
-#: ancla/web/views/profile.py:221
+#: ancla/web/views/profile.py:243
 msgid "No había ninguna skill que borrar."
 msgstr "There was no skill to delete."
 
-#: ancla/web/views/profile.py:239
+#: ancla/web/views/profile.py:261
 #, python-format
 msgid "Ya existe una skill personal con el identificador «%(id)s»."
 msgstr "A personal skill with the ID “%(id)s” already exists."
 
-#: ancla/web/views/profile.py:248
+#: ancla/web/views/profile.py:270
 #, python-format
 msgid "Skill personal «%(nombre)s» guardada."
 msgstr "Personal skill “%(nombre)s” saved."
 
-#: ancla/web/views/profile.py:256
+#: ancla/web/views/profile.py:278
 #, python-format
 msgid "No existe la skill personal «%(id)s»."
 msgstr "The personal skill “%(id)s” does not exist."
 
-#: ancla/web/views/profile.py:268
+#: ancla/web/views/profile.py:290
 #, python-format
 msgid "Skill personal «%(nombre)s» actualizada."
 msgstr "Personal skill “%(nombre)s” updated."
 
-#: ancla/web/views/profile.py:275
+#: ancla/web/views/profile.py:297
 msgid "Skill personal borrada."
 msgstr "Personal skill deleted."
 
-#: ancla/web/views/profile.py:284
+#: ancla/web/views/profile.py:306
 #, python-format
 msgid "%(cantidad)s skill(s) personal(es) borradas."
 msgstr "%(cantidad)s personal skill(s) deleted."
 
-#: ancla/web/views/profile.py:286
+#: ancla/web/views/profile.py:308
 msgid "No había ninguna skill personal que borrar."
 msgstr "There was no personal skill to delete."
 
-#: ancla/web/views/profile.py:314
+#: ancla/web/views/profile.py:336
 #, python-format
 msgid "Ya existe un idioma con el identificador «%(id)s»."
 msgstr "A language with the ID “%(id)s” already exists."
 
-#: ancla/web/views/profile.py:323
+#: ancla/web/views/profile.py:345
 #, python-format
 msgid "Idioma «%(nombre)s» guardado."
 msgstr "Language “%(nombre)s” saved."
 
-#: ancla/web/views/profile.py:331
+#: ancla/web/views/profile.py:353
 #, python-format
 msgid "No existe el idioma «%(id)s»."
 msgstr "The language “%(id)s” does not exist."
 
-#: ancla/web/views/profile.py:343
+#: ancla/web/views/profile.py:365
 #, python-format
 msgid "Idioma «%(nombre)s» actualizado."
 msgstr "Language “%(nombre)s” updated."
 
-#: ancla/web/views/profile.py:350
+#: ancla/web/views/profile.py:372
 msgid "Idioma borrado."
 msgstr "Language deleted."
 
-#: ancla/web/views/profile.py:358
+#: ancla/web/views/profile.py:380
 #, python-format
 msgid "%(cantidad)s idioma(s) borrados."
 msgstr "%(cantidad)s language(s) deleted."
 
-#: ancla/web/views/profile.py:358
+#: ancla/web/views/profile.py:380
 msgid "No había ningún idioma que borrar."
 msgstr "There was no language to delete."
 
-#: ancla/web/views/profile.py:386
+#: ancla/web/views/profile.py:408
 #, python-format
 msgid "Ya existe una educación con el identificador «%(id)s»."
 msgstr "An education entry with the ID “%(id)s” already exists."
 
-#: ancla/web/views/profile.py:395
+#: ancla/web/views/profile.py:417
 #, python-format
 msgid "Educación «%(titulo)s» guardada."
 msgstr "Education entry “%(titulo)s” saved."
 
-#: ancla/web/views/profile.py:403
+#: ancla/web/views/profile.py:425
 #, python-format
 msgid "No existe la educación «%(id)s»."
 msgstr "The education entry “%(id)s” does not exist."
 
-#: ancla/web/views/profile.py:415
+#: ancla/web/views/profile.py:437
 #, python-format
 msgid "Educación «%(titulo)s» actualizada."
 msgstr "Education entry “%(titulo)s” updated."
 
-#: ancla/web/views/profile.py:422
+#: ancla/web/views/profile.py:444
 msgid "Educación borrada."
 msgstr "Education entry deleted."
 
-#: ancla/web/views/profile.py:430
+#: ancla/web/views/profile.py:452
 #, python-format
 msgid "%(cantidad)s educación(es) borradas."
 msgstr "%(cantidad)s education entry(s) deleted."
 
-#: ancla/web/views/profile.py:430
+#: ancla/web/views/profile.py:452
 msgid "No había ninguna educación que borrar."
 msgstr "There was no education entry to delete."
 
-#: ancla/web/views/profile.py:456
+#: ancla/web/views/profile.py:478
 msgid "Contacto guardado."
 msgstr "Contact saved."
 
-#: ancla/web/views/profile.py:470
+#: ancla/web/views/profile.py:492
 msgid "No se ha seleccionado ninguna foto."
 msgstr "No photo was selected."
 
-#: ancla/web/views/profile.py:474
+#: ancla/web/views/profile.py:496
 msgid "Foto de perfil guardada."
 msgstr "Profile photo saved."
 
-#: ancla/web/views/profile.py:481
+#: ancla/web/views/profile.py:503
 msgid "Foto de perfil borrada."
 msgstr "Profile photo deleted."
 
-#: ancla/web/views/profile.py:506
+#: ancla/web/views/profile.py:543
 msgid "Plantilla de «Sobre mí» guardada."
 msgstr "“About me” template saved."
 
@@ -2873,4 +2926,52 @@ msgstr "Tell us what happened, or what came to mind, before sending it."
 #~ "saved CV, no manual work needed. "
 #~ "You only need Canva if you want"
 #~ " to change the design itself."
+
+#~ msgid ""
+#~ "El texto es tuyo y se copia "
+#~ "tal cual, salvo seis huecos que "
+#~ "rellena el sistema con nombres de "
+#~ "skills que ya tienes:"
+#~ msgstr ""
+#~ "The text is yours and is copied"
+#~ " as-is, except for six gaps the"
+#~ " system fills in with names of "
+#~ "skills you already have:"
+
+#~ msgid "a"
+#~ msgstr "to"
+
+#~ msgid "y"
+#~ msgstr "and"
+
+#~ msgid "lenguajes y tecnologías concretas"
+#~ msgstr "specific languages and technologies"
+
+#~ msgid "El resto de la plantilla no cambia nunca."
+#~ msgstr "The rest of the template never changes."
+
+#~ msgid "Centro (EN)"
+#~ msgstr "Institution (EN)"
+
+#~ msgid "Periodo (EN)"
+#~ msgstr "Period (EN)"
+
+#~ msgid "Stack (EN)"
+#~ msgstr "Tech stack (EN)"
+
+#~ msgid "¿Ya tienes un CV? Impórtalo"
+#~ msgstr "Already have a CV? Import it"
+
+#~ msgid "en vez de escribirlo todo a mano."
+#~ msgstr "instead of typing it all in by hand."
+
+#~ msgid ""
+#~ "Sube tu CV y la IA propone "
+#~ "qué añadir a tu perfil, para no"
+#~ " escribirlo todo a mano."
+#~ msgstr ""
+#~ "Upload your CV and the AI suggests"
+#~ " what to add to your profile, "
+#~ "so you do not have to type "
+#~ "it all by hand."
 

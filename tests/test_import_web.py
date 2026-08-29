@@ -25,9 +25,9 @@ def _experiencia(id: str = "ml-dev") -> Experience:
     return Experience(
         id=id,
         title=Bilingual(es="ML Developer", en="ML Developer"),
-        period=Bilingual(es="2026", en="2026"),
+        period="2026",
         bullets=Bilingual(es=["Pipeline completo"], en=["Full pipeline"]),
-        stack=Bilingual(es="Python", en="Python"),
+        stack="Python",
         keywords=["ml"],
     )
 
@@ -138,12 +138,10 @@ def test_guardar_solo_lo_marcado(cliente_web, tmp_path: Path):
             "exp-0": "1",
             "exp-0-titulo_es": "ML Developer",
             "exp-0-titulo_en": "ML Developer",
-            "exp-0-periodo_es": "2026",
-            "exp-0-periodo_en": "2026",
+            "exp-0-periodo": "2026",
             "exp-0-bullets_es": "Pipeline completo",
             "exp-0-bullets_en": "Full pipeline",
-            "exp-0-stack_es": "Python",
-            "exp-0-stack_en": "Python",
+            "exp-0-stack": "Python",
             # "exp-1" no viene en el formulario: no estaba marcado
         },
     )
@@ -276,10 +274,13 @@ def test_descartar_borra_la_importacion_sin_guardar_nada(cliente_web, tmp_path: 
     assert store.load_profile(root).skill("python") is None
 
 
-def test_un_perfil_vacio_enlaza_a_importar_desde_mi_perfil(cliente_web):
+def test_un_perfil_vacio_abre_con_la_puerta_de_entrada_a_importar(cliente_web):
+    """An empty profile leads with importing, not with a link buried in help
+    text: it is the only way in that does not mean typing everything by hand.
+    Without a key the card offers that step instead of the form (see
+    `test_web_profile.py` for both shapes)."""
     respuesta = cliente_web.get("/perfil")
-    assert b'href="/perfil/importar"' in respuesta.data
-    assert "¿Ya tienes un CV? Impórtalo".encode("utf-8") in respuesta.data
+    assert "Importa tu CV".encode("utf-8") in respuesta.data
 
 
 def test_un_perfil_con_datos_tambien_enlaza_a_importar_desde_mi_perfil(cliente_web, tmp_path: Path):
@@ -418,12 +419,10 @@ def test_de_punta_a_punta_subir_analizar_revisar_y_guardar(cliente_web, tmp_path
             "exp-0": "1",
             "exp-0-titulo_es": "Ingeniera de Datos",
             "exp-0-titulo_en": "Data Engineer",
-            "exp-0-periodo_es": "2025 - actualidad",
-            "exp-0-periodo_en": "2025 - present",
+            "exp-0-periodo": "2025 - actualidad",
             "exp-0-bullets_es": "Pipeline de ingesta con Airflow",
             "exp-0-bullets_en": "Ingestion pipeline with Airflow",
-            "exp-0-stack_es": "Python, Airflow",
-            "exp-0-stack_en": "Python, Airflow",
+            "exp-0-stack": "Python, Airflow",
             # "skill-0" is not sent: it stays discarded.
             "skillpersonal-0": "1",
             "skillpersonal-0-nombre_es": "Trabajo en equipo",

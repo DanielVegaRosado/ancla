@@ -1,0 +1,33 @@
+{# The way into importing, without a screen around it: the standalone
+   /perfil/importar page and the card that opens My profile offer the very
+   same thing, and a second copy would drift.
+
+   Without a key it shows the missing step instead of the form. The check
+   has to happen before the fields are drawn, not after the upload: a file
+   input cannot be repopulated from the server, so failing later would throw
+   away the file the user just chose. `action` is explicit because this
+   renders under two different URLs. #}
+{% if ia_configurada %}
+  <form class="pila" method="post" action="{{ url_for('ancla.import_cv') }}" enctype="multipart/form-data">
+    <div class="campo">
+      <label for="fichero">{{ _('Sube tu CV (PDF o .docx)') }}</label>
+      <input type="file" id="fichero" name="fichero" accept=".pdf,.docx">
+    </div>
+
+    <div class="campo">
+      <label for="texto">{{ _('O pega el texto de tu CV') }}</label>
+      <textarea id="texto" name="texto" class="alta" placeholder="{{ _('Pega aquí el contenido de tu CV si prefieres no subir un fichero') }}"></textarea>
+    </div>
+
+    <div class="barra-acciones">
+      <button type="submit" class="boton-primario">{{ _('Analizar') }}</button>
+    </div>
+  </form>
+{% else %}
+  <p class="ayuda">
+    {{ _('Para leer tu CV hace falta una clave de API: es gratis en Groq y se queda en tu ordenador.') }}
+  </p>
+  <div class="barra-acciones">
+    <a class="boton-primario" href="{{ url_for('ancla.view_settings') }}">{{ _('Configurar mi clave') }}</a>
+  </div>
+{% endif %}
