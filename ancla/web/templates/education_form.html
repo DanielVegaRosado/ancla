@@ -13,25 +13,11 @@
   {% endif %}
 
   <form class="pila" method="post">
-    {% if nueva %}
-      <div class="campo">
-        <label for="titulo_es">{{ _('Titulación (ES)') }}</label>
-        <input type="text" id="titulo_es" name="titulo_es" data-fuente-id="id" required
-               placeholder="Grado en Ingeniería Informática" value="{{ educacion.title['es'] if educacion else '' }}">
-      </div>
-      <div class="campo">
-        <label for="id">{{ _('Identificador') }}</label>
-        <input type="text" id="id" name="id" data-id-manual placeholder="{{ _('se genera del nombre si lo dejas vacío') }}"
-               value="{{ educacion.id if educacion else '' }}">
-        <p class="ayuda">{{ _('Se usa como referencia estable: no se puede cambiar después.') }}</p>
-      </div>
-    {% else %}
-      <div class="campo">
-        <label for="titulo_es">{{ _('Titulación (ES)') }}</label>
-        <input type="text" id="titulo_es" name="titulo_es" required value="{{ educacion.title['es'] }}">
-      </div>
-      <p class="ayuda">{{ _('Identificador:') }} {{ educacion.id }} ({{ _('fijo') }})</p>
-    {% endif %}
+    <div class="campo">
+      <label for="titulo_es">{{ _('Titulación (ES)') }}</label>
+      <input type="text" id="titulo_es" name="titulo_es" {% if nueva %}{% endif %} required
+             placeholder="Grado en Ingeniería Informática" value="{{ educacion.title['es'] if educacion else '' }}">
+    </div>
 
     <div class="campo">
       <label for="titulo_en">{{ _('Titulación (EN)') }}</label>
@@ -46,6 +32,7 @@
     </div>
 
     {% with elemento = educacion %}{% include "_period_fields.html" %}{% endwith %}
+
 
     <div class="barra-acciones">
       <button type="submit" class="boton-primario">{{ _('Guardar') }}</button>

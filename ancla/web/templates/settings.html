@@ -14,12 +14,26 @@
         <option value="openrouter" {{ "selected" if ajustes.proveedor == "openrouter" else "" }}>OpenRouter</option>
         <option value="personalizado" {{ "selected" if ajustes.proveedor == "personalizado" else "" }}>{{ _('Otro (URL manual)') }}</option>
       </select>
-      <p class="ayuda">
-        {{ _('Groq es gratis. Los demás son de pago, con la cuenta que ya tengas en ese proveedor. Otro sirve para cualquier proveedor no listado que hable el mismo formato de API.') }}
-        {% if ajustes.proveedor == "groq" %}
-          <a href="{{ url_conseguir_clave }}" target="_blank" rel="noopener">{{ _('Crea una cuenta gratis en console.groq.com') }}</a>.
-        {% endif %}
-      </p>
+      {#
+        Una línea por proveedor, ocultas todas menos la elegida: el aviso de
+        que hace falta saldo tiene que llegar antes de la primera adaptación,
+        no como error después. El servidor ya oculta las que no tocan, así
+        que sin JavaScript se ve la del proveedor guardado.
+      #}
+      {% for clave, proveedor in proveedores.items() %}
+        <p class="ayuda" data-mostrar-si-proveedor="{{ clave }}"{{ "" if ajustes.proveedor == clave else " hidden" }}>
+          {% if proveedor.free_tier %}
+            {{ _('Crea una cuenta gratis en %(nombre)s, genera una clave y pégala aquí abajo. No te pide tarjeta.', nombre=proveedor.name) }}
+          {% elif proveedor.key_url %}
+            {{ _('Antes de generar tu primera propuesta, entra en tu cuenta de %(nombre)s y comprueba que tienes saldo: crear la clave no da crédito, y sin crédito la primera petición falla. Si prefieres no pagar nada, elige Groq aquí arriba.', nombre=proveedor.name) }}
+          {% else %}
+            {{ _('Pega aquí abajo la clave y la URL base que te dé tu propio proveedor. Al no estar en la lista, no podemos decirte dónde conseguirlas.') }}
+          {% endif %}
+          {% if proveedor.key_url %}
+            <a href="{{ proveedor.key_url }}" target="_blank" rel="noopener">{{ _('Conseguir una clave de %(nombre)s', nombre=proveedor.name) }}</a>.
+          {% endif %}
+        </p>
+      {% endfor %}
     </div>
 
     <div class="campo">
@@ -35,8 +49,13 @@
     <div class="campo" data-mostrar-si-proveedor="openai,anthropic,mistral,openrouter,personalizado">
       <label for="modelo">{{ _('Modelo') }}</label>
       <input type="text" id="modelo" name="modelo" autocomplete="off"
-             value="{{ ajustes.modelo }}" placeholder="gpt-4o-mini">
+             value="{{ ajustes.modelo }}" placeholder="{{ proveedores[ajustes.proveedor].example_model }}">
       <p class="ayuda">{{ _('El nombre exacto del modelo tal cual lo espera ese proveedor.') }}</p>
+      {% for clave, proveedor in proveedores.items() if proveedor.example_model %}
+        <p class="ayuda" data-mostrar-si-proveedor="{{ clave }}"{{ "" if ajustes.proveedor == clave else " hidden" }}>
+          {{ _('Cópialo de la documentación de %(nombre)s; tiene esta pinta: %(ejemplo)s.', nombre=proveedor.name, ejemplo=proveedor.example_model) }}
+        </p>
+      {% endfor %}
     </div>
 
     <div class="campo" data-mostrar-si-proveedor="personalizado">

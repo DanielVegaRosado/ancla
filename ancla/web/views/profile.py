@@ -22,7 +22,8 @@ from ancla.web import settings as modulo_ajustes
 from ancla.web import context
 from ancla.web.blueprint import bp
 from ancla.web.providers import create_client
-from ancla.web.util import csv_to_list, lines_to_list, slugify
+from ancla.text import slugify
+from ancla.web.util import csv_to_list, lines_to_list
 
 
 @bp.route("/")
@@ -77,9 +78,17 @@ def new_experience():
     if request.method == "GET":
         return render_template("experience_form.html", experiencia=None, errors=[], nueva=True)
 
-    id_ = slugify(request.form.get("id") or request.form.get("titulo_es", ""))
+    nombre = request.form.get("titulo_es", "").strip()
+    id_ = slugify(nombre)
     if context.current_profile().experience(id_) is not None:
-        errors = [_("Ya existe una experiencia con el identificador «%(id)s».", id=id_)]
+        # Named, not numbered: the identifier is derived from the name and
+        # never shown, so a clash can only be explained in terms of what the
+        # person actually typed. Saving a second copy under a numbered
+        # identifier would hide a duplicate in the profile instead.
+        errors = [_(
+            "Ya tienes una experiencia titulada «%(nombre)s». Edita la que ya está en tu perfil, o cambia el título si de verdad son dos distintas.",
+            nombre=nombre,
+        )]
         return render_template("experience_form.html", experiencia=None, errors=errors, nueva=True)
 
     experiencia = _experience_from_form(id_)
@@ -195,9 +204,17 @@ def new_skill():
     if request.method == "GET":
         return render_template("skill_form.html", skill=None, errors=[], nueva=True)
 
-    id_ = slugify(request.form.get("id") or request.form.get("nombre_es", ""))
+    nombre = request.form.get("nombre_es", "").strip()
+    id_ = slugify(nombre)
     if context.current_profile().skill(id_) is not None:
-        errors = [_("Ya existe una skill con el identificador «%(id)s».", id=id_)]
+        # Named, not numbered: the identifier is derived from the name and
+        # never shown, so a clash can only be explained in terms of what the
+        # person actually typed. Saving a second copy under a numbered
+        # identifier would hide a duplicate in the profile instead.
+        errors = [_(
+            "Ya tienes una skill llamada «%(nombre)s». Edita la que ya está en tu perfil, o cambia el nombre si de verdad son dos distintas.",
+            nombre=nombre,
+        )]
         return render_template("skill_form.html", skill=None, errors=errors, nueva=True)
 
     skill = _skill_from_form(id_)
@@ -257,9 +274,17 @@ def new_personal_skill():
     if request.method == "GET":
         return render_template("personal_skill_form.html", skill=None, errors=[], nueva=True)
 
-    id_ = slugify(request.form.get("id") or request.form.get("nombre_es", ""))
+    nombre = request.form.get("nombre_es", "").strip()
+    id_ = slugify(nombre)
     if context.current_profile().personal_skill(id_) is not None:
-        errors = [_("Ya existe una skill personal con el identificador «%(id)s».", id=id_)]
+        # Named, not numbered: the identifier is derived from the name and
+        # never shown, so a clash can only be explained in terms of what the
+        # person actually typed. Saving a second copy under a numbered
+        # identifier would hide a duplicate in the profile instead.
+        errors = [_(
+            "Ya tienes una skill personal llamada «%(nombre)s». Edita la que ya está en tu perfil, o cambia el nombre si de verdad son dos distintas.",
+            nombre=nombre,
+        )]
         return render_template("personal_skill_form.html", skill=None, errors=errors, nueva=True)
 
     skill = _skill_from_form(id_)
@@ -332,9 +357,17 @@ def new_language():
     if request.method == "GET":
         return render_template("language_form.html", idioma=None, errors=[], nuevo=True)
 
-    id_ = slugify(request.form.get("id") or request.form.get("nombre_es", ""))
+    nombre = request.form.get("nombre_es", "").strip()
+    id_ = slugify(nombre)
     if context.current_profile().language(id_) is not None:
-        errors = [_("Ya existe un idioma con el identificador «%(id)s».", id=id_)]
+        # Named, not numbered: the identifier is derived from the name and
+        # never shown, so a clash can only be explained in terms of what the
+        # person actually typed. Saving a second copy under a numbered
+        # identifier would hide a duplicate in the profile instead.
+        errors = [_(
+            "Ya tienes un idioma llamado «%(nombre)s». Edita el que ya está en tu perfil, o cambia el nombre si de verdad son dos distintos.",
+            nombre=nombre,
+        )]
         return render_template("language_form.html", idioma=None, errors=errors, nuevo=True)
 
     idioma = _language_from_form(id_)
@@ -405,9 +438,17 @@ def new_education():
     if request.method == "GET":
         return render_template("education_form.html", educacion=None, errors=[], nueva=True)
 
-    id_ = slugify(request.form.get("id") or request.form.get("titulo_es", ""))
+    nombre = request.form.get("titulo_es", "").strip()
+    id_ = slugify(nombre)
     if context.current_profile().education_entry(id_) is not None:
-        errors = [_("Ya existe una educación con el identificador «%(id)s».", id=id_)]
+        # Named, not numbered: the identifier is derived from the name and
+        # never shown, so a clash can only be explained in terms of what the
+        # person actually typed. Saving a second copy under a numbered
+        # identifier would hide a duplicate in the profile instead.
+        errors = [_(
+            "Ya tienes una educación titulada «%(nombre)s». Edita la que ya está en tu perfil, o cambia el título si de verdad son dos distintas.",
+            nombre=nombre,
+        )]
         return render_template("education_form.html", educacion=None, errors=errors, nueva=True)
 
     educacion = _education_from_form(id_)

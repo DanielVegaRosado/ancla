@@ -10,25 +10,11 @@
   {% endif %}
 
   <form class="pila" method="post">
-    {% if nueva %}
-      <div class="campo">
-        <label for="titulo_es">{{ _('Título (ES)') }}</label>
-        <input type="text" id="titulo_es" name="titulo_es" data-fuente-id="id" required
-               value="{{ experiencia.title['es'] if experiencia else '' }}">
-      </div>
-      <div class="campo">
-        <label for="id">{{ _('Identificador') }}</label>
-        <input type="text" id="id" name="id" data-id-manual placeholder="{{ _('se genera del título si lo dejas vacío') }}"
-               value="{{ experiencia.id if experiencia else '' }}">
-        <p class="ayuda">{{ _('Se usa como referencia estable en el archivo de CVs: no se puede cambiar después.') }}</p>
-      </div>
-    {% else %}
-      <div class="campo">
-        <label for="titulo_es">{{ _('Título (ES)') }}</label>
-        <input type="text" id="titulo_es" name="titulo_es" required value="{{ experiencia.title['es'] }}">
-      </div>
-      <p class="ayuda">{{ _('Identificador:') }} {{ experiencia.id }} ({{ _('fijo') }})</p>
-    {% endif %}
+    <div class="campo">
+      <label for="titulo_es">{{ _('Título (ES)') }}</label>
+      <input type="text" id="titulo_es" name="titulo_es" {% if nueva %}{% endif %} required
+             value="{{ experiencia.title['es'] if experiencia else '' }}">
+    </div>
 
     <div class="campo">
       <label for="titulo_en">{{ _('Título (EN)') }}</label>
@@ -71,6 +57,7 @@
       <label for="estado">{{ _('Estado (opcional, notas internas)') }}</label>
       <input type="text" id="estado" name="estado" value="{{ experiencia.status if experiencia else '' }}">
     </div>
+
 
     <div class="barra-acciones">
       <button type="submit" class="boton-primario">{{ _('Guardar') }}</button>

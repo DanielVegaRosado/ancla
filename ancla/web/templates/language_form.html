@@ -13,25 +13,11 @@
   {% endif %}
 
   <form class="pila" method="post">
-    {% if nuevo %}
-      <div class="campo">
-        <label for="nombre_es">{{ _('Idioma (ES)') }}</label>
-        <input type="text" id="nombre_es" name="nombre_es" data-fuente-id="id" required
-               placeholder="Inglés" value="{{ idioma.name['es'] if idioma else '' }}">
-      </div>
-      <div class="campo">
-        <label for="id">{{ _('Identificador') }}</label>
-        <input type="text" id="id" name="id" data-id-manual placeholder="{{ _('se genera del nombre si lo dejas vacío') }}"
-               value="{{ idioma.id if idioma else '' }}">
-        <p class="ayuda">{{ _('Se usa como referencia estable en el archivo de CVs: no se puede cambiar después.') }}</p>
-      </div>
-    {% else %}
-      <div class="campo">
-        <label for="nombre_es">{{ _('Idioma (ES)') }}</label>
-        <input type="text" id="nombre_es" name="nombre_es" required value="{{ idioma.name['es'] }}">
-      </div>
-      <p class="ayuda">{{ _('Identificador:') }} {{ idioma.id }} ({{ _('fijo') }})</p>
-    {% endif %}
+    <div class="campo">
+      <label for="nombre_es">{{ _('Idioma (ES)') }}</label>
+      <input type="text" id="nombre_es" name="nombre_es" {% if nuevo %}{% endif %} required
+             placeholder="Inglés" value="{{ idioma.name['es'] if idioma else '' }}">
+    </div>
 
     <div class="campo">
       <label for="nombre_en">{{ _('Idioma (EN)') }}</label>
@@ -66,6 +52,7 @@
       </div>
       <p class="ayuda" data-aviso-keywords hidden></p>
     </div>
+
 
     <div class="barra-acciones">
       <button type="submit" class="boton-primario">{{ _('Guardar') }}</button>

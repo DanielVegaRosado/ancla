@@ -1,9 +1,12 @@
 {% extends "base.html" %}
-{% block titulo %}{{ _('Adaptar') }} · Ancla{% endblock %}
+{% block titulo %}{{ _('Adaptar a una vacante') }} · Ancla{% endblock %}
 {% block contenido %}
   <h1>{{ _('Adaptar un CV a una vacante') }}</h1>
   <p class="ayuda">
     {{ _('Pega el texto completo de la vacante. El sistema elige, de tu perfil, qué experiencia y skills mostrar, y te dice por qué. Es una única llamada al modelo.') }}
+  </p>
+  <p class="ayuda">
+    {{ _('El resultado aparece en «Última propuesta», donde podrás revisarlo, ajustarlo y guardarlo.') }}
   </p>
 
   <form class="pila" method="post" action="{{ url_for('ancla.adapt') }}">

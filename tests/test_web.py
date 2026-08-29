@@ -199,7 +199,10 @@ def test_guardar_una_clave_de_grok_en_vez_de_groq_avisa_pero_no_bloquea(
         follow_redirects=True,
     )
     assert respuesta.status_code == 200
-    assert "no empieza por «gsk_»".encode("utf-8") in respuesta.data
+    # Asserting on where to go rather than on the wording: the message has
+    # to leave the person able to fix it, and that is the part that must not
+    # get lost the next time it is reworded.
+    assert "console.groq.com".encode("utf-8") in respuesta.data
     assert "Grok".encode("utf-8") in respuesta.data
     # It is saved all the same: it is not up to the app to decide if a key is valid.
     guardados = modulo_ajustes.load_settings(tmp_path / "ajustes.json")
@@ -405,3 +408,114 @@ def test_en_modo_demo_dos_sesiones_distintas_no_comparten_clave(app_demo, client
     )
     respuesta = otro_visitante.get("/ajustes")
     assert b"gsk_visitante_a" not in respuesta.data
+
+
+# --------------------------------------------------------------------------
+# Anthropic: what the user is told before and after it fails
+# --------------------------------------------------------------------------
+
+
+def _error_de_anthropic(clase, mensaje: str, codigo: int):
+    import httpx
+
+    peticion = httpx.Request("POST", "https://api.anthropic.com/v1/messages")
+    return clase(mensaje, response=httpx.Response(codigo, request=peticion), body=None)
+
+
+def _explicacion_de_anthropic(cliente_web, excepcion: Exception) -> str:
+    """`_explain` returns translated text, and gettext needs an app context."""
+    from ancla.ai.anthropic import AnthropicClient
+
+    with cliente_web.application.test_request_context():
+        return AnthropicClient("clave-inventada", "claude-inventado")._explain(excepcion)
+
+
+def test_ajustes_avisa_de_que_anthropic_necesita_saldo(cliente_web):
+    """The failure the app has to prevent, not just report: Anthropic has no
+    free tier, so a key created for a first try fails until the account has
+    credit. Asserting on the actionable part (that money is needed, and
+    where the key comes from), not on the wording."""
+    respuesta = cliente_web.get("/ajustes").data.decode("utf-8")
+    assert "saldo" in respuesta
+    assert "console.anthropic.com/settings/keys" in respuesta
+
+
+def test_ajustes_enlaza_a_la_pagina_de_claves_de_cada_proveedor(cliente_web):
+    from ancla.web.providers import PROVIDERS
+
+    respuesta = cliente_web.get("/ajustes").data.decode("utf-8")
+    for entrada in PROVIDERS.values():
+        if entrada.key_url:
+            assert entrada.key_url in respuesta
+
+
+def test_el_proveedor_personalizado_no_inventa_una_pagina_de_claves():
+    """There is no key page to point at when the endpoint is the user's own."""
+    from ancla.web.providers import PROVIDERS
+
+    assert PROVIDERS["personalizado"].key_url == ""
+
+
+def test_todo_proveedor_ofrecido_en_ajustes_tiene_entrada_en_el_registro():
+    """The dropdown and the factory registry must not drift apart: an option
+    with no entry would be a provider that cannot be built."""
+    from ancla.web.providers import PROVIDERS
+
+    assert set(modulo_ajustes.PROVEEDORES) == set(PROVIDERS)
+
+
+def test_guardar_ajustes_con_anthropic_los_persiste(cliente_web, tmp_path: Path):
+    cliente_web.post(
+        "/ajustes",
+        data={"proveedor": "anthropic", "clave_api": "sk-ant-inventada", "modelo": "claude-x"},
+        follow_redirects=True,
+    )
+    guardados = modulo_ajustes.load_settings(tmp_path / "ajustes.json")
+    assert guardados.proveedor == "anthropic"
+    assert guardados.configured()
+
+
+def test_sin_saldo_en_anthropic_dice_que_comprar_credito_o_cambiar_a_groq(cliente_web):
+    """The most likely first failure with Anthropic, and the one that used to
+    read as a generic bad request: it arrives as a plain 400, so the user has
+    to be told where to add credit and that Groq is the free way out."""
+    import anthropic
+
+    error = _error_de_anthropic(
+        anthropic.BadRequestError,
+        "Your credit balance is too low to access the Anthropic API.",
+        400,
+    )
+    explicacion = _explicacion_de_anthropic(cliente_web, error)
+    assert "console.anthropic.com/settings/billing" in explicacion
+    assert "Groq" in explicacion
+
+
+def test_clave_invalida_de_anthropic_dice_donde_generar_otra(cliente_web):
+    import anthropic
+
+    error = _error_de_anthropic(anthropic.AuthenticationError, "invalid x-api-key", 401)
+    explicacion = _explicacion_de_anthropic(cliente_web, error)
+    assert "console.anthropic.com/settings/keys" in explicacion
+    assert "Ajustes" in explicacion
+
+
+def test_modelo_inexistente_en_anthropic_nombra_el_modelo_configurado(cliente_web):
+    """Naming the model the user actually typed is the whole point: the fix
+    is a typo in Settings, and they cannot see it from a generic message."""
+    import anthropic
+
+    error = _error_de_anthropic(anthropic.NotFoundError, "model not found", 404)
+    explicacion = _explicacion_de_anthropic(cliente_web, error)
+    assert "claude-inventado" in explicacion
+    assert "Ajustes" in explicacion
+
+
+def test_timeout_de_anthropic_dice_volver_a_generar(cliente_web):
+    import anthropic
+    import httpx
+
+    error = anthropic.APITimeoutError(
+        request=httpx.Request("POST", "https://api.anthropic.com/v1/messages")
+    )
+    assert "propuesta" in _explicacion_de_anthropic(cliente_web, error)

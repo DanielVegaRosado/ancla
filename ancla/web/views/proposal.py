@@ -39,7 +39,12 @@ _SECCIONES = ("sobre-mi", "skills", "experiencias")
 def view_proposal():
     borrador = modulo_borrador.load_draft(context.root())
     if borrador is None:
-        flash(_("Todavía no has generado ninguna propuesta. Empieza por pegar una vacante."))
+        flash(
+            _(
+                "«Última propuesta» muestra el resultado de adaptar tu perfil a una vacante, "
+                "y todavía no has adaptado ninguna. Pega aquí el texto de la vacante para empezar."
+            )
+        )
         return redirect(url_for("ancla.adapt"))
 
     perfil = context.current_profile()

@@ -4,10 +4,10 @@ from __future__ import annotations
 from flask import flash, redirect, render_template, request, url_for
 from flask_babel import gettext as _
 
-from ancla.ai.groq import URL_CONSEGUIR_CLAVE
 from ancla.web import settings as modulo_ajustes
 from ancla.web import context
 from ancla.web.blueprint import bp
+from ancla.web.providers import PROVIDERS
 
 
 @bp.route("/ajustes", methods=["GET", "POST"])
@@ -16,7 +16,7 @@ def view_settings():
         return render_template(
             "settings.html",
             ajustes=context.current_settings(),
-            url_conseguir_clave=URL_CONSEGUIR_CLAVE,
+            proveedores=PROVIDERS,
         )
 
     actuales = context.current_settings()
@@ -51,12 +51,17 @@ def view_settings():
     # saved instead of waiting for the first failure. With "Other
     # (OpenAI-compatible)" any key format is legitimate, so the warning
     # does not apply.
+    #
+    # The wording leads with what to do rather than with what is wrong: the
+    # person reading it is trying to get started, and the shape of the key
+    # is not information they can act on by itself.
     if nuevos.proveedor == "groq" and nuevos.clave_api and not nuevos.clave_api.startswith("gsk_"):
         flash(
             _(
-                "Esa clave no empieza por «gsk_», que es el formato de Groq. Si la "
-                "conseguiste en console.x.ai en vez de console.groq.com, es de Grok "
-                "(xAI) y no funcionará aquí: son proveedores distintos."
+                "Esa clave no parece de Groq, así que seguramente no funcione. "
+                "Consigue la tuya gratis en console.groq.com: entra, crea una clave "
+                "nueva y pégala aquí. Ojo, que console.x.ai es otro servicio "
+                "distinto (Grok) aunque el nombre se parezca mucho."
             )
         )
     flash(_("Ajustes guardados."))

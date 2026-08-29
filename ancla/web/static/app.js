@@ -1,6 +1,6 @@
-// Vanilla JS, sin dependencias. Tres comportamientos pequeños y locales:
-// copiar al portapapeles, confirmar borrados y auto-generar un identificador
-// a partir de un título mientras el usuario no lo haya tocado a mano.
+// Vanilla JS, sin dependencias. Comportamientos pequeños y locales:
+// copiar al portapapeles, confirmar borrados, mostrar los campos que pide el
+// proveedor elegido y proponer keywords con IA.
 
 document.addEventListener("click", (evento) => {
   const boton = evento.target.closest("[data-copiar]");
@@ -22,23 +22,6 @@ document.addEventListener("submit", (evento) => {
   const mensaje = formulario.getAttribute("data-confirmar");
   if (mensaje && !window.confirm(mensaje)) {
     evento.preventDefault();
-  }
-});
-
-document.addEventListener("input", (evento) => {
-  if (!evento.target.matches("[data-fuente-id]")) return;
-  const destino = document.getElementById(evento.target.getAttribute("data-fuente-id"));
-  if (!destino || destino.dataset.tocado === "1") return;
-  destino.value = evento.target.value
-    .toLowerCase()
-    .normalize("NFD").replace(/[̀-ͯ]/g, "")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/(^-|-$)/g, "");
-});
-
-document.addEventListener("input", (evento) => {
-  if (evento.target.matches("[data-id-manual]")) {
-    evento.target.dataset.tocado = "1";
   }
 });
 

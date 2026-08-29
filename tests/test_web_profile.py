@@ -88,16 +88,17 @@ def test_borrar_skill_personal_la_quita_del_perfil(cliente_web, tmp_path: Path):
     assert perfil.personal_skill("empatia") is None
 
 
-def test_una_skill_personal_con_id_repetido_da_error_claro(cliente_web):
+def test_una_skill_personal_con_el_nombre_repetido_avisa(cliente_web):
     cliente_web.post(
         "/perfil/skills-personales/nueva",
-        data={"id": "empatia", "nombre_es": "Empatía", "nombre_en": "Empathy", "keywords": "x"},
+        data={"nombre_es": "Empatía", "nombre_en": "Empathy", "keywords": "x"},
     )
     respuesta = cliente_web.post(
         "/perfil/skills-personales/nueva",
-        data={"id": "empatia", "nombre_es": "Otra cosa", "nombre_en": "Other", "keywords": "x"},
+        data={"nombre_es": "Empatía", "nombre_en": "Empathy at work", "keywords": "x"},
     )
-    assert "Ya existe una skill personal".encode("utf-8") in respuesta.data
+
+    assert "Ya tienes una skill personal".encode("utf-8") in respuesta.data
 
 
 # --------------------------------------------------------------------------
@@ -760,3 +761,71 @@ def test_editar_una_experiencia_no_borra_su_estado(cliente_web, tmp_path: Path):
     html = cliente_web.get("/perfil/experiencias/backend/editar").data.decode("utf-8")
 
     assert 'name="estado" value="contrato en prácticas"' in html
+
+
+# --------------------------------------------------------------------------
+# The identifier, kept out of sight
+# --------------------------------------------------------------------------
+
+ALTAS = [
+    "/perfil/experiencias/nueva",
+    "/perfil/skills/nueva",
+    "/perfil/skills-personales/nueva",
+    "/perfil/idiomas/nuevo",
+    "/perfil/educacion/nueva",
+]
+
+
+@pytest.mark.parametrize("ruta", ALTAS)
+def test_ninguna_alta_pide_el_identificador(cliente_web, ruta: str):
+    """It is the name Ancla uses internally and it never appears on a CV, so
+    there is nothing for the person filling the form to decide about it."""
+    html = cliente_web.get(ruta).data.decode("utf-8")
+
+    assert 'name="id"' not in html
+    assert "Identificador" not in html
+
+
+def test_un_alta_saca_el_identificador_del_titulo(cliente_web, tmp_path: Path):
+    cliente_web.post(
+        "/perfil/skills/nueva",
+        data={
+            "nombre_es": "Python Avanzado",
+            "nombre_en": "Advanced Python",
+            "categoria": "lenguaje",
+            "keywords": "python",
+        },
+    )
+
+    perfil = store.load_profile(tmp_path / "perfil")
+    assert perfil.skill("python-avanzado").name["es"] == "Python Avanzado"
+
+
+def test_un_nombre_repetido_se_avisa_y_no_pisa_lo_guardado(cliente_web, tmp_path: Path):
+    """A profile with the same skill twice is a mistake, not something to
+    file away under a numbered identifier. The warning talks about the name,
+    which is the only part the person can see, and what was already saved is
+    left untouched."""
+    datos = {"nombre_es": "Python Avanzado", "categoria": "lenguaje", "keywords": "python"}
+    cliente_web.post("/perfil/skills/nueva", data={**datos, "nombre_en": "Advanced Python"})
+
+    respuesta = cliente_web.post(
+        "/perfil/skills/nueva", data={**datos, "nombre_en": "Advanced Python II"}
+    )
+
+    assert "Python Avanzado".encode("utf-8") in respuesta.data
+    perfil = store.load_profile(tmp_path / "perfil")
+    assert perfil.skill("python-avanzado").name["en"] == "Advanced Python"
+    assert perfil.skill("python-avanzado-2") is None
+
+
+def test_al_editar_tampoco_se_ve_el_identificador(cliente_web, tmp_path: Path):
+    cliente_web.post(
+        "/perfil/skills/nueva",
+        data={"nombre_es": "Python", "nombre_en": "Python", "categoria": "lenguaje", "keywords": "py"},
+    )
+
+    html = cliente_web.get("/perfil/skills/python/editar").data.decode("utf-8")
+
+    assert "Identificador" not in html
+    assert 'name="id"' not in html

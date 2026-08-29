@@ -23,6 +23,11 @@ TIMEOUT_SEGUNDOS = 120
 MAX_TOKENS_RESPUESTA = 4000
 
 URL_CONSEGUIR_CLAVE = "https://console.anthropic.com/settings/keys"
+# Anthropic has no free tier: a brand new key with no credit bought
+# fails on the very first call, and the API says so with a 400 rather
+# than with an authentication error — which is why the key looks fine
+# and the failure does not.
+URL_COMPRAR_CREDITO = "https://console.anthropic.com/settings/billing"
 
 
 class AnthropicClient:
@@ -47,15 +52,17 @@ class AnthropicClient:
         if not self.available():
             raise AIError(
                 _(
-                    "Todavía no has configurado tu clave y tu modelo de Anthropic. Ve a "
-                    "Ajustes y rellena los dos; puedes conseguir una clave en %(url)s.",
+                    "Ve a Ajustes y rellena la clave y el modelo de Anthropic: hacen "
+                    "falta los dos. La clave se genera en %(url)s, y Anthropic cobra "
+                    "por uso, así que la cuenta necesita saldo antes de la primera "
+                    "propuesta.",
                     url=URL_CONSEGUIR_CLAVE,
                 )
             )
         respuesta = self._request(sistema, usuario)
         if not respuesta.strip():
             raise AIError(
-                _("Anthropic ha devuelto una respuesta vacía. Vuelve a generar la propuesta.")
+                _("Vuelve a generar la propuesta: Anthropic ha devuelto una respuesta vacía.")
             )
         return respuesta
 
@@ -77,15 +84,15 @@ class AnthropicClient:
         if respuesta.stop_reason == "refusal":
             raise AIError(
                 _(
-                    "Anthropic ha rechazado esta petición por motivos de seguridad. "
-                    "Revisa el texto de la vacante o del CV e inténtalo de nuevo."
+                    "Revisa el texto de la vacante o del CV y vuelve a intentarlo: "
+                    "Anthropic ha rechazado esta petición por motivos de seguridad."
                 )
             )
         texto = next((bloque.text for bloque in respuesta.content if bloque.type == "text"), "")
         if not texto:
             raise AIError(
                 _(
-                    "Anthropic ha devuelto una respuesta sin texto. Vuelve a generar la propuesta."
+                    "Vuelve a generar la propuesta: Anthropic ha devuelto una respuesta sin texto."
                 )
             )
         return texto
@@ -102,21 +109,58 @@ class AnthropicClient:
         return anthropic.Anthropic(api_key=self.clave, timeout=TIMEOUT_SEGUNDOS)
 
     def _explain(self, exc: Exception) -> str:
-        """Unlike groq.py and openai_compatible.py, this one does inspect
-        the error's class: Anthropic's SDK is a single one, well documented,
+        """Translates the SDK's failure into something the user can act on.
+
+        Unlike groq.py and openai_compatible.py, this one does inspect the
+        error's class: Anthropic's SDK is a single one, well documented,
         with typed exceptions — there is no handful of providers behind the
-        same SDK silently changing shape."""
+        same SDK silently changing shape. The one exception is running out
+        of credit, which arrives as a plain 400 like any other bad request
+        and can only be told apart by its text.
+
+        Each message opens with what to do, not with what broke: whoever
+        reads it is trying to get the app working, and the cause on its own
+        is not something they can act on.
+        """
         import anthropic
 
+        if "credit balance" in str(exc).lower():
+            return _(
+                "Compra crédito en tu cuenta de Anthropic para poder usarla: %(url)s. "
+                "Anthropic no tiene plan gratuito, así que una clave recién creada no "
+                "funciona hasta que la cuenta tiene saldo. Si prefieres no pagar, "
+                "cambia el proveedor a Groq en Ajustes: ese sí es gratis.",
+                url=URL_COMPRAR_CREDITO,
+            )
         if isinstance(exc, anthropic.AuthenticationError):
-            return _("Tu clave de Anthropic no es válida o ha caducado. Revísala en Ajustes.")
+            return _(
+                "Genera una clave nueva en %(url)s y pégala en Ajustes: la que hay "
+                "puesta no le vale a Anthropic.",
+                url=URL_CONSEGUIR_CLAVE,
+            )
+        if isinstance(exc, anthropic.PermissionDeniedError):
+            return _(
+                "Esta clave de Anthropic no tiene permiso para lo que hace la app. "
+                "Genera otra desde tu propia cuenta en %(url)s y pégala en Ajustes.",
+                url=URL_CONSEGUIR_CLAVE,
+            )
         if isinstance(exc, anthropic.NotFoundError):
-            return _("El modelo configurado no existe en Anthropic. Revísalo en Ajustes.")
+            return _(
+                "Corrige el modelo en Ajustes: «%(modelo)s» no existe en Anthropic. "
+                "Cópialo tal cual de la documentación de Anthropic, sin espacios ni "
+                "el nombre comercial (por ejemplo «claude-haiku-4-5», no «Claude»).",
+                modelo=self.modelo,
+            )
         if isinstance(exc, anthropic.RateLimitError):
             return _(
-                "Has agotado la cuota de Anthropic por ahora. Espera un rato y vuelve a "
-                "intentarlo."
+                "Espera un rato y vuelve a intentarlo: has llegado al límite de "
+                "peticiones de tu cuenta de Anthropic."
             )
+        if isinstance(exc, anthropic.APITimeoutError):
+            return _("Vuelve a generar la propuesta: Anthropic ha tardado demasiado en responder.")
         if isinstance(exc, anthropic.APIConnectionError):
-            return _("No se ha podido contactar con Anthropic. Comprueba tu conexión a internet.")
+            return _(
+                "Comprueba tu conexión a internet y vuelve a intentarlo: no se ha "
+                "podido contactar con Anthropic."
+            )
         return _("Anthropic ha devuelto un error: %(error)s", error=exc)

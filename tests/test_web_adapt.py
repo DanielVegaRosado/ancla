@@ -110,3 +110,21 @@ def test_regenerar_seccion_no_revienta(cliente_web, monkeypatch):
 
     assert respuesta.status_code == 302
     assert respuesta.location.endswith("/propuesta")
+
+
+def test_la_propuesta_sin_borrador_devuelve_a_adaptar_explicando_el_orden(cliente_web):
+    """The menu presents Adapt and Proposal as two steps of one flow, so
+    reaching Proposal with nothing adapted has to land on Adapt and say why
+    instead of showing an empty screen."""
+    respuesta = cliente_web.get("/propuesta")
+    assert respuesta.status_code == 302
+    assert respuesta.location.endswith("/adaptar")
+
+    pagina = cliente_web.get("/adaptar").get_data(as_text=True)
+    assert "todavía no has adaptado ninguna" in pagina
+
+
+def test_el_menu_nombra_los_dos_pasos_del_mismo_recorrido(cliente_web):
+    pagina = cliente_web.get("/adaptar").get_data(as_text=True)
+    assert "Adaptar a una vacante" in pagina
+    assert "Última propuesta" in pagina
