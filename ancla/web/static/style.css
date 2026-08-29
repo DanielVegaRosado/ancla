@@ -513,3 +513,22 @@ form.en-linea { display: inline; }
 }
 
 .separador { border: none; border-top: 1px solid var(--borde); margin: 1.25rem 0; }
+
+/* The two halves of a period sit on one line: they read as a single range,
+   not as two unrelated questions. They wrap on a narrow screen rather than
+   forcing the form to scroll sideways. */
+.periodo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.periodo select {
+  flex: 1 1 8rem;
+  min-width: 0;
+}
+
+.periodo-separador {
+  color: var(--texto-suave);
+}

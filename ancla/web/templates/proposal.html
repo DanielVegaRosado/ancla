@@ -139,7 +139,7 @@
           {% if experiencia %}
             <textarea id="copia-experiencia-{{ loop.index0 }}" hidden>{{ texto_bloque }}</textarea>
             <div class="cabecera-bloque">
-              <h3>{{ experiencia.title[propuesta.language] }} · {{ experiencia.period }}</h3>
+              <h3>{{ experiencia.title[propuesta.language] }} · {{ periodo(experiencia, propuesta.language) }}</h3>
               <button type="button" class="boton boton-pequeno" data-copiar="copia-experiencia-{{ loop.index0 }}">{{ _('Copiar') }}</button>
             </div>
             <ul>

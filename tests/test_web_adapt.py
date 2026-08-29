@@ -32,7 +32,7 @@ def cliente_web(tmp_path: Path):
         Experience(
             id="api-pagos",
             title=Bilingual(es="API de pagos", en="Payments API"),
-            period="2025",
+            period_start="2025", period_end="",
             bullets=Bilingual(es=["Bullet"], en=["Bullet"]),
             stack="Python",
         ),

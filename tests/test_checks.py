@@ -33,7 +33,7 @@ def _experiencia(id: str) -> Experience:
     return Experience(
         id=id,
         title=Bilingual(es=id, en=id),
-        period="2026",
+        period_start="2026", period_end="",
         bullets=Bilingual(es=["algo"], en=["something"]),
         stack="Python",
         keywords=["python"],

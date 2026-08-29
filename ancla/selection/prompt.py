@@ -16,7 +16,7 @@ into the catalog with no risk of ending up rewritten in the proposal.
 """
 from __future__ import annotations
 
-from ancla.profile.model import N_ABOUT_ME_GROUP, Language, Profile
+from ancla.profile.model import N_ABOUT_ME_GROUP, Language, Profile, period_text
 
 # A job posting is rarely more than a few thousand characters; if someone
 # pastes the whole page, menu and footer included, paying for it in tokens
@@ -95,8 +95,9 @@ def catalog(perfil: Profile, idioma: Language) -> str:
 
 def _experience_to_text(exp, idioma: Language) -> list[str]:
     lineas = [f"- id: {exp.id}", f"  título: {exp.title[idioma]}"]
-    if exp.period:
-        lineas.append(f"  periodo: {exp.period}")
+    periodo = period_text(exp.period_start, exp.period_end, "es")
+    if periodo:
+        lineas.append(f"  periodo: {periodo}")
     if exp.stack:
         lineas.append(f"  stack: {exp.stack}")
     if exp.keywords:

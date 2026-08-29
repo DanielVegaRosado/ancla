@@ -25,7 +25,7 @@ def _experiencia(id: str = "ml-dev") -> Experience:
     return Experience(
         id=id,
         title=Bilingual(es="ML Developer", en="ML Developer"),
-        period="2026",
+        period_start="2026", period_end="",
         bullets=Bilingual(es=["Pipeline completo"], en=["Full pipeline"]),
         stack="Python",
         keywords=["ml"],

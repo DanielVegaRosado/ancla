@@ -13,7 +13,7 @@ CONTRACT — implemented by agent C.
 """
 from __future__ import annotations
 
-from ancla.profile.model import Experience, Language, Profile, Proposal
+from ancla.profile.model import Experience, Language, Profile, Proposal, period_text
 
 _ENCABEZADOS = {
     "es": {
@@ -59,7 +59,7 @@ _MOTIVOS_MD = {
 
 
 def _experience_block(experiencia: Experience, idioma: Language) -> list[str]:
-    lineas = [f"{experiencia.title[idioma]} — {experiencia.period}"]
+    lineas = [f"{experiencia.title[idioma]} — {period_text(experiencia.period_start, experiencia.period_end, idioma)}"]
     lineas.extend(f"- {bullet}" for bullet in experiencia.bullets[idioma])
     if experiencia.stack:
         lineas.append(experiencia.stack)

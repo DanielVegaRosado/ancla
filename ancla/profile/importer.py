@@ -50,6 +50,7 @@ import json
 from dataclasses import dataclass, field
 
 from ancla.ai.client import AIClient
+from ancla.profile.serialization import split_period
 from ancla.profile.model import Bilingual, Experience, Profile, Skill, SpokenLanguage
 from ancla.text import to_text, to_texts, json_block, normalize, slugify
 
@@ -273,7 +274,7 @@ def _to_experience(datos: dict, ids_usados: set[str]) -> Experience | None:
     return Experience(
         id=id_,
         title=titulo,
-        period=_single_text(datos.get("periodo")),
+        **dict(zip(("period_start", "period_end"), split_period(_single_text(datos.get("periodo"))))),
         bullets=_bilingual_list(datos.get("bullets")),
         stack=_single_text(datos.get("stack")),
         keywords=to_texts(datos.get("keywords")),

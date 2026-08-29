@@ -168,7 +168,8 @@ def _edited_experience(form, indice: int, original: Experience) -> Experience:
             es=form.get(f"{prefijo}-titulo_es", original.title["es"]).strip(),
             en=form.get(f"{prefijo}-titulo_en", original.title["en"]).strip(),
         ),
-        period=form.get(f"{prefijo}-periodo", original.period).strip(),
+        period_start=form.get(f"{prefijo}-periodo_inicio", original.period_start).strip(),
+        period_end=form.get(f"{prefijo}-periodo_fin", original.period_end).strip(),
         bullets=Bilingual(
             es=lines_to_list(form.get(f"{prefijo}-bullets_es", "")),
             en=lines_to_list(form.get(f"{prefijo}-bullets_en", "")),

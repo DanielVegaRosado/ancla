@@ -43,7 +43,7 @@ def _perfil_en_disco(root: Path) -> None:
             Experience(
                 id=id_,
                 title=Bilingual(es=titulo, en=titulo),
-                period="2023",
+                period_start="2023", period_end="",
                 bullets=Bilingual(es=["Bullet"], en=["Bullet"]),
                 stack="Python",
             ),

@@ -87,7 +87,7 @@ def test_un_numero_suelto_se_lee_como_texto():
     """`period: 2026` is an integer to YAML, but on the CV it is a date."""
     experiencia = serialization.parse_experience({"period": 2026}, "x", "x.yaml")
 
-    assert experiencia.period == "2026"
+    assert experiencia.period_start == "2026"
 
 
 def test_los_campos_que_faltan_no_revientan():
@@ -177,7 +177,7 @@ def _experiencia() -> Experience:
     return Experience(
         id="ml-telco-churn",
         title=Bilingual(es="ML Developer", en="ML Developer"),
-        period="2026 - ACTUALIDAD",
+        period_start="2026", period_end="ongoing",
         bullets=Bilingual(
             es=["Pipeline completo: diseño, pruebas y evaluación."],
             en=["Full pipeline: design, testing, evaluation"],
@@ -218,3 +218,20 @@ def test_ida_y_vuelta_del_sobre_mi_conserva_los_huecos():
     assert recuperado == original
     for hueco in recuperado.gaps():
         assert hueco in recuperado.template["es"]
+
+
+def test_un_periodo_abierto_del_formato_viejo_deja_de_hablar_en_espanol_a_un_lector_ingles():
+    """The whole reason for splitting the period: `2025 · actualidad` used
+    to be stored as one text, so an English CV showed the Spanish word."""
+    experiencia = serialization.parse_experience(
+        {"period": {"es": "2025 · actualidad", "en": "2025 · present"}}, "x", "x.yaml"
+    )
+
+    assert (experiencia.period_start, experiencia.period_end) == ("2025", "ongoing")
+
+
+def test_un_periodo_que_no_se_sabe_partir_se_conserva_entero():
+    experiencia = serialization.parse_experience({"period": "Verano de 2024"}, "x", "x.yaml")
+
+    assert experiencia.period_start == "Verano de 2024"
+    assert experiencia.period_end == ""

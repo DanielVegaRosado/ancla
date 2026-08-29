@@ -64,6 +64,42 @@ class Bilingual(Generic[T]):
 # --------------------------------------------------------------------------
 
 
+# How a period that has no end year is written on the CV. A closed range
+# ("2023 · 2025") reads the same in any language, but an open one does not:
+# only the closing word translates, and it is always the same word. Storing
+# the marker instead of the word is what lets one stored period render
+# correctly in both languages without asking the user to type it twice.
+#
+# Keyed by marker, and deliberately not passed through `_()`: this is CV
+# content, so it follows the language of the CV being produced, not the
+# language the interface happens to be in.
+PERIOD_ONGOING = "ongoing"
+PERIOD_FINISHED = "finished"
+PERIOD_MARKERS: dict[str, Bilingual[str]] = {
+    PERIOD_ONGOING: Bilingual(es="actualidad", en="present"),
+    PERIOD_FINISHED: Bilingual(es="finalizado", en="finished"),
+}
+
+PERIOD_SEPARATOR = " · "
+
+
+def period_text(start: str, end: str, language: Language) -> str:
+    """A stored period written out for one language.
+
+    `end` is a year, one of the markers, or empty. An unknown value is
+    written through untouched rather than dropped: a profile migrated from
+    free text may hold something neither this code nor the form anticipated,
+    and losing it would be worse than showing it.
+    """
+    start = start.strip()
+    end = end.strip()
+    if not end:
+        return start
+    marcador = PERIOD_MARKERS.get(end)
+    final = marcador[language] if marcador else end
+    return f"{start}{PERIOD_SEPARATOR}{final}" if start else final
+
+
 @dataclass(frozen=True)
 class Experience:
     """A project or role from the personal base.
@@ -75,9 +111,8 @@ class Experience:
 
     id: str
     title: Bilingual[str]
-    # Not bilingual: a date range ("2023-2024") reads the same in any
-    # language, same reasoning as `Profile.contact`.
-    period: str
+    period_start: str
+    period_end: str
     bullets: Bilingual[list[str]]
     # Not bilingual: technology names ("Python, Django, PostgreSQL") are
     # proper nouns, same reasoning as `period`.
@@ -125,8 +160,8 @@ class Education:
     # Not bilingual: an institution's own name ("UEMC") is a proper noun,
     # same reasoning as `Experience.stack`.
     institution: str
-    # Not bilingual: same reasoning as `Experience.period`.
-    period: str
+    period_start: str
+    period_end: str
 
 
 @dataclass(frozen=True)

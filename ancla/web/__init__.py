@@ -45,12 +45,12 @@ def create_app(
     canva_templates_root: Path | None = None,
 ) -> Flask:
     from ancla.profile.errors import ProfileError
-    from ancla.profile.model import LANGUAGES
+    from ancla.profile.model import LANGUAGES, period_text
     from ancla.web import settings as modulo_ajustes
     from ancla.web import context
     from ancla.web import views  # noqa: F401 — registers the routes on bp when imported
     from ancla.web.blueprint import bp
-    from ancla.web.presentation import etiquetas_estado
+    from ancla.web.presentation import etiquetas_estado, period_marker_labels, years_for_period
     from ancla.web.util import list_to_csv, list_to_lines
 
     app = Flask(__name__)
@@ -80,12 +80,20 @@ def create_app(
     # (base.html uses it for the `lang` attribute and the ES/EN selector).
     app.jinja_env.globals["get_locale"] = get_locale
 
+    def _period_of(elemento, idioma: str) -> str:
+        """A stored period written out, for templates that only display it.
+        The two halves are a storage detail; every screen wants the sentence."""
+        return period_text(elemento.period_start, elemento.period_end, idioma)
+
     @app.context_processor
     def _inject_globals():
         return {
             "idiomas": LANGUAGES,
             "etiquetas_estado": etiquetas_estado(),
             "modo_demo": app.config["MODO_DEMO"],
+            "anios": years_for_period(),
+            "marcadores_periodo": period_marker_labels(),
+            "periodo": _period_of,
         }
 
     @app.errorhandler(404)

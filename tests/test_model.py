@@ -10,11 +10,14 @@ import pytest
 
 from ancla.profile.model import (
     N_ABOUT_ME_GROUP,
+    PERIOD_FINISHED,
+    PERIOD_ONGOING,
     AboutMe,
     Bilingual,
     Experience,
     Profile,
     Skill,
+    period_text,
 )
 
 
@@ -66,7 +69,7 @@ def test_perfil_busca_por_id_y_devuelve_none_si_no_existe():
     experiencia = Experience(
         id="ml-telco-churn",
         title=Bilingual(es="ML Developer", en="ML Developer"),
-        period="2026 - ACTUALIDAD",
+        period_start="2026", period_end="ongoing",
         bullets=Bilingual(es=["Pipeline completo"], en=["Full pipeline"]),
         stack="Python · Optuna",
         keywords=["machine learning"],
@@ -83,3 +86,32 @@ def test_perfil_busca_por_id_y_devuelve_none_si_no_existe():
 def test_perfil_recien_creado_esta_vacio():
     """This is the normal state the first time the app is opened, not an error."""
     assert Profile().is_empty()
+
+
+# --------------------------------------------------------------------------
+# Periods
+# --------------------------------------------------------------------------
+
+
+def test_un_periodo_cerrado_se_lee_igual_en_los_dos_idiomas():
+    assert period_text("2023", "2025", "es") == period_text("2023", "2025", "en") == "2023 · 2025"
+
+
+def test_solo_la_palabra_de_cierre_de_un_periodo_abierto_cambia_de_idioma():
+    """The reason the period is stored in two halves: a closed range needs
+    no translation, but "actualidad" is not a date and does need one."""
+    assert period_text("2025", PERIOD_ONGOING, "es") == "2025 · actualidad"
+    assert period_text("2025", PERIOD_ONGOING, "en") == "2025 · present"
+    assert period_text("2026", PERIOD_FINISHED, "es") == "2026 · finalizado"
+    assert period_text("2026", PERIOD_FINISHED, "en") == "2026 · finished"
+
+
+def test_un_periodo_sin_fin_es_solo_su_inicio():
+    assert period_text("2024", "", "es") == "2024"
+
+
+def test_un_fin_que_no_es_un_marcador_conocido_se_escribe_tal_cual():
+    """A profile migrated from free text can hold something neither the
+    markers nor the year list anticipated; showing it is better than
+    dropping it."""
+    assert period_text("2023", "verano", "en") == "2023 · verano"

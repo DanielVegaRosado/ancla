@@ -20,13 +20,23 @@ tell the user which file to open.
 """
 from __future__ import annotations
 
+import re
 from typing import Any
 
 import yaml
 from flask_babel import gettext as _
 
 from ancla.profile.errors import ProfileError
-from ancla.profile.model import AboutMe, Bilingual, Education, Experience, Skill, SpokenLanguage
+from ancla.profile.model import (
+    AboutMe,
+    Bilingual,
+    Education,
+    Experience,
+    PERIOD_FINISHED,
+    PERIOD_ONGOING,
+    Skill,
+    SpokenLanguage,
+)
 
 
 # --------------------------------------------------------------------------
@@ -97,7 +107,7 @@ def parse_experience(datos: dict[str, Any], id: str, origen: str) -> Experience:
     return Experience(
         id=id,
         title=_bilingual_text(datos, "title", origen),
-        period=_plain_text(datos, "period", origen),
+        **_period(datos, origen),
         bullets=_bilingual_list(datos, "bullets", origen),
         stack=_plain_text(datos, "stack", origen),
         keywords=_keywords(datos, origen),
@@ -128,7 +138,7 @@ def parse_education(datos: dict[str, Any], id: str, origen: str) -> Education:
         id=id,
         title=_bilingual_text(datos, "title", origen),
         institution=_plain_text(datos, "institution", origen),
-        period=_plain_text(datos, "period", origen),
+        **_period(datos, origen),
     )
 
 
@@ -152,7 +162,8 @@ def parse_contact(datos: dict[str, Any], origen: str) -> tuple[str, Bilingual[st
 def dump_experience(experiencia: Experience) -> dict[str, Any]:
     return {
         "title": _dump_bilingual(experiencia.title),
-        "period": experiencia.period,
+        "period_start": experiencia.period_start,
+        "period_end": experiencia.period_end,
         "status": experiencia.status,
         "bullets": {
             "es": [_text(b) for b in experiencia.bullets["es"]],
@@ -183,7 +194,8 @@ def dump_education(educacion: Education) -> dict[str, Any]:
     return {
         "title": _dump_bilingual(educacion.title),
         "institution": educacion.institution,
-        "period": educacion.period,
+        "period_start": educacion.period_start,
+        "period_end": educacion.period_end,
     }
 
 
@@ -296,3 +308,56 @@ def _keywords(datos: dict[str, Any], origen: str) -> list[str]:
 
 def _dump_bilingual(dato: Bilingual[str]) -> dict[str, str]:
     return {"es": dato["es"], "en": dato["en"]}
+
+
+def _period(datos: dict[str, Any], origen: str) -> dict[str, str]:
+    """The stored period as `period_start` / `period_end`.
+
+    Reads the free-text `period` a profile saved before the split still
+    holds — in either the plain or the older `{es, en}` shape — and takes
+    the range apart. What cannot be taken apart is kept whole in
+    `period_start`, which renders unchanged: a value nobody anticipated is
+    better shown as written than guessed at or dropped.
+    """
+    if "period_start" in datos or "period_end" in datos:
+        return {
+            "period_start": _plain_text(datos, "period_start", origen),
+            "period_end": _plain_text(datos, "period_end", origen),
+        }
+    inicio, fin = split_period(_plain_text(datos, "period", origen))
+    return {"period_start": inicio, "period_end": fin}
+
+
+# Separators seen in real profiles and in what people type by hand. The
+# marker words are matched, not translated: the point of storing a marker is
+# that the closing word is written at render time, in the CV's language.
+_SEPARATORS = ("·", "—", "–", " - ", " to ", " a ")
+_RANGO_CON_GUION = re.compile(r"(\d{4})\s*-\s*(\d{4})")
+_END_MARKERS = {
+    PERIOD_ONGOING: ("actualidad", "actual", "presente", "present", "current", "hoy", "now"),
+    PERIOD_FINISHED: ("finalizado", "finished", "terminado", "completed"),
+}
+
+
+def split_period(texto: str) -> tuple[str, str]:
+    """A free-text period as (start, end). Public because the migrator from
+    the old `.txt` format needs exactly the same reading."""
+    texto = texto.strip()
+    for separador in _SEPARATORS:
+        if separador in texto:
+            inicio, _, fin = texto.partition(separador)
+            return inicio.strip(), _end_value(fin.strip())
+    # A bare hyphen only counts between two years ("2023-2024"). Treating
+    # every hyphen as a separator would take apart values that are not
+    # ranges at all, such as a single "2023-01".
+    rango = _RANGO_CON_GUION.fullmatch(texto)
+    if rango:
+        return rango.group(1), rango.group(2)
+    return texto, ""
+
+
+def _end_value(fin: str) -> str:
+    for marcador, palabras in _END_MARKERS.items():
+        if fin.lower() in palabras:
+            return marcador
+    return fin

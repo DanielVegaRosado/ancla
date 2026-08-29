@@ -24,7 +24,7 @@
           <div class="fila-tarjeta">
             <div>
               <h3>{{ experiencia.title["es"] }}</h3>
-              <p class="ayuda">{{ experiencia.period }} · {{ experiencia.bullets["es"]|length }} {{ _('bullets') }} · id: {{ experiencia.id }}</p>
+              <p class="ayuda">{{ periodo(experiencia, "es") }} · {{ experiencia.bullets["es"]|length }} {{ _('bullets') }} · id: {{ experiencia.id }}</p>
             </div>
             <div class="acciones">
               <a class="boton boton-pequeno" href="{{ url_for('ancla.edit_experience', id_=experiencia.id) }}">{{ _('Editar') }}</a>

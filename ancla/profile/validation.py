@@ -64,7 +64,7 @@ def validate_experience(experiencia: Experience) -> list[str]:
             )
         )
 
-    if not experiencia.period.strip():
+    if not experiencia.period_start.strip():
         problemas.append(
             _(
                 "%(etiqueta)s: falta el periodo (por ejemplo «2025 - ACTUALIDAD»).",
@@ -231,7 +231,7 @@ def validate_education(educacion: Education) -> list[str]:
         )
     if not educacion.institution.strip():
         problemas.append(_("%(etiqueta)s: falta el centro.", etiqueta=etiqueta))
-    if not educacion.period.strip():
+    if not educacion.period_start.strip():
         problemas.append(
             _(
                 "%(etiqueta)s: falta el periodo (por ejemplo «2023 - 2027»).",

@@ -39,7 +39,14 @@ from docxtpl import DocxTemplate, InlineImage
 from ancla.export import metricas_aileron, metricas_montserrat
 from ancla.export.templates import ExportTemplate, TemplateGeometry
 from ancla.profile import store
-from ancla.profile.model import Experience, Language, Profile, Proposal, SelectedExperience
+from ancla.profile.model import (
+    Experience,
+    Language,
+    Profile,
+    Proposal,
+    SelectedExperience,
+    period_text,
+)
 from ancla.proposal.format import language_lines, personal_skill_names, skill_names
 
 # Width and height of the embedded photo. Equal on purpose: `_recortar_a_circulo`
@@ -129,7 +136,7 @@ def build_context(
             {
                 "puesto": _sin_guion_no_separable(experiencia.title[idioma]),
                 "empresa": "",
-                "fechas": experiencia.period,
+                "fechas": period_text(experiencia.period_start, experiencia.period_end, idioma),
                 "bullets": [_sin_guion_no_separable(b) for b in experiencia.bullets[idioma]],
                 "stack": _sin_guion_no_separable(experiencia.stack),
             }
@@ -144,7 +151,7 @@ def build_context(
             {
                 "titulo": _sin_guion_no_separable(entrada.title[idioma]),
                 "centro": _sin_guion_no_separable(entrada.institution),
-                "fechas": entrada.period,
+                "fechas": period_text(entrada.period_start, entrada.period_end, idioma),
             }
             for entrada in perfil.education
         ],

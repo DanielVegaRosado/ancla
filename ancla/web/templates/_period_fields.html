@@ -1,0 +1,44 @@
+{# The two halves of a period, shared by the experience and education forms.
+
+   Years are picked, not typed: the start is always a year, and free text
+   was letting formats drift from one entry to the next. The end is either a
+   year or a marker, because only its closing word translates ("actualidad"
+   / "present"), and storing the marker is what lets one stored period read
+   correctly in both languages without asking for it twice.
+
+   `elemento` is the experience or the education entry being edited, or None
+   when creating. A stored value that is not on either list is added as its
+   own option so a profile migrated from free text can still be opened and
+   saved without losing what it said. #}
+{% set prefijo = prefijo | default("") %}
+{% set inicio = elemento.period_start if elemento else '' %}
+{% set fin = elemento.period_end if elemento else '' %}
+
+<div class="campo">
+  <label for="{{ prefijo }}periodo_inicio">{{ _('Periodo') }}</label>
+  <div class="periodo">
+    <select id="{{ prefijo }}periodo_inicio" name="{{ prefijo }}periodo_inicio" required>
+      {% if inicio and inicio not in anios %}
+        <option value="{{ inicio }}" selected>{{ inicio }}</option>
+      {% endif %}
+      {% for anio in anios %}
+        <option value="{{ anio }}" {{ 'selected' if inicio == anio }}>{{ anio }}</option>
+      {% endfor %}
+    </select>
+
+    <span class="periodo-separador" aria-hidden="true">·</span>
+
+    <select id="{{ prefijo }}periodo_fin" name="{{ prefijo }}periodo_fin">
+      <option value="">{{ _('Sin fecha de fin') }}</option>
+      {% for clave, etiqueta in marcadores_periodo %}
+        <option value="{{ clave }}" {{ 'selected' if fin == clave }}>{{ etiqueta }}</option>
+      {% endfor %}
+      {% if fin and fin not in anios and fin not in marcadores_periodo|map(attribute=0) %}
+        <option value="{{ fin }}" selected>{{ fin }}</option>
+      {% endif %}
+      {% for anio in anios %}
+        <option value="{{ anio }}" {{ 'selected' if fin == anio }}>{{ anio }}</option>
+      {% endfor %}
+    </select>
+  </div>
+</div>

@@ -45,11 +45,7 @@
              placeholder="UEMC" value="{{ educacion.institution if educacion else '' }}">
     </div>
 
-    <div class="campo">
-      <label for="periodo">{{ _('Periodo') }}</label>
-      <input type="text" id="periodo" name="periodo" required
-             placeholder="2023 — 2027" value="{{ educacion.period if educacion else '' }}">
-    </div>
+    {% with elemento = educacion %}{% include "_period_fields.html" %}{% endwith %}
 
     <div class="barra-acciones">
       <button type="submit" class="boton-primario">{{ _('Guardar') }}</button>

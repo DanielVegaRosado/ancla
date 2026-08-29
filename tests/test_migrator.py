@@ -11,6 +11,7 @@ import hashlib
 from pathlib import Path
 
 from ancla.profile import store, migrator
+from ancla.profile.model import PERIOD_FINISHED, PERIOD_ONGOING, period_text
 
 EXPERIENCIA_TXT = """ID: data-analyst-urban-mobility
 TITULO_ES: Data Analyst — Urban Mobility Pipeline
@@ -156,7 +157,7 @@ def test_lo_migrado_se_puede_volver_a_cargar_como_perfil(tmp_path: Path):
 
     experiencia = perfil.experience("data-analyst-urban-mobility")
     assert experiencia.title["en"] == "Data Analyst — Urban Mobility Pipeline"
-    assert experiencia.period == "2025 - ACTUALIDAD"
+    assert (experiencia.period_start, experiencia.period_end) == ("2025", PERIOD_ONGOING)
     assert experiencia.status == "actualidad"
     assert experiencia.stack == "Python · Pandas · NumPy"
     assert experiencia.keywords == ["etl", "limpieza de datos", "pandas", "numpy"]
@@ -207,16 +208,18 @@ def test_el_sobre_mi_conserva_los_seis_huecos(tmp_path: Path):
         assert hueco in sobre_mi.template["en"]
 
 
-def test_un_periodo_con_es_y_en_distintos_se_queda_con_el_de_espanol(tmp_path: Path):
-    """`period` stopped being bilingual: a `.txt` still declaring PERIODO_ES
-    and PERIODO_EN with different values keeps the Spanish one, since the
-    app is Spanish-first."""
+def test_un_periodo_del_formato_viejo_se_parte_en_inicio_y_marcador(tmp_path: Path):
+    """A `.txt` writes the period as one line of free text, in Spanish and
+    with the closing word spelled out. Splitting it on the way in is what
+    lets the same entry read as "2026 · finalizado" or "2026 · finished"
+    depending on the CV, instead of shouting Spanish at an English reader."""
     destino = tmp_path / "perfil"
     migrator.migrate(_origen(tmp_path), destino)
 
     experiencia = store.load_profile(destino).experience("quantum-computing-hzh")
 
-    assert experiencia.period == "2026 - TERMINADO"
+    assert (experiencia.period_start, experiencia.period_end) == ("2026", PERIOD_FINISHED)
+    assert period_text(*[experiencia.period_start, experiencia.period_end], "en") == "2026 · finished"
 
 
 # --------------------------------------------------------------------------

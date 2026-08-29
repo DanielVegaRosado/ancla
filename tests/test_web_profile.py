@@ -160,7 +160,7 @@ def test_crear_educacion_la_deja_ver_en_mi_perfil(cliente_web):
             "titulo_es": "Grado en Ingeniería Informática",
             "titulo_en": "BSc in Computer Engineering",
             "centro": "UEMC",
-            "periodo": "2023 — 2027",
+            "periodo_inicio": "2023", "periodo_fin": "2027",
         },
         follow_redirects=True,
     )
@@ -174,7 +174,7 @@ def test_crear_educacion_sin_centro_muestra_el_error(cliente_web):
         data={
             "titulo_es": "Grado", "titulo_en": "Degree",
             "centro": "",
-            "periodo": "2023",
+            "periodo_inicio": "2023", "periodo_fin": "",
         },
     )
     assert "falta el centro".encode("utf-8") in respuesta.data
@@ -186,7 +186,7 @@ def test_borrar_educacion_la_quita_del_perfil(cliente_web, tmp_path: Path):
         data={
             "titulo_es": "Máster", "titulo_en": "Master's", "id": "master",
             "centro": "UEMC",
-            "periodo": "2027",
+            "periodo_inicio": "2027", "periodo_fin": "",
         },
     )
     cliente_web.post("/perfil/educacion/master/borrar")
@@ -280,7 +280,7 @@ def test_borrar_todas_las_experiencias_las_quita_todas(cliente_web, tmp_path: Pa
         Experience(
             id="proyecto-1",
             title=Bilingual(es="Proyecto 1", en="Project 1"),
-            period="2024",
+            period_start="2024", period_end="",
             bullets=Bilingual(es=["Hecho 1"], en=["Done 1"]),
             stack="Python",
         ),
@@ -290,7 +290,7 @@ def test_borrar_todas_las_experiencias_las_quita_todas(cliente_web, tmp_path: Pa
         Experience(
             id="proyecto-2",
             title=Bilingual(es="Proyecto 2", en="Project 2"),
-            period="2025",
+            period_start="2025", period_end="",
             bullets=Bilingual(es=["Hecho 2"], en=["Done 2"]),
             stack="SQL",
         ),
@@ -318,7 +318,7 @@ def test_editar_una_experiencia_no_contamina_otra(cliente_web, tmp_path: Path):
         Experience(
             id="proyecto-a",
             title=Bilingual(es="Proyecto A", en="Project A"),
-            period="2024",
+            period_start="2024", period_end="",
             bullets=Bilingual(es=["Bullet A"], en=["Bullet A EN"]),
             stack="Stack A",
             keywords=["a"],
@@ -329,7 +329,7 @@ def test_editar_una_experiencia_no_contamina_otra(cliente_web, tmp_path: Path):
         Experience(
             id="proyecto-b",
             title=Bilingual(es="Proyecto B", en="Project B"),
-            period="2025",
+            period_start="2025", period_end="",
             bullets=Bilingual(es=["Bullet B"], en=["Bullet B EN"]),
             stack="Stack B",
             keywords=["b"],
@@ -341,7 +341,7 @@ def test_editar_una_experiencia_no_contamina_otra(cliente_web, tmp_path: Path):
         data={
             "titulo_es": "Proyecto A editado",
             "titulo_en": "Project A edited",
-            "periodo": "2024",
+            "periodo_inicio": "2024", "periodo_fin": "",
             "bullets_es": "Bullet A nuevo",
             "bullets_en": "Bullet A new",
             "stack": "Stack A nuevo",
@@ -362,7 +362,7 @@ def test_editar_una_experiencia_no_contamina_otra(cliente_web, tmp_path: Path):
         data={
             "titulo_es": "Proyecto B editado",
             "titulo_en": "Project B edited",
-            "periodo": "2025",
+            "periodo_inicio": "2025", "periodo_fin": "",
             "bullets_es": "Bullet B nuevo",
             "bullets_en": "Bullet B new",
             "stack": "Stack B nuevo",
@@ -739,3 +739,24 @@ def test_la_pantalla_de_importar_ensena_el_formulario_con_clave(cliente_web, tmp
     html = cliente_web.get("/perfil/importar").data.decode("utf-8")
 
     assert 'name="fichero"' in html
+
+
+def test_editar_una_experiencia_no_borra_su_estado(cliente_web, tmp_path: Path):
+    """The field is internal notes that reach the selection prompt, so
+    losing it on every edit degrades the choice with nothing on screen to
+    show for it."""
+    store.save_experience(
+        tmp_path / "perfil",
+        Experience(
+            id="backend",
+            title=Bilingual(es="Backend", en="Backend"),
+            period_start="2025", period_end="",
+            bullets=Bilingual(es=["Hice cosas"], en=["Did things"]),
+            stack="Python",
+            status="contrato en prácticas",
+        ),
+    )
+
+    html = cliente_web.get("/perfil/experiencias/backend/editar").data.decode("utf-8")
+
+    assert 'name="estado" value="contrato en prácticas"' in html

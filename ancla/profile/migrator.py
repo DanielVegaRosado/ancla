@@ -35,6 +35,7 @@ from pathlib import Path
 
 from ancla.profile import store, validation
 from ancla.profile.model import AboutMe, Bilingual, Experience, Skill
+from ancla.profile.serialization import split_period
 
 CARPETA_EXPERIENCIA_ORIGEN = "relevant_experience"
 CARPETA_SKILLS_ORIGEN = "technical-skills"
@@ -109,7 +110,7 @@ def _migrate_experiences(
         experiencia = Experience(
             id=id_,
             title=_bilingual(campos, "TITULO"),
-            period=_single(campos, "PERIODO"),
+            **dict(zip(("period_start", "period_end"), split_period(_single(campos, "PERIODO")))),
             bullets=Bilingual(
                 es=_as_list(campos, "BULLETS_ES"), en=_as_list(campos, "BULLETS_EN")
             ),

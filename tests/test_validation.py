@@ -27,7 +27,7 @@ def _experiencia(**cambios) -> Experience:
     base = dict(
         id="ml-telco-churn",
         title=Bilingual(es="ML Developer", en="ML Developer"),
-        period="2026 - ACTUALIDAD",
+        period_start="2026", period_end="ongoing",
         bullets=Bilingual(es=["Pipeline completo"], en=["Full pipeline"]),
         stack="Python · Optuna",
         keywords=["machine learning"],
@@ -60,7 +60,7 @@ def _educacion(**cambios) -> Education:
         id="grado",
         title=Bilingual(es="Grado en Ingeniería Informática", en="BSc in Computer Engineering"),
         institution="UEMC",
-        period="2023 — 2027",
+        period_start="2023", period_end="2027",
     )
     return Education(**{**base, **cambios})
 
@@ -135,7 +135,7 @@ def test_los_mensajes_van_en_castellano_y_sin_jerga():
         Experience(
             id="a-medias",
             title=Bilingual(es="", en=""),
-            period="",
+            period_start="", period_end="",
             bullets=Bilingual(es=[], en=[]),
             stack="",
         )

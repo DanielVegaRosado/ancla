@@ -34,7 +34,7 @@
             </div>
             <div class="campo">
               <label>{{ _('Periodo') }}</label>
-              <input type="text" name="exp-{{ loop.index0 }}-periodo" value="{{ experiencia.period }}">
+              {% with elemento = experiencia, prefijo = "exp-" ~ loop.index0 ~ "-" %}{% include "_period_fields.html" %}{% endwith %}
             </div>
             <div class="dos-columnas">
               <div class="campo">

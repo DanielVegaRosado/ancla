@@ -18,7 +18,7 @@ def _perfil() -> Profile:
     experiencia = Experience(
         id="proyecto-x",
         title=Bilingual(es="Ingeniero de Datos", en="Data Engineer"),
-        period="2023 — 2024",
+        period_start="2023", period_end="2024",
         bullets=Bilingual(
             es=["Diseñé el pipeline de ingesta", "Reduje el coste un 30%"],
             en=["Designed the ingestion pipeline", "Cut cost by 30%"],
@@ -63,7 +63,7 @@ def test_a_texto_incluye_el_contenido_en_orden():
     assert pos_sobre_mi < pos_skills < pos_experiencia
     assert "Ingeniero con foco en datos, backend y cloud." in texto
     assert "Python · SQL · GCP" in texto
-    assert "Ingeniero de Datos — 2023 — 2024" in texto
+    assert "Ingeniero de Datos — 2023 · 2024" in texto
     assert "- Diseñé el pipeline de ingesta" in texto
     assert "Python, Airflow, GCP" in texto
 
@@ -73,7 +73,7 @@ def test_a_texto_respeta_el_idioma():
     assert "ABOUT ME" in texto
     assert "TECHNICAL SKILLS" in texto
     assert "RELEVANT EXPERIENCE" in texto
-    assert "Data Engineer — 2023 — 2024" in texto
+    assert "Data Engineer — 2023 · 2024" in texto
     assert "- Designed the ingestion pipeline" in texto
 
 

@@ -60,7 +60,8 @@ def _experience_from_form(id_: str) -> Experience:
     return Experience(
         id=id_,
         title=Bilingual(es=f.get("titulo_es", "").strip(), en=f.get("titulo_en", "").strip()),
-        period=f.get("periodo", "").strip(),
+        period_start=f.get("periodo_inicio", "").strip(),
+        period_end=f.get("periodo_fin", "").strip(),
         bullets=Bilingual(
             es=lines_to_list(f.get("bullets_es", "")),
             en=lines_to_list(f.get("bullets_en", "")),
@@ -394,7 +395,8 @@ def _education_from_form(id_: str) -> Education:
         id=id_,
         title=Bilingual(es=f.get("titulo_es", "").strip(), en=f.get("titulo_en", "").strip()),
         institution=f.get("centro", "").strip(),
-        period=f.get("periodo", "").strip(),
+        period_start=f.get("periodo_inicio", "").strip(),
+        period_end=f.get("periodo_fin", "").strip(),
     )
 
 

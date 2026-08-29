@@ -31,14 +31,14 @@ def _perfil() -> Profile:
         Experience(
             id="proyecto-a",
             title=Bilingual(es="Ingeniero de Datos · ACME", en="Data Engineer · ACME"),
-            period="2023 — 2024",
+            period_start="2023", period_end="2024",
             bullets=Bilingual(es=["Bullet A1", "Bullet A2"], en=["Bullet A1 EN", "Bullet A2 EN"]),
             stack="Python",
         ),
         Experience(
             id="proyecto-b",
             title=Bilingual(es="Backend Developer · Nubelia", en="Backend Developer · Nubelia"),
-            period="2021 — 2023",
+            period_start="2021", period_end="2023",
             bullets=Bilingual(es=["Bullet B1"], en=["Bullet B1 EN"]),
             stack="Go",
         ),
@@ -51,7 +51,7 @@ def _perfil() -> Profile:
             id="grado",
             title=Bilingual(es="Grado en Ingeniería Informática", en="BSc in Computer Engineering"),
             institution="UEMC",
-            period="2023 — 2027",
+            period_start="2023", period_end="2027",
         )
     ]
     return Profile(
@@ -224,13 +224,13 @@ def test_build_context_expone_el_catalogo_de_campos():
     primera = contexto["experiencias"][0]
     assert primera["puesto"] == "Ingeniero de Datos · ACME"
     assert primera["empresa"] == ""
-    assert primera["fechas"] == "2023 — 2024"
+    assert primera["fechas"] == "2023 · 2024"
     assert primera["bullets"] == ["Bullet A1", "Bullet A2"]
     assert primera["stack"] == "Python"
     assert contexto["contacto"] == ["+34 000 000 000", "tu-email@ejemplo.com"]
     assert contexto["titular"] == "Ingeniero Informático"
     assert contexto["educacion"] == [
-        {"titulo": "Grado en Ingeniería Informática", "centro": "UEMC", "fechas": "2023 — 2027"}
+        {"titulo": "Grado en Ingeniería Informática", "centro": "UEMC", "fechas": "2023 · 2027"}
     ]
     assert contexto["foto"] == ""
 
