@@ -34,6 +34,10 @@
   --peligro: #b3261e;
   --peligro-fondo: #fdecea;
   --aviso-fondo: #eef6f1;
+  /* Solo para enlaces del nav sobre el fondo oscuro de la cabecera: más
+     apagado que --texto-suave (pensado para fondo claro) pero por encima de
+     3:1 de contraste sobre --texto, para que siga siendo legible. */
+  --nav-atenuado: #6b7480;
   --radio: 8px;
   --radio-tarjeta: 14px;
   --sombra: 0 1px 2px rgba(16, 24, 32, 0.04), 0 4px 14px rgba(16, 24, 32, 0.045);
@@ -128,6 +132,11 @@ section[id] { scroll-margin-top: 4.5rem; }
   background: var(--fondo);
   font-weight: 600;
 }
+
+/* No se oculta: seguiría llevando a "Adaptar a una vacante" con un aviso
+   útil, y un enlace que aparece y desaparece del menú es más disruptivo que
+   uno apagado. Solo dice "todavía no hay nada aquí", no "no se puede". */
+.nav a.desactivado { color: var(--nav-atenuado); }
 
 /* Contenido */
 
@@ -429,6 +438,18 @@ input:focus, select:focus, textarea:focus {
 .boton-peligro:hover, button.boton-peligro:hover { background: var(--peligro-fondo); }
 
 .boton-pequeno { padding: 0.3rem 0.6rem; font-size: 0.85rem; }
+
+/* Un botón dentro de un formulario que debe leerse como el enlace de texto
+   de al lado (por ejemplo, una navegación que necesita `data-confirmar`,
+   que solo dispara sobre el evento submit de un formulario, nunca sobre un
+   <a> suelto). */
+.boton-enlace, button.boton-enlace {
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--acento-fuerte);
+}
+.boton-enlace:hover, button.boton-enlace:hover { background: none; text-decoration: underline; }
 
 .barra-acciones {
   display: flex;

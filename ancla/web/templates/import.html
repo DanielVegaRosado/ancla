@@ -10,8 +10,29 @@
   <div class="tarjeta">{% include "_import_form.html" %}</div>
 
   {% if ia_configurada %}
+    <p class="ayuda" id="analizando" hidden>
+      {{ _('Leyendo tu CV. Suele tardar unos segundos; si tu plan gratuito está al tope de palabras por minuto, Ancla espera lo que haga falta y lo reintenta sola, así que no cierres esta página.') }}
+    </p>
     <p class="ayuda">
       {{ _('Si tu PDF es una imagen escaneada (sin texto real dentro), no se podrá leer. Usa la opción de pegar el texto a mano en ese caso.') }}
     </p>
+
+    {# The wait is a single blocking request with no progress to report, so
+       the page says so itself: without this, a retried request looks like a
+       frozen screen and the user reloads or gives up on a CV that was on
+       its way. The form lives in the shared partial, so it is reached from
+       here by its action rather than by an id only this page could set. #}
+    <script>
+      (function () {
+        var form = document.querySelector('form[action$="importar"]');
+        var notice = document.getElementById("analizando");
+        if (!form || !notice) return;
+        form.addEventListener("submit", function () {
+          notice.hidden = false;
+          var button = form.querySelector('button[type="submit"]');
+          if (button) button.disabled = true;
+        });
+      })();
+    </script>
   {% endif %}
 {% endblock %}

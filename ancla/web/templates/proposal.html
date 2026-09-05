@@ -256,4 +256,11 @@
       </form>
     </section>
   </div>
+
+  <div class="ayuda">
+    {{ _('¿Es otra vacante?') }}
+    <form class="en-linea" method="get" action="{{ url_for('ancla.adapt') }}" data-confirmar="{{ _('Vas a adaptar otra vacante. Si no guardas esta propuesta antes, se perderá al generar la siguiente. ¿Continuar?') }}">
+      <button type="submit" class="boton-enlace">{{ _('Adaptar otra vacante →') }}</button>
+    </form>
+  </div>
 {% endblock %}

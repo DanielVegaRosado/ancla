@@ -12,7 +12,7 @@ import json
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 
-from ancla.profile.model import Bilingual, Experience, Skill, SpokenLanguage
+from ancla.profile.model import Bilingual, Education, Experience, Skill, SpokenLanguage
 
 NOMBRE_FICHERO = ".importacion.json"
 
@@ -23,6 +23,7 @@ class ImportBatch:
     skills: list[Skill] = field(default_factory=list)
     skills_personales: list[Skill] = field(default_factory=list)
     idiomas: list[SpokenLanguage] = field(default_factory=list)
+    educacion: list[Education] = field(default_factory=list)
     avisos: list[str] = field(default_factory=list)
 
 
@@ -48,6 +49,7 @@ def load_import(root: Path) -> ImportBatch | None:
             skills=[_to_skill(s) for s in datos["skills"]],
             skills_personales=[_to_skill(s) for s in datos.get("skills_personales", [])],
             idiomas=[_to_language(i) for i in datos.get("idiomas", [])],
+            educacion=[_to_education(e) for e in datos.get("educacion", [])],
             avisos=list(datos.get("avisos", [])),
         )
     except (json.JSONDecodeError, OSError, KeyError, TypeError):
@@ -77,6 +79,16 @@ def _to_skill(datos: dict) -> Skill:
         name=Bilingual(**datos["name"]),
         category=datos.get("category", ""),
         keywords=list(datos.get("keywords", [])),
+    )
+
+
+def _to_education(datos: dict) -> Education:
+    return Education(
+        id=datos["id"],
+        title=Bilingual(**datos["title"]),
+        institution=datos["institution"],
+        period_start=datos["period_start"],
+        period_end=datos["period_end"],
     )
 
 

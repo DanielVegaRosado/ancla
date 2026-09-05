@@ -13,7 +13,15 @@ import json
 
 from ancla.ai.client import AIError
 from ancla.profile.importer import analyze_cv
-from ancla.profile.model import Bilingual, Experience, Profile, Skill, SpokenLanguage
+from ancla.profile.model import (
+    PERIOD_ONGOING,
+    Bilingual,
+    Education,
+    Experience,
+    Profile,
+    Skill,
+    SpokenLanguage,
+)
 
 
 class ClienteFalso:
@@ -156,6 +164,16 @@ def test_un_fallo_del_proveedor_no_revienta_la_pantalla():
     resultado = analyze_cv(cliente, "texto", Profile())
     assert resultado.experiencias == [] and resultado.skills == []
     assert resultado.avisos
+
+
+def test_el_consejo_del_proveedor_llega_al_usuario_tal_cual():
+    """A provider's message already opens with what to do; putting a cause
+    in front of it ("could not analyse the CV: ...") buries the only part
+    the user can act on."""
+    consejo = "Espera un minuto y vuelve a intentarlo: tu plan gratuito está al tope."
+    resultado = analyze_cv(ClienteFalso(AIError(consejo)), "texto", Profile())
+
+    assert resultado.avisos == [consejo]
 
 
 def test_una_respuesta_ilegible_se_explica_como_tal():
@@ -348,3 +366,160 @@ def test_el_aviso_de_nada_encontrado_tiene_en_cuenta_las_cuatro_categorias():
     resultado = analyze_cv(ClienteFalso(respuesta), "texto", Profile())
     assert resultado.avisos == []
     assert len(resultado.idiomas) == 1
+
+
+# --------------------------------------------------------------------------
+# Education
+#
+# Real case that prompted this: the importer was built when the profile had
+# no education, and it never caught up — five CVs analysed, zero entries.
+# --------------------------------------------------------------------------
+
+
+def test_el_prompt_pide_educacion():
+    """The category has to be asked for, not hoped for: the model was told
+    to structure the CV into four categories and education was not one."""
+    cliente = ClienteFalso(_respuesta())
+    analyze_cv(cliente, "texto", Profile())
+    sistema, _usuario = cliente.llamadas[0]
+    assert "educacion" in sistema.lower() or "educación" in sistema.lower()
+    assert "CUATRO categorías" not in sistema
+
+
+def test_propone_educacion_del_texto():
+    respuesta = _respuesta(
+        educacion=[
+            {
+                "titulo": {"es": "Grado en Ingeniería Informática", "en": "BSc in Computer Engineering"},
+                "centro": "UEMC",
+                "periodo": "2021 - 2025",
+            }
+        ]
+    )
+    resultado = analyze_cv(ClienteFalso(respuesta), "texto", Profile())
+
+    assert len(resultado.educacion) == 1
+    educacion = resultado.educacion[0]
+    assert educacion.title["es"] == "Grado en Ingeniería Informática"
+    assert educacion.institution == "UEMC"
+    assert educacion.period_start == "2021"
+    assert educacion.period_end == "2025"
+    # Never mixed into the other four catalogs.
+    assert resultado.skills_personales == []
+    assert all(e.title["es"] != educacion.title["es"] for e in resultado.experiencias)
+
+
+def test_un_periodo_de_educacion_abierto_acaba_en_el_marcador():
+    """"2023 - actualidad" is stored as the `ongoing` marker, not as the
+    Spanish word, so a CV generated in English does not say "actualidad"."""
+    respuesta = _respuesta(
+        educacion=[
+            {
+                "titulo": {"es": "Máster en IA", "en": "MSc in AI"},
+                "centro": "UEMC",
+                "periodo": "2023 - actualidad",
+            }
+        ]
+    )
+    resultado = analyze_cv(ClienteFalso(respuesta), "texto", Profile())
+    assert resultado.educacion[0].period_start == "2023"
+    assert resultado.educacion[0].period_end == PERIOD_ONGOING
+
+
+def test_una_educacion_que_ya_esta_en_el_perfil_no_se_vuelve_a_proponer():
+    perfil = Profile(
+        education=[
+            Education(
+                id="grado",
+                title=Bilingual(es="Grado en Ingeniería Informática", en="BSc in Computer Engineering"),
+                institution="UEMC",
+                period_start="2021",
+                period_end="2025",
+            )
+        ]
+    )
+    respuesta = _respuesta(
+        educacion=[
+            {
+                "titulo": {"es": "Grado en Ingeniería Informática", "en": "BSc in Computer Engineering"},
+                "centro": "UEMC",
+                "periodo": "2021 - 2025",
+            }
+        ]
+    )
+    resultado = analyze_cv(ClienteFalso(respuesta), "texto", perfil)
+    assert resultado.educacion == []
+    assert "1 elemento(s)" in resultado.avisos[0]
+
+
+def test_una_educacion_sin_titulo_se_descarta():
+    respuesta = _respuesta(
+        educacion=[{"titulo": {"es": "", "en": ""}, "centro": "UEMC", "periodo": "2021 - 2025"}]
+    )
+    resultado = analyze_cv(ClienteFalso(respuesta), "texto", Profile())
+    assert resultado.educacion == []
+
+
+def test_el_id_de_una_educacion_no_choca_con_el_perfil():
+    perfil = Profile(
+        education=[
+            Education(
+                id="grado-en-ingenieria-informatica",
+                title=Bilingual(es="Grado en Ingeniería Informática (Rumanía)", en="BSc (Romania)"),
+                institution="Otra",
+                period_start="2018",
+                period_end="2021",
+            )
+        ]
+    )
+    respuesta = _respuesta(
+        educacion=[
+            {
+                "titulo": {"es": "Grado en Ingeniería Informática", "en": "BSc in Computer Engineering"},
+                "centro": "UEMC",
+                "periodo": "2021 - 2025",
+            }
+        ]
+    )
+    resultado = analyze_cv(ClienteFalso(respuesta), "texto", perfil)
+    assert resultado.educacion[0].id != "grado-en-ingenieria-informatica"
+
+
+def test_el_centro_no_se_traduce_aunque_el_modelo_lo_devuelva_bilingue():
+    """Rule 10 asks for a single text, but a slip must not lose the field."""
+    respuesta = _respuesta(
+        educacion=[
+            {
+                "titulo": {"es": "Máster en IA", "en": "MSc in AI"},
+                "centro": {"es": "UEMC", "en": "UEMC"},
+                "periodo": {"es": "2023 - 2024", "en": "2023 - 2024"},
+            }
+        ]
+    )
+    resultado = analyze_cv(ClienteFalso(respuesta), "texto", Profile())
+    assert resultado.educacion[0].institution == "UEMC"
+    assert resultado.educacion[0].period_start == "2023"
+
+
+def test_una_educacion_sola_cuenta_como_algo_encontrado():
+    respuesta = json.dumps(
+        {
+            "experiencias": [],
+            "skills": [],
+            "educacion": [
+                {
+                    "titulo": {"es": "Máster en IA", "en": "MSc in AI"},
+                    "centro": "UEMC",
+                    "periodo": "2023 - 2024",
+                }
+            ],
+        }
+    )
+    resultado = analyze_cv(ClienteFalso(respuesta), "texto", Profile())
+    assert resultado.avisos == []
+    assert len(resultado.educacion) == 1
+
+
+def test_sin_educacion_en_la_respuesta_no_revienta():
+    resultado = analyze_cv(ClienteFalso(_respuesta()), "texto", Profile())
+    assert resultado.educacion == []

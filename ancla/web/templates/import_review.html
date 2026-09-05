@@ -32,10 +32,7 @@
                 <input type="text" name="exp-{{ loop.index0 }}-titulo_en" value="{{ experiencia.title['en'] }}">
               </div>
             </div>
-            <div class="campo">
-              <label>{{ _('Periodo') }}</label>
-              {% with elemento = experiencia, prefijo = "exp-" ~ loop.index0 ~ "-" %}{% include "_period_fields.html" %}{% endwith %}
-            </div>
+            {% with elemento = experiencia, prefijo = "exp-" ~ loop.index0 ~ "-" %}{% include "_period_fields.html" %}{% endwith %}
             <div class="dos-columnas">
               <div class="campo">
                 <label>{{ _('Bullets (ES, uno por línea)') }}</label>
@@ -136,6 +133,35 @@
                 <input type="text" name="idioma-{{ loop.index0 }}-nivel_en" value="{{ idioma.level['en'] }}">
               </div>
             </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    {% if importacion.educacion %}
+      <h2>{{ _('Educación') }} ({{ importacion.educacion|length }})</h2>
+      <div class="lista-tarjetas">
+        {% for educacion in importacion.educacion %}
+          <div class="tarjeta">
+            <label class="opcion-tipo">
+              <input type="checkbox" name="edu-{{ loop.index0 }}" value="1" checked>
+              <strong>{{ _('Guardar esta educación') }}</strong>
+            </label>
+            <div class="dos-columnas">
+              <div class="campo">
+                <label>{{ _('Título (ES)') }}</label>
+                <input type="text" name="edu-{{ loop.index0 }}-titulo_es" value="{{ educacion.title['es'] }}">
+              </div>
+              <div class="campo">
+                <label>{{ _('Título (EN)') }}</label>
+                <input type="text" name="edu-{{ loop.index0 }}-titulo_en" value="{{ educacion.title['en'] }}">
+              </div>
+            </div>
+            <div class="campo">
+              <label>{{ _('Centro') }}</label>
+              <input type="text" name="edu-{{ loop.index0 }}-centro" value="{{ educacion.institution }}">
+            </div>
+            {% with elemento = educacion, prefijo = "edu-" ~ loop.index0 ~ "-" %}{% include "_period_fields.html" %}{% endwith %}
           </div>
         {% endfor %}
       </div>

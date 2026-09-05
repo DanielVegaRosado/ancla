@@ -32,13 +32,32 @@ TIMEOUT_SEGUNDOS = 120
 # experiences) can exhaust it mid-thought and come back with empty or
 # half-cut content — no error at all, just incomplete JSON.
 #
-# The value has a real ceiling, checked against the API: Groq's free tier
-# caps at 8000 tokens per minute IN TOTAL (input + output), so `max_tokens`
-# cannot be set loosely — it has to leave room for the prompt and the text
-# passed alongside it. 4000 leaves plenty of margin for the rest in the
-# app's two calls (adapting, and analysing a CV) without risking Groq
-# rejecting the whole request for asking for more tokens than remain.
+# The budget is reserved per call rather than fixed, because Groq decides
+# whether to accept a request by comparing what it estimates the call will
+# cost — the prompt plus whatever is reserved here — against what is left
+# of the free tier's 8000 tokens per minute. A ceiling reserved for every
+# call makes short requests compete for room they were never going to use.
+#
+# The figures come from the real API with two-page CVs: the response never
+# took more than one token per character of the text sent, so the factor
+# below leaves 40% on top of the worst measured case, plus the model's own
+# reasoning budget, which is spent out of this same reservation. Reserving
+# too little is the dangerous direction — the model stops mid-JSON and the
+# caller gets nothing usable — so the floor is deliberately generous and
+# the ceiling is what the whole per-minute allowance can afford alongside a
+# long prompt.
+TOKENS_RESPUESTA_POR_CARACTER = 1.4
+MIN_TOKENS_RESPUESTA = 1500
 MAX_TOKENS_RESPUESTA = 4000
+
+# Being rejected for exceeding the tokens-per-minute allowance is
+# temporary: it refills continuously, and the response says how many
+# seconds are missing, which the SDK waits before trying again. Set here
+# instead of left to the SDK's default because each wait is only as long as
+# that response asks for (a dozen seconds), while refilling the whole
+# allowance takes up to a minute — two attempts can still fall short, and
+# giving up looks to the user like the CV was lost.
+REINTENTOS = 3
 
 # Checked against the real API with Daniel's CV, three times in a row:
 # without this, the model spent 79% of the `max_tokens` budget "reasoning"
@@ -55,15 +74,29 @@ URL_CONSEGUIR_CLAVE = "https://console.groq.com/keys"
 # Failures the user can fix on their own are named plainly, with what to do
 # about them. The rest are not dressed up as something else.
 #
-# The texts are inline in each `_(...)` call inside `_explicar` (not a
+# The texts are inline in each `_(...)` call inside `_explain` (not a
 # module-level constant): pybabel only extracts literals passed directly to
 # `_()`, not variables — a constant here would silently fall outside the
-# translation catalog. Different from quota exhausted by accumulated
-# requests (code 429): 413 means this specific request is too large for the
-# per-minute limit on its own — retrying the same job posting, CV, or
-# profile without trimming it will fail the same way again. Groq returns it
-# with `"code": "rate_limit_exceeded"` (underscore: not to be confused with
-# 429's "rate limit", which has a space).
+# translation catalog.
+#
+# Two Groq failures look alike and are not the same, so they are told apart
+# by status code before any text is matched: both mention "tokens per
+# minute". A 429 means the allowance is spent right now and waiting fixes
+# it — telling that user to shorten their CV is false advice, the text was
+# never the problem. A 413 means this single request does not fit in the
+# whole per-minute allowance even on an empty budget, and there waiting
+# changes nothing.
+
+
+def _reserved_tokens(usuario: str) -> int:
+    """Room to reserve for the response, from the size of the text sent.
+
+    Only the user text counts: the system prompt is instructions, and what
+    the model has to write back is proportional to the material it is given
+    — the CV to read, or the catalog to choose from.
+    """
+    escalado = int(len(usuario) * TOKENS_RESPUESTA_POR_CARACTER)
+    return max(MIN_TOKENS_RESPUESTA, min(MAX_TOKENS_RESPUESTA, escalado))
 
 
 class GroqClient:
@@ -114,7 +147,7 @@ class GroqClient:
             completado = cliente.chat.completions.create(
                 model=self.modelo,
                 temperature=self.temperatura,
-                max_tokens=MAX_TOKENS_RESPUESTA,
+                max_tokens=_reserved_tokens(usuario),
                 reasoning_effort=REASONING_EFFORT,
                 messages=[
                     {"role": "system", "content": sistema},
@@ -142,7 +175,7 @@ class GroqClient:
             raise AIError(
                 _("Falta la librería «groq». Instálala con: pip install -r requirements.txt")
             ) from exc
-        return Groq(api_key=self.clave, timeout=TIMEOUT_SEGUNDOS)
+        return Groq(api_key=self.clave, timeout=TIMEOUT_SEGUNDOS, max_retries=REINTENTOS)
 
     @staticmethod
     def _explain(exc: Exception) -> str:
@@ -161,16 +194,20 @@ class GroqClient:
                 "puedes generar una gratis en %(url)s.",
                 url=URL_CONSEGUIR_CLAVE,
             )
-        if codigo == 413 or "tokens per minute" in texto or "request too large" in texto:
-            return _(
-                "Esta petición es demasiado grande para el límite de tokens por "
-                "minuto de tu plan gratuito de Groq. Si es un CV, una vacante o un "
-                "perfil muy largos, prueba con un texto más corto."
-            )
         if codigo == 429 or "rate limit" in texto or "quota" in texto:
             return _(
-                "Has agotado la cuota gratuita de Groq por ahora. Espera un rato y "
-                "vuelve a intentarlo, o usa otra clave."
+                "Espera un minuto y vuelve a intentarlo: tu plan gratuito de Groq "
+                "admite un número limitado de palabras por minuto y ahora mismo "
+                "está al tope. No tienes que acortar tu CV ni la vacante, solo "
+                "esperar. No se ha guardado nada, así que puedes repetir la misma "
+                "operación tal cual."
+            )
+        if codigo == 413 or "request too large" in texto or "tokens per minute" in texto:
+            return _(
+                "Acorta el texto y vuelve a intentarlo, o pega solo la parte que "
+                "importa: esta petición es demasiado grande para lo que tu plan "
+                "gratuito de Groq admite por minuto, así que esperar no la deja "
+                "pasar."
             )
         if codigo == 404 or ("model" in texto and "not found" in texto):
             return _(

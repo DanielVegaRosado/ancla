@@ -277,11 +277,20 @@ def test_sin_clave_no_esta_disponible_y_lo_dice_en_castellano():
     assert "Ajustes" in str(fallo.value)
 
 
+def _error_de_groq(mensaje: str, codigo: int) -> Exception:
+    """The SDK's exceptions carry the status code as an attribute, and
+    `_explain` reads it before matching any text. Built by hand so no test
+    ever touches the network."""
+    error = Exception(mensaje)
+    error.status_code = codigo
+    return error
+
+
 def test_los_fallos_del_proveedor_se_traducen_a_algo_accionable():
     explicar = GroqClient._explain
 
     assert "clave" in explicar(Exception("Invalid API Key provided")).lower()
-    assert "cuota" in explicar(Exception("rate limit exceeded")).lower()
+    assert "espera" in explicar(Exception("rate limit exceeded")).lower()
     assert "conexi" in explicar(Exception("failed to connect")).lower()
     # What is not recognised is not dressed up as something else: shown as-is.
     assert "vaya cosa rara" in explicar(Exception("vaya cosa rara"))
@@ -322,8 +331,49 @@ def test_la_llamada_al_sdk_lleva_max_tokens_y_reasoning_effort_bajo(monkeypatch)
     GroqClient(clave="gsk_prueba").complete("sistema", "usuario")
 
     assert len(llamadas) == 1
-    assert llamadas[0]["max_tokens"] == modulo_groq.MAX_TOKENS_RESPUESTA
+    assert llamadas[0]["max_tokens"] == modulo_groq.MIN_TOKENS_RESPUESTA
     assert llamadas[0]["reasoning_effort"] == modulo_groq.REASONING_EFFORT == "low"
+
+
+def test_lo_reservado_para_la_respuesta_crece_con_el_texto_enviado():
+    """Groq accepts or rejects a request by what it estimates it will cost —
+    the prompt plus what is reserved here — against what is left of the
+    per-minute allowance, so a fixed ceiling made short requests compete for
+    room they were never going to use."""
+    import ancla.ai.groq as modulo_groq
+
+    corto = modulo_groq._reserved_tokens("x" * 100)
+    medio = modulo_groq._reserved_tokens("x" * 2000)
+    largo = modulo_groq._reserved_tokens("x" * 100000)
+
+    assert corto < medio < largo
+    assert corto == modulo_groq.MIN_TOKENS_RESPUESTA
+    assert largo == modulo_groq.MAX_TOKENS_RESPUESTA
+
+
+def test_lo_reservado_cubre_de_sobra_lo_que_cuesta_un_cv_real():
+    """Measured against the real API with two-page CVs: ~2800 response
+    tokens for ~2800 characters of text. Reserving less than that is what
+    cuts the JSON in half and leaves the user with nothing to save."""
+    import ancla.ai.groq as modulo_groq
+
+    assert modulo_groq._reserved_tokens("x" * 2800) >= 2800
+
+
+def test_el_cliente_del_sdk_reintenta_los_limites_temporales(monkeypatch):
+    """Exceeding the tokens-per-minute allowance is temporary and the
+    response says how long to wait. Without retries the app gave up on a CV
+    that a few seconds' wait would have imported."""
+    import groq as sdk
+
+    import ancla.ai.groq as modulo_groq
+
+    construidos = []
+    monkeypatch.setattr(sdk, "Groq", lambda **kwargs: construidos.append(kwargs))
+
+    GroqClient(clave="gsk_prueba")._sdk()
+
+    assert construidos[0]["max_retries"] == modulo_groq.REINTENTOS >= 1
 
 
 def test_una_peticion_demasiado_grande_no_se_confunde_con_cuota_agotada():
@@ -340,7 +390,23 @@ def test_una_peticion_demasiado_grande_no_se_confunde_con_cuota_agotada():
     )
     mensaje = explicar(error_real)
     assert "demasiado grande" in mensaje.lower()
-    assert "cuota" not in mensaje.lower()
+
+
+def test_agotar_el_limite_por_minuto_pide_esperar_y_no_acortar_el_cv():
+    """The wrong advice this used to give: a two-page CV is not too long,
+    it simply did not fit in what was left of that minute. Both failures
+    mention "tokens per minute", so they are told apart by status code."""
+    error_real = _error_de_groq(
+        "Rate limit reached for model `openai/gpt-oss-120b` ... on tokens per "
+        "minute (TPM): Limit 8000, Used 5266, Requested 4577. Please try again "
+        "in 13.8225s.",
+        429,
+    )
+    mensaje = GroqClient._explain(error_real).lower()
+
+    assert "espera" in mensaje
+    assert "no tienes que acortar" in mensaje
+    assert "demasiado grande" not in mensaje
 
 
 # --------------------------------------------------------------------------

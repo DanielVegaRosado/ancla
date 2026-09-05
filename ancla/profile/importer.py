@@ -1,5 +1,6 @@
-"""Analyses a CV's text and proposes candidates for the profile's four
-sections: experience, technical skills, personal skills, and languages.
+"""Analyses a CV's text and proposes candidates for the profile's five
+sections: experience, technical skills, personal skills, languages, and
+education.
 
 Different from `migrador.py`: that one converts a rigid, purpose-built
 format (`TITULO_ES:`, `BULLETS_ES:`...) with regular expressions, no AI,
@@ -12,7 +13,7 @@ from what the user pasted by hand: never from the model itself "reading" a
 PDF, which could mistranscribe a word without anyone noticing.
 
 **Nothing is saved here.** This module only proposes `Experience`/`Skill`/
-`SpokenLanguage` objects with a provisional id; the web layer saves them —
+`SpokenLanguage`/`Education` objects with a provisional id; the web layer saves them —
 or not — after the user reviews and confirms them one by one, the same as
 with the suggested keywords in `keywords.py`. It never raises a network or
 format exception: a failure here turns into an empty candidate list and a
@@ -49,9 +50,16 @@ from __future__ import annotations
 import json
 from dataclasses import dataclass, field
 
-from ancla.ai.client import AIClient
+from ancla.ai.client import AIClient, AIError
 from ancla.profile.serialization import split_period
-from ancla.profile.model import Bilingual, Experience, Profile, Skill, SpokenLanguage
+from ancla.profile.model import (
+    Bilingual,
+    Education,
+    Experience,
+    Profile,
+    Skill,
+    SpokenLanguage,
+)
 from ancla.text import to_text, to_texts, json_block, normalize, slugify
 
 # Groq's free tier is limited to 8000 tokens per minute (checked against the
@@ -65,7 +73,7 @@ MAX_CARACTERES_CV = 10000
 SISTEMA = """\
 Analizas el texto de un CV para ayudar a una persona a construir su base de datos \
 profesional. No escribes su CV: identificas qué hay en el texto y lo estructuras en \
-CUATRO categorías: experiencias, skills técnicas, skills personales e idiomas.
+CINCO categorías: experiencias, skills técnicas, skills personales, idiomas y educación.
 
 Reglas:
 1. Extrae SOLO lo que está literalmente en el texto. No añadas responsabilidades, \
@@ -103,9 +111,15 @@ experiencia (lenguajes, librerías, herramientas del stack) — esas sí son ski
 aparte aunque no estén en una lista de skills separada, y ante la duda de si una \
 tecnología concreta cuenta o no, inclúyela: es preferible algo de redundancia a que \
 falte una tecnología real que sí se menciona.
-10. "periodo" (de una experiencia) y "stack" son un único texto, no una versión por \
-idioma: fechas y nombres de tecnología se leen igual en cualquier idioma. No los \
-traduzcas ni los dupliques.
+10. "periodo", "stack" y "centro" son un único texto, no una versión por idioma: \
+fechas, nombres de tecnología y nombres propios de centros de estudios se leen igual en \
+cualquier idioma. No los traduzcas ni los dupliques.
+11. Extrae también la EDUCACIÓN: cada titulación, grado, máster, certificación o curso, \
+con su título, el centro donde se cursó y el periodo tal como aparezcan. Una educación \
+no es una experiencia ni una skill, aunque el CV la liste en el mismo apartado: el \
+título de una titulación ("Grado en Ingeniería Informática") nunca se propone además \
+como experiencia ni como skill aparte. Si el texto no dice el centro o el periodo, deja \
+ese campo vacío.
 
 Responde ÚNICAMENTE con este JSON, sin texto alrededor ni bloques de código:
 {
@@ -122,6 +136,9 @@ Responde ÚNICAMENTE con este JSON, sin texto alrededor ni bloques de código:
   ],
   "idiomas": [
     {"nombre": {"es": "", "en": ""}, "nivel": {"es": "", "en": ""}, "keywords": []}
+  ],
+  "educacion": [
+    {"titulo": {"es": "", "en": ""}, "centro": "", "periodo": ""}
   ]
 }"""
 
@@ -132,6 +149,7 @@ class ImportResult:
     skills: list[Skill] = field(default_factory=list)
     skills_personales: list[Skill] = field(default_factory=list)
     idiomas: list[SpokenLanguage] = field(default_factory=list)
+    educacion: list[Education] = field(default_factory=list)
     avisos: list[str] = field(default_factory=list)
 
 
@@ -151,6 +169,10 @@ def analyze_cv(cliente: AIClient, texto_cv: str, perfil: Profile) -> ImportResul
 
     try:
         bruto = cliente.complete(SISTEMA, texto)
+    except AIError as error:
+        # The provider clients already phrase their failures as what to do
+        # next; prefixing them with a cause would bury that advice.
+        return ImportResult(avisos=[str(error)])
     except Exception as exc:
         return ImportResult(avisos=[f"No se ha podido analizar el CV: {exc}"])
 
@@ -165,6 +187,7 @@ def analyze_cv(cliente: AIClient, texto_cv: str, perfil: Profile) -> ImportResul
         | {s.id for s in perfil.skills}
         | {s.id for s in perfil.personal_skills}
         | {i.id for i in perfil.languages}
+        | {e.id for e in perfil.education}
     )
 
     experiencias, duplicadas_exp = _candidates(
@@ -183,10 +206,17 @@ def analyze_cv(cliente: AIClient, texto_cv: str, perfil: Profile) -> ImportResul
         datos.get("idiomas"), _to_language, ids_usados,
         "name", _bilingual_names(perfil.languages, "name"),
     )
-    duplicadas = duplicadas_exp + duplicadas_skills + duplicadas_sp + duplicadas_idiomas
+    educacion, duplicadas_educacion = _candidates(
+        datos.get("educacion"), _to_education, ids_usados,
+        "title", _bilingual_names(perfil.education, "title"),
+    )
+    duplicadas = (
+        duplicadas_exp + duplicadas_skills + duplicadas_sp
+        + duplicadas_idiomas + duplicadas_educacion
+    )
 
     avisos = []
-    if not any((experiencias, skills, skills_personales, idiomas)):
+    if not any((experiencias, skills, skills_personales, idiomas, educacion)):
         if duplicadas:
             avisos.append(
                 "No hay nada nuevo que añadir: todo lo que se ha reconocido en este "
@@ -206,6 +236,7 @@ def analyze_cv(cliente: AIClient, texto_cv: str, perfil: Profile) -> ImportResul
         skills=skills,
         skills_personales=skills_personales,
         idiomas=idiomas,
+        educacion=educacion,
         avisos=avisos,
     )
 
@@ -304,6 +335,19 @@ def _to_language(datos: dict, ids_usados: set[str]) -> SpokenLanguage | None:
         name=nombre,
         level=_bilingual(datos.get("nivel")),
         keywords=to_texts(datos.get("keywords")),
+    )
+
+
+def _to_education(datos: dict, ids_usados: set[str]) -> Education | None:
+    titulo = _bilingual(datos.get("titulo"))
+    if not titulo["es"].strip() and not titulo["en"].strip():
+        return None
+    id_ = _free_id(titulo["es"] or titulo["en"], ids_usados)
+    return Education(
+        id=id_,
+        title=titulo,
+        institution=_single_text(datos.get("centro")),
+        **dict(zip(("period_start", "period_end"), split_period(_single_text(datos.get("periodo"))))),
     )
 
 

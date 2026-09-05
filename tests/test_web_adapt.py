@@ -128,3 +128,42 @@ def test_el_menu_nombra_los_dos_pasos_del_mismo_recorrido(cliente_web):
     pagina = cliente_web.get("/adaptar").get_data(as_text=True)
     assert "Adaptar a una vacante" in pagina
     assert "Última propuesta" in pagina
+
+
+def test_el_menu_atenua_ultima_propuesta_sin_borrador(cliente_web):
+    """Atenuado, no oculto: el enlace sigue llevando a su destino (que a su
+    vez explica la relación paso 1 → paso 2), solo deja de leerse como una
+    sección con contenido propio."""
+    pagina = cliente_web.get("/adaptar").get_data(as_text=True)
+    assert 'href="/propuesta" class="desactivado"' in pagina
+
+
+def test_el_menu_no_atenua_ultima_propuesta_con_borrador(cliente_web, monkeypatch):
+    import ancla.web.views.adapt as vista_adaptar
+
+    monkeypatch.setattr(
+        vista_adaptar,
+        "create_client",
+        lambda proveedor, clave, url_base="", modelo="": _ClienteFalsoDisponible(_respuesta_ia()),
+    )
+    cliente_web.post("/adaptar", data={"vacante": VACANTE, "idioma": "es"})
+
+    pagina = cliente_web.get("/adaptar").get_data(as_text=True)
+    assert "desactivado" not in pagina
+    assert 'href="/propuesta" class="">' in pagina
+
+
+def test_propuesta_ofrece_salida_para_adaptar_otra_vacante(cliente_web, monkeypatch):
+    import ancla.web.views.adapt as vista_adaptar
+
+    monkeypatch.setattr(
+        vista_adaptar,
+        "create_client",
+        lambda proveedor, clave, url_base="", modelo="": _ClienteFalsoDisponible(_respuesta_ia()),
+    )
+    cliente_web.post("/adaptar", data={"vacante": VACANTE, "idioma": "es"})
+
+    pagina = cliente_web.get("/propuesta").get_data(as_text=True)
+    assert 'action="/adaptar"' in pagina
+    assert "Adaptar otra vacante" in pagina
+    assert "data-confirmar" in pagina.split('action="/adaptar"')[1][:400]

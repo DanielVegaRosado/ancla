@@ -8,7 +8,8 @@ until the second step's explicit confirmation.
 """
 from __future__ import annotations
 
-from dataclasses import replace
+from collections.abc import Callable
+from dataclasses import dataclass, replace
 
 from flask import flash, redirect, render_template, request, url_for
 from flask_babel import gettext as _
@@ -16,7 +17,7 @@ from flask_babel import gettext as _
 from ancla.ai.client import AIError
 from ancla.profile import store, importer, validation
 from ancla.profile.extraction import ExtractionError, extract_text
-from ancla.profile.model import Bilingual, Experience, Skill, SpokenLanguage
+from ancla.profile.model import Bilingual, Education, Experience, Skill, SpokenLanguage
 from ancla.web import context
 from ancla.web import import_batch as modulo_importacion
 from ancla.web.blueprint import bp
@@ -49,28 +50,20 @@ def import_cv():
         return redirect(url_for("ancla.view_settings"))
 
     resultado = importer.analyze_cv(cliente, texto_cv, context.current_profile())
-    if not any(
-        (
-            resultado.experiencias,
-            resultado.skills,
-            resultado.skills_personales,
-            resultado.idiomas,
-        )
-    ):
+    lote = modulo_importacion.ImportBatch(
+        experiencias=resultado.experiencias,
+        skills=resultado.skills,
+        skills_personales=resultado.skills_personales,
+        idiomas=resultado.idiomas,
+        educacion=resultado.educacion,
+        avisos=resultado.avisos,
+    )
+    if not any(_candidates(lote, seccion) for seccion in SECTIONS):
         for aviso in resultado.avisos:
             flash(aviso)
         return render_template("import.html", ia_configurada=ajustes.configured())
 
-    modulo_importacion.save_import(
-        context.root(),
-        modulo_importacion.ImportBatch(
-            experiencias=resultado.experiencias,
-            skills=resultado.skills,
-            skills_personales=resultado.skills_personales,
-            idiomas=resultado.idiomas,
-            avisos=resultado.avisos,
-        ),
-    )
+    modulo_importacion.save_import(context.root(), lote)
     return redirect(url_for("ancla.review_import"))
 
 
@@ -100,49 +93,10 @@ def save_import():
 
     guardadas = 0
     con_error = 0
-    for indice, experiencia in enumerate(importacion.experiencias):
-        if request.form.get(f"exp-{indice}") != "1":
-            continue
-        editada = _edited_experience(request.form, indice, experiencia)
-        errors = validation.validate_experience(editada)
-        if errors:
-            con_error += 1
-            continue
-        store.save_experience(context.root(), editada)
-        guardadas += 1
-
-    for indice, skill in enumerate(importacion.skills):
-        if request.form.get(f"skill-{indice}") != "1":
-            continue
-        editada = _edited_skill(request.form, "skill", indice, skill)
-        errors = validation.validate_skill(editada)
-        if errors:
-            con_error += 1
-            continue
-        store.save_skill(context.root(), editada)
-        guardadas += 1
-
-    for indice, skill in enumerate(importacion.skills_personales):
-        if request.form.get(f"skillpersonal-{indice}") != "1":
-            continue
-        editada = _edited_skill(request.form, "skillpersonal", indice, skill)
-        errors = validation.validate_personal_skill(editada)
-        if errors:
-            con_error += 1
-            continue
-        store.save_personal_skill(context.root(), editada)
-        guardadas += 1
-
-    for indice, idioma in enumerate(importacion.idiomas):
-        if request.form.get(f"idioma-{indice}") != "1":
-            continue
-        editado = _edited_language(request.form, indice, idioma)
-        errors = validation.validate_language(editado)
-        if errors:
-            con_error += 1
-            continue
-        store.save_language(context.root(), editado)
-        guardadas += 1
+    for seccion in SECTIONS:
+        nuevas, fallidas = _save_section(request.form, importacion, seccion)
+        guardadas += nuevas
+        con_error += fallidas
 
     modulo_importacion.delete_import(context.root())
 
@@ -160,8 +114,7 @@ def save_import():
     return redirect(url_for("ancla.view_profile"))
 
 
-def _edited_experience(form, indice: int, original: Experience) -> Experience:
-    prefijo = f"exp-{indice}"
+def _edited_experience(form, prefijo: str, original: Experience) -> Experience:
     return replace(
         original,
         title=Bilingual(
@@ -178,13 +131,12 @@ def _edited_experience(form, indice: int, original: Experience) -> Experience:
     )
 
 
-def _edited_skill(form, tipo: str, indice: int, original: Skill) -> Skill:
+def _edited_skill(form, prefijo: str, original: Skill) -> Skill:
     """Used for both technical and personal skills: same fields, the only
     difference is the form prefix (`skill-N` / `skillpersonal-N`). A
     personal skill has no category field in the template — `form.get`
     simply falls back to the original value (an empty string), same as in
     the manual "New personal skill" form."""
-    prefijo = f"{tipo}-{indice}"
     return replace(
         original,
         name=Bilingual(
@@ -195,8 +147,7 @@ def _edited_skill(form, tipo: str, indice: int, original: Skill) -> Skill:
     )
 
 
-def _edited_language(form, indice: int, original: SpokenLanguage) -> SpokenLanguage:
-    prefijo = f"idioma-{indice}"
+def _edited_language(form, prefijo: str, original: SpokenLanguage) -> SpokenLanguage:
     return replace(
         original,
         name=Bilingual(
@@ -208,6 +159,84 @@ def _edited_language(form, indice: int, original: SpokenLanguage) -> SpokenLangu
             en=form.get(f"{prefijo}-nivel_en", original.level["en"]).strip(),
         ),
     )
+
+
+def _edited_education(form, prefijo: str, original: Education) -> Education:
+    return replace(
+        original,
+        title=Bilingual(
+            es=form.get(f"{prefijo}-titulo_es", original.title["es"]).strip(),
+            en=form.get(f"{prefijo}-titulo_en", original.title["en"]).strip(),
+        ),
+        institution=form.get(f"{prefijo}-centro", original.institution).strip(),
+        period_start=form.get(f"{prefijo}-periodo_inicio", original.period_start).strip(),
+        period_end=form.get(f"{prefijo}-periodo_fin", original.period_end).strip(),
+    )
+
+
+@dataclass(frozen=True)
+class _ReviewSection:
+    """One reviewable category of an import.
+
+    The five categories differ only in where their candidates live in the
+    batch, the form prefix their checkboxes and fields use, and which
+    editor, validator and store function apply — so they are described once
+    here instead of as five near-identical loops. A category missing from
+    this table is one the review screen can show but never save.
+    """
+
+    attribute: str
+    prefix: str
+    edited: Callable
+    validate: Callable
+    save: Callable
+
+
+SECTIONS = (
+    _ReviewSection(
+        "experiencias", "exp", _edited_experience,
+        validation.validate_experience, store.save_experience,
+    ),
+    _ReviewSection(
+        "skills", "skill", _edited_skill,
+        validation.validate_skill, store.save_skill,
+    ),
+    _ReviewSection(
+        "skills_personales", "skillpersonal", _edited_skill,
+        validation.validate_personal_skill, store.save_personal_skill,
+    ),
+    _ReviewSection(
+        "idiomas", "idioma", _edited_language,
+        validation.validate_language, store.save_language,
+    ),
+    _ReviewSection(
+        "educacion", "edu", _edited_education,
+        validation.validate_education, store.save_education,
+    ),
+)
+
+
+def _candidates(lote: modulo_importacion.ImportBatch, seccion: _ReviewSection) -> list:
+    return getattr(lote, seccion.attribute)
+
+
+def _save_section(form, lote: modulo_importacion.ImportBatch, seccion: _ReviewSection) -> tuple[int, int]:
+    """Saves the candidates the user left checked. Returns
+    `(saved, rejected)`: a candidate whose edits no longer validate is
+    counted, not saved, so the screen can say how many were dropped."""
+    guardadas = 0
+    con_error = 0
+    for indice, candidata in enumerate(_candidates(lote, seccion)):
+        prefijo = f"{seccion.prefix}-{indice}"
+        if form.get(prefijo) != "1":
+            continue
+        editada = seccion.edited(form, prefijo, candidata)
+        if seccion.validate(editada):
+            con_error += 1
+            continue
+        seccion.save(context.root(), editada)
+        guardadas += 1
+    return guardadas, con_error
 
 
 @bp.route("/perfil/importar/descartar", methods=["POST"])

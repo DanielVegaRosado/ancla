@@ -46,6 +46,7 @@ def create_app(
 ) -> Flask:
     from ancla.profile.errors import ProfileError
     from ancla.profile.model import LANGUAGES, period_text
+    from ancla.web import draft as modulo_borrador
     from ancla.web import settings as modulo_ajustes
     from ancla.web import context
     from ancla.web import views  # noqa: F401 — registers the routes on bp when imported
@@ -94,6 +95,9 @@ def create_app(
             "anios": years_for_period(),
             "marcadores_periodo": period_marker_labels(),
             "periodo": _period_of,
+            # Lets the nav dim "Última propuesta" while there is nothing to
+            # show there yet, without hiding the link (see base.html).
+            "hay_borrador": modulo_borrador.load_draft(context.root()) is not None,
         }
 
     @app.errorhandler(404)

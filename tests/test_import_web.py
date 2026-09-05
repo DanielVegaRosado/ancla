@@ -9,7 +9,7 @@ from pathlib import Path
 import pytest
 
 from ancla.profile import store
-from ancla.profile.model import Bilingual, Experience, SpokenLanguage, Skill
+from ancla.profile.model import Bilingual, Education, Experience, SpokenLanguage, Skill
 from ancla.web import create_app
 from ancla.web import import_batch as modulo_importacion
 
@@ -46,6 +46,16 @@ def _idioma(id: str = "ingles") -> SpokenLanguage:
         name=Bilingual(es="Inglés", en="English"),
         level=Bilingual(es="C1", en="C1"),
         keywords=["advanced english"],
+    )
+
+
+def _educacion(id: str = "grado") -> Education:
+    return Education(
+        id=id,
+        title=Bilingual(es="Grado en Ingeniería Informática", en="BSc in Computer Engineering"),
+        institution="UEMC",
+        period_start="2021",
+        period_end="2025",
     )
 
 
@@ -366,6 +376,16 @@ def _respuesta_ia() -> str:
                     "keywords": ["advanced english"],
                 }
             ],
+            "educacion": [
+                {
+                    "titulo": {
+                        "es": "Grado en Ingeniería Informática",
+                        "en": "BSc in Computer Engineering",
+                    },
+                    "centro": "UEMC",
+                    "periodo": "2021 - 2025",
+                }
+            ],
         },
         ensure_ascii=False,
     )
@@ -409,6 +429,8 @@ def test_de_punta_a_punta_subir_analizar_revisar_y_guardar(cliente_web, tmp_path
     assert "SQL" in html
     assert "Trabajo en equipo" in html
     assert "Inglés" in html
+    assert "Grado en Ingeniería Informática" in html
+    assert "UEMC" in html
 
     # 3) Save the experience and the personal skill; discard the technical
     #    skill and the language, to exercise both paths (save/discard)
@@ -428,6 +450,12 @@ def test_de_punta_a_punta_subir_analizar_revisar_y_guardar(cliente_web, tmp_path
             "skillpersonal-0-nombre_es": "Trabajo en equipo",
             "skillpersonal-0-nombre_en": "Teamwork",
             # "idioma-0" is not sent: it stays discarded.
+            "edu-0": "1",
+            "edu-0-titulo_es": "Grado en Ingeniería Informática",
+            "edu-0-titulo_en": "BSc in Computer Engineering",
+            "edu-0-centro": "UEMC",
+            "edu-0-periodo_inicio": "2021",
+            "edu-0-periodo_fin": "2025",
         },
     )
     assert save.status_code == 302
@@ -442,7 +470,156 @@ def test_de_punta_a_punta_subir_analizar_revisar_y_guardar(cliente_web, tmp_path
     assert perfil.personal_skill("trabajo-en-equipo") is not None
     assert perfil.skill("trabajo-en-equipo") is None  # nunca en el catálogo técnico
     assert perfil.language("ingles") is None
+    assert perfil.education_entry("grado-en-ingenieria-informatica") is not None
 
     # 5) The pending import draft is cleared: the same batch cannot be
     #    "reviewed" again, and nothing is left dangling in the profile.
     assert modulo_importacion.load_import(tmp_path / "perfil") is None
+
+
+# --------------------------------------------------------------------------
+# Education: the fifth category, added after the importer was written.
+# --------------------------------------------------------------------------
+
+
+def test_guardar_y_cargar_una_educacion_hace_ida_y_vuelta(tmp_path: Path):
+    original = modulo_importacion.ImportBatch(educacion=[_educacion()])
+    modulo_importacion.save_import(tmp_path, original)
+    assert modulo_importacion.load_import(tmp_path) == original
+
+
+def test_revisar_muestra_la_educacion(cliente_web, tmp_path: Path):
+    modulo_importacion.save_import(
+        tmp_path / "perfil", modulo_importacion.ImportBatch(educacion=[_educacion()])
+    )
+    html = cliente_web.get("/perfil/importar/revisar").data.decode("utf-8")
+    assert "Grado en Ingeniería Informática" in html
+    assert "UEMC" in html
+    assert 'name="edu-0"' in html
+
+
+def test_guardar_una_educacion_importada_va_al_perfil(cliente_web, tmp_path: Path):
+    root = tmp_path / "perfil"
+    modulo_importacion.save_import(
+        root, modulo_importacion.ImportBatch(educacion=[_educacion()])
+    )
+    cliente_web.post(
+        "/perfil/importar/guardar",
+        data={
+            "edu-0": "1",
+            "edu-0-titulo_es": "Grado en Ingeniería Informática",
+            "edu-0-titulo_en": "BSc in Computer Engineering",
+            "edu-0-centro": "UEMC",
+            "edu-0-periodo_inicio": "2021",
+            "edu-0-periodo_fin": "2025",
+        },
+    )
+    educacion = store.load_profile(root).education_entry("grado")
+    assert educacion is not None
+    assert educacion.institution == "UEMC"
+    assert educacion.period_end == "2025"
+
+
+def test_una_educacion_no_marcada_no_se_guarda(cliente_web, tmp_path: Path):
+    root = tmp_path / "perfil"
+    modulo_importacion.save_import(
+        root, modulo_importacion.ImportBatch(educacion=[_educacion()])
+    )
+    cliente_web.post("/perfil/importar/guardar", data={})
+    assert store.load_profile(root).education_entry("grado") is None
+
+
+def test_una_educacion_sin_centro_no_se_guarda_pero_avisa(cliente_web, tmp_path: Path):
+    """Same treatment as the other four categories: normal validation
+    rejects it instead of writing a half-empty entry into the profile."""
+    root = tmp_path / "perfil"
+    modulo_importacion.save_import(
+        root, modulo_importacion.ImportBatch(educacion=[_educacion()])
+    )
+    respuesta = cliente_web.post(
+        "/perfil/importar/guardar",
+        data={
+            "edu-0": "1",
+            "edu-0-titulo_es": "Grado en Ingeniería Informática",
+            "edu-0-titulo_en": "BSc in Computer Engineering",
+            "edu-0-centro": "",
+            "edu-0-periodo_inicio": "2021",
+        },
+        follow_redirects=True,
+    )
+    assert store.load_profile(root).education_entry("grado") is None
+    assert "no se pudieron guardar".encode("utf-8") in respuesta.data
+
+
+def test_una_importacion_solo_con_educacion_llega_a_la_pantalla_de_revision(
+    cliente_web, tmp_path, monkeypatch
+):
+    """The "nothing found" check used to look only at the other four
+    categories: a CV whose only new content is a degree must not be
+    reported as unreadable."""
+    import ancla.web.views.import_cv as vista_importar
+
+    import json as _json
+
+    respuesta_ia = _json.dumps(
+        {
+            "experiencias": [],
+            "skills": [],
+            "educacion": [
+                {
+                    "titulo": {"es": "Máster en IA", "en": "MSc in AI"},
+                    "centro": "UEMC",
+                    "periodo": "2023 - actualidad",
+                }
+            ],
+        },
+        ensure_ascii=False,
+    )
+    monkeypatch.setattr(
+        vista_importar,
+        "create_client",
+        lambda proveedor, clave, url_base="", modelo="": _ClienteFalsoDisponible(respuesta_ia),
+    )
+    subida = cliente_web.post("/perfil/importar", data={"texto": "Máster en IA, UEMC, 2023."})
+    assert subida.location.endswith("/perfil/importar/revisar")
+
+
+def test_un_limite_temporal_del_proveedor_se_explica_en_la_pantalla_de_importar(
+    cliente_web, monkeypatch
+):
+    """The failure that made someone think their CV had been lost: the
+    provider's per-minute allowance was spent, the screen showed nothing to
+    save, and nothing said that waiting a minute was all it took."""
+    import ancla.web.views.import_cv as vista_importar
+    from ancla.ai.client import AIError
+
+    class _ClienteAlLimite:
+        def complete(self, sistema: str, usuario: str) -> str:
+            raise AIError("Espera un minuto y vuelve a intentarlo: tu plan gratuito")
+
+        def available(self) -> bool:
+            return True
+
+    monkeypatch.setattr(
+        vista_importar,
+        "create_client",
+        lambda proveedor, clave, url_base="", modelo="": _ClienteAlLimite(),
+    )
+    respuesta = cliente_web.post(
+        "/perfil/importar", data={"texto": "Daniel Vega, ML Developer."}
+    )
+
+    assert respuesta.status_code == 200
+    assert "Espera un minuto y vuelve a intentarlo".encode("utf-8") in respuesta.data
+    assert "no se ha encontrado".encode("utf-8") not in respuesta.data.lower()
+
+
+def test_la_pantalla_de_importar_avisa_de_que_analizar_puede_esperar(cliente_web):
+    """A retried request is a blocking wait with nothing on screen: the page
+    has to say it is working, or it reads as frozen."""
+    cliente_web.post(
+        "/ajustes", data={"proveedor": "groq", "clave_api": "gsk_123"}, follow_redirects=True
+    )
+    respuesta = cliente_web.get("/perfil/importar")
+
+    assert "no cierres esta página".encode("utf-8") in respuesta.data
