@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-09-06 16:33+0200\n"
+"POT-Creation-Date: 2026-09-06 17:11+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -295,7 +295,7 @@ msgstr ""
 msgid "Escribe primero tu «Sobre mí» en los dos idiomas."
 msgstr ""
 
-#: ancla/profile/gaps.py:126 ancla/profile/importer.py:233
+#: ancla/profile/gaps.py:126 ancla/profile/importer.py:253
 #: ancla/profile/keywords.py:93 ancla/profile/translation.py:124
 msgid "No hay ninguna clave de API configurada. Ve a Ajustes."
 msgstr ""
@@ -305,7 +305,7 @@ msgstr ""
 msgid "No se han podido proponer los huecos: %(error)s"
 msgstr ""
 
-#: ancla/profile/gaps.py:138 ancla/profile/importer.py:263
+#: ancla/profile/gaps.py:138 ancla/profile/importer.py:284
 #: ancla/profile/translation.py:150
 msgid "El modelo no ha devuelto una respuesta interpretable. Vuelve a intentarlo."
 msgstr ""
@@ -317,34 +317,34 @@ msgid ""
 " tú: selecciona las palabras y pulsa el botón del hueco."
 msgstr ""
 
-#: ancla/profile/importer.py:230
+#: ancla/profile/importer.py:250
 msgid "No hay texto que analizar."
 msgstr ""
 
-#: ancla/profile/importer.py:239
+#: ancla/profile/importer.py:260
 #, python-format
 msgid ""
-"Tu CV son %(total)s caracteres y solo se han analizado los %(analizados)s"
-" primeros: no cabe más en una sola petición. Revisa lo que falte e "
-"impórtalo aparte pegando el texto restante."
+"Corta este CV en dos partes e impórtalas por separado: no cabe entero de "
+"una vez. De los %(total)s caracteres que tiene, solo se han leído los "
+"primeros %(analizados)s."
 msgstr ""
 
-#: ancla/profile/importer.py:256
+#: ancla/profile/importer.py:277
 #, python-format
 msgid "No se ha podido analizar el CV: %(error)s"
 msgstr ""
 
-#: ancla/profile/importer.py:304
+#: ancla/profile/importer.py:325
 msgid ""
 "No hay nada nuevo que añadir: todo lo que se ha reconocido en este CV ya "
 "está en tu perfil."
 msgstr ""
 
-#: ancla/profile/importer.py:310
+#: ancla/profile/importer.py:331
 msgid "No se ha encontrado ninguna experiencia ni skill reconocible en el texto."
 msgstr ""
 
-#: ancla/profile/importer.py:315
+#: ancla/profile/importer.py:336
 #, python-format
 msgid ""
 "Se ha omitido %(cantidad)s elemento(s) que ya estaban en tu perfil (mismo"
@@ -836,11 +836,11 @@ msgstr ""
 msgid "Finalizado"
 msgstr ""
 
-#: ancla/web/providers.py:179
+#: ancla/web/providers.py:185
 msgid "Otro (URL manual)"
 msgstr ""
 
-#: ancla/web/providers.py:202
+#: ancla/web/providers.py:208
 msgid ""
 "El proveedor personalizado no está disponible en esta demo pública: "
 "dejaría que el servidor compartido hiciera peticiones a cualquier "
@@ -848,12 +848,12 @@ msgid ""
 "OpenRouter o Anthropic."
 msgstr ""
 
-#: ancla/web/providers.py:211
+#: ancla/web/providers.py:217
 #, python-format
 msgid "Proveedor de IA desconocido: «%(proveedor)s»."
 msgstr ""
 
-#: ancla/web/providers.py:218
+#: ancla/web/providers.py:224
 #, python-format
 msgid "El proveedor %(nombre)s todavía no está disponible en esta instalación."
 msgstr ""

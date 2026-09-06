@@ -68,18 +68,6 @@ from ancla.profile.model import (
 )
 from ancla.text import to_text, to_texts, json_block, normalize, slugify
 
-# Groq's free tier is limited to 8000 tokens per minute (checked against the
-# real API). That budget has to cover the system prompt (~1070 tokens), this
-# text (~1 token per 3.9 characters), and the model's response all at once.
-# Measured against real CVs, the response runs at ~1.0 token per character
-# when both languages are asked for, so a single language costs ~0.5:
-#   1070 + c/3.9 + 0.5c <= 8000  ->  c <= ~9100
-# 8000 leaves margin for the wide variance seen between identical runs. Past
-# that the text is cut, and the cut is reported rather than silent: a CV
-# analysed only up to the middle used to look like a model that had missed
-# half a career.
-MAX_CARACTERES_CV = 8000
-
 # How much room to declare for the response Groq is asked to admit — see
 # `ai.client.complete_with_budget`. This module reserves its own number
 # instead of leaving it to `ai/groq.py`'s generic fallback because it is the
@@ -88,16 +76,34 @@ MAX_CARACTERES_CV = 8000
 # answer, unlike the selection engine's fixed-shape ids and reasons or the
 # "About me" gaps' six short fragments.
 #
-# Measured against the real API with two real, full CVs, single-language
-# (checked 2026-09-06): 0.58 and 0.87 completion tokens per character sent,
-# depending on how densely the CV itself is written — a CV that is mostly
-# short bullet lists costs more per character than one written in prose.
-# With only two runs to go on and reserving too little being what cuts the
-# JSON in half, the factor below adds margin on top of the worse of the two
-# rather than their average — over-reserving only risks the 429 the SDK
-# already retries on its own.
+# Measured against the real API, single-language, across five real and
+# synthetic CVs on two separate days (2026-09-06): between 0.52 and 0.87
+# completion tokens per character sent, depending on how densely the CV is
+# written — a CV that is mostly short bullet lists costs more per character
+# than one written in prose. A single sample was tried and wrong twice
+# before this: 0.53 the first time, 0.867 the second. With that dispersion,
+# the factor below is set against the worst ratio seen, not the average or
+# the best — reserving too little is what cuts the JSON in half, and
+# over-reserving only risks the 429 the SDK already retries on its own.
 TOKENS_RESPUESTA_POR_CARACTER = 1.2
 MIN_TOKENS_RESPUESTA = 1500
+
+# Groq's free tier admits a request only if the system prompt (~1070 tokens,
+# measured against the real API), the CV text (~1 token per 3.9 characters,
+# also measured) and the declared response budget together fit under its
+# 8000-tokens-per-minute ceiling. The response budget is
+# `TOKENS_RESPUESTA_POR_CARACTER` above, so this is computed from that same
+# constant rather than a second hardcoded ratio that could drift from it —
+# that drift is exactly how the previous ceiling (8000 characters) ended up
+# built on a per-language factor of 0.5 that the response's actual worst
+# case had already outgrown by the time anyone measured it again.
+_TOKENS_PROMPT_SISTEMA = 1070
+_CARACTERES_POR_TOKEN_ENTRADA = 3.9
+_TOKENS_POR_MINUTO_GRATIS = 8000
+MAX_CARACTERES_CV = int(
+    (_TOKENS_POR_MINUTO_GRATIS - _TOKENS_PROMPT_SISTEMA)
+    / (1 / _CARACTERES_POR_TOKEN_ENTRADA + TOKENS_RESPUESTA_POR_CARACTER)
+)
 MAX_TOKENS_RESPUESTA = MAX_CARACTERES_CV  # never asked for more than a full CV could need
 
 PLANTILLA_SISTEMA = """\
@@ -204,6 +210,20 @@ def detect_language(texto: str) -> Language:
     return "en" if conteo["en"] > conteo["es"] else "es"
 
 
+def _corte_por_linea(texto: str, limite: int) -> int:
+    """Where to cut `texto` at or before `limite`, on a line break rather
+    than mid-word, so the truncated text sent to the model still reads as
+    whole lines instead of a sentence severed halfway through.
+
+    Falls back to a hard cut at `limite` when there is no line break in at
+    least the second half of the allowed range — a CV pasted as one giant
+    paragraph, for instance — so a missing line break never throws away
+    much more of the budget than it has to.
+    """
+    corte = texto.rfind("\n", limite // 2, limite)
+    return corte if corte != -1 else limite
+
+
 @dataclass(frozen=True)
 class ImportResult:
     experiencias: list[Experience] = field(default_factory=list)
@@ -234,15 +254,16 @@ def analyze_cv(
         )
 
     if len(texto) > MAX_CARACTERES_CV:
+        analizados = _corte_por_linea(texto, MAX_CARACTERES_CV)
         avisos.append(
             _(
-                "Tu CV son %(total)s caracteres y solo se han analizado los "
-                "%(analizados)s primeros: no cabe más en una sola petición. Revisa "
-                "lo que falte e impórtalo aparte pegando el texto restante.",
-                total=len(texto), analizados=MAX_CARACTERES_CV,
+                "Corta este CV en dos partes e impórtalas por separado: no cabe "
+                "entero de una vez. De los %(total)s caracteres que tiene, solo se "
+                "han leído los primeros %(analizados)s.",
+                total=len(texto), analizados=analizados,
             )
         )
-        texto = texto[:MAX_CARACTERES_CV] + "\n[...texto recortado...]"
+        texto = texto[:analizados] + "\n[...texto recortado...]"
 
     try:
         bruto = complete_with_budget(

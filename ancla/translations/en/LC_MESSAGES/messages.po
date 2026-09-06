@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-09-06 16:33+0200\n"
+"POT-Creation-Date: 2026-09-06 17:11+0200\n"
 "PO-Revision-Date: 2026-07-30 12:46+0200\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -360,7 +360,7 @@ msgstr ""
 msgid "Escribe primero tu «Sobre mí» en los dos idiomas."
 msgstr "Write your “About me” in both languages first."
 
-#: ancla/profile/gaps.py:126 ancla/profile/importer.py:233
+#: ancla/profile/gaps.py:126 ancla/profile/importer.py:253
 #: ancla/profile/keywords.py:93 ancla/profile/translation.py:124
 msgid "No hay ninguna clave de API configurada. Ve a Ajustes."
 msgstr "No API key is set up. Go to Settings."
@@ -370,7 +370,7 @@ msgstr "No API key is set up. Go to Settings."
 msgid "No se han podido proponer los huecos: %(error)s"
 msgstr "The gaps could not be suggested: %(error)s"
 
-#: ancla/profile/gaps.py:138 ancla/profile/importer.py:263
+#: ancla/profile/gaps.py:138 ancla/profile/importer.py:284
 #: ancla/profile/translation.py:150
 msgid "El modelo no ha devuelto una respuesta interpretable. Vuelve a intentarlo."
 msgstr "The model didn't return a response that could be parsed. Try again."
@@ -384,27 +384,21 @@ msgstr ""
 "These gaps could not be placed in %(idioma)s: %(huecos)s. Mark them "
 "yourself: select the words and click the gap's button."
 
-#: ancla/profile/importer.py:230
+#: ancla/profile/importer.py:250
 msgid "No hay texto que analizar."
 msgstr "There is no text to analyse."
 
-#: ancla/profile/importer.py:239
+#: ancla/profile/importer.py:260
 #, python-format
-msgid ""
-"Tu CV son %(total)s caracteres y solo se han analizado los %(analizados)s"
-" primeros: no cabe más en una sola petición. Revisa lo que falte e "
-"impórtalo aparte pegando el texto restante."
-msgstr ""
-"Your CV is %(total)s characters long and only the first %(analizados)s "
-"were analysed: no more fits in a single request. Check what is missing "
-"and import it separately by pasting the remaining text."
+msgid "Corta este CV en dos partes e impórtalas por separado: no cabe entero de una vez. De los %(total)s caracteres que tiene, solo se han leído los primeros %(analizados)s."
+msgstr "Split this CV in two and import each part separately: it does not fit in one go. Of its %(total)s characters, only the first %(analizados)s were read."
 
-#: ancla/profile/importer.py:256
+#: ancla/profile/importer.py:277
 #, fuzzy, python-format
 msgid "No se ha podido analizar el CV: %(error)s"
 msgstr "The gaps could not be suggested: %(error)s"
 
-#: ancla/profile/importer.py:304
+#: ancla/profile/importer.py:325
 msgid ""
 "No hay nada nuevo que añadir: todo lo que se ha reconocido en este CV ya "
 "está en tu perfil."
@@ -412,11 +406,11 @@ msgstr ""
 "There is nothing new to add: everything recognised in this CV is already "
 "in your profile."
 
-#: ancla/profile/importer.py:310
+#: ancla/profile/importer.py:331
 msgid "No se ha encontrado ninguna experiencia ni skill reconocible en el texto."
 msgstr "No recognisable experience or skill was found in the text."
 
-#: ancla/profile/importer.py:315
+#: ancla/profile/importer.py:336
 #, python-format
 msgid ""
 "Se ha omitido %(cantidad)s elemento(s) que ya estaban en tu perfil (mismo"
@@ -981,11 +975,11 @@ msgstr "Present"
 msgid "Finalizado"
 msgstr "Finished"
 
-#: ancla/web/providers.py:179
+#: ancla/web/providers.py:185
 msgid "Otro (URL manual)"
 msgstr "Other (manual URL)"
 
-#: ancla/web/providers.py:202
+#: ancla/web/providers.py:208
 msgid ""
 "El proveedor personalizado no está disponible en esta demo pública: "
 "dejaría que el servidor compartido hiciera peticiones a cualquier "
@@ -996,12 +990,12 @@ msgstr ""
 " shared server make requests to any address a visitor types in. Try Groq,"
 " OpenAI, Mistral, OpenRouter, or Anthropic."
 
-#: ancla/web/providers.py:211
+#: ancla/web/providers.py:217
 #, python-format
 msgid "Proveedor de IA desconocido: «%(proveedor)s»."
 msgstr "Unknown AI provider: “%(proveedor)s”."
 
-#: ancla/web/providers.py:218
+#: ancla/web/providers.py:224
 #, python-format
 msgid "El proveedor %(nombre)s todavía no está disponible en esta instalación."
 msgstr "The %(nombre)s provider isn't available in this installation yet."
@@ -3551,4 +3545,19 @@ msgstr "Tell us what happened, or what came to mind, before sending it."
 #~ "Careful, console.x.ai is a different "
 #~ "service (Grok) even though the name "
 #~ "looks almost the same."
+
+#~ msgid ""
+#~ "Tu CV son %(total)s caracteres y "
+#~ "solo se han analizado los %(analizados)s"
+#~ " primeros: no cabe más en una "
+#~ "sola petición. Revisa lo que falte "
+#~ "e impórtalo aparte pegando el texto "
+#~ "restante."
+#~ msgstr ""
+#~ "Your CV is %(total)s characters long "
+#~ "and only the first %(analizados)s were"
+#~ " analysed: no more fits in a "
+#~ "single request. Check what is missing"
+#~ " and import it separately by pasting"
+#~ " the remaining text."
 

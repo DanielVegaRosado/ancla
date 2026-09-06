@@ -12,7 +12,7 @@ import json
 
 
 from ancla.ai.client import AIError
-from ancla.profile.importer import analyze_cv, detect_language
+from ancla.profile.importer import MAX_CARACTERES_CV, analyze_cv, detect_language
 from ancla.profile.model import (
     PERIOD_ONGOING,
     Bilingual,
@@ -635,6 +635,33 @@ def test_un_cv_demasiado_largo_avisa_de_lo_que_no_se_ha_leido():
     resultado = analyze_cv(ClienteFalso(_respuesta_un_idioma()), largo, Profile(), "es")
 
     assert any("caracteres" in aviso for aviso in resultado.avisos)
+
+
+def test_un_cv_por_debajo_del_limite_llega_entero():
+    texto = "Experiencia en desarrollo.\n" * 50  # well under MAX_CARACTERES_CV
+    assert len(texto) < MAX_CARACTERES_CV
+    cliente = ClienteFalso(_respuesta_un_idioma())
+
+    resultado = analyze_cv(cliente, texto, Profile(), "es")
+
+    _, usuario = cliente.llamadas[0]
+    assert usuario == texto.strip()
+    assert not any("caracteres" in aviso for aviso in resultado.avisos)
+
+
+def test_el_recorte_no_parte_una_palabra_por_la_mitad():
+    """Cutting on a line break instead of an exact character count keeps the
+    text sent to the model readable, instead of severing the last line mid
+    word right at the edge of the budget."""
+    linea = "Coordino un equipo multidisciplinar de desarrollo de software.\n"
+    texto = linea * (MAX_CARACTERES_CV // len(linea) + 5)
+    cliente = ClienteFalso(_respuesta_un_idioma())
+
+    analyze_cv(cliente, texto, Profile(), "es")
+
+    _, usuario = cliente.llamadas[0]
+    enviado = usuario.rsplit("\n[...texto recortado...]", 1)[0]
+    assert enviado.endswith("software.")
 
 
 def test_detecta_el_idioma_del_cv():

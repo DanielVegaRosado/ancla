@@ -1,6 +1,6 @@
-// Vanilla JS, sin dependencias. Comportamientos pequeños y locales:
-// copiar al portapapeles, confirmar borrados, mostrar los campos que pide el
-// proveedor elegido y proponer keywords con IA.
+// Vanilla JS, no dependencies. Small, local behaviors:
+// copy to clipboard, confirm deletions, show the fields the chosen provider
+// needs, and suggest keywords with AI.
 
 document.addEventListener("click", (evento) => {
   const boton = evento.target.closest("[data-copiar]");
@@ -25,8 +25,8 @@ document.addEventListener("submit", (evento) => {
   }
 });
 
-// Proponer keywords con IA. Se AÑADEN a las que ya haya escritas, nunca las
-// sustituyen: lo que el usuario escribió manda sobre lo que sugiera el modelo.
+// Suggest keywords with AI. They are ADDED to whatever is already written,
+// never replacing it: what the user typed always wins over what the model suggests.
 document.addEventListener("click", async (evento) => {
   const boton = evento.target.closest("[data-sugerir-keywords]");
   if (!boton) return;
@@ -72,12 +72,12 @@ document.addEventListener("click", async (evento) => {
   }
 });
 
-// Mi perfil: arrastrar los paneles (Experiencia, Skills...) para cambiar el
-// orden en el que se ven. Solo se puede arrastrar agarrando el asa "⠿" —no
-// la tarjeta entera— para no interferir con los clics en sus botones. El
-// orden nuevo se guarda en el servidor al soltar; si la petición falla, el
-// panel ya se movió en pantalla igualmente, y se reintentará solo la
-// próxima vez que se reordene algo.
+// My profile: drag the panels (Experience, Skills...) to change the order
+// they're shown in. Dragging only works by grabbing the "⠿" handle — not
+// the whole card — so it doesn't interfere with clicks on its buttons. The
+// new order is saved to the server on drop; if the request fails, the
+// panel has already moved on screen regardless, and it's only retried the
+// next time something gets reordered.
 (() => {
   const contenedor = document.querySelector("[data-paneles-perfil]");
   if (!contenedor) return;
@@ -131,9 +131,9 @@ document.addEventListener("click", async (evento) => {
   });
 })();
 
-// Mis CVs: el panel de cifras hace también de filtro. Se pulsa una tarjeta
-// (Enviado, Entrevista...) y la lista se filtra sin recargar la página; los
-// CVs siguen todos en el HTML, solo se ocultan los que no tocan.
+// My CVs: the stats panel doubles as a filter. Clicking a card (Sent,
+// Interview...) filters the list without reloading the page; every CV
+// stays in the HTML, only the ones that don't match get hidden.
 document.addEventListener("click", (evento) => {
   const boton = evento.target.closest("[data-filtro]");
   if (!boton) return;
@@ -157,9 +157,9 @@ document.addEventListener("click", (evento) => {
   if (sinResultados) sinResultados.hidden = visibles > 0;
 });
 
-// Ajustes: los campos de URL base y modelo (y el aviso del límite diario de
-// Groq) solo se ven cuando el proveedor elegido los necesita — evita mostrar
-// campos que no aplican a ese proveedor.
+// Settings: the base URL and model fields (and the Groq daily-limit notice)
+// only show up when the chosen provider needs them — avoids displaying
+// fields that don't apply to that provider.
 (() => {
   const selector = document.getElementById("proveedor");
   if (!selector) return;
@@ -192,8 +192,8 @@ document.addEventListener("click", (evento) => {
   });
 })();
 
-// Soporte: el placeholder del mensaje cambia según sea "problema" o
-// "sugerencia", para que el hueco en blanco ya sugiera qué escribir.
+// Support: the message placeholder changes depending on whether it's a
+// "problem" or a "suggestion", so the blank field itself hints at what to write.
 document.addEventListener("change", (evento) => {
   if (!evento.target.matches("[data-cambia-placeholder]")) return;
 
