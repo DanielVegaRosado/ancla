@@ -58,6 +58,10 @@
     <button type="button" class="boton" data-copiar="copia-todo-md">{{ _('Copiar todo (con motivos, Markdown)') }}</button>
   </div>
 
+  {% with accion = url_for('ancla.preview_cv', id_=cv.id), idioma = cv.proposal.language %}
+    {% include "_cv_preview_form.html" %}
+  {% endwith %}
+
   <section class="tarjeta">
     <h2>{{ _('Descargar CV maquetado (.docx)') }}</h2>
     {% if plantillas_docx %}

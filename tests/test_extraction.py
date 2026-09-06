@@ -12,7 +12,11 @@ import sys
 
 import pytest
 
-from ancla.profile.extraction import ExtractionError, extract_text
+from ancla.profile.extraction import (
+    ExtractionError,
+    extract_text,
+    last_section_boundary,
+)
 
 
 def _pdf_minimo(texto: str) -> bytes:
@@ -159,3 +163,116 @@ def test_un_pdf_sin_texto_real_avisa_de_que_puede_ser_una_imagen():
 def test_la_extension_no_distingue_mayusculas():
     datos = _pdf_minimo("Contenido de prueba suficientemente largo para pasar el minimo.")
     assert "Contenido de prueba" in extract_text("CV.PDF", datos)
+
+
+# --------------------------------------------------------------------------
+# Section boundaries
+# --------------------------------------------------------------------------
+
+
+def _cv_por_secciones(*secciones: tuple[str, int]) -> str:
+    """A CV of `(heading, number of content lines)` sections, each line long
+    enough that the character positions in these tests are not decided by a
+    couple of spaces."""
+    lineas: list[str] = []
+    for titulo, cuerpo in secciones:
+        lineas.append(titulo)
+        lineas.extend(f"{titulo[:3].lower()} linea de contenido numero {n}" for n in range(cuerpo))
+    return "\n".join(lineas) + "\n"
+
+
+def test_se_corta_donde_empieza_la_siguiente_seccion():
+    texto = _cv_por_secciones(("EXPERIENCIA", 6), ("EDUCACIÓN", 6))
+    limite = texto.index("EDUCACIÓN") + 20
+
+    frontera = last_section_boundary(texto, limite)
+
+    assert frontera is not None
+    assert frontera.heading == "EDUCACIÓN"
+    assert texto[frontera.position:].startswith("EDUCACIÓN")
+
+
+def test_un_cv_en_ingles_se_corta_igual_que_uno_en_espanol():
+    texto = _cv_por_secciones(("WORK EXPERIENCE", 6), ("EDUCATION", 6))
+    limite = texto.index("EDUCATION") + 20
+
+    frontera = last_section_boundary(texto, limite)
+
+    assert frontera is not None
+    assert frontera.heading == "EDUCATION"
+
+
+def test_se_elige_la_ultima_seccion_que_cabe_no_la_primera():
+    """Cutting at the first boundary would throw away sections that fitted."""
+    texto = _cv_por_secciones(("EXPERIENCIA", 4), ("EDUCACIÓN", 4), ("IDIOMAS", 4))
+    limite = texto.index("IDIOMAS") + 10
+
+    frontera = last_section_boundary(texto, limite)
+
+    assert frontera is not None
+    assert frontera.heading == "IDIOMAS"
+
+
+def test_una_seccion_que_no_cabe_no_se_elige():
+    texto = _cv_por_secciones(("EXPERIENCIA", 4), ("EDUCACIÓN", 4), ("IDIOMAS", 4))
+    limite = texto.index("IDIOMAS") - 1
+
+    frontera = last_section_boundary(texto, limite)
+
+    assert frontera is not None
+    assert frontera.heading == "EDUCACIÓN"
+
+
+def test_un_cv_sin_secciones_reconocibles_no_da_frontera():
+    """A CV pasted as one loose paragraph is ordinary, not an edge case: the
+    caller keeps its own line-based cut for it."""
+    texto = "Trabajé cinco años montando tuberías de datos y modelos. " * 20
+
+    assert last_section_boundary(texto, 500) is None
+
+
+def test_una_seccion_demasiado_al_principio_no_se_elige():
+    """Splitting there would send less than half the budget to the model,
+    which is worse than cutting on a line."""
+    texto = "EXPERIENCIA\n" + "linea de contenido de una experiencia larga\n" * 40
+
+    assert last_section_boundary(texto, 1000) is None
+
+
+def test_un_titulo_de_puesto_no_se_confunde_con_un_encabezado():
+    """Text pulled out of a real PDF arrives with the blank lines gone, so
+    an employer or a job title looks exactly like a heading — short,
+    isolated, in capitals. Only the vocabulary tells them apart."""
+    texto = (
+        "linea de relleno para llegar a la mitad del limite permitido\n" * 6
+        + "JESÚS Y MARÍA\nDANIEL VEGA\nCOMPUTER ENGINEER\n2021 - 2023\nUEMC\n"
+    )
+
+    assert last_section_boundary(texto, len(texto)) is None
+
+
+def test_una_vineta_que_empieza_por_una_palabra_de_seccion_no_es_encabezado():
+    texto = (
+        "linea de relleno para llegar a la mitad del limite permitido\n" * 6
+        + "• Experience with Docker\n"
+    )
+
+    assert last_section_boundary(texto, len(texto)) is None
+
+
+def test_una_frase_que_nombra_una_seccion_no_es_encabezado():
+    texto = (
+        "linea de relleno para llegar a la mitad del limite permitido\n" * 6
+        + "Mi experiencia en el sector.\n"
+    )
+
+    assert last_section_boundary(texto, len(texto)) is None
+
+
+def test_los_dos_puntos_y_los_acentos_no_estorban():
+    texto = "relleno de contenido suficientemente largo\n" * 6 + "Formación académica:\n"
+
+    frontera = last_section_boundary(texto, len(texto))
+
+    assert frontera is not None
+    assert frontera.heading == "Formación académica:"

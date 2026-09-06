@@ -203,3 +203,22 @@ document.addEventListener("change", (evento) => {
   const nuevo = mensaje.dataset[clave];
   if (nuevo) mensaje.placeholder = nuevo;
 });
+
+// CV preview: opens the browser's own print dialog, which is what turns the
+// page into a PDF. The app never generates the file itself.
+document.addEventListener("click", (evento) => {
+  if (evento.target.closest("[data-imprimir]")) window.print();
+});
+
+// Proposal / saved CV: how many experiences fit is a property of the chosen
+// design, so picking another template offers that template's own number
+// instead of leaving the previous one's behind.
+(() => {
+  const selector = document.getElementById("plantilla_html");
+  const capacidad = document.getElementById("capacidad_html");
+  if (!selector || !capacidad) return;
+
+  selector.addEventListener("change", () => {
+    capacidad.value = selector.options[selector.selectedIndex].dataset.capacidad || capacidad.value;
+  });
+})();

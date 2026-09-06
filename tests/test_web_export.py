@@ -79,6 +79,10 @@ def _cliente(tmp_path: Path, n_experiencias: int, plantillas_root: Path = PLANTI
         raiz_perfil=root,
         settings_path=tmp_path / "ajustes.json",
         docx_templates_root=plantillas_root,
+        # No HTML template either: these tests are about the `.docx`
+        # dropdown, and the preview form has a `plantilla_id` select of its
+        # own that would answer for it.
+        html_templates_root=tmp_path / "sin-plantillas-html",
     )
     app.config["TESTING"] = True
     modulo_borrador.save_draft(
@@ -97,6 +101,10 @@ def _cliente_con_cv(tmp_path: Path, n_experiencias: int, plantillas_root: Path =
         raiz_perfil=root,
         settings_path=tmp_path / "ajustes.json",
         docx_templates_root=plantillas_root,
+        # No HTML template either: these tests are about the `.docx`
+        # dropdown, and the preview form has a `plantilla_id` select of its
+        # own that would answer for it.
+        html_templates_root=tmp_path / "sin-plantillas-html",
     )
     app.config["TESTING"] = True
     cv = SavedCV(
@@ -223,7 +231,12 @@ def test_el_desplegable_muestra_el_nombre_en_el_idioma_de_la_propuesta(tmp_path:
 
     root = tmp_path / "perfil"
     _perfil_en_disco(root)
-    app = create_app(raiz_perfil=root, settings_path=tmp_path / "ajustes.json", docx_templates_root=plantillas)
+    app = create_app(
+        raiz_perfil=root,
+        settings_path=tmp_path / "ajustes.json",
+        docx_templates_root=plantillas,
+        html_templates_root=tmp_path / "sin-plantillas-html",
+    )
     app.config["TESTING"] = True
     modulo_borrador.save_draft(
         root,

@@ -1,0 +1,81 @@
+/* Chrome around the CV preview: everything that is *not* the CV itself.
+
+   Split from `style.css` (the interface) and from each template's own
+   stylesheet (the design) on purpose. This file owns the one thing neither
+   of the two can: what disappears when the page is printed. A template
+   describes a document and knows nothing about a toolbar; the interface
+   knows nothing about paper.
+
+   The rule below about `[hidden]` in `style.css` applies here too — no
+   `display` is ever given to an element the server may hide. */
+
+.cuerpo-vista-previa {
+  background: #e6eaee;
+}
+
+.barra-vista-previa {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: var(--fondo);
+  border-bottom: 1px solid var(--borde);
+  padding: 0.75rem 1.25rem;
+}
+
+.barra-vista-previa-acciones {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.barra-vista-previa .ayuda {
+  margin: 0.4rem 0 0;
+}
+
+.barra-vista-previa .aviso {
+  margin: 0.6rem 0 0;
+}
+
+/* The sheet floats over a grey desk on screen, the way a document does.
+   Wide enough to need scrolling on a narrow window: shrinking it would
+   stop the preview from being what the paper will look like. */
+.hoja {
+  display: flex;
+  justify-content: center;
+  padding: 1.5rem;
+  overflow-x: auto;
+}
+
+.hoja > * {
+  box-shadow: 0 2px 6px rgba(16, 24, 32, 0.12), 0 12px 32px rgba(16, 24, 32, 0.16);
+}
+
+@media print {
+  .no-imprimir {
+    display: none !important;
+  }
+
+  .cuerpo-vista-previa {
+    background: #ffffff;
+  }
+
+  .hoja {
+    display: block;
+    padding: 0;
+    overflow: visible;
+  }
+
+  .hoja > * {
+    box-shadow: none;
+  }
+
+  /* Without this, a browser drops every background and prints the navy
+     panel as white paper unless the user finds the "background graphics"
+     checkbox — a CV that only comes out right when a checkbox is ticked is
+     a CV that comes out wrong. */
+  html {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}

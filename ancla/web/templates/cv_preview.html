@@ -1,0 +1,41 @@
+{#
+  The CV preview stands on its own instead of extending `base.html`: what
+  the browser prints is this page, so the site's header, navigation and
+  footer must not be part of it. Everything outside the sheet carries
+  `no-imprimir` and disappears in the print stylesheet.
+#}
+<!doctype html>
+<html lang="{{ get_locale() }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ _('Vista previa del CV') }} · Ancla</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='cv_preview.css') }}">
+  {% if plantilla.has_stylesheet() %}
+    <link rel="stylesheet" href="{{ url_for('ancla.cv_stylesheet', id_=plantilla.id) }}">
+  {% endif %}
+</head>
+<body class="cuerpo-vista-previa">
+  <div class="barra-vista-previa no-imprimir">
+    <div class="barra-vista-previa-acciones">
+      <a href="{{ volver }}">{{ _('← Volver') }}</a>
+      <strong>{{ plantilla.name[idioma] }}</strong>
+      <button type="button" class="boton boton-primario" data-imprimir>{{ _('Imprimir o guardar como PDF') }}</button>
+    </div>
+    <p class="ayuda">
+      {{ _('En el diálogo de impresión elige «Guardar como PDF», márgenes «Ninguno» y activa los gráficos de fondo.') }}
+    </p>
+    {% if sobran %}
+      <p class="aviso">
+        {{ _('Esta plantilla está preparada para %(capacidad)s experiencias y has puesto %(total)s. No se quita ninguna: si las quieres todas, el CV pasará a una segunda página.',
+             capacidad=capacidad, total=total_experiencias) }}
+      </p>
+    {% endif %}
+  </div>
+
+  <div class="hoja">{{ cuerpo|safe }}</div>
+
+  <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>

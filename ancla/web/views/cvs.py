@@ -8,6 +8,7 @@ from flask import abort, flash, redirect, render_template, request, send_file, u
 from flask_babel import gettext as _
 
 from ancla.archive import repository as archivo
+from ancla.export import html_templates as plantillas_html
 from ancla.export import templates as plantillas_docx
 from ancla.profile.model import CVStatus, SavedCV
 from ancla.proposal.format import to_markdown, to_text
@@ -53,6 +54,7 @@ def view_cv(id_: str):
         texto_markdown=to_markdown(cv.proposal, perfil),
         estados=list(CVStatus),
         plantillas_docx=plantillas_docx.list_templates(context.docx_templates_root()),
+        plantillas_html=plantillas_html.list_templates(context.html_templates_root()),
         adjuntos=_display_names(cv),
     )
 

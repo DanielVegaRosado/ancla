@@ -1,4 +1,5 @@
-"""Deterministic text extraction from an uploaded CV (PDF or Word).
+"""Deterministic reading of a CV's text: getting it out of a file, and
+finding the section boundaries inside it.
 
 No AI here, on purpose: getting text out of a file is a problem already
 solved by a library, not something that needs judgment. This layer being
@@ -9,16 +10,25 @@ line without anyone noticing.
 
 Adding a new format is one more entry in `_EXTRACTORES`, never touching the
 dispatch function — open for extension, closed for modification.
+
+Section boundaries live here for the same reason, even though the text they
+are looked for in may have been pasted by hand instead of extracted from a
+file: deciding where a CV can be split without breaking it apart is reading,
+not analysis, and it must stay as mechanical as the rest of this module.
+`importador.py` asks where to cut and never learns what a CV looks like.
 """
 from __future__ import annotations
 
 import io
+import re
 import zipfile
+from dataclasses import dataclass
 from typing import Callable
 
 from flask_babel import gettext as _
 
 from ancla.profile import zip_safety
+from ancla.text import normalize
 
 MIN_CARACTERES_UTILES = 40
 # A .docx is a zip: a crafted small file could claim a huge uncompressed
@@ -150,3 +160,95 @@ def extract_text(nombre_fichero: str, datos: bytes) -> str:
 def _extension(nombre_fichero: str) -> str:
     punto = nombre_fichero.rfind(".")
     return nombre_fichero[punto:].lower() if punto != -1 else ""
+
+
+# --------------------------------------------------------------------------
+# Section boundaries
+# --------------------------------------------------------------------------
+
+# A heading is short, stands on its own line, and does not end like a
+# sentence. Those limits are wide enough for "Formación académica" or
+# "Relevant work experience" and narrow enough to leave out the bullets and
+# the prose around them.
+MAX_CARACTERES_ENCABEZADO = 40
+MAX_PALABRAS_ENCABEZADO = 5
+_MARCAS_DE_VINETA = "•·-–—*+"
+
+# Shape alone cannot tell a heading from an employer or a job title: text
+# pulled out of a real PDF arrives with the blank lines gone, so "EDUCATION"
+# and the school name right under it look exactly alike — short, isolated,
+# in capitals. What separates them is the vocabulary, so form narrows the
+# candidates down and one of these words confirms them.
+#
+# Matched word by word after `normalize`, so case, accents and a trailing
+# colon do not matter, and one word covers a family of headings:
+# "experiencia" also catches "EXPERIENCIA PROFESIONAL" and "Experiencia
+# laboral", "experience" also catches "Relevant Work Experience".
+#
+# The cost of the list is that a CV titling its sections in words nobody
+# expected ("Mi recorrido") is not recognised — which is why not finding a
+# boundary has to stay an ordinary outcome and not a failure.
+_PALABRAS_DE_SECCION = frozenset(
+    "experiencia experiencias trayectoria laboral empleo educacion formacion "
+    "academica estudios titulaciones competencias habilidades aptitudes "
+    "conocimientos idiomas proyectos certificaciones certificados cursos "
+    "perfil resumen sobre contacto publicaciones voluntariado premios logros "
+    "referencias intereses aficiones "
+    "experience career employment education academic training skills "
+    "competencies abilities languages projects certifications certificates "
+    "courses profile summary about contact publications volunteering awards "
+    "achievements references interests hobbies".split()
+)
+
+
+@dataclass(frozen=True)
+class SectionBoundary:
+    """Where one section of a CV ends and the next one begins.
+
+    `position` is the index of the first character of `heading`, so the text
+    before it is a whole run of sections and the text from it onwards starts
+    with its own title — which is what makes the remainder worth importing
+    on its own instead of a fragment of something.
+    """
+
+    position: int
+    heading: str
+
+
+def last_section_boundary(texto: str, limite: int) -> SectionBoundary | None:
+    """The last section heading that starts within the first `limite`
+    characters, or `None` if the text has no recognisable section at all.
+
+    Boundaries in the first half of the allowed range are ignored: cutting
+    there would throw away more of the budget than splitting on a section is
+    worth, and the caller's line-based cut keeps more of the CV. The same
+    reasoning as `importador._corte_por_linea`, and the reason both give up
+    rather than return something worse.
+    """
+    posicion = 0
+    ultima: SectionBoundary | None = None
+    for linea in texto.splitlines(keepends=True):
+        if posicion > limite:
+            break
+        if posicion > limite // 2 and _is_section_heading(linea):
+            ultima = SectionBoundary(position=posicion, heading=linea.strip())
+        posicion += len(linea)
+    return ultima
+
+
+def _is_section_heading(linea: str) -> bool:
+    """Whether a line is a section title rather than content.
+
+    Both halves are needed: the shape rules alone accept every short line in
+    a CV, and the vocabulary alone accepts a bullet that happens to start
+    with "Experience".
+    """
+    encabezado = linea.strip()
+    if not 0 < len(encabezado) <= MAX_CARACTERES_ENCABEZADO:
+        return False
+    if encabezado[0] in _MARCAS_DE_VINETA or encabezado[-1] in ".,;":
+        return False
+    palabras = re.findall(r"[a-z0-9]+", normalize(encabezado))
+    if len(palabras) > MAX_PALABRAS_ENCABEZADO:
+        return False
+    return any(palabra in _PALABRAS_DE_SECCION for palabra in palabras)

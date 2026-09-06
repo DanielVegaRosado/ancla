@@ -18,6 +18,11 @@
     <a href="{{ url_for('ancla.canva_templates') }}">{{ _('Mira las plantillas de partida →') }}</a>
   </p>
 
+  <!-- Vista previa maquetada en HTML: el PDF lo imprime el navegador -->
+  {% with accion = url_for('ancla.preview_proposal'), idioma = propuesta.language %}
+    {% include "_cv_preview_form.html" %}
+  {% endwith %}
+
   <!-- Exportar a plantilla .docx (Camino A) -->
   <section class="tarjeta">
     <h2>{{ _('Descargar CV maquetado (.docx)') }}</h2>

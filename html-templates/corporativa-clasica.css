@@ -1,0 +1,276 @@
+/* Classic Corporate — print stylesheet.
+
+   Every measurement comes from the same spec the `.docx` was built from
+   (`herramientas/construir-corporativa-clasica.py`, itself measured on the
+   Canva export): panel width and color, text colors, paddings and type
+   sizes. Points are used rather than millimetres for exactly that reason —
+   they are the numbers that were measured, so a change here and a change
+   there are still comparable.
+
+   What is deliberately absent is any arithmetic about how much fits: the
+   browser measures its own text, so where the page ends is stated as a
+   rule (`break-inside: avoid`) instead of solved for. */
+
+:root {
+  --cv-navy: #0c233f;
+  --cv-ink: #1a1a1a;
+  --cv-body: #333333;
+  --cv-muted: #545454;
+  --cv-role: #495969;
+  --cv-side-head: #7ea8d8;
+  --cv-side-subhead: #9eb8db;
+  --cv-paper: #ffffff;
+  --cv-ancho-lateral: 211.2pt;
+  --cv-alto-pagina: 841.92pt;
+}
+
+@page {
+  size: A4;
+  /* The design carries its own margins (the navy panel bleeds to the page
+     edge), so the page must not add any of its own. */
+  margin: 0;
+}
+
+.cv {
+  position: relative;
+  width: 595.32pt;
+  min-height: var(--cv-alto-pagina);
+  display: flex;
+  align-items: stretch;
+  background: var(--cv-paper);
+  color: var(--cv-body);
+  font-family: "IBM Plex Sans", Helvetica, Arial, sans-serif;
+  font-size: 10.5pt;
+  line-height: 1.35;
+}
+
+/* The navy panel is painted by an empty element rather than by the sidebar
+   itself, because the sidebar's box ends where its content ends: on a CV
+   whose experience spills onto a second page, the panel has to reach the
+   bottom of every page, including one the sidebar has no content on. On
+   paper the band is fixed, which browsers repeat on each printed page; on
+   screen it is absolute so it stays glued to the sheet while scrolling. */
+.cv-banda {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: var(--cv-ancho-lateral);
+  height: 100%;
+  background: var(--cv-navy);
+}
+
+.cv-lateral,
+.cv-principal {
+  position: relative;
+  padding-top: 38pt;
+  padding-bottom: 28pt;
+}
+
+.cv-lateral {
+  flex: 0 0 var(--cv-ancho-lateral);
+  width: var(--cv-ancho-lateral);
+  padding-left: 20.1pt;
+  padding-right: 20pt;
+  color: var(--cv-paper);
+}
+
+.cv-principal {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding-left: 25.4pt;
+  padding-right: 27.1pt;
+}
+
+.cv-foto {
+  text-align: center;
+  margin-bottom: 26pt;
+}
+
+.cv-foto img {
+  width: 113pt;
+  height: 113pt;
+  object-fit: cover;
+  border-radius: 50%;
+  border: 3pt solid var(--cv-paper);
+}
+
+.cv-bloque {
+  margin-bottom: 20pt;
+}
+
+.cv-cabecera-lateral,
+.cv-cabecera-principal {
+  margin: 0 0 6pt;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.35pt;
+  /* A heading stranded at the bottom of a page with its section starting on
+     the next one is the one page break nobody wants. */
+  break-after: avoid;
+}
+
+.cv-cabecera-lateral {
+  font-size: 9.5pt;
+  color: var(--cv-side-head);
+  border-bottom: 0.75pt solid var(--cv-side-head);
+  padding-bottom: 3pt;
+}
+
+.cv-subcabecera-lateral {
+  margin: 10pt 0 4pt;
+  font-size: 9.5pt;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.35pt;
+  color: var(--cv-side-subhead);
+  break-after: avoid;
+}
+
+.cv-lista {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.cv-lista li {
+  margin-bottom: 5pt;
+}
+
+.cv-lista-punteada {
+  padding-left: 11.8pt;
+  list-style: disc;
+}
+
+.cv-lista-punteada li {
+  margin-bottom: 2.5pt;
+}
+
+.cv-educacion {
+  margin-bottom: 10pt;
+  break-inside: avoid;
+}
+
+.cv-educacion p {
+  margin: 0;
+}
+
+.cv-educacion-fechas,
+.cv-educacion-centro {
+  font-weight: 700;
+  font-size: 9.5pt;
+  text-transform: uppercase;
+  letter-spacing: 0.2pt;
+}
+
+.cv-educacion-titulo {
+  color: var(--cv-side-subhead);
+}
+
+.cv-nombre {
+  margin: 0;
+  font-size: 22.5pt;
+  font-weight: 400;
+  line-height: 1.15;
+  text-transform: uppercase;
+  color: var(--cv-muted);
+}
+
+.cv-nombre strong {
+  font-weight: 700;
+  color: var(--cv-ink);
+}
+
+.cv-titular {
+  margin: 4pt 0 6pt;
+  font-size: 10.5pt;
+  text-transform: uppercase;
+  letter-spacing: 0.2pt;
+  color: var(--cv-role);
+  border-bottom: 1.5pt solid var(--cv-navy);
+  padding-bottom: 8pt;
+}
+
+.cv-seccion {
+  margin-top: 16pt;
+}
+
+.cv-cabecera-principal {
+  font-size: 10.5pt;
+  color: var(--cv-navy);
+  border-bottom: 0.75pt solid var(--cv-navy);
+  padding-bottom: 3pt;
+}
+
+.cv-sobre-mi {
+  margin: 0;
+  text-align: justify;
+}
+
+/* An experience split across two pages reads as two different jobs. */
+.cv-experiencia {
+  margin-bottom: 11pt;
+  break-inside: avoid;
+}
+
+.cv-experiencia-cabecera {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8pt;
+}
+
+.cv-puesto {
+  margin: 0;
+  font-size: 10.5pt;
+  font-weight: 700;
+  color: var(--cv-ink);
+}
+
+.cv-fechas {
+  margin: 0;
+  flex: none;
+  font-size: 8.5pt;
+  text-transform: uppercase;
+  letter-spacing: 0.2pt;
+  color: var(--cv-muted);
+}
+
+.cv-bullets {
+  margin: 4pt 0 0;
+  padding-left: 12pt;
+  font-size: 9.5pt;
+  line-height: 1.3;
+}
+
+.cv-bullets li {
+  margin-bottom: 1.5pt;
+}
+
+.cv-stack {
+  margin: 4pt 0 0;
+  font-size: 9pt;
+  font-style: italic;
+  color: var(--cv-muted);
+}
+
+@media print {
+  .cv {
+    /* The sheet is the page: no shadow, no centering, no leftover margin. */
+    width: auto;
+    min-height: auto;
+  }
+
+  .cv-banda {
+    position: fixed;
+    /* Stretched between both edges rather than given a height: a length
+       resolves against the viewport, which on paper is not the page, and
+       that left a white strip at the foot of every printed page (94% of
+       the height, ~1.8 cm of white). Anchoring top and bottom makes the
+       band exactly the page, whatever the page turns out to be. On screen
+       the wrong version looked perfect, so this is measured on the printed
+       PDF pixel by pixel, never by looking at the page. */
+    top: 0;
+    bottom: 0;
+    height: auto;
+  }
+}

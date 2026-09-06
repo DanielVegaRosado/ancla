@@ -21,6 +21,8 @@ a minute. For your own data, download the app or run it locally.
 - Fills a ready-made template for you. Pick one of the [built-in
   designs](canva-templates/README.md) and download a finished `.docx`, already laid
   out, so you never have to copy-paste it into another tool.
+- Or see it [laid out as a page](html-templates/README.md) and save it as a PDF with
+  your browser's own Ctrl+P — no other program in the middle.
 - Your whole profile downloads as a single `.zip` from Settings, whenever you want a
   backup or you're moving to another computer.
 - Free and open source, and it stays that way. Paid features may show up later for
@@ -52,9 +54,11 @@ Either way, once the app is open:
 2. Fill in your profile, either by hand under "My profile" or by importing an
    existing CV (PDF or Word) and reviewing what it finds before saving it.
 3. Paste a job posting under "Adapt" and generate the proposal.
-4. Pick a template and export it: a ready-made `.docx` downloads, already
-   filled in and laid out. Open it in Word, LibreOffice or Google Docs and
-   export to PDF from there. Ancla doesn't generate the PDF itself.
+4. Pick a template and take the CV out. Either "See your CV laid out", which
+   shows the finished page and lets you save it as a PDF with Ctrl+P, or
+   "Download .docx" for a ready-made Word file to open in Word, LibreOffice or
+   Google Docs. Ancla never generates the PDF itself: your browser or your word
+   processor does, the same as always.
 
 ## Status (v1)
 
@@ -67,6 +71,7 @@ Either way, once the app is open:
 | CV archive | ✅ |
 | Import from an existing CV (PDF/Word) | ✅ |
 | Fill a `.docx` template with the proposal | ✅ |
+| Lay the proposal out as a printable page (browser → PDF) | ✅ |
 | Support and template gallery | ✅ |
 | Profile backup (download as `.zip`) | ✅ |
 | Sample profile to try the app with | ✅ |
@@ -87,9 +92,9 @@ try the app without writing their whole profile first.
 3. Zero account, zero cloud. Also verifiable by reading the code, not a line like
    "securely synced to the cloud."
 4. Free, no paywall, using your own key. Groq's free tier costs nothing to start with.
-5. Doesn't design a layout from scratch. It fills one of the [built-in
-   `.docx` templates](canva-templates/README.md), never composing a page itself.
-   Using your own template isn't supported yet.
+5. Doesn't design a layout from scratch. It fills one of the built-in templates
+   ([`.docx`](canva-templates/README.md) or [HTML](html-templates/README.md)),
+   never composing a page itself. Using your own template isn't supported yet.
 
 ## What criteria the AI follows
 

@@ -673,3 +673,52 @@ def test_sin_palabras_reconocibles_se_queda_en_espanol():
     """A guess, not a decision: the user can correct it before the call, and
     the app's own language is the safer default."""
     assert detect_language("Python Docker AWS PostgreSQL") == "es"
+
+
+def _cv_largo_con_secciones(*titulos: str) -> str:
+    """A CV over `MAX_CARACTERES_CV` whose sections are evenly sized, so the
+    last heading that fits is neither the first nor the last of them."""
+    relleno = "Linea de contenido de la seccion, con la longitud de una de verdad\n"
+    por_seccion = MAX_CARACTERES_CV // (len(titulos) - 1) // len(relleno) + 1
+    return "".join(f"{titulo}\n" + relleno * por_seccion for titulo in titulos)
+
+
+def test_un_cv_largo_se_corta_donde_empieza_una_seccion():
+    """Cutting on any line can split Experience in half and leave Education
+    out entirely, with nothing in the truncated text to hint at it."""
+    texto = _cv_largo_con_secciones("EXPERIENCIA", "EDUCACIÓN", "IDIOMAS")
+    cliente = ClienteFalso(_respuesta_un_idioma())
+
+    resultado = analyze_cv(cliente, texto, Profile(), "es")
+
+    _, usuario = cliente.llamadas[0]
+    enviado = usuario.rsplit("\n[...texto recortado...]", 1)[0]
+    assert enviado.endswith("de verdad")
+    assert "EDUCACIÓN" not in enviado
+    assert any("EDUCACIÓN" in aviso for aviso in resultado.avisos)
+
+
+def test_un_cv_largo_en_ingles_se_corta_igual_que_uno_en_espanol():
+    texto = _cv_largo_con_secciones("WORK EXPERIENCE", "EDUCATION", "LANGUAGES")
+    cliente = ClienteFalso(_respuesta_un_idioma())
+
+    resultado = analyze_cv(cliente, texto, Profile(), "en")
+
+    _, usuario = cliente.llamadas[0]
+    assert "EDUCATION" not in usuario
+    assert any("EDUCATION" in aviso for aviso in resultado.avisos)
+
+
+def test_un_cv_largo_sin_secciones_sigue_cortando_por_linea():
+    """A CV pasted as one loose paragraph has no boundary to cut on, and
+    breaking on that is worse than the plainer warning."""
+    linea = "Coordino un equipo multidisciplinar de desarrollo de software.\n"
+    texto = linea * (MAX_CARACTERES_CV // len(linea) + 5)
+    cliente = ClienteFalso(_respuesta_un_idioma())
+
+    resultado = analyze_cv(cliente, texto, Profile(), "es")
+
+    _, usuario = cliente.llamadas[0]
+    enviado = usuario.rsplit("\n[...texto recortado...]", 1)[0]
+    assert enviado.endswith("software.")
+    assert any("caracteres" in aviso for aviso in resultado.avisos)

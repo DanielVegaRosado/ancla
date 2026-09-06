@@ -1,0 +1,98 @@
+{#
+  Classic Corporate, the HTML counterpart of the `.docx` of the same name:
+  navy sidebar reaching every page edge, main column with the name, the
+  headline, "About me" and the experience blocks.
+
+  Only the fields the catalog declares (`docx-templates/README.md`) are
+  used, so the two paths always show the same content. Every section is
+  guarded: a profile with no photo, no education or no languages leaves no
+  empty header behind.
+#}
+<article class="cv">
+  <div class="cv-banda" aria-hidden="true"></div>
+
+  <aside class="cv-lateral">
+    {% if foto %}<div class="cv-foto"><img src="{{ foto }}" alt=""></div>{% endif %}
+
+    {% if contacto %}
+      <section class="cv-bloque">
+        <h2 class="cv-cabecera-lateral">{{ etiqueta_contacto }}</h2>
+        <ul class="cv-lista">
+          {% for linea in contacto %}<li>{{ linea }}</li>{% endfor %}
+        </ul>
+      </section>
+    {% endif %}
+
+    {% if educacion %}
+      <section class="cv-bloque">
+        <h2 class="cv-cabecera-lateral">{{ etiqueta_educacion }}</h2>
+        {% for entrada in educacion %}
+          <div class="cv-educacion">
+            <p class="cv-educacion-fechas">{{ entrada.fechas }}</p>
+            <p class="cv-educacion-centro">{{ entrada.centro }}</p>
+            <p class="cv-educacion-titulo">{{ entrada.titulo }}</p>
+          </div>
+        {% endfor %}
+      </section>
+    {% endif %}
+
+    {% if skills or skills_personales %}
+      <section class="cv-bloque">
+        <h2 class="cv-cabecera-lateral">{{ etiqueta_skills }}</h2>
+        {% if skills %}
+          <h3 class="cv-subcabecera-lateral">{{ etiqueta_tecnicas }}</h3>
+          <ul class="cv-lista cv-lista-punteada">
+            {% for skill in skills %}<li>{{ skill }}</li>{% endfor %}
+          </ul>
+        {% endif %}
+        {% if skills_personales %}
+          <h3 class="cv-subcabecera-lateral">{{ etiqueta_personales }}</h3>
+          <ul class="cv-lista cv-lista-punteada">
+            {% for skill in skills_personales %}<li>{{ skill }}</li>{% endfor %}
+          </ul>
+        {% endif %}
+      </section>
+    {% endif %}
+
+    {% if idiomas %}
+      <section class="cv-bloque">
+        <h2 class="cv-cabecera-lateral">{{ etiqueta_idiomas }}</h2>
+        <ul class="cv-lista cv-lista-punteada">
+          {% for idioma in idiomas %}<li>{{ idioma }}</li>{% endfor %}
+        </ul>
+      </section>
+    {% endif %}
+  </aside>
+
+  <main class="cv-principal">
+    <h1 class="cv-nombre"><strong>{{ nombre_primero }}</strong> {{ nombre_resto }}</h1>
+    {% if titular %}<p class="cv-titular">{{ titular }}</p>{% endif %}
+
+    {% if sobre_mi %}
+      <section class="cv-seccion">
+        <h2 class="cv-cabecera-principal">{{ etiqueta_sobre_mi }}</h2>
+        <p class="cv-sobre-mi">{{ sobre_mi }}</p>
+      </section>
+    {% endif %}
+
+    {% if experiencias %}
+      <section class="cv-seccion">
+        <h2 class="cv-cabecera-principal">{{ etiqueta_experiencia_relevante }}</h2>
+        {% for experiencia in experiencias %}
+          <article class="cv-experiencia">
+            <div class="cv-experiencia-cabecera">
+              <h3 class="cv-puesto">{{ experiencia.puesto }}</h3>
+              <p class="cv-fechas">{{ experiencia.fechas }}</p>
+            </div>
+            {% if experiencia.bullets %}
+              <ul class="cv-bullets">
+                {% for bullet in experiencia.bullets %}<li>{{ bullet }}</li>{% endfor %}
+              </ul>
+            {% endif %}
+            {% if experiencia.stack %}<p class="cv-stack">{{ experiencia.stack }}</p>{% endif %}
+          </article>
+        {% endfor %}
+      </section>
+    {% endif %}
+  </main>
+</article>

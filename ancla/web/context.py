@@ -34,6 +34,10 @@ def canva_templates_root() -> Path:
     return current_app.config["RAIZ_PLANTILLAS_CANVA"]
 
 
+def html_templates_root() -> Path:
+    return current_app.config["RAIZ_PLANTILLAS_HTML"]
+
+
 def demo_mode() -> bool:
     return current_app.config["MODO_DEMO"]
 

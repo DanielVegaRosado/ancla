@@ -56,6 +56,7 @@ from dataclasses import dataclass, field
 from flask_babel import gettext as _
 
 from ancla.ai.client import AIClient, AIError, complete_with_budget
+from ancla.profile import extraction
 from ancla.profile.serialization import split_period
 from ancla.profile.model import (
     Bilingual,
@@ -210,6 +211,38 @@ def detect_language(texto: str) -> Language:
     return "en" if conteo["en"] > conteo["es"] else "es"
 
 
+def _recortar(texto: str) -> tuple[str, str]:
+    """The part of an oversized CV that fits, and the warning to show for it.
+
+    Cutting on a section boundary is what the warning is really for: the
+    piece that was read is a whole run of sections and the piece that was
+    not starts with its own title, so the advice can name the exact line to
+    split the file on instead of a character count nobody can act on.
+
+    A CV with no recognisable section falls back to the line cut, which is
+    not a lesser case to tidy up later: a CV pasted as one loose paragraph
+    is ordinary, and whole lines are still the best cut available for it.
+    """
+    frontera = extraction.last_section_boundary(texto, MAX_CARACTERES_CV)
+    if frontera is not None:
+        analizados = frontera.position
+        aviso = _(
+            "Corta este CV justo antes de «%(seccion)s» e importa esa segunda parte "
+            "por separado: no cabe entero de una vez. Se ha analizado todo lo "
+            "anterior, %(analizados)s de sus %(total)s caracteres.",
+            seccion=frontera.heading, analizados=analizados, total=len(texto),
+        )
+    else:
+        analizados = _corte_por_linea(texto, MAX_CARACTERES_CV)
+        aviso = _(
+            "Corta este CV en dos partes e impórtalas por separado: no cabe "
+            "entero de una vez. De los %(total)s caracteres que tiene, solo se "
+            "han leído los primeros %(analizados)s.",
+            total=len(texto), analizados=analizados,
+        )
+    return texto[:analizados].rstrip() + "\n[...texto recortado...]", aviso
+
+
 def _corte_por_linea(texto: str, limite: int) -> int:
     """Where to cut `texto` at or before `limite`, on a line break rather
     than mid-word, so the truncated text sent to the model still reads as
@@ -254,16 +287,8 @@ def analyze_cv(
         )
 
     if len(texto) > MAX_CARACTERES_CV:
-        analizados = _corte_por_linea(texto, MAX_CARACTERES_CV)
-        avisos.append(
-            _(
-                "Corta este CV en dos partes e impórtalas por separado: no cabe "
-                "entero de una vez. De los %(total)s caracteres que tiene, solo se "
-                "han leído los primeros %(analizados)s.",
-                total=len(texto), analizados=analizados,
-            )
-        )
-        texto = texto[:analizados] + "\n[...texto recortado...]"
+        texto, aviso = _recortar(texto)
+        avisos.append(aviso)
 
     try:
         bruto = complete_with_budget(
