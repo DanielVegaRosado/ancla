@@ -345,6 +345,13 @@ section[id] { scroll-margin-top: 4.5rem; }
 
 form.pila { display: flex; flex-direction: column; gap: 0.9rem; }
 
+/* El atributo `hidden` lo aplica el navegador con `display: none`, pero desde
+   su hoja de estilos: cualquier `display` de esta hoja lo gana. Como la
+   interfaz oculta y muestra campos con `hidden` desde JavaScript (los campos
+   por proveedor en Ajustes, por ejemplo), hace falta esta regla o un
+   `.campo` marcado como oculto se sigue pintando. */
+[hidden] { display: none !important; }
+
 .campo { display: flex; flex-direction: column; gap: 0.3rem; }
 .campo label { font-weight: 600; font-size: 0.9rem; }
 
