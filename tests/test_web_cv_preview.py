@@ -1,8 +1,10 @@
 """HTTP tests for the printable HTML preview: that the sheet carries the
 proposal's own content, that the two sections nobody selects (languages and
-personal skills) come out whole, that more experiences than the design was
-drawn for produce a warning and not a cut, and that a new template is three
-files in a folder rather than a code change."""
+personal skills) come out whole, that a template's declared
+[capacity_min, capacity_max] range is enforced rather than only warned
+about, that anything left out for exceeding the maximum is still named on
+screen, and that a new template is three files in a folder rather than a
+code change."""
 from __future__ import annotations
 
 from datetime import date
@@ -173,40 +175,146 @@ def test_los_idiomas_y_las_skills_personales_salen_completos(tmp_path: Path):
 
 
 # --------------------------------------------------------------------------
-# Overflow: warn, never cut
+# Overflow past capacity_max: cut, but never silently
 # --------------------------------------------------------------------------
 
 
-def test_con_mas_experiencias_de_las_que_caben_avisa_y_no_quita_ninguna(tmp_path: Path):
+def test_solo_entran_en_la_hoja_las_experiencias_dentro_de_la_capacidad_pedida(tmp_path: Path):
+    """The bullet text is what's unique to the sheet itself (the excluded
+    list below only names the title and the reason, never the bullets), so
+    it's what tells apart "printed" from "merely mentioned as left out"."""
     cliente = _cliente(tmp_path, n_experiencias=4)
 
     html = _vista_previa(cliente, capacidad=2)
 
-    assert "segunda página" in html
-    for _id, titulo, _motivo in _EXPERIENCIAS:
-        assert titulo in html
+    assert "Bullet de exp-1" in html
+    assert "Bullet de exp-2" in html
+    assert "Bullet de exp-3" not in html
+    assert "Bullet de exp-4" not in html
 
 
-def test_sin_desbordamiento_no_hay_aviso(tmp_path: Path):
-    html = _vista_previa(_cliente(tmp_path, n_experiencias=2), capacidad=4)
-
-    assert "segunda página" not in html
-
-
-def test_el_usuario_puede_subir_la_capacidad_que_declara_la_plantilla(tmp_path: Path):
-    """The number of experiences a design was drawn for is a starting point,
-    not a verdict: saying "four do fit" is the user's call, and the warning
-    has to follow what they said."""
+def test_las_que_quedan_fuera_se_nombran_con_su_motivo(tmp_path: Path):
+    """Rule 3: cutting an experience is now the user's own choice (drag to
+    reorder), but the app still has to say which ones it cut and why they
+    were selected in the first place — nothing disappears silently."""
     cliente = _cliente(tmp_path, n_experiencias=4)
 
-    assert "segunda página" in _vista_previa(cliente, capacidad=3)
-    assert "segunda página" not in _vista_previa(cliente, capacidad=4)
+    html = _vista_previa(cliente, capacidad=2)
+
+    assert "Rol Tres · Empresa C" in html
+    assert "Motivo C" in html
+    assert "Rol Cuatro · Empresa D" in html
+    assert "Motivo D" in html
+
+
+def test_sin_desbordamiento_no_hay_aviso_de_excluidas(tmp_path: Path):
+    html = _vista_previa(_cliente(tmp_path, n_experiencias=2), capacidad=4)
+
+    assert "Rol Uno · Empresa A" in html
+    assert "Rol Dos · Empresa B" in html
+
+
+def test_la_capacidad_pedida_no_puede_superar_el_maximo_de_la_plantilla(tmp_path: Path):
+    """The design's own capacidad_experiencias_max (5) is a hard ceiling on
+    the server, regardless of what the query string asks for — a
+    hand-edited URL can't bring back the second page."""
+    cliente = _cliente(tmp_path, n_experiencias=4)
+
+    html = _vista_previa(cliente, capacidad=20)
+
+    for _id, titulo, _motivo in _EXPERIENCIAS:
+        assert titulo in html
 
 
 def test_una_capacidad_ilegible_no_rompe_la_vista_previa(tmp_path: Path):
     html = _vista_previa(_cliente(tmp_path, n_experiencias=4), capacidad="cuatro")
 
     assert "Rol Uno · Empresa A" in html
+
+
+# --------------------------------------------------------------------------
+# Underflow below capacity_min: never padded, only flagged
+# --------------------------------------------------------------------------
+
+
+def test_por_debajo_del_minimo_se_avisa_sin_inventar_nada(tmp_path: Path):
+    plantillas = tmp_path / "html-templates"
+    plantillas.mkdir()
+    (plantillas / "exigente.html").write_text(
+        "<article class='cv'>{% for e in experiencias %}<p>{{ e.puesto }}</p>{% endfor %}</article>",
+        encoding="utf-8",
+    )
+    (plantillas / "exigente.css").write_text("@page { size: A4; }", encoding="utf-8")
+    (plantillas / "exigente.yaml").write_text(
+        "nombre: Exigente\ncapacidad_experiencias_min: 3\ncapacidad_experiencias_max: 4\n",
+        encoding="utf-8",
+    )
+    cliente = _cliente(tmp_path, n_experiencias=1, plantillas_root=plantillas)
+
+    html = cliente.get("/propuesta/vista-previa?plantilla_id=exigente").data.decode("utf-8")
+
+    assert "Rol Uno · Empresa A" in html
+    assert "al menos 3" in html
+
+
+# --------------------------------------------------------------------------
+# The selector is clamped to the template's own range
+# --------------------------------------------------------------------------
+
+
+def test_el_campo_de_capacidad_no_admite_menos_del_minimo_ni_mas_del_maximo(tmp_path: Path):
+    plantillas = tmp_path / "html-templates"
+    plantillas.mkdir()
+    (plantillas / "acotada.html").write_text("<article class='cv'></article>", encoding="utf-8")
+    (plantillas / "acotada.css").write_text("@page { size: A4; }", encoding="utf-8")
+    (plantillas / "acotada.yaml").write_text(
+        "nombre: Acotada\ncapacidad_experiencias_min: 3\ncapacidad_experiencias_max: 4\n",
+        encoding="utf-8",
+    )
+    cliente = _cliente(tmp_path, n_experiencias=1, plantillas_root=plantillas)
+
+    html = cliente.get("/propuesta").data.decode("utf-8")
+
+    assert 'data-capacidad-min="3"' in html
+    assert 'data-capacidad-max="4"' in html
+    assert 'id="capacidad_html"' in html
+    assert 'min="3"' in html
+    assert 'max="4"' in html
+
+
+def test_una_plantilla_sin_maximo_declarado_no_limita_por_arriba(tmp_path: Path):
+    """`capacity_max <= 0` means the sidecar simply didn't declare an upper
+    bound — treated as unbounded rather than as zero experiences."""
+    plantillas = tmp_path / "html-templates"
+    plantillas.mkdir()
+    (plantillas / "sin-tope.html").write_text(
+        "<article class='cv'>{% for e in experiencias %}<p>{{ e.puesto }}</p>{% endfor %}</article>",
+        encoding="utf-8",
+    )
+    (plantillas / "sin-tope.css").write_text("@page { size: A4; }", encoding="utf-8")
+    (plantillas / "sin-tope.yaml").write_text("nombre: Sin tope\n", encoding="utf-8")
+    cliente = _cliente(tmp_path, n_experiencias=4, plantillas_root=plantillas)
+
+    html = cliente.get("/propuesta/vista-previa?plantilla_id=sin-tope").data.decode("utf-8")
+
+    for _id, titulo, _motivo in _EXPERIENCIAS:
+        assert titulo in html
+
+
+# --------------------------------------------------------------------------
+# PDF is the primary path, .docx no longer competes with it
+# --------------------------------------------------------------------------
+
+
+def test_el_boton_de_ver_el_cv_es_primario_y_el_de_docx_no(tmp_path: Path):
+    html = _cliente(tmp_path, n_experiencias=1).get("/propuesta").data.decode("utf-8")
+
+    inicio_docx = html.index("Descargar CV maquetado (.docx)")
+    boton_docx = html.index("Descargar .docx", inicio_docx)
+    etiqueta_boton_docx = html.rindex("<button", inicio_docx, boton_docx)
+
+    assert 'class="boton boton-primario"' in html  # el de «Ver el CV (PDF)»
+    assert "boton-primario" not in html[etiqueta_boton_docx:boton_docx]
 
 
 # --------------------------------------------------------------------------

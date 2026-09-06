@@ -25,10 +25,13 @@ Each template is three files with the same name:
   nombre:
     es: Visible name, Spanish interface
     en: Visible name, English interface
-  capacidad_experiencias: 5
+  capacidad_experiencias_min: 3
+  capacidad_experiencias_max: 5
   ```
 
   `nombre` also accepts a plain string (same name in both languages).
+  `capacidad_experiencias_min` is optional and defaults to 1 — most designs
+  don't have a real lower bound, only a real upper one.
 
 Drop them here and the template shows up on the Proposal screen and on any
 saved CV. **No code change** — `ancla/export/html_templates.py` discovers
@@ -49,15 +52,21 @@ The one difference is `{{ foto }}`: here it is the URL of the profile photo
 (empty string when there is none), so `<img src="{{ foto }}">` inside an
 `{% if foto %}` is all it takes.
 
-## Overflow
+## Range, not a single number
 
-`capacidad_experiencias` is how many experiences the design was **drawn
-for**. It never trims anything: with more than that in the proposal, the
-preview says so ("this template is meant for 4 experiences and you have put
-5; if you want them all, the CV will run onto a second page") and shows
-every one of them. The user can also raise or lower that number on the
-Proposal screen — how much really fits is a judgement about their own text,
-not a property the template can settle.
+`capacidad_experiencias_min`/`_max` is the range of experiences the design
+was **drawn for**, and the Proposal screen enforces it: the "experiences
+that fit" field on that screen is clamped to `[min, max]` for whichever
+template is selected, so **the preview can never run onto a second page** —
+unlike the `.docx` path, which still can (see `docx-templates/README.md`).
+With more experiences in the proposal than `max`, the extra ones are left
+out of the print and named on screen instead, with their selection reason,
+so nothing disappears silently; dragging the experience cards on the
+Proposal screen (same mechanism as reordering "Mi perfil") decides which
+ones make the cut. With fewer than `min`, the CV still prints with what
+there is — rule 1 forbids inventing an experience to pad it — but the
+screen says the design was meant for more, since a page that's too sparse
+is a cosmetic risk, not a print-breaking one.
 
 ## Writing the stylesheet
 

@@ -8,10 +8,13 @@ design was drawn for. Adding a template is dropping those files into
 
 Nothing about the page geometry is declared here, unlike the `.docx`
 sidecar: a browser measures its own text, so there is no line-wrapping to
-estimate and no density to solve for. `capacidad_experiencias` survives for
-a different reason — it is the number of experiences the design was drawn
-around, which the user is told about and can override; it never trims
-anything.
+estimate and no density to solve for. What a `.yaml` here declares instead
+is a *range* — `capacidad_experiencias_min`/`_max` — because a browser can
+measure text but not judge taste: too few experiences and a design like
+Minimalista Cálida looks sparse, too many and the layout no longer fits the
+one page it was drawn for. Unlike the `.docx` path (which spills onto a
+second page rather than lose anything), the printable HTML preview cannot
+let more than `capacity_max` through — see `ancla/web/views/cv_preview.py`.
 """
 from __future__ import annotations
 
@@ -30,7 +33,12 @@ class HtmlTemplate:
     id: str
     name: Bilingual[str]
     path: Path
-    capacity_experiences: int
+    # The range of experiences the design was drawn for. `capacity_max <= 0`
+    # means the sidecar didn't declare one — treated as "no upper bound"
+    # rather than crashing, same as a missing field elsewhere in this
+    # module, though in practice every real template names one.
+    capacity_min: int
+    capacity_max: int
 
     @property
     def stylesheet_path(self) -> Path:
@@ -52,9 +60,11 @@ def find_template(root: Path, id: str) -> HtmlTemplate | None:
 
 
 def _read_sidecar(html_path: Path) -> HtmlTemplate | None:
-    """`None` for a template whose sidecar is missing or unreadable: one
-    someone is still preparing is skipped, the same way the `.docx` side
-    does it, instead of breaking the Proposal screen for everyone else."""
+    """`None` for a template whose sidecar is missing, unreadable, or
+    declares a range that makes no sense (a minimum above its own maximum):
+    one someone is still preparing is skipped, the same way the `.docx`
+    side does it, instead of breaking the Proposal screen for everyone
+    else."""
     yaml_path = html_path.with_suffix(".yaml")
     if not yaml_path.exists():
         return None
@@ -64,13 +74,22 @@ def _read_sidecar(html_path: Path) -> HtmlTemplate | None:
         return None
     if not isinstance(datos, dict):
         return None
-    try:
-        capacidad = int(datos.get("capacidad_experiencias", 0))
-    except (TypeError, ValueError):
-        capacidad = 0
+    capacidad_min = _entero_positivo(datos.get("capacidad_experiencias_min"), por_defecto=1)
+    capacidad_max = _entero_positivo(datos.get("capacidad_experiencias_max"), por_defecto=0)
+    if capacidad_max and capacidad_min > capacidad_max:
+        return None
     return HtmlTemplate(
         id=html_path.stem,
         name=Bilingual.from_sidecar(datos.get("nombre"), fallback=html_path.stem),
         path=html_path,
-        capacity_experiences=capacidad,
+        capacity_min=capacidad_min,
+        capacity_max=capacidad_max,
     )
+
+
+def _entero_positivo(valor: object, *, por_defecto: int) -> int:
+    try:
+        numero = int(valor)
+    except (TypeError, ValueError):
+        return por_defecto
+    return numero if numero > 0 else por_defecto

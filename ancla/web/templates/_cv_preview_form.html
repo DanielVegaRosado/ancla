@@ -2,6 +2,12 @@
   Shared by the Proposal screen and a saved CV: laying one out is the same
   action wherever the proposal comes from. Expects `accion` (where the form
   points), `plantillas_html` and `idioma`.
+
+  "Experiencias que caben" is clamped in the browser to whichever template
+  is selected (`data-capacidad-min`/`data-capacidad-max`, wired in
+  `app.js`) so the request can't ask for more than the design supports —
+  `cv_preview.py::_capacity` clamps it again server-side regardless, since
+  a URL is easy to hand-edit.
 #}
 <section class="tarjeta">
   <h2>{{ _('Ver el CV maquetado (y guardarlo en PDF)') }}</h2>
@@ -9,16 +15,20 @@
     <form class="en-linea" method="get" action="{{ accion }}">
       <select id="plantilla_html" name="plantilla_id">
         {% for plantilla in plantillas_html %}
-          <option value="{{ plantilla.id }}" data-capacidad="{{ plantilla.capacity_experiences }}">{{ plantilla.name[idioma] }}</option>
+          <option value="{{ plantilla.id }}"
+                  data-capacidad-min="{{ plantilla.capacity_min }}"
+                  data-capacidad-max="{{ plantilla.capacity_max }}">{{ plantilla.name[idioma] }}</option>
         {% endfor %}
       </select>
       <label for="capacidad_html">{{ _('Experiencias que caben:') }}</label>
-      <input type="number" id="capacidad_html" name="capacidad" min="1" max="20"
-             value="{{ plantillas_html[0].capacity_experiences }}">
-      <button type="submit" class="boton boton-primario">{{ _('Ver el CV') }}</button>
+      <input type="number" id="capacidad_html" name="capacidad"
+             min="{{ plantillas_html[0].capacity_min }}"
+             {% if plantillas_html[0].capacity_max > 0 %}max="{{ plantillas_html[0].capacity_max }}"{% endif %}
+             value="{{ plantillas_html[0].capacity_max if plantillas_html[0].capacity_max > 0 else plantillas_html[0].capacity_min }}">
+      <button type="submit" class="boton boton-primario">{{ _('Ver el CV (PDF)') }}</button>
     </form>
     <p class="ayuda">
-      {{ _('El PDF lo guarda tu navegador con Ctrl+P, igual que hoy lo exportas desde Word. Si pones más experiencias de las que caben, se te avisa y decides tú: no se quita ninguna.') }}
+      {{ _('El PDF lo guarda tu navegador con Ctrl+P, igual que hoy lo exportas desde Word. Casi ninguna oferta pide un Word: empieza por aquí. La plantilla tiene un máximo de experiencias que caben en una página — si tu propuesta trae más, se te dice cuáles quedan fuera y puedes arrastrar las tarjetas de «Experiencia relevante» para elegir cuáles entran.') }}
     </p>
   {% else %}
     <p class="ayuda">{{ _('Todavía no hay ninguna plantilla HTML en «html-templates/».') }}</p>

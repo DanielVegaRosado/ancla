@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import replace
 from datetime import date, datetime
 
-from flask import flash, redirect, render_template, request, url_for
+from flask import flash, jsonify, redirect, render_template, request, url_for
 from flask_babel import gettext as _
 
 from ancla.ai.client import AIError
@@ -164,6 +164,37 @@ def adjust_experience():
         modulo_borrador.save_draft(context.root(), borrador)
         flash(_("Experiencia actualizada."))
     return redirect(url_for("ancla.view_proposal"))
+
+
+@bp.route("/propuesta/orden-experiencias", methods=["POST"])
+def reorder_experiences():
+    """The user drags the selected-experience cards on the Proposal screen
+    to choose which ones fall inside a template's maximum (see
+    `ancla/web/views/cv_preview.py`) — same drag mechanism as reordering
+    "Mi perfil"'s panels, wired to this draft instead of to Settings,
+    because this order belongs to one proposal, not to a standing
+    preference.
+
+    Always 200 as long as the request is readable, mirroring
+    `save_profile_order`: an id this draft doesn't recognize (a stale drag
+    against an already-regenerated list) is simply dropped rather than
+    treated as a user mistake to explain. Anything the payload leaves
+    unnamed keeps its place at the end instead of vanishing.
+    """
+    borrador = modulo_borrador.load_draft(context.root())
+    if borrador is None:
+        return jsonify({"ok": False}), 404
+
+    orden = (request.get_json(silent=True) or {}).get("orden", [])
+    ids_pedidos = [id_ for id_ in orden if isinstance(id_, str)]
+    por_id = {seleccionada.id: seleccionada for seleccionada in borrador.propuesta.experiences}
+    reordenadas = [por_id[id_] for id_ in ids_pedidos if id_ in por_id]
+    restantes = [
+        seleccionada for seleccionada in borrador.propuesta.experiences if seleccionada.id not in ids_pedidos
+    ]
+    borrador.propuesta = replace(borrador.propuesta, experiences=reordenadas + restantes)
+    modulo_borrador.save_draft(context.root(), borrador)
+    return jsonify({"ok": True})
 
 
 @bp.route("/propuesta/regenerar/<seccion>", methods=["POST"])

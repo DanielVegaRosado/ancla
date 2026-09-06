@@ -311,7 +311,9 @@ section[id] { scroll-margin-top: 4.5rem; }
   flex-shrink: 0;
 }
 
-/* Paneles arrastrables de Mi perfil */
+/* Tarjetas arrastrables: paneles de Mi perfil y experiencias seleccionadas
+   de la propuesta comparten el mismo mecanismo de arrastre (ver app.js),
+   así que comparten también su estilo. */
 
 .titulo-panel {
   display: flex;
@@ -330,13 +332,13 @@ section[id] { scroll-margin-top: 4.5rem; }
 
 .manija-arrastrar:hover { color: var(--texto); }
 
-.panel-perfil {
+.arrastrable {
   transition: box-shadow 0.15s ease, transform 0.15s ease, opacity 0.15s ease;
 }
 
-.panel-perfil-arrastrando { opacity: 0.4; }
+.arrastrable-arrastrando { opacity: 0.4; }
 
-.panel-perfil-destino {
+.arrastrable-destino {
   border-color: var(--acento);
   box-shadow: var(--sombra-alta);
 }

@@ -79,6 +79,8 @@
   min-width: 0;
   padding-left: 25.4pt;
   padding-right: 27.1pt;
+  display: flex;
+  flex-direction: column;
 }
 
 .cv-foto {
@@ -206,6 +208,29 @@
   text-align: justify;
 }
 
+/* Three, four or five experiences all draw the same page: the section
+   grows to take whatever room `.cv-principal` has left over (the header
+   and "About me" above it are whatever size their own text needs), and
+   that room is then shared out between the experience entries themselves
+   rather than left as a single gap at the foot of the page. A design drawn
+   for 5 that only has 3 still asks for more room per gap than one has to
+   give, so growth is capped per gap (`max-height`) instead of unbounded:
+   past the cap the extra room is simply left blank rather than stretched
+   into a spaced-out look. Nothing here is a guess about how much text
+   takes up how much space — the browser resolves the actual free space on
+   its own, the same way it resolves everything else about where a line
+   wraps or a page breaks. */
+.cv-seccion-experiencia {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.cv-espaciador {
+  flex: 1 1 0;
+  max-height: 48pt;
+}
+
 /* An experience split across two pages reads as two different jobs. */
 .cv-experiencia {
   margin-bottom: 11pt;
@@ -258,6 +283,15 @@
     /* The sheet is the page: no shadow, no centering, no leftover margin. */
     width: auto;
     min-height: auto;
+  }
+
+  /* Without a floor here, the column's height on paper is just the height
+     of its own text, and `.cv-seccion-experiencia` has nothing to grow
+     into — same bug as `.cv` above, one level down. `min-height` rather
+     than `height`: a CV that genuinely overflows one page still has to be
+     free to run onto the next one. */
+  .cv-principal {
+    min-height: var(--cv-alto-pagina);
   }
 
   .cv-banda {

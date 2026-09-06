@@ -23,9 +23,12 @@
     {% include "_cv_preview_form.html" %}
   {% endwith %}
 
-  <!-- Exportar a plantilla .docx (Camino A) -->
+  <!-- Exportar a plantilla .docx (Camino A) — secundario: casi ninguna
+       oferta pide un Word, así que este botón no compite con el PDF de
+       arriba. -->
   <section class="tarjeta">
     <h2>{{ _('Descargar CV maquetado (.docx)') }}</h2>
+    <p class="ayuda">{{ _('Solo si te lo piden en Word: la mayoría de ofertas se cubren con el PDF de arriba.') }}</p>
     {% if plantillas_docx %}
       <form class="en-linea" method="post" action="{{ url_for('ancla.export_proposal') }}">
         <select name="plantilla_id">
@@ -33,7 +36,7 @@
             <option value="{{ plantilla.id }}">{{ plantilla.name[propuesta.language] }} ({{ plantilla.capacity_experiences }} {{ _('experiencias') }})</option>
           {% endfor %}
         </select>
-        <button type="submit" class="boton boton-primario">{{ _('Descargar .docx') }}</button>
+        <button type="submit" class="boton">{{ _('Descargar .docx') }}</button>
       </form>
       <p class="ayuda">{{ _('El documento se rellena tal cual: sin IA, sin tocar tus textos ni el diseño de la plantilla.') }}</p>
     {% else %}
@@ -137,14 +140,21 @@
         <button type="submit" class="boton boton-pequeno">{{ _('Regenerar') }}</button>
       </form>
     </div>
+    <p class="ayuda">
+      {{ _('Arrastra el asa') }} <span aria-hidden="true">⠿</span>
+      {{ _('para cambiar el orden. Cuando una plantilla admite menos experiencias de las que hay aquí, son las primeras las que entran en el CV maquetado.') }}
+    </p>
 
-    <div class="lista-tarjetas">
+    <div class="lista-tarjetas" data-experiencias-propuesta>
       {% for seleccionada, experiencia, texto_bloque in experiencias %}
-        <div class="tarjeta">
+        <div class="tarjeta arrastrable" data-arrastrable data-clave="{{ seleccionada.id }}">
           {% if experiencia %}
             <textarea id="copia-experiencia-{{ loop.index0 }}" hidden>{{ texto_bloque }}</textarea>
             <div class="cabecera-bloque">
-              <h3>{{ experiencia.title[propuesta.language] }} · {{ periodo(experiencia, propuesta.language) }}</h3>
+              <div class="titulo-panel">
+                <span class="manija-arrastrar" title="{{ _('Arrastrar para reordenar') }}" aria-hidden="true">⠿</span>
+                <h3>{{ experiencia.title[propuesta.language] }} · {{ periodo(experiencia, propuesta.language) }}</h3>
+              </div>
               <button type="button" class="boton boton-pequeno" data-copiar="copia-experiencia-{{ loop.index0 }}">{{ _('Copiar') }}</button>
             </div>
             <ul>
@@ -152,7 +162,10 @@
             </ul>
             <p class="ayuda">{{ experiencia.stack }}</p>
           {% else %}
-            <p class="vacio">{{ _('«%(id)s» ya no existe en tu perfil.', id=seleccionada.id) }}</p>
+            <div class="titulo-panel">
+              <span class="manija-arrastrar" title="{{ _('Arrastrar para reordenar') }}" aria-hidden="true">⠿</span>
+              <p class="vacio">{{ _('«%(id)s» ya no existe en tu perfil.', id=seleccionada.id) }}</p>
+            </div>
           {% endif %}
           {% if seleccionada.reason %}<p class="motivo">{{ _('Motivo:') }} {{ seleccionada.reason }}</p>{% endif %}
 

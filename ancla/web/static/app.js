@@ -72,62 +72,88 @@ document.addEventListener("click", async (evento) => {
   }
 });
 
-// My profile: drag the panels (Experience, Skills...) to change the order
-// they're shown in. Dragging only works by grabbing the "⠿" handle — not
-// the whole card — so it doesn't interfere with clicks on its buttons. The
-// new order is saved to the server on drop; if the request fails, the
-// panel has already moved on screen regardless, and it's only retried the
-// next time something gets reordered.
-(() => {
-  const contenedor = document.querySelector("[data-paneles-perfil]");
-  if (!contenedor) return;
-
+// Generic drag-to-reorder for a list of cards, each carrying its own
+// `data-clave`. Dragging only works by grabbing the "⠿" handle
+// (`.manija-arrastrar`) — not the whole card — so it doesn't interfere
+// with clicks on the card's own buttons. `guardarOrden` is called with the
+// new key order on every drop; the card has already moved on screen
+// regardless of whether that request succeeds, and it's only retried the
+// next time something gets reordered. Shared by "Mi perfil" (panel order)
+// and the Proposal screen (which experiences make a template's cut) so
+// the two never end up with two different drag implementations.
+function activarArrastreDeOrden(contenedor, guardarOrden) {
   let arrastrado = null;
 
   contenedor.addEventListener("mousedown", (evento) => {
     if (!evento.target.closest(".manija-arrastrar")) return;
-    const panel = evento.target.closest("[data-panel-arrastrable]");
-    if (panel) panel.draggable = true;
+    const tarjeta = evento.target.closest("[data-arrastrable]");
+    if (tarjeta) tarjeta.draggable = true;
   });
 
   contenedor.addEventListener("dragstart", (evento) => {
-    const panel = evento.target.closest("[data-panel-arrastrable]");
-    if (!panel) return;
-    arrastrado = panel;
-    panel.classList.add("panel-perfil-arrastrando");
+    const tarjeta = evento.target.closest("[data-arrastrable]");
+    if (!tarjeta) return;
+    arrastrado = tarjeta;
+    tarjeta.classList.add("arrastrable-arrastrando");
     evento.dataTransfer.effectAllowed = "move";
   });
 
   contenedor.addEventListener("dragover", (evento) => {
-    const panel = evento.target.closest("[data-panel-arrastrable]");
-    if (!panel || panel === arrastrado) return;
+    const tarjeta = evento.target.closest("[data-arrastrable]");
+    if (!tarjeta || tarjeta === arrastrado) return;
     evento.preventDefault();
-    contenedor.querySelectorAll("[data-panel-arrastrable]").forEach((p) => p.classList.remove("panel-perfil-destino"));
-    panel.classList.add("panel-perfil-destino");
+    contenedor.querySelectorAll("[data-arrastrable]").forEach((t) => t.classList.remove("arrastrable-destino"));
+    tarjeta.classList.add("arrastrable-destino");
   });
 
   contenedor.addEventListener("drop", (evento) => {
-    const destino = evento.target.closest("[data-panel-arrastrable]");
+    const destino = evento.target.closest("[data-arrastrable]");
     if (!destino || !arrastrado || destino === arrastrado) return;
     evento.preventDefault();
 
     const antes = evento.clientY < destino.getBoundingClientRect().top + destino.offsetHeight / 2;
     destino.parentNode.insertBefore(arrastrado, antes ? destino : destino.nextSibling);
 
-    const orden = [...contenedor.querySelectorAll("[data-panel-arrastrable]")].map((p) => p.dataset.clave);
+    guardarOrden([...contenedor.querySelectorAll("[data-arrastrable]")].map((t) => t.dataset.clave));
+  });
+
+  contenedor.addEventListener("dragend", () => {
+    contenedor.querySelectorAll("[data-arrastrable]").forEach((t) => {
+      t.draggable = false;
+      t.classList.remove("arrastrable-arrastrando", "arrastrable-destino");
+    });
+    arrastrado = null;
+  });
+}
+
+// My profile: drag the panels (Experience, Skills...) to change the order
+// they're shown in.
+(() => {
+  const contenedor = document.querySelector("[data-paneles-perfil]");
+  if (!contenedor) return;
+
+  activarArrastreDeOrden(contenedor, (orden) => {
     fetch("/perfil/orden", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ orden }),
     }).catch(() => {});
   });
+})();
 
-  contenedor.addEventListener("dragend", () => {
-    contenedor.querySelectorAll("[data-panel-arrastrable]").forEach((p) => {
-      p.draggable = false;
-      p.classList.remove("panel-perfil-arrastrando", "panel-perfil-destino");
-    });
-    arrastrado = null;
+// Proposal screen: drag the selected experiences to decide which ones fall
+// inside a template's maximum (see cv_preview.py) once there are more of
+// them than a chosen design has room for.
+(() => {
+  const contenedor = document.querySelector("[data-experiencias-propuesta]");
+  if (!contenedor) return;
+
+  activarArrastreDeOrden(contenedor, (orden) => {
+    fetch("/propuesta/orden-experiencias", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ orden }),
+    }).catch(() => {});
   });
 })();
 
@@ -211,14 +237,33 @@ document.addEventListener("click", (evento) => {
 });
 
 // Proposal / saved CV: how many experiences fit is a property of the chosen
-// design, so picking another template offers that template's own number
-// instead of leaving the previous one's behind.
+// design, not a free number — the field is clamped to that template's own
+// [min, max] so the request can never ask for more than the page supports
+// (the server clamps it again regardless, see cv_preview.py::_capacity).
 (() => {
   const selector = document.getElementById("plantilla_html");
   const capacidad = document.getElementById("capacidad_html");
   if (!selector || !capacidad) return;
 
-  selector.addEventListener("change", () => {
-    capacidad.value = selector.options[selector.selectedIndex].dataset.capacidad || capacidad.value;
-  });
+  const limitesPlantillaActual = () => {
+    const opcion = selector.options[selector.selectedIndex];
+    const minimo = Number(opcion.dataset.capacidadMin) || 1;
+    const maximo = Number(opcion.dataset.capacidadMax) || 0; // 0 = sin máximo declarado
+    return { minimo, maximo };
+  };
+
+  const ajustarCamposAlLimite = () => {
+    const { minimo, maximo } = limitesPlantillaActual();
+    capacidad.min = minimo;
+    if (maximo > 0) capacidad.max = maximo;
+    else capacidad.removeAttribute("max");
+
+    let valor = Number(capacidad.value) || (maximo > 0 ? maximo : minimo);
+    valor = Math.max(valor, minimo);
+    if (maximo > 0) valor = Math.min(valor, maximo);
+    capacidad.value = valor;
+  };
+
+  selector.addEventListener("change", ajustarCamposAlLimite);
+  capacidad.addEventListener("change", ajustarCamposAlLimite);
 })();

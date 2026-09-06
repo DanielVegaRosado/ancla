@@ -10,12 +10,20 @@ instead of estimated, because the browser is measuring real text.
 Two entry points share the same core (`_preview`), mirroring the `.docx`
 export: the proposal being reviewed and an already-archived CV.
 
-Overflow is a warning, never a cut. `capacidad_experiencias` is how many
-experiences the design was drawn around, so it belongs to the design — but
-whether five of them actually look right on the page is the user's call,
-which is why it arrives as an editable number instead of being read
-straight from the sidecar. Above it, the CV still shows every experience
-the proposal chose and the browser flows the extra onto a second page.
+Unlike the `.docx` path, overflow here cannot become a second page — a
+printed CV that ends with two entries and half a blank sheet is the whole
+reason this screen enforces a range instead of only warning about one (see
+`html-templates/README.md`). `capacidad` is how many experiences actually
+go on the page: clamped to the template's own `[capacity_min, capacity_max]`
+range rather than read straight off the sidecar, because the design's
+range is a starting point and whether that many really look right is the
+user's call, same as before. Whatever sits beyond it is left out of the
+render and named on screen instead, with its selection reason — the same
+"never disappear silently" treatment `export_overflow.html` gives the
+`.docx` path's own overflow. Fewer experiences than `capacity_min` is not
+cut short the other way: rule 1 forbids padding the CV with anything that
+isn't in the profile, so the page prints exactly what there is, with a
+notice that the design was drawn for more.
 """
 from __future__ import annotations
 
@@ -72,8 +80,11 @@ def _preview(propuesta: Proposal, volver: str):
         return redirect(volver)
 
     perfil = context.current_profile()
-    experiencias = fill.resolved_experiences(propuesta, perfil)
+    seleccion = fill.resolved_selection(propuesta, perfil)
     capacidad = _capacity(plantilla)
+    incluidas = seleccion[:capacidad]
+    excluidas = seleccion[capacidad:]
+    experiencias = [experiencia for _, experiencia in incluidas]
     cuerpo = html_layout.render(
         plantilla,
         propuesta,
@@ -87,21 +98,28 @@ def _preview(propuesta: Proposal, volver: str):
         plantilla=plantilla,
         cuerpo=cuerpo,
         capacidad=capacidad,
-        sobran=max(len(experiencias) - capacidad, 0),
-        total_experiencias=len(experiencias),
+        excluidas=excluidas,
+        total_experiencias=len(seleccion),
+        bajo_el_minimo=len(incluidas) < plantilla.capacity_min,
         idioma=propuesta.language,
         volver=volver,
     )
 
 
 def _capacity(plantilla: html_templates.HtmlTemplate) -> int:
-    """How many experiences this CV is being laid out for: whatever the
-    user asked for, or the number the design declares when they haven't
-    said otherwise. A meaningless value falls back to the design's own
-    instead of rejecting the preview — nothing about it can spoil the
-    document, it only decides whether the warning shows."""
+    """How many experiences actually go on the page: whatever the user
+    asked for, clamped to the template's own `[capacity_min, capacity_max]`
+    — a value the user cannot spoil, unlike the old free-standing warning,
+    because letting it exceed `capacity_max` is exactly what used to spill
+    onto a second page. An unreadable request falls back to the design's
+    own maximum, or its minimum if it declares no maximum at all."""
+    minimo = max(plantilla.capacity_min, 1)
+    por_defecto = plantilla.capacity_max if plantilla.capacity_max > 0 else minimo
     try:
         pedida = int(request.args.get("capacidad", ""))
     except ValueError:
-        return plantilla.capacity_experiences
-    return pedida if pedida > 0 else plantilla.capacity_experiences
+        pedida = por_defecto
+    pedida = max(pedida, minimo)
+    if plantilla.capacity_max > 0:
+        pedida = min(pedida, plantilla.capacity_max)
+    return pedida

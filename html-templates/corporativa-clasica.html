@@ -76,7 +76,7 @@
     {% endif %}
 
     {% if experiencias %}
-      <section class="cv-seccion">
+      <section class="cv-seccion cv-seccion-experiencia cv-escala-{{ experiencias|length }}">
         <h2 class="cv-cabecera-principal">{{ etiqueta_experiencia_relevante }}</h2>
         {% for experiencia in experiencias %}
           <article class="cv-experiencia">
@@ -91,6 +91,7 @@
             {% endif %}
             {% if experiencia.stack %}<p class="cv-stack">{{ experiencia.stack }}</p>{% endif %}
           </article>
+          {% if not loop.last %}<div class="cv-espaciador" aria-hidden="true"></div>{% endif %}
         {% endfor %}
       </section>
     {% endif %}
