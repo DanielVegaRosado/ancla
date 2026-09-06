@@ -58,10 +58,12 @@ class Provider:
     included: any format is legitimate there), rather than print a hint that
     might not hold.
 
-    `min_key_length` is set well below the shortest real key seen for the
+    `min_key_length` is set below the shortest real key seen for the
     provider, so a shape check can only ever flag something that is
-    obviously too short — never a real key that happens to be on the
-    shorter side. Meaningless while `key_hint` is empty.
+    obviously too short — never a real key that happens to be on the shorter
+    side. Erring low is the point: a provider can change its key format, and
+    a threshold of ours must never be what locks someone out of their own
+    app. Meaningless while `key_hint` is empty.
     """
 
     name: str
@@ -127,7 +129,9 @@ PROVIDERS: dict[str, Provider] = {
         free_tier=True,
         needs_model=False,
         key_hint="gsk_",
-        min_key_length=40,
+        # A real key measures 56 characters; 48 leaves room in case the
+        # format varies without ever flagging a valid one.
+        min_key_length=48,
     ),
     "openai": Provider(
         name="OpenAI",
@@ -141,6 +145,8 @@ PROVIDERS: dict[str, Provider] = {
         key_url=URL_CLAVE_ANTHROPIC,
         default_model="claude-haiku-4-5",
         key_hint="sk-ant-",
+        # Not measured against a real key, unlike Groq's: published keys run
+        # well past 100 characters, so this only catches the grossly short.
         min_key_length=40,
     ),
     "mistral": Provider(
