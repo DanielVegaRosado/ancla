@@ -24,7 +24,7 @@
           <div class="fila-tarjeta">
             <div>
               <h3>{{ educacion.title["es"] or educacion.title["en"] }}</h3>
-              <p class="ayuda">{{ educacion.institution }} · {{ periodo(educacion, "es") }} · id: {{ educacion.id }}</p>
+              <p class="ayuda">{{ educacion.institution }} · {{ periodo(educacion, "es") }}</p>
             </div>
             <div class="acciones">
               {% with seccion = "educacion", entrada = educacion %}{% include "_untranslated.html" %}{% endwith %}

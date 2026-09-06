@@ -142,6 +142,27 @@ def test_crear_cliente_con_proveedor_desconocido_lanza_error_ia():
         create_client("proveedor-inventado", "clave")
 
 
+def test_modelo_inexistente_en_proveedor_openai_compatible_nombra_el_modelo(cliente_web):
+    """Same known cost documented in `Provider.default_model`'s docstring: a
+    default model can be retired by the provider later, and the 404 message
+    has to name it, same pattern as `groq.py`'s own 404 handling."""
+    import httpx
+    from openai import NotFoundError
+
+    from ancla.ai.openai_compatible import OpenAICompatibleClient
+
+    peticion = httpx.Request("POST", "https://api.openai.com/v1/chat/completions")
+    error = NotFoundError(
+        "model not found",
+        response=httpx.Response(404, request=peticion),
+        body=None,
+    )
+    cliente = OpenAICompatibleClient("clave", "https://api.openai.com/v1", "gpt-inventado")
+    with cliente_web.application.test_request_context():
+        explicacion = cliente._explain(error)
+    assert "gpt-inventado" in explicacion
+
+
 # --------------------------------------------------------------------------
 # Settings screen (end to end, does not depend on other agents)
 # --------------------------------------------------------------------------
@@ -473,6 +494,90 @@ def test_guardar_ajustes_con_anthropic_los_persiste(cliente_web, tmp_path: Path)
     guardados = modulo_ajustes.load_settings(tmp_path / "ajustes.json")
     assert guardados.proveedor == "anthropic"
     assert guardados.configured()
+
+
+@pytest.mark.parametrize("proveedor", ["openai", "anthropic", "mistral", "openrouter"])
+def test_pegar_solo_la_clave_deja_el_proveedor_configurado(cliente_web, tmp_path: Path, proveedor: str):
+    """The bug this card exists to close: for every known provider except
+    Groq, the model used to be required text with no value of its own — the
+    exact spot where someone types "Claude" instead of a real model id.
+    Posting only the provider and the key (no "modelo" field at all, same as
+    a form where the Model input was never touched) must be enough."""
+    from ancla.web.providers import PROVIDERS
+
+    cliente_web.post(
+        "/ajustes",
+        data={"proveedor": proveedor, "clave_api": "clave-inventada"},
+        follow_redirects=True,
+    )
+    guardados = modulo_ajustes.load_settings(tmp_path / "ajustes.json")
+    assert guardados.proveedor == proveedor
+    assert guardados.configured()
+    assert guardados.modelo == PROVIDERS[proveedor].default_model
+
+
+def test_pegar_solo_la_clave_de_otra_api_no_deja_el_proveedor_configurado(
+    cliente_web, tmp_path: Path
+):
+    """`personalizado` is the one exception: there is no endpoint to guess a
+    default model for, so leaving Model (and URL base) blank must keep it
+    unconfigured rather than silently making one up."""
+    cliente_web.post(
+        "/ajustes",
+        data={"proveedor": "personalizado", "clave_api": "clave-inventada"},
+        follow_redirects=True,
+    )
+    guardados = modulo_ajustes.load_settings(tmp_path / "ajustes.json")
+    assert guardados.proveedor == "personalizado"
+    assert not guardados.configured()
+    assert guardados.modelo == ""
+
+
+def test_el_desplegable_de_proveedores_no_se_puede_desincronizar_del_registro(cliente_web):
+    """The dropdown is generated from `PROVIDERS`, in the same order, so a
+    provider added there shows up here with no second edit — and
+    "personalizado" (the only one with no known default) stays last."""
+    from ancla.web.providers import PROVIDERS
+
+    respuesta = cliente_web.get("/ajustes").data.decode("utf-8")
+    for clave in PROVIDERS:
+        assert f'value="{clave}"' in respuesta
+    assert list(PROVIDERS)[-1] == "personalizado"
+
+
+def test_otra_api_sigue_pidiendo_url_base(cliente_web):
+    respuesta = cliente_web.get("/ajustes").data.decode("utf-8")
+    assert 'id="url_base"' in respuesta
+
+
+def test_la_etiqueta_de_otra_api_se_traduce(cliente_web):
+    """`Provider.name` for "personalizado" is a plain Python string, frozen
+    at import time — it cannot be the text shown, or the option would stay
+    in Spanish with the English interface. `display_name` resolves it with
+    `_()` at request time instead."""
+    cliente_web.post(
+        "/ajustes",
+        data={"proveedor": "groq", "clave_api": "gsk_1", "idioma": "en"},
+        follow_redirects=True,
+    )
+    respuesta = cliente_web.get("/ajustes").data.decode("utf-8")
+    assert "Other (manual URL)" in respuesta
+
+
+def test_guardar_una_clave_mal_pegada_de_anthropic_avisa_pero_no_bloquea(
+    cliente_web, tmp_path: Path
+):
+    """Same pattern already in place for Groq's `gsk_` prefix: flag a key
+    that does not look like Anthropic's at save time, without refusing it."""
+    respuesta = cliente_web.post(
+        "/ajustes",
+        data={"proveedor": "anthropic", "clave_api": "sk-otra-cosa", "modelo": "claude-x"},
+        follow_redirects=True,
+    )
+    assert respuesta.status_code == 200
+    assert "sk-ant-".encode("utf-8") in respuesta.data
+    guardados = modulo_ajustes.load_settings(tmp_path / "ajustes.json")
+    assert guardados.clave_api == "sk-otra-cosa"
 
 
 def test_sin_saldo_en_anthropic_dice_que_comprar_credito_o_cambiar_a_groq(cliente_web):

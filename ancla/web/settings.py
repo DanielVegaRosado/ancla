@@ -11,21 +11,25 @@ import json
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 
+from ancla.web.providers import PROVIDERS
 from ancla.web.routes import data_root
 
 RUTA_POR_DEFECTO = data_root() / "ajustes.json"
 
 PROVEEDOR_POR_DEFECTO = "groq"
+# Derived from the registry (`web/providers.py`), not maintained by hand:
+# a provider added there is offered here automatically, with no second
+# place that can fall out of sync.
+#
 # "personalizado" is the only one that asks for the URL by hand — the rest
-# have it built in (see `web/proveedores.py`), so only a user pointing at
-# an unlisted provider (or a local Ollama) needs to type it.
-# "anthropic" does not need a URL either: it does not share the generic
+# have it built in (see `Provider.create` in `web/providers.py`), so only a
+# user pointing at an unlisted provider (or a local Ollama) needs to type
+# it. "anthropic" does not need a URL either: it does not share the generic
 # OpenAI-compatible client (its API is different), it has its own module
 # with the URL fixed inside, same as Groq.
-PROVEEDORES = ("groq", "openai", "anthropic", "mistral", "openrouter", "personalizado")
-# Everyone except Groq needs the user to say which model they want — Groq's
-# is fixed.
-PROVEEDORES_CON_MODELO = ("openai", "anthropic", "mistral", "openrouter", "personalizado")
+PROVEEDORES = tuple(PROVIDERS)
+# Everyone except Groq needs a model — Groq's own client has a fixed one.
+PROVEEDORES_CON_MODELO = tuple(clave for clave, entrada in PROVIDERS.items() if entrada.needs_model)
 
 # The "My profile" sections the user can reorder by dragging. "About me"
 # and "Contact" are not here: they are single fixed blocks, not catalogs,
@@ -43,7 +47,7 @@ class Settings:
     proveedor: str = PROVEEDOR_POR_DEFECTO
     clave_api: str = ""
     # `url_base` is only saved (and only needed) with proveedor="personalizado"
-    # — for everyone else the URL is fixed in `web/proveedores.py`. `modelo`
+    # — for everyone else the URL is fixed in `web/providers.py`. `modelo`
     # is needed by everyone except Groq (see PROVEEDORES_CON_MODELO).
     url_base: str = ""
     modelo: str = ""

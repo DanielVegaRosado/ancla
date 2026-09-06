@@ -7,7 +7,7 @@ from flask_babel import gettext as _
 from ancla.web import settings as modulo_ajustes
 from ancla.web import context
 from ancla.web.blueprint import bp
-from ancla.web.providers import PROVIDERS
+from ancla.web.providers import PROVIDERS, display_name
 
 
 @bp.route("/ajustes", methods=["GET", "POST"])
@@ -17,6 +17,8 @@ def view_settings():
             "settings.html",
             ajustes=context.current_settings(),
             proveedores=PROVIDERS,
+            proveedores_con_modelo=modulo_ajustes.PROVEEDORES_CON_MODELO,
+            nombre_proveedor=display_name,
         )
 
     actuales = context.current_settings()
@@ -33,11 +35,17 @@ def view_settings():
             )
         )
         proveedor = modulo_ajustes.PROVEEDOR_POR_DEFECTO
+    # An empty Model field falls back to the provider's known-good default
+    # (`Provider.default_model`) instead of being saved blank: it is what
+    # lets pasting only the key leave the provider usable. `personalizado`
+    # has no default to fall back to (there is no endpoint to guess a model
+    # for), so it keeps demanding one typed by hand.
+    modelo = request.form.get("modelo", "").strip() or PROVIDERS[proveedor].default_model
     nuevos = modulo_ajustes.Settings(
         proveedor=proveedor,
         clave_api=request.form.get("clave_api", "").strip(),
         url_base=request.form.get("url_base", "").strip(),
-        modelo=request.form.get("modelo", "").strip(),
+        modelo=modelo,
         orden_perfil=actuales.orden_perfil,
         idioma=modulo_ajustes.valid_language(request.form.get("idioma")),
     )
@@ -62,6 +70,21 @@ def view_settings():
                 "Consigue la tuya gratis en console.groq.com: entra, crea una clave "
                 "nueva y pégala aquí. Ojo, que console.x.ai es otro servicio "
                 "distinto (Grok) aunque el nombre se parezca mucho."
+            )
+        )
+    # Same idea, this time for Anthropic: a key generated for a different
+    # provider and pasted here by mistake fails the same way — flag it at
+    # save time rather than after the first call.
+    if (
+        nuevos.proveedor == "anthropic"
+        and nuevos.clave_api
+        and not nuevos.clave_api.startswith("sk-ant-")
+    ):
+        flash(
+            _(
+                "Esa clave no parece de Anthropic, así que seguramente no funcione. "
+                "Consigue la tuya en console.anthropic.com: entra, crea una clave "
+                "nueva y pégala aquí. Las claves de Anthropic empiezan por sk-ant-."
             )
         )
     flash(_("Ajustes guardados."))

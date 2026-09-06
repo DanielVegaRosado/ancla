@@ -114,6 +114,28 @@ def _untranslated(etiqueta: str, faltan: tuple[Language, ...]) -> list[str]:
     ]
 
 
+def _period_coherence_errors(etiqueta: str, inicio: str, fin: str) -> list[str]:
+    """A start year after the end year, shared by experience and education.
+
+    `fin` skips the check whenever it is not itself a year — an `ongoing` /
+    `finished` marker or an empty value both mean "no end to compare
+    against", and a value carried over from free text that could not be
+    split is not a year either. Only two years are ever comparable, so
+    anything else is left alone rather than guessed at.
+    """
+    if not (inicio.isdigit() and fin.isdigit()):
+        return []
+    if int(inicio) > int(fin):
+        return [
+            _(
+                "%(etiqueta)s: el periodo no es coherente, empieza en %(inicio)s y "
+                "acaba en %(fin)s.",
+                etiqueta=etiqueta, inicio=inicio, fin=fin,
+            )
+        ]
+    return []
+
+
 def validate_experience(experiencia: Experience) -> Issues:
     """Issues found, aimed at the user. No errors = can be saved."""
     etiqueta = (
@@ -136,6 +158,9 @@ def validate_experience(experiencia: Experience) -> Issues:
                 etiqueta=etiqueta,
             )
         )
+    problemas += _period_coherence_errors(
+        etiqueta, experiencia.period_start, experiencia.period_end
+    )
     if not experiencia.stack.strip():
         problemas.append(
             _(
@@ -299,6 +324,9 @@ def validate_education(educacion: Education) -> Issues:
                 etiqueta=etiqueta,
             )
         )
+    problemas += _period_coherence_errors(
+        etiqueta, educacion.period_start, educacion.period_end
+    )
     if not written_languages(educacion.title):
         problemas.append(_("%(etiqueta)s: falta la titulación.", etiqueta=etiqueta))
     return Issues(problemas, _untranslated(etiqueta, missing_languages(educacion.title)))

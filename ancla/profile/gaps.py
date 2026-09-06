@@ -41,7 +41,7 @@ from dataclasses import dataclass, field
 
 from flask_babel import gettext as _
 
-from ancla.ai.client import AIClient
+from ancla.ai.client import AIClient, complete_with_budget
 from ancla.profile.model import AboutMe, Bilingual, Language, LANGUAGES, Skill
 from ancla.profile.validation import language_name
 from ancla.text import json_block, to_text
@@ -53,6 +53,20 @@ from ancla.text import json_block, to_text
 # fits on a CV, and 40 names cover any realistic profile.
 MAX_CARACTERES_SOBRE_MI = 2000
 MAX_SKILLS = 40
+
+# How much room to declare for the response, via `ai.client.complete_with_budget`.
+# Unlike the CV importer, this does not scale with the length of either
+# input text: the model always answers with exactly six short fragments —
+# "the few words that name the concept", per the system prompt — never
+# composed text, so a longer "About me" or a longer skill list changes what
+# the model has to choose among, not how much it has to write back.
+# Measured against the real API (checked 2026-09-06): 217 completion tokens
+# for a realistic "About me" in both languages plus a 15-skill catalog. The
+# margin here is wider than a single measurement alone would justify,
+# because reserving too little is what leaves gaps unplaced with nothing to
+# show for the call, and this call is cheap enough that a generous flat
+# number costs nothing a real "About me" would ever need.
+RESERVED_TOKENS = 800
 
 SISTEMA = """\
 Señalas dónde van seis huecos dentro del «Sobre mí» que una persona ya ha escrito, en \
@@ -113,7 +127,7 @@ def suggest_gaps(cliente: AIClient, sobre_mi: AboutMe, skills: list[Skill]) -> G
         )
 
     try:
-        bruto = cliente.complete(SISTEMA, _request(sobre_mi, skills))
+        bruto = complete_with_budget(cliente, SISTEMA, _request(sobre_mi, skills), RESERVED_TOKENS)
     except Exception as exc:
         return GapProposal(sobre_mi, [_("No se han podido proponer los huecos: %(error)s", error=exc)])
 

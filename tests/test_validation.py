@@ -133,6 +133,39 @@ def test_avisa_de_una_experiencia_sin_palabras_clave():
     assert any("palabras clave" in p for p in problemas)
 
 
+def test_un_inicio_posterior_al_fin_es_un_error():
+    problemas = validation.validate_experience(
+        _experiencia(period_start="2026", period_end="2025")
+    )
+
+    assert any("coherente" in e for e in problemas.errors)
+
+
+def test_un_inicio_igual_al_fin_es_coherente():
+    problemas = validation.validate_experience(
+        _experiencia(period_start="2025", period_end="2025")
+    )
+
+    assert problemas.errors == []
+
+
+def test_un_fin_marcador_no_se_compara_con_el_inicio():
+    """`ongoing` / `finished` are words, not years: nothing to compare."""
+    problemas = validation.validate_experience(
+        _experiencia(period_start="2026", period_end="ongoing")
+    )
+
+    assert problemas.errors == []
+
+
+def test_un_fin_vacio_no_se_compara_con_el_inicio():
+    problemas = validation.validate_experience(
+        _experiencia(period_start="2026", period_end="")
+    )
+
+    assert problemas.errors == []
+
+
 def test_los_mensajes_van_en_castellano_y_sin_jerga():
     problemas = validation.validate_experience(
         Experience(
@@ -314,6 +347,24 @@ def test_una_educacion_no_necesita_palabras_clave():
     """A diferencia de skills/idiomas: la educación nunca se compara contra
     los huecos de una vacante, así que no necesita keywords."""
     assert validation.validate_education(_educacion()).messages() == []
+
+
+def test_una_educacion_con_inicio_posterior_al_fin_es_un_error():
+    """Misma regla que en experiencia: la coherencia del periodo se
+    comparte, no se duplica."""
+    problemas = validation.validate_education(
+        _educacion(period_start="2027", period_end="2023")
+    )
+
+    assert any("coherente" in e for e in problemas.errors)
+
+
+def test_una_educacion_en_curso_no_se_compara_con_el_marcador():
+    problemas = validation.validate_education(
+        _educacion(period_start="2027", period_end="ongoing")
+    )
+
+    assert problemas.errors == []
 
 
 def test_un_perfil_sin_skills_personales_ni_idiomas_es_valido():

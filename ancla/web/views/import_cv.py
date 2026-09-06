@@ -140,6 +140,19 @@ def save_import():
 
 
 def _edited_experience(form, prefijo: str, original: Experience) -> Experience:
+    """Experience with form edits applied, preserving original values where not edited.
+
+    Bullets follow a different fallback rule from other fields: they default to
+    an empty list if not found in the form, rather than to `original.bullets`.
+    This is intentional. Bullets are the critical field of an experience and
+    require an explicit user decision — an empty textarea means the user
+    consciously removed them, not that they forgot to edit. This matters in
+    `_apply_edits` (used for translation), which processes all candidates
+    regardless of checkbox state: if a candidate's checkbox is unchecked, its
+    HTML fields don't appear in the form, and other fields preserve the original
+    while bullets become empty. That's correct: the user chose not to save it,
+    and an empty bullets list is the safest choice for an untouched candidate.
+    """
     return replace(
         original,
         title=Bilingual(

@@ -24,7 +24,7 @@
           <div class="fila-tarjeta">
             <div>
               <h3>{{ skill.name["es"] or skill.name["en"] }}</h3>
-              <p class="ayuda">{{ skill.category or _("sin categoría") }} · id: {{ skill.id }}</p>
+              <p class="ayuda">{{ skill.category or _("sin categoría") }}</p>
             </div>
             <div class="acciones">
               {% with seccion = "skills", entrada = skill %}{% include "_untranslated.html" %}{% endwith %}

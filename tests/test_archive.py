@@ -8,7 +8,7 @@ from pathlib import Path
 import pytest
 
 from ancla.archive import repository, serialization
-from ancla.ai.client import AIError
+from ancla.ai.client import AIError, complete_with_budget
 from ancla.ai.groq import GroqClient
 from ancla.profile.errors import ProfileError
 from ancla.profile.model import (
@@ -407,6 +407,60 @@ def test_agotar_el_limite_por_minuto_pide_esperar_y_no_acortar_el_cv():
     assert "espera" in mensaje
     assert "no tienes que acortar" in mensaje
     assert "demasiado grande" not in mensaje
+
+
+def test_un_max_tokens_explicito_llega_al_sdk_en_vez_del_generico(monkeypatch):
+    """A caller that knows its own request shape (the CV importer, the
+    "About me" gaps, the selection engine) passes its own number through
+    `ai.client.complete_with_budget`, which must reach the SDK call as-is —
+    not go through `_reserved_tokens`'s generic per-character guess, which
+    is only the fallback for a caller that has not measured its own case."""
+    import ancla.ai.groq as modulo_groq
+
+    llamadas = []
+
+    class _Mensaje:
+        content = "contenido de prueba"
+
+    class _Eleccion:
+        message = _Mensaje()
+
+    class _Completado:
+        choices = [_Eleccion()]
+
+    class _Completions:
+        def create(self, **kwargs):
+            llamadas.append(kwargs)
+            return _Completado()
+
+    class _Chat:
+        completions = _Completions()
+
+    class _SdkFalso:
+        chat = _Chat()
+
+    monkeypatch.setattr(GroqClient, "_sdk", lambda self: _SdkFalso())
+
+    cliente = GroqClient(clave="gsk_prueba")
+    complete_with_budget(cliente, "sistema", "usuario", 2200)
+
+    assert llamadas[0]["max_tokens"] == 2200 != modulo_groq.MIN_TOKENS_RESPUESTA
+
+
+def test_complete_with_budget_ignora_el_presupuesto_si_el_cliente_no_lo_entiende():
+    """Anthropic's and the generic OpenAI-compatible client's `complete` only
+    take `(sistema, usuario)` — the same shape this fake mirrors. Passing a
+    budget to a client that has no parameter for it must not raise."""
+
+    class _ClienteSinPresupuesto:
+        def complete(self, sistema: str, usuario: str) -> str:
+            return f"{sistema}|{usuario}"
+
+        def available(self) -> bool:
+            return True
+
+    resultado = complete_with_budget(_ClienteSinPresupuesto(), "sistema", "usuario", 2200)
+    assert resultado == "sistema|usuario"
 
 
 # --------------------------------------------------------------------------

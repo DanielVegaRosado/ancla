@@ -31,7 +31,7 @@ from typing import Any
 
 from flask_babel import gettext as _
 
-from ancla.ai.client import AIClient, AIError
+from ancla.ai.client import AIClient, AIError, complete_with_budget
 from ancla.profile.model import (
     N_ABOUT_ME_GROUP,
     N_EXPERIENCES,
@@ -57,6 +57,19 @@ AVISO_SOBRE_MI_INCOMPLETO = (
     f"falta {N_ABOUT_ME_GROUP} por grupo. El texto se queda con sus huecos a la "
     "vista hasta que añadas más."
 )
+
+# How much room to declare for the response, via `ai.client.complete_with_budget`.
+# Unlike the CV importer, this does not grow with the size of the catalog or
+# the job posting: the model only ever returns `N_EXPERIENCES` + `N_SKILLS`
+# ids with a one- or two-sentence reason each, plus the "About me" names and
+# a handful of gap phrases — never the user's own text, which rule 2 (see
+# module docstring) already keeps out of its answer. Measured against the
+# real API (checked 2026-09-06) with a 15-item catalog and a realistic
+# posting: 737 completion tokens. The margin below is wide relative to that
+# single measurement on purpose — this call is cheap enough that a generous
+# flat number costs nothing a real adaptation would ever need, and
+# under-reserving is what cuts the JSON before the last experience's reason.
+RESERVED_TOKENS = 2200
 
 
 def adapt(
@@ -89,7 +102,7 @@ def adapt(
     sistema, usuario = build_messages(
         perfil, vacante, idioma, n_experiencias, n_skills
     )
-    datos = _parse(cliente.complete(sistema, usuario))
+    datos = _parse(complete_with_budget(cliente, sistema, usuario, RESERVED_TOKENS))
 
     skills, motivo_skills = _choose_skills(datos, perfil, vacante, n_skills)
     return Proposal(

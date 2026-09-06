@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-09-06 08:23+0200\n"
+"POT-Creation-Date: 2026-09-06 09:17+0200\n"
 "PO-Revision-Date: 2026-07-30 12:46+0200\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -126,7 +126,7 @@ msgstr ""
 msgid "Anthropic ha devuelto un error: %(error)s"
 msgstr "Anthropic returned an error: %(error)s"
 
-#: ancla/ai/groq.py:130
+#: ancla/ai/groq.py:146
 #, python-format
 msgid ""
 "Todavía no has configurado tu clave de Groq. Ve a Ajustes y pégala; "
@@ -135,11 +135,11 @@ msgstr ""
 "You haven't set up your Groq key yet. Go to Settings and paste it in; you"
 " can get a free one at %(url)s."
 
-#: ancla/ai/groq.py:138
+#: ancla/ai/groq.py:154
 msgid "Groq ha devuelto una respuesta vacía. Vuelve a generar la propuesta."
 msgstr "Groq returned an empty response. Try generating the proposal again."
 
-#: ancla/ai/groq.py:164
+#: ancla/ai/groq.py:180
 msgid ""
 "Groq ha devuelto una respuesta con un formato inesperado. Vuelve a "
 "generar la propuesta."
@@ -147,13 +147,13 @@ msgstr ""
 "Groq returned a response in an unexpected format. Try generating the "
 "proposal again."
 
-#: ancla/ai/groq.py:176
+#: ancla/ai/groq.py:192
 msgid "Falta la librería «groq». Instálala con: pip install -r requirements.txt"
 msgstr ""
 "The “groq” library is missing. Install it with: pip install -r "
 "requirements.txt"
 
-#: ancla/ai/groq.py:193
+#: ancla/ai/groq.py:209
 #, python-format
 msgid ""
 "Tu clave de Groq no es válida o ha caducado. Revísala en Ajustes, puedes "
@@ -162,15 +162,29 @@ msgstr ""
 "Your Groq key is invalid or has expired. Check it in Settings; you can "
 "generate a free one at %(url)s."
 
-#: ancla/ai/groq.py:199
-msgid "Espera un minuto y vuelve a intentarlo: tu plan gratuito de Groq admite un número limitado de palabras por minuto y ahora mismo está al tope. No tienes que acortar tu CV ni la vacante, solo esperar. No se ha guardado nada, así que puedes repetir la misma operación tal cual."
-msgstr "Wait a minute and try again: your free Groq plan allows a limited number of words per minute and it is at its cap right now. You do not have to shorten your CV or the job posting, only wait. Nothing was saved, so you can repeat the same operation as it was."
+#: ancla/ai/groq.py:215
+msgid ""
+"Espera un minuto y vuelve a intentarlo: tu plan gratuito de Groq admite "
+"un número limitado de palabras por minuto y ahora mismo está al tope. No "
+"tienes que acortar tu CV ni la vacante, solo esperar. No se ha guardado "
+"nada, así que puedes repetir la misma operación tal cual."
+msgstr ""
+"Wait a minute and try again: your free Groq plan allows a limited number "
+"of words per minute and it is at its cap right now. You do not have to "
+"shorten your CV or the job posting, only wait. Nothing was saved, so you "
+"can repeat the same operation as it was."
 
-#: ancla/ai/groq.py:207
-msgid "Acorta el texto y vuelve a intentarlo, o pega solo la parte que importa: esta petición es demasiado grande para lo que tu plan gratuito de Groq admite por minuto, así que esperar no la deja pasar."
-msgstr "Shorten the text and try again, or paste only the part that matters: this request is too large for what your free Groq plan allows per minute, so waiting will not get it through."
+#: ancla/ai/groq.py:223
+msgid ""
+"Acorta el texto y vuelve a intentarlo, o pega solo la parte que importa: "
+"esta petición es demasiado grande para lo que tu plan gratuito de Groq "
+"admite por minuto, así que esperar no la deja pasar."
+msgstr ""
+"Shorten the text and try again, or paste only the part that matters: this"
+" request is too large for what your free Groq plan allows per minute, so "
+"waiting will not get it through."
 
-#: ancla/ai/groq.py:214
+#: ancla/ai/groq.py:230
 #, python-format
 msgid ""
 "El modelo «%(modelo)s» ya no está disponible en Groq. Elige otro en "
@@ -179,17 +193,17 @@ msgstr ""
 "The model “%(modelo)s” is no longer available on Groq. Choose another one"
 " in Settings."
 
-#: ancla/ai/groq.py:220
+#: ancla/ai/groq.py:236
 msgid "Groq ha tardado demasiado en responder. Vuelve a generar la propuesta."
 msgstr "Groq took too long to respond. Try generating the proposal again."
 
-#: ancla/ai/groq.py:224
+#: ancla/ai/groq.py:240
 msgid ""
 "No se ha podido contactar con Groq. Comprueba tu conexión a internet y "
 "vuelve a intentarlo."
 msgstr "Could not reach Groq. Check your internet connection and try again."
 
-#: ancla/ai/groq.py:227
+#: ancla/ai/groq.py:243
 #, python-format
 msgid "Groq ha devuelto un error: %(error)s"
 msgstr "Groq returned an error: %(error)s"
@@ -224,31 +238,28 @@ msgstr ""
 "The \"openai\" library is missing. Install it with: pip install -r "
 "requirements.txt"
 
-#: ancla/ai/openai_compatible.py:123
+#: ancla/ai/openai_compatible.py:128
 msgid "Tu clave de API no es válida o ha caducado. Revísala en Ajustes."
 msgstr "Your API key isn't valid or has expired. Check it in Settings."
 
-#: ancla/ai/openai_compatible.py:127
-msgid ""
-"El modelo configurado no existe en este proveedor, o la URL base de "
-"Ajustes está mal. Revisa ambos."
-msgstr ""
-"The model you set doesn't exist for this provider, or the base URL in "
-"Settings is wrong. Check both."
-
 #: ancla/ai/openai_compatible.py:132
+#, fuzzy, python-format
+msgid "El modelo «%(modelo)s» ya no está disponible en este proveedor, o la URL base de Ajustes está mal. Elige otro modelo o revisa la URL."
+msgstr "The model «%(modelo)s» is no longer available on this provider, or the base URL in Settings is wrong. Pick another model or check the URL."
+
+#: ancla/ai/openai_compatible.py:138
 msgid ""
 "Has agotado la cuota de tu proveedor por ahora. Espera un rato y vuelve a"
 " intentarlo."
 msgstr "You've used up your provider's quota for now. Wait a while and try again."
 
-#: ancla/ai/openai_compatible.py:137
+#: ancla/ai/openai_compatible.py:143
 msgid ""
 "El proveedor ha tardado demasiado en responder. Vuelve a generar la "
 "propuesta."
 msgstr "The provider took too long to respond. Try generating the proposal again."
 
-#: ancla/ai/openai_compatible.py:141
+#: ancla/ai/openai_compatible.py:147
 msgid ""
 "No se ha podido contactar con la URL base configurada. Comprueba que esté"
 " bien escrita y tu conexión a internet."
@@ -256,7 +267,7 @@ msgstr ""
 "Couldn't reach the base URL you set. Check that it's typed correctly and "
 "that you're connected to the internet."
 
-#: ancla/ai/openai_compatible.py:144
+#: ancla/ai/openai_compatible.py:150
 #, python-format
 msgid "El proveedor ha devuelto un error: %(error)s"
 msgstr "The provider returned an error: %(error)s"
@@ -341,26 +352,26 @@ msgstr ""
 "No text could be extracted from “%(nombre)s”. If it's a scanned PDF (an "
 "image, not real text), paste the content in by hand."
 
-#: ancla/profile/gaps.py:109
+#: ancla/profile/gaps.py:123
 msgid "Escribe primero tu «Sobre mí» en los dos idiomas."
 msgstr "Write your “About me” in both languages first."
 
-#: ancla/profile/gaps.py:112 ancla/profile/importer.py:213
+#: ancla/profile/gaps.py:126 ancla/profile/importer.py:233
 #: ancla/profile/keywords.py:93 ancla/profile/translation.py:124
 msgid "No hay ninguna clave de API configurada. Ve a Ajustes."
 msgstr "No API key is set up. Go to Settings."
 
-#: ancla/profile/gaps.py:118
+#: ancla/profile/gaps.py:132
 #, python-format
 msgid "No se han podido proponer los huecos: %(error)s"
 msgstr "The gaps could not be suggested: %(error)s"
 
-#: ancla/profile/gaps.py:124 ancla/profile/importer.py:241
+#: ancla/profile/gaps.py:138 ancla/profile/importer.py:263
 #: ancla/profile/translation.py:150
 msgid "El modelo no ha devuelto una respuesta interpretable. Vuelve a intentarlo."
 msgstr "The model didn't return a response that could be parsed. Try again."
 
-#: ancla/profile/gaps.py:229
+#: ancla/profile/gaps.py:243
 #, python-format
 msgid ""
 "En %(idioma)s no se han podido colocar estos huecos: %(huecos)s. Márcalos"
@@ -369,32 +380,46 @@ msgstr ""
 "These gaps could not be placed in %(idioma)s: %(huecos)s. Mark them "
 "yourself: select the words and click the gap's button."
 
-#: ancla/profile/importer.py:210
+#: ancla/profile/importer.py:230
 msgid "No hay texto que analizar."
 msgstr "There is no text to analyse."
 
-#: ancla/profile/importer.py:219
+#: ancla/profile/importer.py:239
 #, python-format
-msgid "Tu CV son %(total)s caracteres y solo se han analizado los %(analizados)s primeros: no cabe más en una sola petición. Revisa lo que falte e impórtalo aparte pegando el texto restante."
-msgstr "Your CV is %(total)s characters long and only the first %(analizados)s were analysed: no more fits in a single request. Check what is missing and import it separately by pasting the remaining text."
+msgid ""
+"Tu CV son %(total)s caracteres y solo se han analizado los %(analizados)s"
+" primeros: no cabe más en una sola petición. Revisa lo que falte e "
+"impórtalo aparte pegando el texto restante."
+msgstr ""
+"Your CV is %(total)s characters long and only the first %(analizados)s "
+"were analysed: no more fits in a single request. Check what is missing "
+"and import it separately by pasting the remaining text."
 
-#: ancla/profile/importer.py:234
+#: ancla/profile/importer.py:256
 #, fuzzy, python-format
 msgid "No se ha podido analizar el CV: %(error)s"
 msgstr "The gaps could not be suggested: %(error)s"
 
-#: ancla/profile/importer.py:282
-msgid "No hay nada nuevo que añadir: todo lo que se ha reconocido en este CV ya está en tu perfil."
-msgstr "There is nothing new to add: everything recognised in this CV is already in your profile."
+#: ancla/profile/importer.py:304
+msgid ""
+"No hay nada nuevo que añadir: todo lo que se ha reconocido en este CV ya "
+"está en tu perfil."
+msgstr ""
+"There is nothing new to add: everything recognised in this CV is already "
+"in your profile."
 
-#: ancla/profile/importer.py:288
+#: ancla/profile/importer.py:310
 msgid "No se ha encontrado ninguna experiencia ni skill reconocible en el texto."
 msgstr "No recognisable experience or skill was found in the text."
 
-#: ancla/profile/importer.py:293
+#: ancla/profile/importer.py:315
 #, python-format
-msgid "Se ha omitido %(cantidad)s elemento(s) que ya estaban en tu perfil (mismo nombre en español o en inglés) para no duplicarlos."
-msgstr "%(cantidad)s item(s) already in your profile were left out (same name in Spanish or English) so they would not be duplicated."
+msgid ""
+"Se ha omitido %(cantidad)s elemento(s) que ya estaban en tu perfil (mismo"
+" nombre en español o en inglés) para no duplicarlos."
+msgstr ""
+"%(cantidad)s item(s) already in your profile were left out (same name in "
+"Spanish or English) so they would not be duplicated."
 
 #: ancla/profile/keywords.py:102
 msgid "No se pudo contactar con el proveedor de IA."
@@ -553,8 +578,12 @@ msgstr ""
 
 #: ancla/profile/translation.py:131
 #, python-format
-msgid "Hay %(cantidad)s entradas sin traducir, demasiadas para una sola petición. Tradúcelas por partes con el botón de cada entrada."
-msgstr "There are %(cantidad)s untranslated entries, too many for a single request. Translate them in batches using each entry's own button."
+msgid ""
+"Hay %(cantidad)s entradas sin traducir, demasiadas para una sola "
+"petición. Tradúcelas por partes con el botón de cada entrada."
+msgstr ""
+"There are %(cantidad)s untranslated entries, too many for a single "
+"request. Translate them in batches using each entry's own button."
 
 #: ancla/profile/translation.py:143
 #, fuzzy, python-format
@@ -563,8 +592,12 @@ msgstr "The gaps could not be suggested: %(error)s"
 
 #: ancla/profile/translation.py:166
 #, python-format
-msgid "%(cantidad)s entrada(s) se han quedado sin traducir. Vuelve a intentarlo o escríbelas a mano."
-msgstr "%(cantidad)s entry/entries were left untranslated. Try again or write them yourself."
+msgid ""
+"%(cantidad)s entrada(s) se han quedado sin traducir. Vuelve a intentarlo "
+"o escríbelas a mano."
+msgstr ""
+"%(cantidad)s entry/entries were left untranslated. Try again or write "
+"them yourself."
 
 #: ancla/profile/validation.py:51
 msgid "español"
@@ -576,19 +609,28 @@ msgstr "English"
 
 #: ancla/profile/validation.py:109
 #, python-format
-msgid "%(etiqueta)s: todavía no está en %(nombre)s. Puedes traducirla desde «Mi perfil» cuando quieras."
-msgstr "%(etiqueta)s: not in %(nombre)s yet. You can translate it from «My profile» whenever you like."
+msgid ""
+"%(etiqueta)s: todavía no está en %(nombre)s. Puedes traducirla desde «Mi "
+"perfil» cuando quieras."
+msgstr ""
+"%(etiqueta)s: not in %(nombre)s yet. You can translate it from «My "
+"profile» whenever you like."
 
-#: ancla/profile/validation.py:120
+#: ancla/profile/validation.py:131
+#, python-format
+msgid "%(etiqueta)s: el periodo no es coherente, empieza en %(inicio)s y acaba en %(fin)s."
+msgstr "%(etiqueta)s: the period does not add up, it starts in %(inicio)s and ends in %(fin)s."
+
+#: ancla/profile/validation.py:142
 #, python-format
 msgid "Experiencia «%(id)s»"
 msgstr "Experience “%(id)s”"
 
-#: ancla/profile/validation.py:120
+#: ancla/profile/validation.py:142
 msgid "Una experiencia"
 msgstr "An experience"
 
-#: ancla/profile/validation.py:127
+#: ancla/profile/validation.py:149
 msgid ""
 "Hay una experiencia sin identificador. El identificador es el nombre del "
 "fichero, por ejemplo «data-analyst-movilidad.yaml»."
@@ -596,22 +638,22 @@ msgstr ""
 "There's an experience entry with no ID. The ID is the file name, e.g. "
 "“data-analyst-mobility.yaml”."
 
-#: ancla/profile/validation.py:135
+#: ancla/profile/validation.py:157
 #, python-format
 msgid "%(etiqueta)s: falta el periodo (por ejemplo «2025 - ACTUALIDAD»)."
 msgstr "%(etiqueta)s: missing the period (e.g. “2025 - PRESENT”)."
 
-#: ancla/profile/validation.py:142
+#: ancla/profile/validation.py:167
 #, python-format
 msgid "%(etiqueta)s: falta el stack (las tecnologías que usaste)."
 msgstr "%(etiqueta)s: missing the tech stack (the technologies you used)."
 
-#: ancla/profile/validation.py:149
+#: ancla/profile/validation.py:174
 #, fuzzy, python-format
 msgid "%(etiqueta)s: falta el título."
 msgstr "%(etiqueta)s: missing the institution."
 
-#: ancla/profile/validation.py:158
+#: ancla/profile/validation.py:183
 #, python-format
 msgid ""
 "%(etiqueta)s: no tiene palabras clave, así que casi nunca se elegirá para"
@@ -620,40 +662,40 @@ msgstr ""
 "%(etiqueta)s: has no keywords, so it will almost never be picked for a "
 "CV. Add the terms a company would use to look for it."
 
-#: ancla/profile/validation.py:168
+#: ancla/profile/validation.py:193
 #, python-format
 msgid "%(etiqueta)s: no tiene ningún punto en %(nombre)s."
 msgstr "%(etiqueta)s: has no bullet points in %(nombre)s."
 
-#: ancla/profile/validation.py:172
+#: ancla/profile/validation.py:197
 #, python-format
 msgid "%(etiqueta)s: hay algún punto vacío en %(nombre)s; escríbelo o quítalo."
 msgstr ""
 "%(etiqueta)s: there's an empty bullet point in %(nombre)s; write it in or"
 " remove it."
 
-#: ancla/profile/validation.py:182
+#: ancla/profile/validation.py:207
 #, python-format
 msgid "Skill «%(id)s»"
 msgstr "Skill “%(id)s”"
 
-#: ancla/profile/validation.py:182
+#: ancla/profile/validation.py:207
 msgid "Una skill"
 msgstr "A skill"
 
-#: ancla/profile/validation.py:188
+#: ancla/profile/validation.py:213
 msgid ""
 "Hay una skill sin identificador. El identificador es el nombre del "
 "fichero, por ejemplo «python.yaml»."
 msgstr "There's a skill with no ID. The ID is the file name, e.g. “python.yaml”."
 
-#: ancla/profile/validation.py:193 ancla/profile/validation.py:228
-#: ancla/profile/validation.py:257
+#: ancla/profile/validation.py:218 ancla/profile/validation.py:253
+#: ancla/profile/validation.py:282
 #, fuzzy, python-format
 msgid "%(etiqueta)s: falta el nombre."
 msgstr "%(etiqueta)s: missing the institution."
 
-#: ancla/profile/validation.py:197
+#: ancla/profile/validation.py:222
 #, python-format
 msgid ""
 "%(etiqueta)s: no tiene categoría. Se usa para agrupar las skills del CV y"
@@ -662,7 +704,7 @@ msgstr ""
 "%(etiqueta)s: has no category. It's used to group the skills on the CV "
 "and to spread them across “About me”."
 
-#: ancla/profile/validation.py:205
+#: ancla/profile/validation.py:230
 #, python-format
 msgid ""
 "%(etiqueta)s: no tiene palabras clave, así que casi nunca se elegirá para"
@@ -671,16 +713,16 @@ msgstr ""
 "%(etiqueta)s: has no keywords, so it will almost never be picked for a "
 "CV. Add how job postings refer to it."
 
-#: ancla/profile/validation.py:217
+#: ancla/profile/validation.py:242
 #, python-format
 msgid "Skill personal «%(id)s»"
 msgstr "Personal skill “%(id)s”"
 
-#: ancla/profile/validation.py:217
+#: ancla/profile/validation.py:242
 msgid "Una skill personal"
 msgstr "A personal skill"
 
-#: ancla/profile/validation.py:223
+#: ancla/profile/validation.py:248
 msgid ""
 "Hay una skill personal sin identificador. El identificador es el nombre "
 "del fichero, por ejemplo «trabajo-en-equipo.yaml»."
@@ -688,7 +730,7 @@ msgstr ""
 "There's a personal skill with no ID. The ID is the file name, e.g. "
 "“teamwork.yaml”."
 
-#: ancla/profile/validation.py:232
+#: ancla/profile/validation.py:257
 #, python-format
 msgid ""
 "%(etiqueta)s: no tiene palabras clave, así que puede que una vacante la "
@@ -698,16 +740,16 @@ msgstr ""
 "%(etiqueta)s: has no keywords, so a job posting might still flag it as a "
 "gap even though you already have it. Add how it's named in job postings."
 
-#: ancla/profile/validation.py:245
+#: ancla/profile/validation.py:270
 #, python-format
 msgid "Idioma «%(id)s»"
 msgstr "Language “%(id)s”"
 
-#: ancla/profile/validation.py:245
+#: ancla/profile/validation.py:270
 msgid "Un idioma"
 msgstr "A language"
 
-#: ancla/profile/validation.py:251
+#: ancla/profile/validation.py:276
 msgid ""
 "Hay un idioma sin identificador. El identificador es el nombre del "
 "fichero, por ejemplo «ingles.yaml»."
@@ -715,12 +757,12 @@ msgstr ""
 "There's a language with no ID. The ID is the file name, e.g. "
 "“english.yaml”."
 
-#: ancla/profile/validation.py:262
+#: ancla/profile/validation.py:287
 #, python-format
 msgid "%(etiqueta)s: falta el nivel en %(nombre)s (por ejemplo «C1 — Avanzado»)."
 msgstr "%(etiqueta)s: missing the level in %(nombre)s (e.g. “C1 — Advanced”)."
 
-#: ancla/profile/validation.py:269
+#: ancla/profile/validation.py:294
 #, python-format
 msgid ""
 "%(etiqueta)s: no tiene palabras clave, así que puede que una vacante lo "
@@ -731,16 +773,16 @@ msgstr ""
 "gap even though you already have it. Add how it's named in job postings "
 "(e.g. “advanced English”, “fluent”)."
 
-#: ancla/profile/validation.py:282
+#: ancla/profile/validation.py:307
 #, python-format
 msgid "Educación «%(id)s»"
 msgstr "Education entry “%(id)s”"
 
-#: ancla/profile/validation.py:282
+#: ancla/profile/validation.py:307
 msgid "Una educación"
 msgstr "An education entry"
 
-#: ancla/profile/validation.py:289
+#: ancla/profile/validation.py:314
 msgid ""
 "Hay una educación sin identificador. El identificador es el nombre del "
 "fichero, por ejemplo «grado-ingenieria.yaml»."
@@ -748,27 +790,26 @@ msgstr ""
 "There's an education entry with no ID. The ID is the file name, e.g. "
 "“grado-ingenieria.yaml”."
 
-#: ancla/profile/validation.py:294
+#: ancla/profile/validation.py:319
 #, python-format
 msgid "%(etiqueta)s: falta el centro."
 msgstr "%(etiqueta)s: missing the institution."
 
-#: ancla/profile/validation.py:298
+#: ancla/profile/validation.py:323
 #, python-format
 msgid "%(etiqueta)s: falta el periodo (por ejemplo «2023 - 2027»)."
 msgstr "%(etiqueta)s: missing the period (e.g. “2023 - 2027”)."
 
-#: ancla/profile/validation.py:303
+#: ancla/profile/validation.py:331
 #, fuzzy, python-format
 msgid "%(etiqueta)s: falta la titulación."
 msgstr "%(etiqueta)s: the qualification is missing."
 
-#: ancla/profile/validation.py:314
-#, fuzzy, python-format
+#: ancla/profile/validation.py:342
 msgid "El «Sobre mí» está vacío."
 msgstr "Your «About me» is empty."
 
-#: ancla/profile/validation.py:324
+#: ancla/profile/validation.py:352
 #, python-format
 msgid ""
 "Al «Sobre mí» en %(nombre)s le faltan estos huecos: %(huecos)s. "
@@ -777,7 +818,7 @@ msgstr ""
 "“About me” in %(nombre)s is missing these placeholders: %(huecos)s. Write"
 " them exactly as shown, wherever you want the chosen skills to go."
 
-#: ancla/profile/validation.py:335
+#: ancla/profile/validation.py:363
 #, python-format
 msgid ""
 "El «Sobre mí» en %(nombre)s tiene huecos que el sistema no sabe rellenar:"
@@ -786,12 +827,16 @@ msgstr ""
 "“About me” in %(nombre)s has placeholders the system doesn't know how to "
 "fill in: %(desconocidos)s. The valid ones are: %(validos)s."
 
-#: ancla/profile/validation.py:345
+#: ancla/profile/validation.py:373
 #, python-format
-msgid "El «Sobre mí» todavía no está en %(nombre)s. Escríbelo cuando vayas a generar un CV en ese idioma."
-msgstr "Your «About me» is not in %(nombre)s yet. Write it when you are about to generate a CV in that language."
+msgid ""
+"El «Sobre mí» todavía no está en %(nombre)s. Escríbelo cuando vayas a "
+"generar un CV en ese idioma."
+msgstr ""
+"Your «About me» is not in %(nombre)s yet. Write it when you are about to "
+"generate a CV in that language."
 
-#: ancla/profile/validation.py:361
+#: ancla/profile/validation.py:389
 msgid ""
 "El perfil está vacío. Añade al menos una experiencia y una skill antes de"
 " generar un CV: la app solo puede elegir entre lo que tú hayas escrito."
@@ -799,11 +844,11 @@ msgstr ""
 "Your profile is empty. Add at least one experience entry and one skill "
 "before generating a CV: the app can only choose from what you've written."
 
-#: ancla/profile/validation.py:369
+#: ancla/profile/validation.py:397
 msgid "No hay ninguna experiencia, así que el CV saldría sin proyectos."
 msgstr "There's no experience, so the CV would have no projects."
 
-#: ancla/profile/validation.py:374
+#: ancla/profile/validation.py:402
 msgid ""
 "No hay ninguna skill, así que el CV saldría sin la sección técnica y el "
 "«Sobre mí» no se podría componer."
@@ -811,28 +856,28 @@ msgstr ""
 "There are no skills, so the CV would have no technical skills section and"
 " “About me” couldn't be put together."
 
-#: ancla/profile/validation.py:380 ancla/web/templates/cv_detail.html:67
+#: ancla/profile/validation.py:408 ancla/web/templates/cv_detail.html:67
 #: ancla/web/templates/proposal.html:28
 msgid "experiencias"
 msgstr "experience entries"
 
-#: ancla/profile/validation.py:382
+#: ancla/profile/validation.py:410
 msgid "skills"
 msgstr "skills"
 
-#: ancla/profile/validation.py:384
+#: ancla/profile/validation.py:412
 msgid "skills personales"
 msgstr "personal skills"
 
-#: ancla/profile/validation.py:386
+#: ancla/profile/validation.py:414
 msgid "idiomas"
 msgstr "languages"
 
-#: ancla/profile/validation.py:387
+#: ancla/profile/validation.py:415
 msgid "educación"
 msgstr "education"
 
-#: ancla/profile/validation.py:394
+#: ancla/profile/validation.py:422
 msgid ""
 "Falta el «Sobre mí». Escríbelo en «Mi perfil»: es el bloque que abre el "
 "CV y el único que la app compone."
@@ -840,7 +885,7 @@ msgstr ""
 "“About me” is missing. Write it in “My Profile”: it's the block that "
 "opens the CV, and the only one the app puts together."
 
-#: ancla/profile/validation.py:430
+#: ancla/profile/validation.py:458
 #, python-format
 msgid ""
 "Hay %(que)s con el mismo identificador (%(repetidos)s). Cada una tiene "
@@ -849,21 +894,21 @@ msgstr ""
 "There are %(que)s with the same ID (%(repetidos)s). Each one needs its "
 "own: that's how a saved CV knows which one it refers to."
 
-#: ancla/selection/engine.py:80
+#: ancla/selection/engine.py:93
 msgid "Tu perfil está vacío: añade experiencias y skills antes de adaptar el CV."
 msgstr ""
 "Your profile is empty: add some experience and skills before adapting a "
 "CV."
 
-#: ancla/selection/engine.py:84
+#: ancla/selection/engine.py:97
 msgid "Tu perfil no tiene plantilla de «Sobre mí»: créala antes de adaptar el CV."
 msgstr "Your profile has no “About me” template: create one before adapting a CV."
 
-#: ancla/selection/engine.py:87 ancla/web/views/adapt.py:32
+#: ancla/selection/engine.py:100 ancla/web/views/adapt.py:32
 msgid "Pega el texto de la vacante antes de generar la propuesta."
 msgstr "Paste the job posting text before generating the proposal."
 
-#: ancla/selection/engine.py:120
+#: ancla/selection/engine.py:133
 msgid ""
 "El modelo no ha devuelto una respuesta que se pueda interpretar. Vuelve a"
 " generar la propuesta."
@@ -871,7 +916,7 @@ msgstr ""
 "The model didn't return a response that could be parsed. Try generating "
 "the proposal again."
 
-#: ancla/selection/engine.py:129
+#: ancla/selection/engine.py:142
 msgid ""
 "El modelo ha devuelto una respuesta mal formada. Vuelve a generar la "
 "propuesta."
@@ -879,7 +924,7 @@ msgstr ""
 "The model returned a malformed response. Try generating the proposal "
 "again."
 
-#: ancla/selection/engine.py:136
+#: ancla/selection/engine.py:149
 msgid ""
 "El modelo ha devuelto algo que no es una propuesta. Vuelve a generar la "
 "propuesta."
@@ -928,7 +973,11 @@ msgstr "Present"
 msgid "Finalizado"
 msgstr "Finished"
 
-#: ancla/web/providers.py:138
+#: ancla/web/providers.py:148
+msgid "Otro (URL manual)"
+msgstr "Other (manual URL)"
+
+#: ancla/web/providers.py:171
 msgid ""
 "El proveedor personalizado no está disponible en esta demo pública: "
 "dejaría que el servidor compartido hiciera peticiones a cualquier "
@@ -939,12 +988,12 @@ msgstr ""
 " shared server make requests to any address a visitor types in. Try Groq,"
 " OpenAI, Mistral, OpenRouter, or Anthropic."
 
-#: ancla/web/providers.py:147
+#: ancla/web/providers.py:180
 #, python-format
 msgid "Proveedor de IA desconocido: «%(proveedor)s»."
 msgstr "Unknown AI provider: “%(proveedor)s”."
 
-#: ancla/web/providers.py:154
+#: ancla/web/providers.py:187
 #, python-format
 msgid "El proveedor %(nombre)s todavía no está disponible en esta instalación."
 msgstr "The %(nombre)s provider isn't available in this installation yet."
@@ -981,21 +1030,25 @@ msgstr "Your CV's language"
 msgid "Detectarlo automáticamente"
 msgstr "Detect it automatically"
 
-#: ancla/web/templates/_import_form.html:32 ancla/web/templates/adapt.html:23
+#: ancla/web/templates/_import_form.html:32 ancla/web/templates/adapt.html:34
 #: ancla/web/templates/cv_detail.html:8 ancla/web/templates/cvs.html:29
-#: ancla/web/templates/proposal.html:7 ancla/web/templates/settings.html:71
+#: ancla/web/templates/proposal.html:7 ancla/web/templates/settings.html:82
 msgid "Español"
 msgstr "Spanish"
 
-#: ancla/web/templates/_import_form.html:33 ancla/web/templates/adapt.html:23
+#: ancla/web/templates/_import_form.html:33 ancla/web/templates/adapt.html:34
 #: ancla/web/templates/cv_detail.html:8 ancla/web/templates/cvs.html:29
-#: ancla/web/templates/proposal.html:7 ancla/web/templates/settings.html:72
+#: ancla/web/templates/proposal.html:7 ancla/web/templates/settings.html:83
 msgid "Inglés"
 msgstr "English"
 
 #: ancla/web/templates/_import_form.html:35
-msgid "Se importa en ese idioma. Después podrás traducirlo al otro con un botón, si lo necesitas."
-msgstr "It is imported in that language. Afterwards you can translate it to the other one with a button, if you need to."
+msgid ""
+"Se importa en ese idioma. Después podrás traducirlo al otro con un botón,"
+" si lo necesitas."
+msgstr ""
+"It is imported in that language. Afterwards you can translate it to the "
+"other one with a button, if you need to."
 
 #: ancla/web/templates/_import_form.html:39
 msgid "Analizar"
@@ -1013,11 +1066,15 @@ msgstr ""
 msgid "Configurar mi clave"
 msgstr "Set up my key"
 
-#: ancla/web/templates/_period_fields.html:18
+#: ancla/web/templates/_period_fields.html:25
 msgid "Periodo"
 msgstr "Period"
 
-#: ancla/web/templates/_period_fields.html:32
+#: ancla/web/templates/_period_fields.html:29
+msgid "Selecciona un año"
+msgstr "Pick a year"
+
+#: ancla/web/templates/_period_fields.html:41
 msgid "Sin fecha de fin"
 msgstr "No end date"
 
@@ -1064,7 +1121,7 @@ msgstr "Delete all"
 #: ancla/web/templates/_section_education.html:31
 #: ancla/web/templates/_section_experiences.html:31
 #: ancla/web/templates/_section_languages.html:31
-#: ancla/web/templates/_section_personal_skills.html:31
+#: ancla/web/templates/_section_personal_skills.html:30
 #: ancla/web/templates/_section_skills.html:31
 #: ancla/web/templates/profile.html:72 ancla/web/templates/profile.html:92
 msgid "Editar"
@@ -1079,7 +1136,7 @@ msgstr "Delete “%(titulo)s”? This action cannot be undone."
 #: ancla/web/templates/_section_education.html:33
 #: ancla/web/templates/_section_experiences.html:33
 #: ancla/web/templates/_section_languages.html:33
-#: ancla/web/templates/_section_personal_skills.html:33
+#: ancla/web/templates/_section_personal_skills.html:32
 #: ancla/web/templates/_section_skills.html:33
 #: ancla/web/templates/cv_detail.html:38
 msgid "Borrar"
@@ -1143,7 +1200,7 @@ msgid "Borrar todos"
 msgstr "Delete all"
 
 #: ancla/web/templates/_section_languages.html:32
-#: ancla/web/templates/_section_personal_skills.html:32
+#: ancla/web/templates/_section_personal_skills.html:31
 #: ancla/web/templates/_section_skills.html:32
 #, python-format
 msgid "¿Borrar «%(nombre)s»? Esta acción no se puede deshacer."
@@ -1174,7 +1231,7 @@ msgid ""
 " deshacer."
 msgstr "Delete ALL %(cantidad)s personal skills? This action cannot be undone."
 
-#: ancla/web/templates/_section_personal_skills.html:41
+#: ancla/web/templates/_section_personal_skills.html:40
 msgid "Todavía no has añadido ninguna skill personal."
 msgstr "You haven't added any personal skills yet."
 
@@ -1326,40 +1383,52 @@ msgstr ""
 "The result shows up under «Latest proposal», where you can review it, "
 "adjust it and save it."
 
-#: ancla/web/templates/adapt.html:14
+#: ancla/web/templates/adapt.html:22
+msgid "Ya tienes una propuesta sin guardar. Si generas esta, se perderá. ¿Continuar?"
+msgstr "You already have an unsaved proposal. Generating this one will lose it. Continue?"
+
+#: ancla/web/templates/adapt.html:25
 msgid "Texto de la vacante"
 msgstr "Job posting text"
 
-#: ancla/web/templates/adapt.html:19
+#: ancla/web/templates/adapt.html:30
 msgid "Idioma de la propuesta"
 msgstr "Proposal language"
 
-#: ancla/web/templates/adapt.html:36
+#: ancla/web/templates/adapt.html:47
 #, python-format
-msgid "Estas entradas de tu perfil todavía no están en %(idioma)s, así que saldrían en blanco:"
-msgstr "These entries of your profile are not in %(idioma)s yet, so they would come out blank:"
+msgid ""
+"Estas entradas de tu perfil todavía no están en %(idioma)s, así que "
+"saldrían en blanco:"
+msgstr ""
+"These entries of your profile are not in %(idioma)s yet, so they would "
+"come out blank:"
 
-#: ancla/web/templates/adapt.html:40
-msgid "Puedes traducirlas desde «Mi perfil» y volver, o seguir adelante y generar la propuesta con lo que hay."
-msgstr "You can translate them from «My profile» and come back, or go ahead and generate the proposal with what there is."
+#: ancla/web/templates/adapt.html:51
+msgid ""
+"Puedes traducirlas desde «Mi perfil» y volver, o seguir adelante y "
+"generar la propuesta con lo que hay."
+msgstr ""
+"You can translate them from «My profile» and come back, or go ahead and "
+"generate the proposal with what there is."
 
-#: ancla/web/templates/adapt.html:42
+#: ancla/web/templates/adapt.html:53
 msgid "Ir a traducirlas"
 msgstr "Go and translate them"
 
-#: ancla/web/templates/adapt.html:45
+#: ancla/web/templates/adapt.html:56
 msgid "Generar la propuesta de todas formas"
 msgstr "Generate the proposal anyway"
 
-#: ancla/web/templates/adapt.html:50
+#: ancla/web/templates/adapt.html:61
 msgid "Ya existe al menos un CV archivado para"
 msgstr "There's already at least one archived CV for"
 
-#: ancla/web/templates/adapt.html:55
+#: ancla/web/templates/adapt.html:66
 msgid "sin puesto indicado"
 msgstr "no role given"
 
-#: ancla/web/templates/adapt.html:61
+#: ancla/web/templates/adapt.html:72
 msgid ""
 "Puedes reutilizar uno de esos o generar una propuesta nueva (por ejemplo,"
 " si esta vacante pide algo distinto)."
@@ -1367,11 +1436,11 @@ msgstr ""
 "You can reuse one of those or generate a new proposal (for example, if "
 "this job posting asks for something different)."
 
-#: ancla/web/templates/adapt.html:65
+#: ancla/web/templates/adapt.html:76
 msgid "Generar una propuesta nueva de todas formas"
 msgstr "Generate a new proposal anyway"
 
-#: ancla/web/templates/adapt.html:70
+#: ancla/web/templates/adapt.html:81
 msgid "Generar propuesta"
 msgstr "Generate proposal"
 
@@ -1742,8 +1811,14 @@ msgstr ""
 "to keep."
 
 #: ancla/web/templates/import.html:14
-msgid "Leyendo tu CV. Suele tardar unos segundos; si tu plan gratuito está al tope de palabras por minuto, Ancla espera lo que haga falta y lo reintenta sola, así que no cierres esta página."
-msgstr "Reading your CV. This usually takes a few seconds; if your free plan is at its words-per-minute cap, Ancla waits as long as it takes and retries on its own, so do not close this page."
+msgid ""
+"Leyendo tu CV. Suele tardar unos segundos; si tu plan gratuito está al "
+"tope de palabras por minuto, Ancla espera lo que haga falta y lo "
+"reintenta sola, así que no cierres esta página."
+msgstr ""
+"Reading your CV. This usually takes a few seconds; if your free plan is "
+"at its words-per-minute cap, Ancla waits as long as it takes and retries "
+"on its own, so do not close this page."
 
 #: ancla/web/templates/import.html:17
 msgid ""
@@ -1773,12 +1848,19 @@ msgstr ""
 
 #: ancla/web/templates/import_review.html:10
 #, python-format
-msgid "Tu CV se ha leído en %(idioma)s, y eso es lo único que se ha pedido al modelo."
+msgid ""
+"Tu CV se ha leído en %(idioma)s, y eso es lo único que se ha pedido al "
+"modelo."
 msgstr "Your CV was read in %(idioma)s, and that is all the model was asked for."
 
 #: ancla/web/templates/import_review.html:11
-msgid "Si también vas a presentarte a vacantes en el otro idioma, tradúcelo ahora: es una segunda llamada, y puedes hacerla más tarde desde «Mi perfil»."
-msgstr "If you are also going to apply for jobs in the other language, translate it now: it is a second call, and you can make it later from «My profile»."
+msgid ""
+"Si también vas a presentarte a vacantes en el otro idioma, tradúcelo "
+"ahora: es una segunda llamada, y puedes hacerla más tarde desde «Mi "
+"perfil»."
+msgstr ""
+"If you are also going to apply for jobs in the other language, translate "
+"it now: it is a second call, and you can make it later from «My profile»."
 
 #: ancla/web/templates/import_review.html:23
 #: ancla/web/templates/profile.html:43
@@ -2049,8 +2131,12 @@ msgid "Tienes %(cantidad)s entrada(s) sin traducir al %(idioma)s"
 msgstr "You have %(cantidad)s entry/entries not translated into %(idioma)s"
 
 #: ancla/web/templates/profile.html:137
-msgid "Saldrían en blanco en un CV en ese idioma. Se traducen todas de una vez, en una sola llamada."
-msgstr "They would come out blank on a CV in that language. They are all translated at once, in a single call."
+msgid ""
+"Saldrían en blanco en un CV en ese idioma. Se traducen todas de una vez, "
+"en una sola llamada."
+msgstr ""
+"They would come out blank on a CV in that language. They are all "
+"translated at once, in a single call."
 
 #: ancla/web/templates/profile.html:141
 msgid "Traducir todo lo que falte"
@@ -2214,8 +2300,12 @@ msgid "¿Es otra vacante?"
 msgstr "A different job posting?"
 
 #: ancla/web/templates/proposal.html:262
-msgid "Vas a adaptar otra vacante. Si no guardas esta propuesta antes, se perderá al generar la siguiente. ¿Continuar?"
-msgstr "You are about to adapt a different job posting. If you do not save this proposal first, it will be lost when the next one is generated. Continue?"
+msgid ""
+"Vas a adaptar otra vacante. Si no guardas esta propuesta antes, se "
+"perderá al generar la siguiente. ¿Continuar?"
+msgstr ""
+"You are about to adapt a different job posting. If you do not save this "
+"proposal first, it will be lost when the next one is generated. Continue?"
 
 #: ancla/web/templates/proposal.html:263
 msgid "Adaptar otra vacante →"
@@ -2225,11 +2315,7 @@ msgstr "Adapt a different posting →"
 msgid "Proveedor de IA"
 msgstr "AI provider"
 
-#: ancla/web/templates/settings.html:15
-msgid "Otro (URL manual)"
-msgstr "Other (manual URL)"
-
-#: ancla/web/templates/settings.html:26
+#: ancla/web/templates/settings.html:28
 #, python-format
 msgid ""
 "Crea una cuenta gratis en %(nombre)s, genera una clave y pégala aquí "
@@ -2238,7 +2324,7 @@ msgstr ""
 "Create a free account at %(nombre)s, generate a key and paste it below. "
 "No card required."
 
-#: ancla/web/templates/settings.html:28
+#: ancla/web/templates/settings.html:30
 #, python-format
 msgid ""
 "Antes de generar tu primera propuesta, entra en tu cuenta de %(nombre)s y"
@@ -2251,7 +2337,7 @@ msgstr ""
 "any, and without credit the first request fails. If you would rather not "
 "pay anything, pick Groq above."
 
-#: ancla/web/templates/settings.html:30
+#: ancla/web/templates/settings.html:32
 msgid ""
 "Pega aquí abajo la clave y la URL base que te dé tu propio proveedor. Al "
 "no estar en la lista, no podemos decirte dónde conseguirlas."
@@ -2259,47 +2345,44 @@ msgstr ""
 "Paste below the key and base URL your own provider gives you. Since it is"
 " not on the list, we cannot tell you where to find them."
 
-#: ancla/web/templates/settings.html:33
+#: ancla/web/templates/settings.html:35
 #, python-format
 msgid "Conseguir una clave de %(nombre)s"
 msgstr "Get a %(nombre)s key"
 
-#: ancla/web/templates/settings.html:40 ancla/web/templates/settings.html:102
+#: ancla/web/templates/settings.html:42 ancla/web/templates/settings.html:113
 msgid "Clave de API"
 msgstr "API key"
 
-#: ancla/web/templates/settings.html:44
+#: ancla/web/templates/settings.html:46
 msgid "Ya tienes una clave guardada."
 msgstr "You already have a key saved."
 
-#: ancla/web/templates/settings.html:44
+#: ancla/web/templates/settings.html:46
 msgid "Todavía no has configurado ninguna clave."
 msgstr "You haven't set up a key yet."
 
-#: ancla/web/templates/settings.html:45
+#: ancla/web/templates/settings.html:47
 msgid "Las claves de Groq empiezan por gsk_."
 msgstr "Groq keys start with gsk_."
 
-#: ancla/web/templates/settings.html:50
+#: ancla/web/templates/settings.html:62
+msgid "Avanzado"
+msgstr "Advanced"
+
+#: ancla/web/templates/settings.html:63
 msgid "Modelo"
 msgstr "Model"
 
-#: ancla/web/templates/settings.html:53
-msgid "El nombre exacto del modelo tal cual lo espera ese proveedor."
-msgstr "The exact model name that provider expects."
+#: ancla/web/templates/settings.html:68
+msgid "Ya hemos puesto un modelo que funciona. Cámbialo solo si quieres usar otro, copiándolo tal cual de la documentación de tu proveedor."
+msgstr "We have already filled in a model that works. Change it only if you want a different one, copying it exactly as written in your provider's documentation."
 
-#: ancla/web/templates/settings.html:56
-#, python-format
-msgid "Cópialo de la documentación de %(nombre)s; tiene esta pinta: %(ejemplo)s."
-msgstr ""
-"Copy it from the %(nombre)s documentation; it looks like this: "
-"%(ejemplo)s."
-
-#: ancla/web/templates/settings.html:62
+#: ancla/web/templates/settings.html:72
 msgid "URL base"
 msgstr "Base URL"
 
-#: ancla/web/templates/settings.html:65
+#: ancla/web/templates/settings.html:75
 msgid ""
 "La dirección que te dé la documentación de tu proveedor. Los demás ya la "
 "llevan puesta."
@@ -2307,19 +2390,19 @@ msgstr ""
 "The address given in your provider's documentation. The other providers "
 "already have theirs set."
 
-#: ancla/web/templates/settings.html:69
+#: ancla/web/templates/settings.html:80
 msgid "Idioma de la interfaz"
 msgstr "Interface language"
 
-#: ancla/web/templates/settings.html:77
+#: ancla/web/templates/settings.html:88
 msgid "Guardar ajustes"
 msgstr "Save settings"
 
-#: ancla/web/templates/settings.html:83
+#: ancla/web/templates/settings.html:94
 msgid "Copia de seguridad"
 msgstr "Backup"
 
-#: ancla/web/templates/settings.html:85
+#: ancla/web/templates/settings.html:96
 msgid ""
 "Descarga todo tu perfil (experiencias, skills, idiomas, foto y adjuntos) "
 "en un único archivo .zip, para guardarlo como copia de seguridad o "
@@ -2329,15 +2412,15 @@ msgstr ""
 "attachments) as a single .zip file, to keep as a backup or move to "
 "another computer."
 
-#: ancla/web/templates/settings.html:87
+#: ancla/web/templates/settings.html:98
 msgid "Descargar copia de seguridad (.zip)"
 msgstr "Download backup (.zip)"
 
-#: ancla/web/templates/settings.html:92
+#: ancla/web/templates/settings.html:103
 msgid "Límite diario del nivel gratuito de Groq"
 msgstr "Daily limit on Groq's free tier"
 
-#: ancla/web/templates/settings.html:94
+#: ancla/web/templates/settings.html:105
 msgid ""
 "El nivel gratuito de Groq permite 30 peticiones por minuto, 1.000 "
 "peticiones al día, 8.000 tokens por minuto y"
@@ -2345,11 +2428,11 @@ msgstr ""
 "Groq's free tier allows 30 requests per minute, 1,000 requests per day, "
 "8,000 tokens per minute and"
 
-#: ancla/web/templates/settings.html:95
+#: ancla/web/templates/settings.html:106
 msgid "200.000 tokens al día"
 msgstr "200,000 tokens per day"
 
-#: ancla/web/templates/settings.html:95
+#: ancla/web/templates/settings.html:106
 msgid ""
 "Cada adaptación o importación de CV es una sola petición, pero puede "
 "gastar varios miles de tokens, así que el límite que más se nota con uso "
@@ -2359,7 +2442,7 @@ msgstr ""
 "thousand tokens, so with normal use the daily limit is the one you'll "
 "notice, not the per-minute one."
 
-#: ancla/web/templates/settings.html:98
+#: ancla/web/templates/settings.html:109
 msgid ""
 "Si ves el aviso \"Has agotado la cuota gratuita de Groq\", casi siempre "
 "es este límite diario. Groq no indica cuánto queda exactamente, y se "
@@ -2371,7 +2454,7 @@ msgstr ""
 " it's released gradually over 24 hours, not all at once. It can take a "
 "good deal longer than a few minutes to work again."
 
-#: ancla/web/templates/settings.html:101
+#: ancla/web/templates/settings.html:112
 msgid ""
 "Como cada cuenta de Groq gratuita tiene su propio límite independiente, "
 "una forma sencilla de no quedarte nunca sin margen es crear una segunda "
@@ -2383,7 +2466,7 @@ msgstr ""
 "another email address) and generate another key. When the one you have "
 "here runs out, paste the other one in"
 
-#: ancla/web/templates/settings.html:102
+#: ancla/web/templates/settings.html:113
 msgid "y sigue trabajando mientras la primera se recupera."
 msgstr "and carry on working while the first one recovers."
 
@@ -2711,7 +2794,7 @@ msgstr "Upload a file or paste your CV text before continuing."
 msgid "No hay ninguna importación pendiente de revisar."
 msgstr "There's no import pending review."
 
-#: ancla/web/views/import_cv.py:116 ancla/web/views/import_cv.py:281
+#: ancla/web/views/import_cv.py:116 ancla/web/views/import_cv.py:294
 msgid "Esa importación ya no está disponible, vuelve a subir el CV."
 msgstr "That import is no longer available, upload the CV again."
 
@@ -2731,16 +2814,15 @@ msgstr ""
 "one language, or keywords, was missing). Add them by hand in “My "
 "Profile”."
 
-#: ancla/web/views/import_cv.py:286
+#: ancla/web/views/import_cv.py:299
 msgid "Esta importación ya está en los dos idiomas."
 msgstr "This import is already in both languages."
 
-#: ancla/web/views/import_cv.py:343
+#: ancla/web/views/import_cv.py:356
 msgid "Importación descartada. No se ha guardado nada."
 msgstr "Import discarded. Nothing was saved."
 
 #: ancla/web/views/profile.py:124
-#, fuzzy, python-format
 msgid "Ya no existe esa entrada del perfil."
 msgstr "That profile entry no longer exists."
 
@@ -3017,7 +3099,7 @@ msgstr "Proposal discarded."
 msgid "CV guardado en el archivo para %(empresa)s."
 msgstr "CV saved to the archive for %(empresa)s."
 
-#: ancla/web/views/settings.py:30
+#: ancla/web/views/settings.py:32
 msgid ""
 "El proveedor personalizado no está disponible en esta demo pública (evita"
 " que el servidor compartido llame a direcciones arbitrarias). Prueba con "
@@ -3027,7 +3109,7 @@ msgstr ""
 "shared server from calling arbitrary addresses). Try Groq, OpenAI, "
 "Mistral, OpenRouter, or Anthropic."
 
-#: ancla/web/views/settings.py:61
+#: ancla/web/views/settings.py:69
 msgid ""
 "Esa clave no parece de Groq, así que seguramente no funcione. Consigue la"
 " tuya gratis en console.groq.com: entra, crea una clave nueva y pégala "
@@ -3039,7 +3121,11 @@ msgstr ""
 "here. Careful, console.x.ai is a different service (Grok) even though the"
 " name looks almost the same."
 
-#: ancla/web/views/settings.py:67
+#: ancla/web/views/settings.py:85
+msgid "Esa clave no parece de Anthropic, así que seguramente no funcione. Consigue la tuya en console.anthropic.com: entra, crea una clave nueva y pégala aquí. Las claves de Anthropic empiezan por sk-ant-."
+msgstr "That key does not look like an Anthropic one, so it probably will not work. Get yours at console.anthropic.com: sign in, create a new key and paste it here. Anthropic keys start with sk-ant-."
+
+#: ancla/web/views/settings.py:90
 msgid "Ajustes guardados."
 msgstr "Settings saved."
 
@@ -3388,4 +3474,15 @@ msgstr "Tell us what happened, or what came to mind, before sending it."
 
 #~ msgid "%(etiqueta)s: falta el nombre en %(nombre)s."
 #~ msgstr "%(etiqueta)s: missing the name in %(nombre)s."
+
+#~ msgid "El nombre exacto del modelo tal cual lo espera ese proveedor."
+#~ msgstr "The exact model name that provider expects."
+
+#~ msgid ""
+#~ "Cópialo de la documentación de "
+#~ "%(nombre)s; tiene esta pinta: %(ejemplo)s."
+#~ msgstr ""
+#~ "Copy it from the %(nombre)s "
+#~ "documentation; it looks like this: "
+#~ "%(ejemplo)s."
 

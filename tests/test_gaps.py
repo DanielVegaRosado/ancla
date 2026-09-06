@@ -187,3 +187,37 @@ def test_una_respuesta_con_huecos_inventados_los_ignora():
 
     assert "{GROUP_C_1}" not in propuesta.about_me.template["es"]
     assert propuesta.about_me.template["es"] == SOBRE_MI_ES
+
+
+class _ClienteConPresupuesto(ClienteFalso):
+    """Like a provider that understands `ai.client.complete_with_budget`'s
+    hint, unlike the plain `ClienteFalso` above."""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.max_tokens_recibido: int | None = None
+
+    def complete(self, sistema: str, usuario: str, max_tokens: int | None = None) -> str:
+        self.max_tokens_recibido = max_tokens
+        return super().complete(sistema, usuario)
+
+
+def test_declara_su_propio_presupuesto_a_un_cliente_que_lo_entiende():
+    """This module's response never grows with the length of the "About me"
+    text or the skill catalog (see `RESERVED_TOKENS`), so the number handed
+    to a budget-aware client has to be the fixed constant, not something
+    derived from either input."""
+    cliente = _ClienteConPresupuesto(_respuesta_completa())
+    gaps.suggest_gaps(cliente, _sobre_mi(), [])
+
+    assert cliente.max_tokens_recibido == gaps.RESERVED_TOKENS
+
+
+def test_un_cliente_que_no_entiende_el_presupuesto_se_llama_igual():
+    """`ClienteFalso.complete` only accepts `(sistema, usuario)` — the same
+    shape as Anthropic's and the generic OpenAI-compatible client. The call
+    must still go through."""
+    cliente = ClienteFalso(_respuesta_completa())
+    propuesta = gaps.suggest_gaps(cliente, _sobre_mi(), [])
+
+    assert propuesta.about_me.template["es"] != SOBRE_MI_ES

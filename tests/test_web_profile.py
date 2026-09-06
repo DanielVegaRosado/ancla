@@ -203,6 +203,79 @@ def test_editar_una_educacion_que_no_existe_avisa_y_redirige(cliente_web):
     assert "No existe la educación".encode("utf-8") in respuesta.data
 
 
+def test_crear_educacion_con_inicio_posterior_al_fin_muestra_el_error(cliente_web, tmp_path: Path):
+    respuesta = cliente_web.post(
+        "/perfil/educacion/nueva",
+        data={
+            "titulo_es": "Grado", "titulo_en": "Degree",
+            "centro": "UEMC",
+            "periodo_inicio": "2027", "periodo_fin": "2023",
+        },
+    )
+    assert "no es coherente".encode("utf-8") in respuesta.data
+    assert store.load_profile(tmp_path / "perfil").education == []
+
+
+def test_nuevo_formulario_de_experiencia_no_trae_un_anio_ya_elegido(cliente_web):
+    """Regression: el desplegable era `required` y sin ningún `selected`, el
+    navegador marcaba el primero de la lista (el año actual) como si el
+    usuario lo hubiera elegido — una experiencia sin periodo detectado se
+    guardaba con un año inventado si nadie se fijaba."""
+    respuesta = cliente_web.get("/perfil/experiencias/nueva")
+    html = respuesta.data.decode("utf-8")
+
+    assert "Selecciona un año" in html
+    assert '<option value="" disabled selected>' in html
+
+
+def test_crear_experiencia_con_inicio_posterior_al_fin_muestra_el_error(cliente_web, tmp_path: Path):
+    respuesta = cliente_web.post(
+        "/perfil/experiencias/nueva",
+        data={
+            "titulo_es": "Proyecto", "titulo_en": "Project",
+            "periodo_inicio": "2026", "periodo_fin": "2025",
+            "bullets_es": "Hecho", "bullets_en": "Done",
+            "stack": "Python", "keywords": "python",
+        },
+    )
+    assert "no es coherente".encode("utf-8") in respuesta.data
+    assert store.load_profile(tmp_path / "perfil").experiences == []
+
+
+def test_editar_una_experiencia_con_periodo_ya_guardado_no_se_pelea(cliente_web, tmp_path: Path):
+    """Un perfil con un periodo posiblemente inventado por el bug anterior
+    (`period_start` ya puesto, sea el que sea) tiene que poder seguir
+    abriéndose y guardándose sin que el arreglo del punto 1 se lo impida."""
+    root = tmp_path / "perfil"
+    store.save_experience(
+        root,
+        Experience(
+            id="proyecto-viejo",
+            title=Bilingual(es="Proyecto viejo", en="Old project"),
+            period_start="2026", period_end="",
+            bullets=Bilingual(es=["Hecho"], en=["Done"]),
+            stack="Python",
+            keywords=["python"],
+        ),
+    )
+
+    respuesta_get = cliente_web.get("/perfil/experiencias/proyecto-viejo/editar")
+    assert respuesta_get.status_code == 200
+    assert 'value="2026" selected' in respuesta_get.data.decode("utf-8")
+
+    respuesta_post = cliente_web.post(
+        "/perfil/experiencias/proyecto-viejo/editar",
+        data={
+            "titulo_es": "Proyecto viejo", "titulo_en": "Old project",
+            "periodo_inicio": "2026", "periodo_fin": "",
+            "bullets_es": "Hecho", "bullets_en": "Done",
+            "stack": "Python", "keywords": "python",
+        },
+    )
+    assert respuesta_post.status_code == 302
+    assert store.load_profile(root).experience("proyecto-viejo") is not None
+
+
 # --------------------------------------------------------------------------
 # Contact
 # --------------------------------------------------------------------------

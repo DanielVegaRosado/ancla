@@ -37,13 +37,27 @@ class Provider:
 
     `key_url` is empty for `personalizado` alone: there is no page to send
     the user to when the endpoint is one they chose themselves.
+
+    `default_model` is a real default, not a hint: Settings pre-fills the
+    Model field with it, so pasting the key is enough to get a working
+    provider. It is empty for `personalizado` (no endpoint-specific model
+    can be guessed) and for `groq` (`needs_model=False`, its client picks
+    its own default internally). **Known cost**: the provider can retire
+    the model named here — see `AnthropicClient._explain`'s `NotFoundError`
+    branch and `OpenAICompatibleClient._explain`'s 404 branch, which name
+    the misconfigured model and point back to Settings, same pattern as
+    `groq.py`'s own 404 handling.
+
+    `needs_model` is false only for `groq`: its client has its own default
+    model, so Settings never shows a Model field for it at all.
     """
 
     name: str
     create: Callable[[str, str, str], AIClient]
     key_url: str = ""
-    example_model: str = ""
+    default_model: str = ""
     free_tier: bool = False
+    needs_model: bool = True
 
 
 def _groq_client(clave_api: str, url_base: str, modelo: str) -> AIClient:
@@ -84,36 +98,55 @@ PROVIDERS: dict[str, Provider] = {
         create=_groq_client,
         key_url=URL_CLAVE_GROQ,
         free_tier=True,
+        needs_model=False,
     ),
     "openai": Provider(
         name="OpenAI",
         create=_openai_compatible_client("https://api.openai.com/v1"),
         key_url="https://platform.openai.com/api-keys",
-        example_model="gpt-4o-mini",
+        default_model="gpt-4o-mini",
     ),
     "anthropic": Provider(
         name="Anthropic",
         create=_anthropic_client,
         key_url=URL_CLAVE_ANTHROPIC,
-        example_model="claude-haiku-4-5",
+        default_model="claude-haiku-4-5",
     ),
     "mistral": Provider(
         name="Mistral",
         create=_openai_compatible_client("https://api.mistral.ai/v1"),
         key_url="https://console.mistral.ai/api-keys",
-        example_model="mistral-small-latest",
+        default_model="mistral-small-latest",
     ),
     "openrouter": Provider(
         name="OpenRouter",
         create=_openai_compatible_client("https://openrouter.ai/api/v1"),
         key_url="https://openrouter.ai/keys",
-        example_model="openai/gpt-4o-mini",
+        default_model="openai/gpt-4o-mini",
     ),
+    # Kept last on purpose: `settings.html` renders the dropdown in
+    # registry order, and this is the one entry every other provider's user
+    # never needs to see (see `display_name` below for its translated label).
     "personalizado": Provider(
         name="Otro (URL manual)",
         create=_custom_client,
     ),
 }
+
+
+def display_name(clave: str, proveedor: Provider) -> str:
+    """Text for one entry of the Settings provider dropdown.
+
+    Every other provider's name is a brand name and does not translate.
+    `personalizado`'s is a UI label ("Other"), so it cannot live translated
+    inside the frozen `PROVIDERS` dict (built once at import time, before
+    any request/locale exists) — it is resolved here instead, at request
+    time. The literal stays a direct `_(...)` call so `pybabel extract`
+    still finds it despite the dict-driven dropdown.
+    """
+    if clave == "personalizado":
+        return _("Otro (URL manual)")
+    return proveedor.name
 
 
 def create_client(proveedor: str, clave_api: str, url_base: str = "", modelo: str = "") -> AIClient:

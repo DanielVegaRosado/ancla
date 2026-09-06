@@ -9,7 +9,18 @@
     {{ _('El resultado aparece en «Última propuesta», donde podrás revisarlo, ajustarlo y guardarlo.') }}
   </p>
 
-  <form class="pila" method="post" action="{{ url_for('ancla.adapt') }}">
+  {# Same `data-confirmar` mechanism as the "Adaptar otra vacante" exit on
+     Proposal: this form is the other door onto the same overwrite, since
+     generating a proposal always replaces whatever draft is on disk.
+     Conditioned on `hay_borrador` (injected for every screen by the
+     context processor) so a first-time user never sees a confirm dialog
+     with nothing at stake. #}
+  <form
+    class="pila"
+    method="post"
+    action="{{ url_for('ancla.adapt') }}"
+    {% if hay_borrador %}data-confirmar="{{ _('Ya tienes una propuesta sin guardar. Si generas esta, se perderá. ¿Continuar?') }}"{% endif %}
+  >
     <div class="campo">
       <label for="vacante">{{ _('Texto de la vacante') }}</label>
       <textarea id="vacante" name="vacante" class="alta" required>{{ vacante }}</textarea>

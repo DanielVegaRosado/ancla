@@ -107,13 +107,18 @@ class OpenAICompatibleClient:
             ) from exc
         return OpenAI(api_key=self.clave, base_url=self.url_base, timeout=TIMEOUT_SEGUNDOS)
 
-    @staticmethod
-    def _explain(exc: Exception) -> str:
+    def _explain(self, exc: Exception) -> str:
         """Translates the SDK's failure into something the user can act on.
 
         Deliberately inspects the error's text, not its class, same as in
         `groq.py`: here the SDK is additionally shared across different
         providers, so the specific exception class says even less.
+
+        The 404 branch names the configured model, same pattern as
+        `groq.py`'s own 404 handling: a model set as a provider's default
+        (`Provider.default_model` in `web/providers.py`) can be retired by
+        that provider later, and whoever never touched Settings needs to
+        see which name stopped working, not just that something did.
         """
         codigo = getattr(exc, "status_code", None)
         texto = str(exc).lower()
@@ -124,8 +129,9 @@ class OpenAICompatibleClient:
             )
         if codigo == 404 or ("model" in texto and "not found" in texto):
             return _(
-                "El modelo configurado no existe en este proveedor, o la URL base "
-                "de Ajustes está mal. Revisa ambos."
+                "El modelo «%(modelo)s» ya no está disponible en este proveedor, o "
+                "la URL base de Ajustes está mal. Elige otro modelo o revisa la URL.",
+                modelo=self.modelo,
             )
         if codigo == 429 or "rate limit" in texto or "quota" in texto:
             return _(

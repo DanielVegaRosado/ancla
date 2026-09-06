@@ -7,12 +7,14 @@
     <div class="campo">
       <label for="proveedor">{{ _('Proveedor de IA') }}</label>
       <select id="proveedor" name="proveedor">
-        <option value="groq" {{ "selected" if ajustes.proveedor == "groq" else "" }}>Groq Cloud</option>
-        <option value="openai" {{ "selected" if ajustes.proveedor == "openai" else "" }}>OpenAI</option>
-        <option value="anthropic" {{ "selected" if ajustes.proveedor == "anthropic" else "" }}>Anthropic</option>
-        <option value="mistral" {{ "selected" if ajustes.proveedor == "mistral" else "" }}>Mistral</option>
-        <option value="openrouter" {{ "selected" if ajustes.proveedor == "openrouter" else "" }}>OpenRouter</option>
-        <option value="personalizado" {{ "selected" if ajustes.proveedor == "personalizado" else "" }}>{{ _('Otro (URL manual)') }}</option>
+        {#
+          Generado desde el registro (`web/providers.py`), en su mismo
+          orden, para que el desplegable no pueda desincronizarse de él —
+          "personalizado" va último ahí a propósito, y por eso también aquí.
+        #}
+        {% for clave, proveedor in proveedores.items() %}
+          <option value="{{ clave }}" {{ "selected" if ajustes.proveedor == clave else "" }}>{{ nombre_proveedor(clave, proveedor) }}</option>
+        {% endfor %}
       </select>
       {#
         Una línea por proveedor, ocultas todas menos la elegida: el aviso de
@@ -46,24 +48,33 @@
       </p>
     </div>
 
-    <div class="campo" data-mostrar-si-proveedor="openai,anthropic,mistral,openrouter,personalizado">
+    {#
+      Un único campo Modelo en todo el formulario (nunca dos con
+      name="modelo"): duplicarlo por proveedor enviaría los dos al guardar y
+      el servidor se quedaría con el que aparezca primero en el HTML, no con
+      el que se veía. Va ya relleno con el valor por defecto del proveedor,
+      plegado tras "Avanzado" para quien no necesita tocarlo — abierto solo
+      para "Otra API", que además de un modelo pide su propia URL y no tiene
+      ningún valor por defecto que ofrecer.
+    #}
+    <details class="campo" data-mostrar-si-proveedor="{{ proveedores_con_modelo|join(',') }}"
+              {{ "open" if ajustes.proveedor == "personalizado" else "" }}>
+      <summary>{{ _('Avanzado') }}</summary>
       <label for="modelo">{{ _('Modelo') }}</label>
       <input type="text" id="modelo" name="modelo" autocomplete="off"
-             value="{{ ajustes.modelo }}" placeholder="{{ proveedores[ajustes.proveedor].example_model }}">
-      <p class="ayuda">{{ _('El nombre exacto del modelo tal cual lo espera ese proveedor.') }}</p>
-      {% for clave, proveedor in proveedores.items() if proveedor.example_model %}
-        <p class="ayuda" data-mostrar-si-proveedor="{{ clave }}"{{ "" if ajustes.proveedor == clave else " hidden" }}>
-          {{ _('Cópialo de la documentación de %(nombre)s; tiene esta pinta: %(ejemplo)s.', nombre=proveedor.name, ejemplo=proveedor.example_model) }}
-        </p>
-      {% endfor %}
-    </div>
+             value="{{ ajustes.modelo or proveedores[ajustes.proveedor].default_model }}"
+             placeholder="{{ proveedores[ajustes.proveedor].default_model }}">
+      <p class="ayuda">
+        {{ _('Ya hemos puesto un modelo que funciona. Cámbialo solo si quieres usar otro, copiándolo tal cual de la documentación de tu proveedor.') }}
+      </p>
 
-    <div class="campo" data-mostrar-si-proveedor="personalizado">
-      <label for="url_base">{{ _('URL base') }}</label>
-      <input type="text" id="url_base" name="url_base" autocomplete="off"
-             value="{{ ajustes.url_base }}" placeholder="https://api.example.com/v1">
-      <p class="ayuda">{{ _('La dirección que te dé la documentación de tu proveedor. Los demás ya la llevan puesta.') }}</p>
-    </div>
+      <div class="campo" data-mostrar-si-proveedor="personalizado">
+        <label for="url_base">{{ _('URL base') }}</label>
+        <input type="text" id="url_base" name="url_base" autocomplete="off"
+               value="{{ ajustes.url_base }}" placeholder="https://api.example.com/v1">
+        <p class="ayuda">{{ _('La dirección que te dé la documentación de tu proveedor. Los demás ya la llevan puesta.') }}</p>
+      </div>
+    </details>
 
     <div class="campo">
       <label for="idioma">{{ _('Idioma de la interfaz') }}</label>

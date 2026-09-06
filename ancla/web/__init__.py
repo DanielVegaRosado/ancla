@@ -5,7 +5,7 @@ ES/EN interface (manual selector in the header, no auto-detection — see
 `ajustes.idioma`). Runs locally; there are no accounts or authentication
 because only the owner of the computer the profile lives on ever uses it.
 
-Each screen is a module under `ancla/web/vistas/`, with its routes
+Each screen is a module under `ancla/web/views/`, with its routes
 registered on the single `Blueprint` in `ancla/web/blueprint.py`. This
 factory only assembles the app: configuration, template filters, and error
 handling — it knows nothing about any particular screen.

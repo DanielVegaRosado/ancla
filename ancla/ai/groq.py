@@ -28,8 +28,7 @@ TIMEOUT_SEGUNDOS = 120
 # `gpt-oss-120b` is a "reasoning" model: before writing the final answer it
 # spends part of its token budget "thinking". Without `max_tokens`, the
 # provider applies its own default limit, and a request that asks for a lot
-# of detail (the importer can return several complete bilingual
-# experiences) can exhaust it mid-thought and come back with empty or
+# of detail can exhaust it mid-thought and come back with empty or
 # half-cut content — no error at all, just incomplete JSON.
 #
 # The budget is reserved per call rather than fixed, because Groq decides
@@ -38,14 +37,24 @@ TIMEOUT_SEGUNDOS = 120
 # of the free tier's 8000 tokens per minute. A ceiling reserved for every
 # call makes short requests compete for room they were never going to use.
 #
-# The figures come from the real API with two-page CVs: the response never
-# took more than one token per character of the text sent, so the factor
-# below leaves 40% on top of the worst measured case, plus the model's own
-# reasoning budget, which is spent out of this same reservation. Reserving
+# **This scaling is only the fallback for a caller that has not measured its
+# own shape.** A caller that knows how its own request relates to its own
+# response — the CV importer, the "About me" gap proposal, the selection
+# engine — computes its own number and passes it through
+# `ai.client.complete_with_budget` instead of leaving it to this generic
+# per-character guess: three genuinely different use cases sharing one ratio
+# is exactly the miscalibration that under-reserved the importer for months
+# and over-reserved everyone else. What is left here is what covers a caller
+# that only sends occasional short text (see `profile/keywords.py`,
+# `profile/translation.py`), so a fixed ceiling still made sense: the figures
+# come from the real API with two-page, both-languages CVs (the importer's
+# shape before it moved to a single language and its own budget), where the
+# response never took more than one token per character of the text sent, so
+# the factor below leaves 40% on top of that worst measured case. Reserving
 # too little is the dangerous direction — the model stops mid-JSON and the
-# caller gets nothing usable — so the floor is deliberately generous and
-# the ceiling is what the whole per-minute allowance can afford alongside a
-# long prompt.
+# caller gets nothing usable — so the floor is deliberately generous and the
+# ceiling is what the whole per-minute allowance can afford alongside a long
+# prompt.
 TOKENS_RESPUESTA_POR_CARACTER = 1.4
 MIN_TOKENS_RESPUESTA = 1500
 MAX_TOKENS_RESPUESTA = 4000
@@ -89,11 +98,14 @@ URL_CONSEGUIR_CLAVE = "https://console.groq.com/keys"
 
 
 def _reserved_tokens(usuario: str) -> int:
-    """Room to reserve for the response, from the size of the text sent.
+    """Fallback room to reserve for the response, from the size of the text
+    sent, for a caller that has not computed its own number.
 
     Only the user text counts: the system prompt is instructions, and what
     the model has to write back is proportional to the material it is given
-    — the CV to read, or the catalog to choose from.
+    — the CV to read, or the catalog to choose from. See the module comment
+    above `TOKENS_RESPUESTA_POR_CARACTER` for why this is a fallback and not
+    the one place this decision is made.
     """
     escalado = int(len(usuario) * TOKENS_RESPUESTA_POR_CARACTER)
     return max(MIN_TOKENS_RESPUESTA, min(MAX_TOKENS_RESPUESTA, escalado))
@@ -123,7 +135,11 @@ class GroqClient:
         """True if a key is configured. Does not check that it is valid."""
         return bool(self.clave)
 
-    def complete(self, sistema: str, usuario: str) -> str:
+    def complete(self, sistema: str, usuario: str, max_tokens: int | None = None) -> str:
+        """`max_tokens` is optional so this still satisfies `AIClient` on its
+        own; a caller that knows its own request shape passes it through
+        `ai.client.complete_with_budget` instead of leaving it to the
+        fallback in `_reserved_tokens`."""
         if not self.available():
             raise AIError(
                 _(
@@ -132,7 +148,7 @@ class GroqClient:
                     url=URL_CONSEGUIR_CLAVE,
                 )
             )
-        respuesta = self._request(sistema, usuario)
+        respuesta = self._request(sistema, usuario, max_tokens)
         if not respuesta.strip():
             raise AIError(
                 _("Groq ha devuelto una respuesta vacía. Vuelve a generar la propuesta.")
@@ -141,13 +157,13 @@ class GroqClient:
 
     # ----------------------------------------------------------------------
 
-    def _request(self, sistema: str, usuario: str) -> str:
+    def _request(self, sistema: str, usuario: str, max_tokens: int | None) -> str:
         cliente = self._sdk()
         try:
             completado = cliente.chat.completions.create(
                 model=self.modelo,
                 temperature=self.temperatura,
-                max_tokens=_reserved_tokens(usuario),
+                max_tokens=max_tokens if max_tokens is not None else _reserved_tokens(usuario),
                 reasoning_effort=REASONING_EFFORT,
                 messages=[
                     {"role": "system", "content": sistema},

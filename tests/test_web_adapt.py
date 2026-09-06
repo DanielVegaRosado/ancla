@@ -17,7 +17,15 @@ from pathlib import Path
 import pytest
 
 from ancla.profile import store
-from ancla.profile.model import AboutMe, Bilingual, Experience, Skill
+from ancla.profile.model import (
+    AboutMe,
+    Bilingual,
+    Experience,
+    Proposal,
+    SelectedAboutMe,
+    Skill,
+)
+from ancla.web import draft as modulo_borrador
 
 VACANTE = "Backend Engineer en Nubelia. Buscamos Python y FastAPI."
 
@@ -167,6 +175,36 @@ def test_propuesta_ofrece_salida_para_adaptar_otra_vacante(cliente_web, monkeypa
     assert 'action="/adaptar"' in pagina
     assert "Adaptar otra vacante" in pagina
     assert "data-confirmar" in pagina.split('action="/adaptar"')[1][:400]
+
+
+def test_el_formulario_de_adaptar_avisa_si_ya_hay_borrador(cliente_web):
+    """The second door onto the same overwrite: entering through the menu
+    and submitting the Adapt form replaces the draft exactly like the
+    "Adaptar otra vacante" exit on Proposal, so it needs the same guard."""
+    modulo_borrador.save_draft(
+        cliente_web.application.config["RAIZ_PERFIL"],
+        modulo_borrador.Draft(
+            vacante="Otra vacante",
+            empresa="ACME",
+            puesto="Backend",
+            propuesta=Proposal(
+                language="es",
+                about_me=SelectedAboutMe(group_a=[], group_b=[], text="x", reason=""),
+                skills=["python"],
+                experiences=[],
+            ),
+        ),
+    )
+
+    pagina = cliente_web.get("/adaptar").get_data(as_text=True)
+
+    assert "data-confirmar" in pagina.split('action="/adaptar"')[1][:400]
+
+
+def test_el_formulario_de_adaptar_no_avisa_sin_borrador(cliente_web):
+    pagina = cliente_web.get("/adaptar").get_data(as_text=True)
+
+    assert "data-confirmar" not in pagina.split('action="/adaptar"')[1][:400]
 
 
 # --------------------------------------------------------------------------

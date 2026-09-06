@@ -55,7 +55,7 @@ from dataclasses import dataclass, field
 
 from flask_babel import gettext as _
 
-from ancla.ai.client import AIClient, AIError
+from ancla.ai.client import AIClient, AIError, complete_with_budget
 from ancla.profile.serialization import split_period
 from ancla.profile.model import (
     Bilingual,
@@ -79,6 +79,26 @@ from ancla.text import to_text, to_texts, json_block, normalize, slugify
 # analysed only up to the middle used to look like a model that had missed
 # half a career.
 MAX_CARACTERES_CV = 8000
+
+# How much room to declare for the response Groq is asked to admit — see
+# `ai.client.complete_with_budget`. This module reserves its own number
+# instead of leaving it to `ai/groq.py`'s generic fallback because it is the
+# one caller here whose response genuinely scales with what it sends: the
+# model copies fields out of the CV, so a longer CV produces a longer
+# answer, unlike the selection engine's fixed-shape ids and reasons or the
+# "About me" gaps' six short fragments.
+#
+# Measured against the real API with two real, full CVs, single-language
+# (checked 2026-09-06): 0.58 and 0.87 completion tokens per character sent,
+# depending on how densely the CV itself is written — a CV that is mostly
+# short bullet lists costs more per character than one written in prose.
+# With only two runs to go on and reserving too little being what cuts the
+# JSON in half, the factor below adds margin on top of the worse of the two
+# rather than their average — over-reserving only risks the 429 the SDK
+# already retries on its own.
+TOKENS_RESPUESTA_POR_CARACTER = 1.2
+MIN_TOKENS_RESPUESTA = 1500
+MAX_TOKENS_RESPUESTA = MAX_CARACTERES_CV  # never asked for more than a full CV could need
 
 PLANTILLA_SISTEMA = """\
 Analizas el texto de un CV para ayudar a una persona a construir su base de datos \
@@ -225,7 +245,9 @@ def analyze_cv(
         texto = texto[:MAX_CARACTERES_CV] + "\n[...texto recortado...]"
 
     try:
-        bruto = cliente.complete(_system_prompt(idioma), texto)
+        bruto = complete_with_budget(
+            cliente, _system_prompt(idioma), texto, _reserved_tokens(texto)
+        )
     except AIError as error:
         # The provider clients already phrase their failures as what to do
         # next; prefixing them with a cause would bury that advice.
@@ -308,6 +330,17 @@ def analyze_cv(
 # --------------------------------------------------------------------------
 # Model response -> candidates
 # --------------------------------------------------------------------------
+
+
+def _reserved_tokens(texto: str) -> int:
+    """Room to declare for the response, from the size of the CV text sent.
+
+    See `TOKENS_RESPUESTA_POR_CARACTER` above for where the factor comes
+    from. `texto` is already clamped to `MAX_CARACTERES_CV` by the caller,
+    so this never has to clamp against a runaway input on its own.
+    """
+    escalado = int(len(texto) * TOKENS_RESPUESTA_POR_CARACTER)
+    return max(MIN_TOKENS_RESPUESTA, min(MAX_TOKENS_RESPUESTA, escalado))
 
 
 def _system_prompt(idioma: Language) -> str:

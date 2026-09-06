@@ -249,6 +249,44 @@ def test_un_cv_larguisimo_se_recorta_antes_de_enviarlo():
     assert len(usuario) < 50000
 
 
+class _ClienteConPresupuesto(ClienteFalso):
+    """Like a provider that understands `ai.client.complete_with_budget`'s
+    hint, unlike the plain `ClienteFalso` above (which mirrors Anthropic's
+    and the generic OpenAI-compatible client's fixed two-argument shape)."""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.max_tokens_recibido: int | None = None
+
+    def complete(self, sistema: str, usuario: str, max_tokens: int | None = None) -> str:
+        self.max_tokens_recibido = max_tokens
+        return super().complete(sistema, usuario)
+
+
+def test_declara_un_presupuesto_que_crece_con_el_texto_del_cv():
+    """Unlike the selection engine or the "About me" gaps, this module's
+    response genuinely scales with what it sends — the model copies fields
+    out of the CV — so a longer text has to declare more room, not a fixed
+    number."""
+    import ancla.profile.importer as modulo_importador
+
+    corto = _ClienteConPresupuesto(_respuesta())
+    analyze_cv(corto, "Experiencia en analisis de datos con Python.", Profile())
+
+    largo = _ClienteConPresupuesto(_respuesta())
+    analyze_cv(largo, "Python. " * 500, Profile())
+
+    assert corto.max_tokens_recibido == modulo_importador.MIN_TOKENS_RESPUESTA
+    assert largo.max_tokens_recibido > corto.max_tokens_recibido
+
+
+def test_un_cliente_que_no_entiende_el_presupuesto_se_llama_igual():
+    resultado = analyze_cv(
+        ClienteFalso(_respuesta()), "Experiencia en analisis de datos con Python.", Profile()
+    )
+    assert resultado.experiencias
+
+
 # --------------------------------------------------------------------------
 # Personal skills and languages
 #

@@ -24,7 +24,7 @@
           <div class="fila-tarjeta">
             <div>
               <h3>{{ idioma.name["es"] or idioma.name["en"] }}</h3>
-              <p class="ayuda">{{ idioma.level["es"] or idioma.level["en"] }} · id: {{ idioma.id }}</p>
+              <p class="ayuda">{{ idioma.level["es"] or idioma.level["en"] }}</p>
             </div>
             <div class="acciones">
               {% with seccion = "idiomas", entrada = idioma %}{% include "_untranslated.html" %}{% endwith %}

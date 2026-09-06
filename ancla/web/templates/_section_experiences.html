@@ -24,7 +24,7 @@
           <div class="fila-tarjeta">
             <div>
               <h3>{{ experiencia.title["es"] or experiencia.title["en"] }}</h3>
-              <p class="ayuda">{{ periodo(experiencia, "es") }} · {{ experiencia.bullets["es"]|length }} {{ _('bullets') }} · id: {{ experiencia.id }}</p>
+              <p class="ayuda">{{ periodo(experiencia, "es") }} · {{ experiencia.bullets["es"]|length }} {{ _('bullets') }}</p>
             </div>
             <div class="acciones">
               {% with seccion = "experiencias", entrada = experiencia %}{% include "_untranslated.html" %}{% endwith %}

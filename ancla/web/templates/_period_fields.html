@@ -9,7 +9,14 @@
    `elemento` is the experience or the education entry being edited, or None
    when creating. A stored value that is not on either list is added as its
    own option so a profile migrated from free text can still be opened and
-   saved without losing what it said. #}
+   saved without losing what it said.
+
+   The start select has no year marked `selected` when there is no stored
+   value yet: leaving that choice to the browser meant it fell on the first
+   `<option>`, the current year, so a new entry whose period nobody typed
+   was saved with a year nobody chose. A disabled placeholder takes that
+   slot instead — invalid for a `required` field, so the browser blocks the
+   submit until a real year is picked. #}
 {% set prefijo = prefijo | default("") %}
 {% set inicio = elemento.period_start if elemento else '' %}
 {% set fin = elemento.period_end if elemento else '' %}
@@ -18,7 +25,9 @@
   <label for="{{ prefijo }}periodo_inicio">{{ _('Periodo') }}</label>
   <div class="periodo">
     <select id="{{ prefijo }}periodo_inicio" name="{{ prefijo }}periodo_inicio" required>
-      {% if inicio and inicio not in anios %}
+      {% if not inicio %}
+        <option value="" disabled selected>{{ _('Selecciona un año') }}</option>
+      {% elif inicio not in anios %}
         <option value="{{ inicio }}" selected>{{ inicio }}</option>
       {% endif %}
       {% for anio in anios %}
