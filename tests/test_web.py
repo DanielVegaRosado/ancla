@@ -248,25 +248,23 @@ def test_guardar_ajustes_los_persiste(cliente_web, tmp_path: Path):
     assert guardados.configured()
 
 
-def test_guardar_una_clave_de_grok_en_vez_de_groq_avisa_pero_no_bloquea(
-    cliente_web, tmp_path: Path
-):
+def test_una_clave_con_otro_prefijo_avisa_pero_no_bloquea(cliente_web, tmp_path: Path):
     """The real case that prompted this: an xAI (Grok, «xai-...») key pasted
     by mistake instead of a Groq one («gsk_...»). It is saved all the same
-    —it is not the app's place to prevent it— but it is flagged right when
-    it is saved, not only when the first call fails."""
+    —it is not the app's place to decide whether a key is valid— but it is
+    flagged when it is saved, not only when the first call fails.
+
+    Asserting on where to go and what shape to look for, not on the wording:
+    the message has to leave the person able to fix it, and that is the part
+    that must survive the next rewrite."""
     respuesta = cliente_web.post(
         "/ajustes",
         data={"proveedor": "groq", "clave_api": "xai-abc123"},
         follow_redirects=True,
     )
     assert respuesta.status_code == 200
-    # Asserting on where to go rather than on the wording: the message has
-    # to leave the person able to fix it, and that is the part that must not
-    # get lost the next time it is reworded.
     assert "console.groq.com".encode("utf-8") in respuesta.data
-    assert "Grok".encode("utf-8") in respuesta.data
-    # It is saved all the same: it is not up to the app to decide if a key is valid.
+    assert "gsk_".encode("utf-8") in respuesta.data
     guardados = modulo_ajustes.load_settings(tmp_path / "ajustes.json")
     assert guardados.clave_api == "xai-abc123"
 
@@ -691,6 +689,61 @@ def test_guardar_una_clave_mal_pegada_de_anthropic_avisa_pero_no_bloquea(
     assert "sk-ant-".encode("utf-8") in respuesta.data
     guardados = modulo_ajustes.load_settings(tmp_path / "ajustes.json")
     assert guardados.clave_api == "sk-otra-cosa"
+
+
+def test_una_clave_con_la_forma_correcta_no_avisa(cliente_web):
+    """Right prefix and long enough: no warning, only the generic
+    "Ajustes guardados." flash."""
+    respuesta = cliente_web.post(
+        "/ajustes",
+        data={"proveedor": "groq", "clave_api": "gsk_" + "a" * 50},
+        follow_redirects=True,
+    )
+    assert "no parece de Groq".encode("utf-8") not in respuesta.data
+
+
+def test_una_clave_demasiado_corta_avisa_aunque_tenga_el_prefijo_correcto(cliente_web):
+    """The prefix alone does not make a key plausible: `gsk_prueba` starts
+    right but is nowhere near a real Groq key's length."""
+    respuesta = cliente_web.post(
+        "/ajustes",
+        data={"proveedor": "groq", "clave_api": "gsk_prueba"},
+        follow_redirects=True,
+    )
+    assert "no parece de Groq".encode("utf-8") in respuesta.data
+
+
+def test_avisar_de_una_clave_con_forma_sospechosa_no_impide_guardarla(
+    cliente_web, tmp_path: Path
+):
+    """The shape check is a warning, never a gate: only the provider's own
+    API call can actually confirm a key works, so an implausible-looking
+    key is still saved as typed."""
+    respuesta = cliente_web.post(
+        "/ajustes",
+        data={"proveedor": "groq", "clave_api": "gsk_prueba"},
+        follow_redirects=True,
+    )
+    assert respuesta.status_code == 200
+    guardados = modulo_ajustes.load_settings(tmp_path / "ajustes.json")
+    assert guardados.clave_api == "gsk_prueba"
+    assert guardados.configured()
+
+
+def test_un_proveedor_sin_prefijo_conocido_nunca_avisa(cliente_web):
+    """`personalizado` has no confirmed key shape (`key_hint` empty), so any
+    string is accepted without a warning — any format is legitimate there."""
+    respuesta = cliente_web.post(
+        "/ajustes",
+        data={
+            "proveedor": "personalizado",
+            "clave_api": "x",
+            "modelo": "m",
+            "url_base": "https://x",
+        },
+        follow_redirects=True,
+    )
+    assert "no parece de".encode("utf-8") not in respuesta.data
 
 
 def test_sin_saldo_en_anthropic_dice_que_comprar_credito_o_cambiar_a_groq(cliente_web):

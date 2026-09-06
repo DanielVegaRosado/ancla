@@ -1,10 +1,11 @@
-"""Discovers Canva template previews (PDFs Daniel exported by hand) from a
-folder. Same pattern as `ancla/export/templates.py`: a `<nombre>.pdf`
-paired with a sibling `<nombre>.yaml` for its visible name (`nombre: Texto`
-for the same name in both languages, or `nombre: {es: ..., en: ...}` for a
-different one per interface language). Adding one never touches code —
-drop both files in `canva-templates/` and it shows up. A `.pdf` without
-its `.yaml`, or with one that fails to parse, is skipped.
+"""Discovers Canva template previews (PDFs, exported manually from Canva
+which cannot export an editable format) from a folder. Same pattern as
+`ancla/export/templates.py`: a `<nombre>.pdf` paired with a sibling
+`<nombre>.yaml` for its visible name (`nombre: Texto` for the same name
+in both languages, or `nombre: {es: ..., en: ...}` for a different one
+per interface language). Adding one never touches code — drop both files
+in `canva-templates/` and it shows up. A `.pdf` without its `.yaml`, or
+with one that fails to parse, is skipped.
 
 These are design references shown inline in the app, never filled or
 exported — unrelated to `ancla/export/templates.py`'s `.docx` templates,

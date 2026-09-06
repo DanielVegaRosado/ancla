@@ -55,41 +55,49 @@ def view_settings():
     )
     context.save_current_settings(nuevos)
 
-    # A warning, not a block, and only for Groq: not every key has to carry
-    # this prefix (e.g. if Groq changes its format), so it is saved as-is
-    # and the actual call is left to confirm whether it is valid. But the
-    # real case that prompted this — an xAI (Grok, "xai-...") key pasted in
-    # by mistake thinking it was Groq's — can be flagged the moment it is
-    # saved instead of waiting for the first failure. With "Other
-    # (OpenAI-compatible)" any key format is legitimate, so the warning
-    # does not apply.
-    #
-    # The wording leads with what to do rather than with what is wrong: the
-    # person reading it is trying to get started, and the shape of the key
-    # is not information they can act on by itself.
-    if nuevos.proveedor == "groq" and nuevos.clave_api and not nuevos.clave_api.startswith("gsk_"):
-        flash(
-            _(
-                "Esa clave no parece de Groq, así que seguramente no funcione. "
-                "Consigue la tuya gratis en console.groq.com: entra, crea una clave "
-                "nueva y pégala aquí. Ojo, que console.x.ai es otro servicio "
-                "distinto (Grok) aunque el nombre se parezca mucho."
-            )
-        )
-    # Same idea, this time for Anthropic: a key generated for a different
-    # provider and pasted here by mistake fails the same way — flag it at
-    # save time rather than after the first call.
-    if (
-        nuevos.proveedor == "anthropic"
-        and nuevos.clave_api
-        and not nuevos.clave_api.startswith("sk-ant-")
-    ):
-        flash(
-            _(
-                "Esa clave no parece de Anthropic, así que seguramente no funcione. "
-                "Consigue la tuya en console.anthropic.com: entra, crea una clave "
-                "nueva y pégala aquí. Las claves de Anthropic empiezan por sk-ant-."
-            )
-        )
+    _flash_si_la_clave_no_parece_valida(nuevos)
     flash(_("Ajustes guardados."))
     return redirect(url_for("ancla.view_settings"))
+
+
+def _flash_si_la_clave_no_parece_valida(nuevos: modulo_ajustes.Settings) -> None:
+    """Warn, without blocking, when the key just saved does not have its
+    provider's known shape (`Provider.key_hint` + `Provider.min_key_length`).
+
+    A shape check can never confirm a key works — only the provider's own
+    API call can, on the first real request — so this always saves the key
+    as typed and only ever says it "does not look like" a valid key, never
+    that it is invalid. A provider with no confirmed shape (`key_hint`
+    empty, e.g. "personalizado") is never flagged.
+
+    The wording leads with what to do rather than with what is wrong: the
+    person reading it is trying to get started, and the shape of the key is
+    not information they can act on by itself.
+    """
+    proveedor = PROVIDERS.get(nuevos.proveedor)
+    if proveedor is None or not nuevos.clave_api or proveedor.looks_like_valid_key(nuevos.clave_api):
+        return
+
+    if proveedor.free_tier:
+        mensaje = _(
+            "Esa clave no parece de %(nombre)s, así que seguramente no funcione. "
+            "Consigue la tuya gratis en %(url)s: entra, crea una clave nueva y "
+            "pégala aquí.",
+            nombre=proveedor.name,
+            url=proveedor.key_url,
+        )
+    else:
+        mensaje = _(
+            "Esa clave no parece de %(nombre)s, así que seguramente no funcione. "
+            "Consigue la tuya en %(url)s: entra, crea una clave nueva y pégala aquí.",
+            nombre=proveedor.name,
+            url=proveedor.key_url,
+        )
+    mensaje += " " + str(
+        _(
+            "Las claves de %(nombre)s empiezan por %(prefijo)s.",
+            nombre=proveedor.name,
+            prefijo=proveedor.key_hint,
+        )
+    )
+    flash(mensaje)

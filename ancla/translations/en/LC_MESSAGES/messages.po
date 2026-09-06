@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-09-06 09:46+0200\n"
+"POT-Creation-Date: 2026-09-06 16:33+0200\n"
 "PO-Revision-Date: 2026-07-30 12:46+0200\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -981,11 +981,11 @@ msgstr "Present"
 msgid "Finalizado"
 msgstr "Finished"
 
-#: ancla/web/providers.py:158
+#: ancla/web/providers.py:179
 msgid "Otro (URL manual)"
 msgstr "Other (manual URL)"
 
-#: ancla/web/providers.py:181
+#: ancla/web/providers.py:202
 msgid ""
 "El proveedor personalizado no está disponible en esta demo pública: "
 "dejaría que el servidor compartido hiciera peticiones a cualquier "
@@ -996,12 +996,12 @@ msgstr ""
 " shared server make requests to any address a visitor types in. Try Groq,"
 " OpenAI, Mistral, OpenRouter, or Anthropic."
 
-#: ancla/web/providers.py:190
+#: ancla/web/providers.py:211
 #, python-format
 msgid "Proveedor de IA desconocido: «%(proveedor)s»."
 msgstr "Unknown AI provider: “%(proveedor)s”."
 
-#: ancla/web/providers.py:197
+#: ancla/web/providers.py:218
 #, python-format
 msgid "El proveedor %(nombre)s todavía no está disponible en esta instalación."
 msgstr "The %(nombre)s provider isn't available in this installation yet."
@@ -1277,8 +1277,12 @@ msgid "Falta en %(idioma)s"
 msgstr "Missing in %(idioma)s"
 
 #: ancla/web/templates/_untranslated.html:20
-msgid "Traducir usa la última versión guardada. Los cambios sin guardar de este formulario se perderán. ¿Traducir de todas formas?"
-msgstr "Translating works from the last saved version. Unsaved changes in this form will be lost. Translate anyway?"
+msgid ""
+"Traducir usa la última versión guardada. Los cambios sin guardar de este "
+"formulario se perderán. ¿Traducir de todas formas?"
+msgstr ""
+"Translating works from the last saved version. Unsaved changes in this "
+"form will be lost. Translate anyway?"
 
 #: ancla/web/templates/_untranslated.html:21
 msgid "Traducir"
@@ -2380,7 +2384,7 @@ msgstr "You already have a %(nombre)s key saved."
 msgid "Todavía no has configurado ninguna clave de %(nombre)s."
 msgstr "You have not set up a %(nombre)s key yet."
 
-#: ancla/web/templates/settings.html:68
+#: ancla/web/templates/settings.html:68 ancla/web/views/settings.py:98
 #, fuzzy, python-format
 msgid "Las claves de %(nombre)s empiezan por %(prefijo)s."
 msgstr "%(nombre)s keys start with %(prefijo)s."
@@ -2394,8 +2398,12 @@ msgid "p. ej. llama-3.3-70b-versatile"
 msgstr "e.g. llama-3.3-70b-versatile"
 
 #: ancla/web/templates/settings.html:89
-msgid "El nombre exacto del modelo, tal cual lo escribe la documentación de tu proveedor."
-msgstr "The exact model name, written just as your provider's documentation writes it."
+msgid ""
+"El nombre exacto del modelo, tal cual lo escribe la documentación de tu "
+"proveedor."
+msgstr ""
+"The exact model name, written just as your provider's documentation "
+"writes it."
 
 #: ancla/web/templates/settings.html:92
 msgid "URL base"
@@ -3124,31 +3132,29 @@ msgstr ""
 "shared server from calling arbitrary addresses). Try Groq, OpenAI, "
 "Mistral, OpenRouter, or Anthropic."
 
-#: ancla/web/views/settings.py:73
-msgid ""
-"Esa clave no parece de Groq, así que seguramente no funcione. Consigue la"
-" tuya gratis en console.groq.com: entra, crea una clave nueva y pégala "
-"aquí. Ojo, que console.x.ai es otro servicio distinto (Grok) aunque el "
-"nombre se parezca mucho."
-msgstr ""
-"That key does not look like a Groq one, so it probably will not work. Get"
-" yours free at console.groq.com: sign in, create a new key and paste it "
-"here. Careful, console.x.ai is a different service (Grok) even though the"
-" name looks almost the same."
-
-#: ancla/web/views/settings.py:89
-msgid ""
-"Esa clave no parece de Anthropic, así que seguramente no funcione. "
-"Consigue la tuya en console.anthropic.com: entra, crea una clave nueva y "
-"pégala aquí. Las claves de Anthropic empiezan por sk-ant-."
-msgstr ""
-"That key does not look like an Anthropic one, so it probably will not "
-"work. Get yours at console.anthropic.com: sign in, create a new key and "
-"paste it here. Anthropic keys start with sk-ant-."
-
-#: ancla/web/views/settings.py:94
+#: ancla/web/views/settings.py:59
 msgid "Ajustes guardados."
 msgstr "Settings saved."
+
+#: ancla/web/views/settings.py:83
+#, fuzzy, python-format
+msgid ""
+"Esa clave no parece de %(nombre)s, así que seguramente no funcione. "
+"Consigue la tuya gratis en %(url)s: entra, crea una clave nueva y pégala "
+"aquí."
+msgstr ""
+"That key does not look like a %(nombre)s one, so it probably will not "
+"work. Get yours free at %(url)s: sign in, create a new key and paste it "
+"here."
+
+#: ancla/web/views/settings.py:91
+#, fuzzy, python-format
+msgid ""
+"Esa clave no parece de %(nombre)s, así que seguramente no funcione. "
+"Consigue la tuya en %(url)s: entra, crea una clave nueva y pégala aquí."
+msgstr ""
+"That key does not look like a %(nombre)s one, so it probably will not "
+"work. Get yours at %(url)s: sign in, create a new key and paste it here."
 
 #: ancla/web/views/support.py:35
 msgid "Cuéntanos qué ha pasado, o qué se te ha ocurrido, antes de enviarlo."
@@ -3518,4 +3524,31 @@ msgstr "Tell us what happened, or what came to mind, before sending it."
 #~ "you want a different one, copying "
 #~ "it exactly as written in your "
 #~ "provider's documentation."
+
+#~ msgid ""
+#~ "Esa clave no parece de Groq, así"
+#~ " que seguramente no funcione. Consigue "
+#~ "la tuya gratis en console.groq.com: "
+#~ "entra, crea una clave nueva y "
+#~ "pégala aquí. Ojo, que console.x.ai es"
+#~ " otro servicio distinto (Grok) aunque "
+#~ "el nombre se parezca mucho."
+#~ msgstr ""
+#~ "That key does not look like a "
+#~ "Groq one, so it probably will not"
+#~ " work. Get yours free at "
+#~ "console.groq.com: sign in, create a new"
+#~ " key and paste it here. Careful, "
+#~ "console.x.ai is a different service "
+#~ "(Grok) even though the name looks "
+#~ "almost the same."
+
+#~ msgid ""
+#~ "Ojo, que console.x.ai es otro servicio"
+#~ " distinto (Grok) aunque el nombre se"
+#~ " parezca mucho."
+#~ msgstr ""
+#~ "Careful, console.x.ai is a different "
+#~ "service (Grok) even though the name "
+#~ "looks almost the same."
 

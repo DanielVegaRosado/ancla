@@ -68,7 +68,7 @@ MAX_TOKENS_RESPUESTA = 4000
 # giving up looks to the user like the CV was lost.
 REINTENTOS = 3
 
-# Checked against the real API with Daniel's CV, three times in a row:
+# Verified against the real API with a real CV (three separate attempts):
 # without this, the model spent 79% of the `max_tokens` budget "reasoning"
 # (3178 of 4000) and ran out of room for the JSON before finishing it
 # (`finish_reason: length`). With `"low"`, it spends ~200 and finishes

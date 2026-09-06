@@ -57,6 +57,11 @@ class Provider:
     Left empty for a provider with no fixed, confirmed prefix (`personalizado`
     included: any format is legitimate there), rather than print a hint that
     might not hold.
+
+    `min_key_length` is set well below the shortest real key seen for the
+    provider, so a shape check can only ever flag something that is
+    obviously too short — never a real key that happens to be on the
+    shorter side. Meaningless while `key_hint` is empty.
     """
 
     name: str
@@ -66,6 +71,20 @@ class Provider:
     free_tier: bool = False
     needs_model: bool = True
     key_hint: str = ""
+    min_key_length: int = 0
+
+    def looks_like_valid_key(self, clave_api: str) -> bool:
+        """Whether `clave_api` has this provider's known shape (prefix and
+        minimum length).
+
+        A shape check can never prove a key works — only the provider's own
+        API can — so a provider with no confirmed shape (empty `key_hint`)
+        always passes, and callers must phrase a failing result as "does
+        not look like a valid key", never as "is invalid".
+        """
+        if not self.key_hint:
+            return True
+        return clave_api.startswith(self.key_hint) and len(clave_api) >= self.min_key_length
 
 
 def _groq_client(clave_api: str, url_base: str, modelo: str) -> AIClient:
@@ -108,6 +127,7 @@ PROVIDERS: dict[str, Provider] = {
         free_tier=True,
         needs_model=False,
         key_hint="gsk_",
+        min_key_length=40,
     ),
     "openai": Provider(
         name="OpenAI",
@@ -121,6 +141,7 @@ PROVIDERS: dict[str, Provider] = {
         key_url=URL_CLAVE_ANTHROPIC,
         default_model="claude-haiku-4-5",
         key_hint="sk-ant-",
+        min_key_length=40,
     ),
     "mistral": Provider(
         name="Mistral",

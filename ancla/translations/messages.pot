@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-09-06 09:46+0200\n"
+"POT-Creation-Date: 2026-09-06 16:33+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -836,11 +836,11 @@ msgstr ""
 msgid "Finalizado"
 msgstr ""
 
-#: ancla/web/providers.py:158
+#: ancla/web/providers.py:179
 msgid "Otro (URL manual)"
 msgstr ""
 
-#: ancla/web/providers.py:181
+#: ancla/web/providers.py:202
 msgid ""
 "El proveedor personalizado no está disponible en esta demo pública: "
 "dejaría que el servidor compartido hiciera peticiones a cualquier "
@@ -848,12 +848,12 @@ msgid ""
 "OpenRouter o Anthropic."
 msgstr ""
 
-#: ancla/web/providers.py:190
+#: ancla/web/providers.py:211
 #, python-format
 msgid "Proveedor de IA desconocido: «%(proveedor)s»."
 msgstr ""
 
-#: ancla/web/providers.py:197
+#: ancla/web/providers.py:218
 #, python-format
 msgid "El proveedor %(nombre)s todavía no está disponible en esta instalación."
 msgstr ""
@@ -2120,7 +2120,7 @@ msgstr ""
 msgid "Todavía no has configurado ninguna clave de %(nombre)s."
 msgstr ""
 
-#: ancla/web/templates/settings.html:68
+#: ancla/web/templates/settings.html:68 ancla/web/views/settings.py:98
 #, python-format
 msgid "Las claves de %(nombre)s empiezan por %(prefijo)s."
 msgstr ""
@@ -2779,23 +2779,23 @@ msgid ""
 "Groq, OpenAI, Mistral, OpenRouter o Anthropic."
 msgstr ""
 
-#: ancla/web/views/settings.py:73
-msgid ""
-"Esa clave no parece de Groq, así que seguramente no funcione. Consigue la"
-" tuya gratis en console.groq.com: entra, crea una clave nueva y pégala "
-"aquí. Ojo, que console.x.ai es otro servicio distinto (Grok) aunque el "
-"nombre se parezca mucho."
-msgstr ""
-
-#: ancla/web/views/settings.py:89
-msgid ""
-"Esa clave no parece de Anthropic, así que seguramente no funcione. "
-"Consigue la tuya en console.anthropic.com: entra, crea una clave nueva y "
-"pégala aquí. Las claves de Anthropic empiezan por sk-ant-."
-msgstr ""
-
-#: ancla/web/views/settings.py:94
+#: ancla/web/views/settings.py:59
 msgid "Ajustes guardados."
+msgstr ""
+
+#: ancla/web/views/settings.py:83
+#, python-format
+msgid ""
+"Esa clave no parece de %(nombre)s, así que seguramente no funcione. "
+"Consigue la tuya gratis en %(url)s: entra, crea una clave nueva y pégala "
+"aquí."
+msgstr ""
+
+#: ancla/web/views/settings.py:91
+#, python-format
+msgid ""
+"Esa clave no parece de %(nombre)s, así que seguramente no funcione. "
+"Consigue la tuya en %(url)s: entra, crea una clave nueva y pégala aquí."
 msgstr ""
 
 #: ancla/web/views/support.py:35

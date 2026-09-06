@@ -1,12 +1,12 @@
 """Templates screen: a discreet link in the footer nav, outside the five
 main screens — same pattern as Support.
 
-The templates are design references (PDFs Daniel exported from Canva by
-hand), not profile data: they live in `canva-templates/` rather than in
-`perfil/`, because they are not something the user edits from the app nor
-something that varies between installations. Shown inline, full-page —
-never a redirect out to canva.com, so the app stays the only place a user
-needs to be to see them.
+The templates are design references (PDFs, exported manually from Canva
+which cannot export an editable format), not profile data: they live in
+`canva-templates/` rather than in `perfil/`, because they are not something
+the user edits from the app nor something that varies between installations.
+Shown inline, full-page — never a redirect out to canva.com, so the app
+stays the only place a user needs to be to see them.
 """
 from __future__ import annotations
 
