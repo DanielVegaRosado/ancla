@@ -14,6 +14,10 @@ Two criteria explain why the list says what it says:
 - **Every message says what is missing and where**, starting with the item
   ("Skill «python»: …"), because `validar_perfil` returns the issues for the
   whole profile together, and it has to be possible to go to the right file.
+- **Being unfinished is not the same as being wrong.** An entry written in
+  only one language is complete for the CV in that language, so it is a
+  warning and not an error: a CV imported in Spanish has to be savable
+  before anyone has spent a translation call on it.
 
 What is deliberately not validated: that both bullet versions have the same
 number of lines. The English and Spanish CV do not have to say the same
@@ -24,12 +28,14 @@ CONTRACT — implemented by agent A.
 from __future__ import annotations
 
 import re
+from dataclasses import dataclass, field
 
 from flask_babel import gettext as _
 
 from ancla.profile.model import (
     LANGUAGES,
     AboutMe,
+    Bilingual,
     Education,
     Experience,
     Language,
@@ -49,8 +55,67 @@ def language_name(idioma: Language) -> str:
 _HUECO = re.compile(r"\{[^{}]*\}")
 
 
-def validate_experience(experiencia: Experience) -> list[str]:
-    """Issues found, aimed at the user. Empty = valid."""
+
+
+@dataclass(frozen=True)
+class Issues:
+    """What is wrong with an entry, split by whether it stops it being saved.
+
+    `errors` are things the user has to fix before the entry is worth
+    keeping: without them it would reach a CV broken, or would never be
+    chosen at all. `warnings` are things that are merely unfinished — in
+    practice, a translation nobody has paid for yet.
+
+    They used to be a single list, and every caller treated all of it as
+    blocking, which is what made a CV imported in one language impossible to
+    save: being written in Spanish only is not a defect of the entry, it is
+    a job the user may never want to do.
+    """
+
+    errors: list[str] = field(default_factory=list)
+    warnings: list[str] = field(default_factory=list)
+
+    def messages(self) -> list[str]:
+        """Everything found, for a report that only lists and never blocks."""
+        return [*self.errors, *self.warnings]
+
+    def __add__(self, otros: "Issues") -> "Issues":
+        return Issues(self.errors + otros.errors, self.warnings + otros.warnings)
+
+
+def written_languages(texto: Bilingual[str]) -> tuple[Language, ...]:
+    """The languages an entry is actually written in, decided by the one
+    field that identifies it (its title or its name).
+
+    Everything else is then only required in those languages. An entry with
+    no title in any language is broken; one with a title in a single
+    language is simply half done, and that difference is what the rest of
+    this module turns into an error or a warning.
+    """
+    return tuple(idioma for idioma in LANGUAGES if texto[idioma].strip())
+
+
+def missing_languages(texto: Bilingual[str]) -> tuple[Language, ...]:
+    """The other side of `written_languages`, empty when nothing is missing."""
+    escritos = written_languages(texto)
+    if not escritos:
+        return ()
+    return tuple(idioma for idioma in LANGUAGES if idioma not in escritos)
+
+
+def _untranslated(etiqueta: str, faltan: tuple[Language, ...]) -> list[str]:
+    return [
+        _(
+            "%(etiqueta)s: todavía no está en %(nombre)s. Puedes traducirla desde "
+            "«Mi perfil» cuando quieras.",
+            etiqueta=etiqueta, nombre=language_name(idioma),
+        )
+        for idioma in faltan
+    ]
+
+
+def validate_experience(experiencia: Experience) -> Issues:
+    """Issues found, aimed at the user. No errors = can be saved."""
     etiqueta = (
         _('Experiencia «%(id)s»', id=experiencia.id) if experiencia.id else _("Una experiencia")
     )
@@ -79,11 +144,13 @@ def validate_experience(experiencia: Experience) -> list[str]:
             )
         )
 
-    for idioma in LANGUAGES:
-        nombre = language_name(idioma)
-        if not experiencia.title[idioma].strip():
-            problemas.append(_("%(etiqueta)s: falta el título en %(nombre)s.", etiqueta=etiqueta, nombre=nombre))
-        problemas += _bullet_problems(experiencia.bullets[idioma], etiqueta, nombre)
+    escritos = written_languages(experiencia.title)
+    if not escritos:
+        problemas.append(_("%(etiqueta)s: falta el título.", etiqueta=etiqueta))
+    for idioma in escritos:
+        problemas += _bullet_problems(
+            experiencia.bullets[idioma], etiqueta, language_name(idioma)
+        )
 
     if not experiencia.keywords:
         problemas.append(
@@ -93,7 +160,7 @@ def validate_experience(experiencia: Experience) -> list[str]:
                 etiqueta=etiqueta,
             )
         )
-    return problemas
+    return Issues(problemas, _untranslated(etiqueta, missing_languages(experiencia.title)))
 
 
 def _bullet_problems(bullets: list[str], etiqueta: str, nombre: str) -> list[str]:
@@ -111,7 +178,7 @@ def _bullet_problems(bullets: list[str], etiqueta: str, nombre: str) -> list[str
     return problemas
 
 
-def validate_skill(skill: Skill) -> list[str]:
+def validate_skill(skill: Skill) -> Issues:
     etiqueta = _('Skill «%(id)s»', id=skill.id) if skill.id else _("Una skill")
     problemas: list[str] = []
 
@@ -122,11 +189,8 @@ def validate_skill(skill: Skill) -> list[str]:
                 "fichero, por ejemplo «python.yaml»."
             )
         )
-    for idioma in LANGUAGES:
-        if not skill.name[idioma].strip():
-            problemas.append(
-                _("%(etiqueta)s: falta el nombre en %(nombre)s.", etiqueta=etiqueta, nombre=language_name(idioma))
-            )
+    if not written_languages(skill.name):
+        problemas.append(_("%(etiqueta)s: falta el nombre.", etiqueta=etiqueta))
     if not skill.category.strip():
         problemas.append(
             _(
@@ -143,11 +207,11 @@ def validate_skill(skill: Skill) -> list[str]:
                 etiqueta=etiqueta,
             )
         )
-    return problemas
+    return Issues(problemas, _untranslated(etiqueta, missing_languages(skill.name)))
 
 
-def validate_personal_skill(skill: Skill) -> list[str]:
-    """Like `validar_skill`, but without requiring a category: there is no
+def validate_personal_skill(skill: Skill) -> Issues:
+    """Like `validate_skill`, but without requiring a category: there is no
     category grouping for personal skills, so asking for one would be an
     unused field."""
     etiqueta = _('Skill personal «%(id)s»', id=skill.id) if skill.id else _("Una skill personal")
@@ -160,11 +224,8 @@ def validate_personal_skill(skill: Skill) -> list[str]:
                 "nombre del fichero, por ejemplo «trabajo-en-equipo.yaml»."
             )
         )
-    for idioma in LANGUAGES:
-        if not skill.name[idioma].strip():
-            problemas.append(
-                _("%(etiqueta)s: falta el nombre en %(nombre)s.", etiqueta=etiqueta, nombre=language_name(idioma))
-            )
+    if not written_languages(skill.name):
+        problemas.append(_("%(etiqueta)s: falta el nombre.", etiqueta=etiqueta))
     if not skill.keywords:
         problemas.append(
             _(
@@ -174,11 +235,11 @@ def validate_personal_skill(skill: Skill) -> list[str]:
                 etiqueta=etiqueta,
             )
         )
-    return problemas
+    return Issues(problemas, _untranslated(etiqueta, missing_languages(skill.name)))
 
 
-def validate_language(idioma: SpokenLanguage) -> list[str]:
-    """As strict as `validar_skill`: without a level, a language says nothing
+def validate_language(idioma: SpokenLanguage) -> Issues:
+    """As strict as `validate_skill`: without a level, a language says nothing
     on a CV, and without keywords it will almost never clear a false gap
     from the job posting."""
     etiqueta = _('Idioma «%(id)s»', id=idioma.id) if idioma.id else _("Un idioma")
@@ -191,15 +252,15 @@ def validate_language(idioma: SpokenLanguage) -> list[str]:
                 "fichero, por ejemplo «ingles.yaml»."
             )
         )
-    for cod in LANGUAGES:
-        nombre_cod = language_name(cod)
-        if not idioma.name[cod].strip():
-            problemas.append(_("%(etiqueta)s: falta el nombre en %(nombre)s.", etiqueta=etiqueta, nombre=nombre_cod))
+    escritos = written_languages(idioma.name)
+    if not escritos:
+        problemas.append(_("%(etiqueta)s: falta el nombre.", etiqueta=etiqueta))
+    for cod in escritos:
         if not idioma.level[cod].strip():
             problemas.append(
                 _(
                     "%(etiqueta)s: falta el nivel en %(nombre)s (por ejemplo «C1 — Avanzado»).",
-                    etiqueta=etiqueta, nombre=nombre_cod,
+                    etiqueta=etiqueta, nombre=language_name(cod),
                 )
             )
     if not idioma.keywords:
@@ -211,11 +272,11 @@ def validate_language(idioma: SpokenLanguage) -> list[str]:
                 etiqueta=etiqueta,
             )
         )
-    return problemas
+    return Issues(problemas, _untranslated(etiqueta, missing_languages(idioma.name)))
 
 
-def validate_education(educacion: Education) -> list[str]:
-    """Like `validar_idioma` minus the keywords/level requirement: education
+def validate_education(educacion: Education) -> Issues:
+    """Like `validate_language` minus the keywords/level requirement: education
     never feeds a gap check, it is just shown in full."""
     etiqueta = (
         _('Educación «%(id)s»', id=educacion.id) if educacion.id else _("Una educación")
@@ -238,25 +299,23 @@ def validate_education(educacion: Education) -> list[str]:
                 etiqueta=etiqueta,
             )
         )
-
-    for idioma in LANGUAGES:
-        nombre = language_name(idioma)
-        if not educacion.title[idioma].strip():
-            problemas.append(_("%(etiqueta)s: falta la titulación en %(nombre)s.", etiqueta=etiqueta, nombre=nombre))
-    return problemas
+    if not written_languages(educacion.title):
+        problemas.append(_("%(etiqueta)s: falta la titulación.", etiqueta=etiqueta))
+    return Issues(problemas, _untranslated(etiqueta, missing_languages(educacion.title)))
 
 
-def validate_about_me(sobre_mi: AboutMe) -> list[str]:
-    """Checks that the template has all 6 gaps, in both ES and EN."""
+def validate_about_me(sobre_mi: AboutMe) -> Issues:
+    """Checks that the template has all 6 gaps in each language it is written in."""
     problemas: list[str] = []
     huecos = set(sobre_mi.gaps())
+    escritos = written_languages(sobre_mi.template)
 
-    for idioma in LANGUAGES:
+    if not escritos:
+        return Issues([_("El «Sobre mí» está vacío.")])
+
+    for idioma in escritos:
         nombre = language_name(idioma)
         texto = sobre_mi.template[idioma]
-        if not texto.strip():
-            problemas.append(_("El «Sobre mí» está vacío en %(nombre)s.", nombre=nombre))
-            continue
 
         faltan = [hueco for hueco in sobre_mi.gaps() if hueco not in texto]
         if faltan:
@@ -280,10 +339,19 @@ def validate_about_me(sobre_mi: AboutMe) -> list[str]:
                     validos=", ".join(sobre_mi.gaps()),
                 )
             )
-    return problemas
+
+    avisos = [
+        _(
+            "El «Sobre mí» todavía no está en %(nombre)s. Escríbelo cuando vayas a "
+            "generar un CV en ese idioma.",
+            nombre=language_name(idioma),
+        )
+        for idioma in missing_languages(sobre_mi.template)
+    ]
+    return Issues(problemas, avisos)
 
 
-def validate_profile(perfil: Profile) -> list[str]:
+def validate_profile(perfil: Profile) -> Issues:
     """Validates the whole thing: duplicate ids, empty profile, missing "About me"."""
     problemas: list[str] = []
 
@@ -318,30 +386,32 @@ def validate_profile(perfil: Profile) -> list[str]:
     problemas += _duplicates([idioma.id for idioma in perfil.languages], _("idiomas"))
     problemas += _duplicates([educacion.id for educacion in perfil.education], _("educación"))
 
+    total = Issues(problemas)
+
     if perfil.about_me is None:
-        problemas.append(
+        total += Issues([
             _(
                 "Falta el «Sobre mí». Escríbelo en «Mi perfil»: es el bloque que abre "
                 "el CV y el único que la app compone."
             )
-        )
+        ])
     else:
-        problemas += validate_about_me(perfil.about_me)
+        total += validate_about_me(perfil.about_me)
 
     for experiencia in perfil.experiences:
-        problemas += validate_experience(experiencia)
+        total += validate_experience(experiencia)
     for skill in perfil.skills:
-        problemas += validate_skill(skill)
+        total += validate_skill(skill)
     # Personal skills and languages are optional (unlike technical skills and
     # experience): passing none is not a problem with the profile, it just
     # means those two blocks come out empty in the Proposal.
     for skill in perfil.personal_skills:
-        problemas += validate_personal_skill(skill)
+        total += validate_personal_skill(skill)
     for idioma in perfil.languages:
-        problemas += validate_language(idioma)
+        total += validate_language(idioma)
     for educacion in perfil.education:
-        problemas += validate_education(educacion)
-    return problemas
+        total += validate_education(educacion)
+    return total
 
 
 def _duplicates(ids: list[str], que: str) -> list[str]:

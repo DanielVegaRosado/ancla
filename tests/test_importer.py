@@ -12,7 +12,7 @@ import json
 
 
 from ancla.ai.client import AIError
-from ancla.profile.importer import analyze_cv
+from ancla.profile.importer import analyze_cv, detect_language
 from ancla.profile.model import (
     PERIOD_ONGOING,
     Bilingual,
@@ -523,3 +523,88 @@ def test_una_educacion_sola_cuenta_como_algo_encontrado():
 def test_sin_educacion_en_la_respuesta_no_revienta():
     resultado = analyze_cv(ClienteFalso(_respuesta()), "texto", Profile())
     assert resultado.educacion == []
+
+
+# --------------------------------------------------------------------------
+# One language per call
+# --------------------------------------------------------------------------
+
+
+def _respuesta_un_idioma() -> str:
+    return json.dumps(
+        {
+            "experiencias": [
+                {
+                    "titulo": "Desarrollador de ML",
+                    "periodo": "2026 - actualidad",
+                    "bullets": ["Pipeline completo"],
+                    "stack": "Python, Optuna",
+                    "keywords": ["machine learning"],
+                }
+            ],
+            "skills": [{"nombre": "Python", "categoria": "lenguaje", "keywords": ["python"]}],
+            "idiomas": [{"nombre": "Inglés", "nivel": "C1", "keywords": ["english"]}],
+            "educacion": [{"titulo": "Grado", "centro": "UEMC", "periodo": "2023 - 2027"}],
+        },
+        ensure_ascii=False,
+    )
+
+
+def test_solo_rellena_el_idioma_pedido():
+    """Half the answer is half the output tokens, and the output is what
+    fills the per-minute quota."""
+    resultado = analyze_cv(ClienteFalso(_respuesta_un_idioma()), "texto", Profile(), "es")
+
+    assert resultado.experiencias[0].title["es"] == "Desarrollador de ML"
+    assert resultado.experiencias[0].title["en"] == ""
+    assert resultado.experiencias[0].bullets["en"] == []
+    assert resultado.skills[0].name["en"] == ""
+    assert resultado.idiomas[0].level["en"] == ""
+    assert resultado.educacion[0].title["en"] == ""
+
+
+def test_importar_en_ingles_deja_vacio_el_espanol():
+    resultado = analyze_cv(ClienteFalso(_respuesta_un_idioma()), "text", Profile(), "en")
+
+    assert resultado.skills[0].name["en"] == "Python"
+    assert resultado.skills[0].name["es"] == ""
+
+
+def test_el_prompt_pide_el_idioma_del_cv():
+    cliente = ClienteFalso(_respuesta_un_idioma())
+    analyze_cv(cliente, "text", Profile(), "en")
+
+    sistema = cliente.llamadas[0][0]
+    assert "inglés" in sistema
+    assert '"titulo": {"es"' not in sistema
+
+
+def test_un_par_es_en_devuelto_igualmente_no_se_tira():
+    """The pair has already been paid for by the time it arrives; dropping
+    half of an answer that is right would be worse than the prompt slip."""
+    respuesta = json.dumps(
+        {"skills": [{"nombre": {"es": "Python", "en": "Python"}, "categoria": "l", "keywords": []}]}
+    )
+    resultado = analyze_cv(ClienteFalso(respuesta), "texto", Profile(), "es")
+
+    assert resultado.skills[0].name["en"] == "Python"
+
+
+def test_un_cv_demasiado_largo_avisa_de_lo_que_no_se_ha_leido():
+    """The cut used to be silent, and a CV analysed halfway looked like a
+    model that had missed half a career."""
+    largo = "Experiencia en desarrollo. " * 1000
+    resultado = analyze_cv(ClienteFalso(_respuesta_un_idioma()), largo, Profile(), "es")
+
+    assert any("caracteres" in aviso for aviso in resultado.avisos)
+
+
+def test_detecta_el_idioma_del_cv():
+    assert detect_language("Experiencia en desarrollo de software para la empresa") == "es"
+    assert detect_language("Experience in software development for the company") == "en"
+
+
+def test_sin_palabras_reconocibles_se_queda_en_espanol():
+    """A guess, not a decision: the user can correct it before the call, and
+    the app's own language is the safer default."""
+    assert detect_language("Python Docker AWS PostgreSQL") == "es"

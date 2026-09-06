@@ -6,7 +6,8 @@ from flask_babel import gettext as _
 
 from ancla.archive import repository as archivo
 from ancla.ai.client import AIError
-from ancla.profile.model import N_EXPERIENCES, N_SKILLS
+from ancla.profile import translation
+from ancla.profile.model import LANGUAGES, N_EXPERIENCES, N_SKILLS
 from ancla.selection import engine
 from ancla.posting import analysis
 from ancla.web import draft as modulo_borrador
@@ -22,7 +23,10 @@ def adapt():
 
     vacante_texto = request.form.get("vacante", "").strip()
     idioma = request.form.get("idioma", "es")
+    if idioma not in LANGUAGES:
+        idioma = "es"
     forzar = request.form.get("forzar") == "1"
+    forzar_idioma = request.form.get("forzar_idioma") == "1"
 
     if not vacante_texto:
         flash(_("Pega el texto de la vacante antes de generar la propuesta."))
@@ -38,6 +42,17 @@ def adapt():
         )
         return redirect(url_for("ancla.view_profile"))
 
+    # Said before the call, never fixed by it: translating here would spend
+    # a call nobody asked for, right before the big one. The user decides,
+    # but knowing which entries would come out blank.
+    if not forzar_idioma:
+        sin_traducir = _untranslated_names(perfil, idioma)
+        if sin_traducir:
+            return render_template(
+                "adapt.html", vacante=vacante_texto, idioma=idioma,
+                sin_traducir=sin_traducir, forzar=forzar,
+            )
+
     datos_vacante = analysis.extract_data(vacante_texto)
 
     if not forzar and datos_vacante.company:
@@ -49,6 +64,7 @@ def adapt():
                 idioma=idioma,
                 previos=previos,
                 empresa=datos_vacante.company,
+                forzar_idioma=True,
             )
 
     ajustes = context.current_settings()
@@ -77,3 +93,21 @@ def adapt():
         ),
     )
     return redirect(url_for("ancla.view_proposal"))
+
+
+def _untranslated_names(perfil, idioma: str) -> list[str]:
+    """The profile entries that would reach the CV empty in `idioma`.
+
+    Names, not counts: "you are missing four things" leaves the user with
+    nothing to act on, and the point of warning at all is that they can
+    decide whether those four matter for this posting.
+    """
+    catalogos = (
+        perfil.experiences, perfil.skills, perfil.personal_skills,
+        perfil.languages, perfil.education,
+    )
+    return [
+        translation.entry_name(entrada)
+        for catalogo in catalogos
+        for entrada in translation.pending(catalogo, idioma)
+    ]

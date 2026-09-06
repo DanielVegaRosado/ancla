@@ -46,6 +46,7 @@ def create_app(
 ) -> Flask:
     from ancla.profile.errors import ProfileError
     from ancla.profile.model import LANGUAGES, period_text
+    from ancla.profile.validation import language_name
     from ancla.web import draft as modulo_borrador
     from ancla.web import settings as modulo_ajustes
     from ancla.web import context
@@ -95,6 +96,10 @@ def create_app(
             "anios": years_for_period(),
             "marcadores_periodo": period_marker_labels(),
             "periodo": _period_of,
+            # Screens that talk about a missing translation name the
+            # language ("Traducir al inglés"), and the name has to follow
+            # the interface's own language, not the CV's.
+            "nombre_idioma": language_name,
             # Lets the nav dim "Última propuesta" while there is nothing to
             # show there yet, without hiding the link (see base.html).
             "hay_borrador": modulo_borrador.load_draft(context.root()) is not None,

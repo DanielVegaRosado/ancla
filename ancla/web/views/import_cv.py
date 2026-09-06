@@ -15,9 +15,17 @@ from flask import flash, redirect, render_template, request, url_for
 from flask_babel import gettext as _
 
 from ancla.ai.client import AIError
-from ancla.profile import store, importer, validation
+from ancla.profile import store, importer, translation, validation
 from ancla.profile.extraction import ExtractionError, extract_text
-from ancla.profile.model import Bilingual, Education, Experience, Skill, SpokenLanguage
+from ancla.profile.model import (
+    LANGUAGES,
+    Bilingual,
+    Education,
+    Experience,
+    Language,
+    Skill,
+    SpokenLanguage,
+)
 from ancla.web import context
 from ancla.web import import_batch as modulo_importacion
 from ancla.web.blueprint import bp
@@ -49,7 +57,8 @@ def import_cv():
         flash(_("Configura tu clave de API en Ajustes antes de importar un CV."))
         return redirect(url_for("ancla.view_settings"))
 
-    resultado = importer.analyze_cv(cliente, texto_cv, context.current_profile())
+    idioma = _chosen_language(request.form.get("idioma_cv", ""), texto_cv)
+    resultado = importer.analyze_cv(cliente, texto_cv, context.current_profile(), idioma)
     lote = modulo_importacion.ImportBatch(
         experiencias=resultado.experiencias,
         skills=resultado.skills,
@@ -57,6 +66,7 @@ def import_cv():
         idiomas=resultado.idiomas,
         educacion=resultado.educacion,
         avisos=resultado.avisos,
+        written=[idioma],
     )
     if not any(_candidates(lote, seccion) for seccion in SECTIONS):
         for aviso in resultado.avisos:
@@ -65,6 +75,16 @@ def import_cv():
 
     modulo_importacion.save_import(context.root(), lote)
     return redirect(url_for("ancla.review_import"))
+
+
+def _chosen_language(elegido: str, texto_cv: str) -> Language:
+    """What the user picked, or what the text looks like if they left it on
+    automatic. Anything else that arrives in the form is treated as
+    automatic rather than rejected: the field is a convenience, and a
+    hand-crafted value should not cost the user their upload."""
+    if elegido in LANGUAGES:
+        return elegido
+    return importer.detect_language(texto_cv)
 
 
 def _input_text(fichero, texto_pegado: str) -> str:
@@ -81,7 +101,12 @@ def review_import():
     if importacion is None:
         flash(_("No hay ninguna importación pendiente de revisar."))
         return redirect(url_for("ancla.import_cv"))
-    return render_template("import_review.html", importacion=importacion)
+    return render_template(
+        "import_review.html",
+        importacion=importacion,
+        idioma_importado=importacion.written[0],
+        falta_idioma=_missing_language(importacion),
+    )
 
 
 @bp.route("/perfil/importar/guardar", methods=["POST"])
@@ -106,7 +131,7 @@ def save_import():
         flash(
             _(
                 "%(cantidad)s elemento(s) no se pudieron guardar por falta de datos "
-                "(faltaba el nombre en algún idioma, o palabras clave). Añádelos a mano "
+                "(faltaba el nombre, el periodo o las palabras clave). Añádelos a mano "
                 "en «Mi perfil».",
                 cantidad=con_error,
             )
@@ -231,12 +256,85 @@ def _save_section(form, lote: modulo_importacion.ImportBatch, seccion: _ReviewSe
         if form.get(prefijo) != "1":
             continue
         editada = seccion.edited(form, prefijo, candidata)
-        if seccion.validate(editada):
+        # Only errors stop a candidate: an entry written in a single
+        # language is unfinished, not wrong, and the whole point of
+        # importing in one language is being able to save it that way.
+        if seccion.validate(editada).errors:
             con_error += 1
             continue
         seccion.save(context.root(), editada)
         guardadas += 1
     return guardadas, con_error
+
+
+@bp.route("/perfil/importar/traducir", methods=["POST"])
+def translate_import():
+    """The second, optional call: the whole batch at once, into the language
+    it is not written in.
+
+    One call for every category together, and only for what is missing: it
+    is the same per-minute budget as the import, and it is being spent a
+    minute later only because reviewing the first screen took that long.
+    """
+    importacion = modulo_importacion.load_import(context.root())
+    if importacion is None:
+        flash(_("Esa importación ya no está disponible, vuelve a subir el CV."))
+        return redirect(url_for("ancla.import_cv"))
+
+    destino = _missing_language(importacion)
+    if destino is None:
+        flash(_("Esta importación ya está en los dos idiomas."))
+        return redirect(url_for("ancla.review_import"))
+
+    ajustes = context.current_settings()
+    try:
+        cliente = create_client(ajustes.proveedor, ajustes.clave_api, ajustes.url_base, ajustes.modelo)
+    except AIError as error:
+        flash(str(error))
+        return redirect(url_for("ancla.review_import"))
+
+    _apply_edits(request.form, importacion)
+    secciones = importacion.sections()
+    # Every category in one request, not one per category: five calls would
+    # need five minutes of quota to do what fits in a single answer.
+    resultado = translation.translate(
+        cliente, [candidata for seccion in secciones for candidata in seccion], destino
+    )
+    desde = 0
+    for seccion in secciones:
+        seccion[:] = resultado.entries[desde : desde + len(seccion)]
+        desde += len(seccion)
+
+    for aviso in resultado.avisos:
+        flash(aviso)
+    if not resultado.avisos:
+        importacion.written = [
+            idioma for idioma in LANGUAGES
+            if idioma in (*importacion.written, destino)
+        ]
+    modulo_importacion.save_import(context.root(), importacion)
+    return redirect(url_for("ancla.review_import"))
+
+
+def _apply_edits(form, lote: modulo_importacion.ImportBatch) -> None:
+    """Carries whatever the user corrected by hand into the batch.
+
+    The review screen's two buttons submit the same form, so translating
+    must not throw away the edits that saving would have kept. Unlike
+    saving, this ignores the checkboxes: unticking one means "do not add
+    this to my profile", not "forget what I typed in it".
+    """
+    for seccion in SECTIONS:
+        candidatas = _candidates(lote, seccion)
+        candidatas[:] = [
+            seccion.edited(form, f"{seccion.prefix}-{indice}", candidata)
+            for indice, candidata in enumerate(candidatas)
+        ]
+
+
+def _missing_language(importacion: modulo_importacion.ImportBatch) -> Language | None:
+    faltan = [idioma for idioma in LANGUAGES if idioma not in importacion.written]
+    return faltan[0] if faltan else None
 
 
 @bp.route("/perfil/importar/descartar", methods=["POST"])

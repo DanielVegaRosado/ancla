@@ -19,6 +19,22 @@
       <textarea id="texto" name="texto" class="alta" placeholder="{{ _('Pega aquí el contenido de tu CV si prefieres no subir un fichero') }}"></textarea>
     </div>
 
+    {# One call in one language, not both: the answer is what fills the
+       per-minute quota, and someone applying only in Spanish has no reason
+       to pay for an English version. Detection is the default because for
+       most people the answer is obvious, and the two explicit options are
+       there because a wrong guess has to be fixable before the call, not
+       after it. #}
+    <div class="campo">
+      <label for="idioma_cv">{{ _('Idioma de tu CV') }}</label>
+      <select id="idioma_cv" name="idioma_cv">
+        <option value="">{{ _('Detectarlo automáticamente') }}</option>
+        <option value="es">{{ _('Español') }}</option>
+        <option value="en">{{ _('Inglés') }}</option>
+      </select>
+      <p class="ayuda">{{ _('Se importa en ese idioma. Después podrás traducirlo al otro con un botón, si lo necesitas.') }}</p>
+    </div>
+
     <div class="barra-acciones">
       <button type="submit" class="boton-primario">{{ _('Analizar') }}</button>
     </div>

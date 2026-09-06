@@ -23,10 +23,11 @@
         <div class="tarjeta">
           <div class="fila-tarjeta">
             <div>
-              <h3>{{ experiencia.title["es"] }}</h3>
+              <h3>{{ experiencia.title["es"] or experiencia.title["en"] }}</h3>
               <p class="ayuda">{{ periodo(experiencia, "es") }} · {{ experiencia.bullets["es"]|length }} {{ _('bullets') }} · id: {{ experiencia.id }}</p>
             </div>
             <div class="acciones">
+              {% with seccion = "experiencias", entrada = experiencia %}{% include "_untranslated.html" %}{% endwith %}
               <a class="boton boton-pequeno" href="{{ url_for('ancla.edit_experience', id_=experiencia.id) }}">{{ _('Editar') }}</a>
               <form class="en-linea" method="post" action="{{ url_for('ancla.delete_experience', id_=experiencia.id) }}" data-confirmar="{{ _('¿Borrar «%(titulo)s»? Esta acción no se puede deshacer.', titulo=experiencia.title['es']) }}">
                 <button type="submit" class="boton-pequeno boton-peligro">{{ _('Borrar') }}</button>

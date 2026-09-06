@@ -124,6 +124,28 @@
     </section>
   </div>
 
+  {# One button per language instead of pressing the per-entry one twelve
+     times: each press is a call and a wait on the per-minute quota, so
+     doing them together is the difference between a minute and twelve. #}
+  {% for cod in idiomas %}
+    {% set pendientes = sin_traducir.values()|map(attribute=cod)|map('length')|sum %}
+    {% if pendientes and ia_configurada %}
+      <section class="tarjeta">
+        <div class="fila-tarjeta">
+          <div>
+            <h2>{{ _('Tienes %(cantidad)s entrada(s) sin traducir al %(idioma)s', cantidad=pendientes, idioma=nombre_idioma(cod)) }}</h2>
+            <p class="ayuda">{{ _('Saldrían en blanco en un CV en ese idioma. Se traducen todas de una vez, en una sola llamada.') }}</p>
+          </div>
+          <div class="acciones">
+            <form class="en-linea" method="post" action="{{ url_for('ancla.translate_missing', idioma=cod) }}">
+              <button type="submit" class="boton boton-primario">{{ _('Traducir todo lo que falte') }}</button>
+            </form>
+          </div>
+        </div>
+      </section>
+    {% endif %}
+  {% endfor %}
+
   <p class="ayuda">
     {{ _('Arrastra el asa') }} <span aria-hidden="true">⠿</span> {{ _('de cada panel para cambiar el orden en el que se ven aquí abajo. Se recuerda para la próxima vez.') }}
   </p>

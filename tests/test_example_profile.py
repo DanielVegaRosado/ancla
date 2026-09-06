@@ -12,7 +12,7 @@ RAIZ = Path(__file__).resolve().parents[1] / "perfil-ejemplo"
 
 def test_perfil_ejemplo_carga_sin_errores_de_validacion():
     perfil = store.load_profile(RAIZ)
-    assert validation.validate_profile(perfil) == []
+    assert validation.validate_profile(perfil).messages() == []
 
 
 def test_perfil_ejemplo_no_esta_vacio():

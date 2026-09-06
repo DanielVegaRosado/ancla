@@ -131,7 +131,7 @@ def _migrate_experiences(
         store.save_experience(destino, experiencia)
         _keep_note(ruta, campos, fichero, informe)
         informe.experiencias.append(experiencia.id)
-        informe.avisos += _problems(validation.validate_experience(experiencia), fichero)
+        informe.avisos += _problems(validation.validate_experience(experiencia).messages(), fichero)
 
 
 # --------------------------------------------------------------------------
@@ -161,7 +161,7 @@ def _migrate_skills(
         store.save_skill(destino, skill)
         _keep_note(ruta, campos, fichero, informe)
         informe.skills.append(skill.id)
-        informe.avisos += _problems(validation.validate_skill(skill), fichero)
+        informe.avisos += _problems(validation.validate_skill(skill).messages(), fichero)
 
 
 # --------------------------------------------------------------------------
@@ -193,7 +193,7 @@ def _migrate_about_me(
     store.save_about_me(destino, sobre_mi)
     _keep_note(ruta, campos, fichero, informe)
     informe.sobre_mi = True
-    informe.avisos += _problems(validation.validate_about_me(sobre_mi), fichero)
+    informe.avisos += _problems(validation.validate_about_me(sobre_mi).messages(), fichero)
 
 
 # --------------------------------------------------------------------------

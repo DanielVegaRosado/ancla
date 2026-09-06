@@ -167,3 +167,79 @@ def test_propuesta_ofrece_salida_para_adaptar_otra_vacante(cliente_web, monkeypa
     assert 'action="/adaptar"' in pagina
     assert "Adaptar otra vacante" in pagina
     assert "data-confirmar" in pagina.split('action="/adaptar"')[1][:400]
+
+
+# --------------------------------------------------------------------------
+# Adapting to a language the profile only half has
+# --------------------------------------------------------------------------
+
+
+def test_adaptar_a_un_idioma_incompleto_avisa_nombrando_las_entradas(cliente_web, tmp_path: Path):
+    """The user decides, but knowing which entries would come out blank: a
+    count is not something anyone can weigh against a posting."""
+    store.save_skill(
+        cliente_web.application.config["RAIZ_PERFIL"],
+        Skill(id="sql", name=Bilingual(es="SQL avanzado", en="")),
+    )
+
+    respuesta = cliente_web.post("/adaptar", data={"vacante": VACANTE, "idioma": "en"})
+
+    assert respuesta.status_code == 200
+    assert "SQL avanzado".encode("utf-8") in respuesta.data
+    assert b"forzar_idioma" in respuesta.data
+
+
+def test_el_aviso_de_idioma_no_traduce_por_su_cuenta(cliente_web, tmp_path: Path, monkeypatch):
+    """Translating here would spend a call nobody asked for, immediately
+    before the big one."""
+    import ancla.web.views.adapt as vista_adaptar
+
+    store.save_skill(
+        cliente_web.application.config["RAIZ_PERFIL"],
+        Skill(id="sql", name=Bilingual(es="SQL avanzado", en="")),
+    )
+    llamadas = []
+    monkeypatch.setattr(
+        vista_adaptar,
+        "create_client",
+        lambda *args, **kwargs: llamadas.append(args) or _ClienteFalsoDisponible(_respuesta_ia()),
+    )
+
+    cliente_web.post("/adaptar", data={"vacante": VACANTE, "idioma": "en"})
+
+    assert llamadas == []
+
+
+def test_seguir_adelante_genera_la_propuesta_igualmente(cliente_web, monkeypatch):
+    import ancla.web.views.adapt as vista_adaptar
+
+    store.save_skill(
+        cliente_web.application.config["RAIZ_PERFIL"],
+        Skill(id="sql", name=Bilingual(es="SQL avanzado", en="")),
+    )
+    monkeypatch.setattr(
+        vista_adaptar,
+        "create_client",
+        lambda proveedor, clave, url_base="", modelo="": _ClienteFalsoDisponible(_respuesta_ia()),
+    )
+
+    respuesta = cliente_web.post(
+        "/adaptar", data={"vacante": VACANTE, "idioma": "en", "forzar_idioma": "1"}
+    )
+
+    assert respuesta.status_code == 302
+    assert respuesta.location.endswith("/propuesta")
+
+
+def test_un_perfil_completo_no_avisa_de_nada(cliente_web, monkeypatch):
+    import ancla.web.views.adapt as vista_adaptar
+
+    monkeypatch.setattr(
+        vista_adaptar,
+        "create_client",
+        lambda proveedor, clave, url_base="", modelo="": _ClienteFalsoDisponible(_respuesta_ia()),
+    )
+
+    respuesta = cliente_web.post("/adaptar", data={"vacante": VACANTE, "idioma": "en"})
+
+    assert respuesta.status_code == 302

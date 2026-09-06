@@ -180,15 +180,18 @@ def test_guardar_permite_editar_antes_de_confirmar(cliente_web, tmp_path: Path):
 
 
 def test_una_candidata_incompleta_no_se_guarda_pero_avisa(cliente_web, tmp_path: Path):
-    """If the English name gets erased while editing, normal validation
-    rejects it — just like in the manual form — instead of saving it broken."""
+    """If the name gets erased in every language while editing, normal
+    validation rejects it — just like in the manual form — instead of saving
+    it broken. Erasing only one of the two languages does not: that is an
+    entry waiting for a translation, and it is the case the whole
+    single-language import exists for."""
     root = tmp_path / "perfil"
     modulo_importacion.save_import(
         root, modulo_importacion.ImportBatch(skills=[_skill()])
     )
     respuesta = cliente_web.post(
         "/perfil/importar/guardar",
-        data={"skill-0": "1", "skill-0-nombre_es": "Python", "skill-0-nombre_en": ""},
+        data={"skill-0": "1", "skill-0-nombre_es": "", "skill-0-nombre_en": ""},
         follow_redirects=True,
     )
     perfil = store.load_profile(root)
@@ -623,3 +626,170 @@ def test_la_pantalla_de_importar_avisa_de_que_analizar_puede_esperar(cliente_web
     respuesta = cliente_web.get("/perfil/importar")
 
     assert "no cierres esta página".encode("utf-8") in respuesta.data
+
+
+# --------------------------------------------------------------------------
+# One language in, translation as a separate step
+# --------------------------------------------------------------------------
+
+
+def _skill_solo_en_espanol(id: str = "python") -> Skill:
+    return Skill(id=id, name=Bilingual(es="Python", en=""), category="lenguaje", keywords=["py"])
+
+
+class _ClienteFalso:
+    def __init__(self, respuesta: str):
+        self.respuesta = respuesta
+        self.llamadas: list[tuple[str, str]] = []
+
+    def complete(self, sistema: str, usuario: str) -> str:
+        self.llamadas.append((sistema, usuario))
+        return self.respuesta
+
+    def available(self) -> bool:
+        return True
+
+
+def test_una_candidata_en_un_solo_idioma_se_guarda(cliente_web, tmp_path: Path):
+    """The reason the whole thing exists: a CV read in Spanish has to reach
+    the profile without spending a call on English first."""
+    root = tmp_path / "perfil"
+    modulo_importacion.save_import(
+        root,
+        modulo_importacion.ImportBatch(skills=[_skill_solo_en_espanol()], written=["es"]),
+    )
+
+    cliente_web.post("/perfil/importar/guardar", data={"skill-0": "1"})
+
+    guardada = store.load_profile(root).skill("python")
+    assert guardada is not None
+    assert guardada.name["es"] == "Python"
+    assert guardada.name["en"] == ""
+
+
+def test_la_revision_no_pide_el_idioma_que_no_se_ha_importado(cliente_web, tmp_path: Path):
+    modulo_importacion.save_import(
+        tmp_path / "perfil",
+        modulo_importacion.ImportBatch(skills=[_skill_solo_en_espanol()], written=["es"]),
+    )
+
+    respuesta = cliente_web.get("/perfil/importar/revisar")
+
+    assert b'name="skill-0-nombre_es"' in respuesta.data
+    assert b'name="skill-0-nombre_en"' not in respuesta.data
+    assert "Traducir al inglés".encode("utf-8") in respuesta.data
+
+
+def test_traducir_la_importacion_rellena_el_otro_idioma(cliente_web, tmp_path: Path, monkeypatch):
+    import json
+
+    import ancla.web.views.import_cv as vista
+
+    root = tmp_path / "perfil"
+    modulo_importacion.save_import(
+        root,
+        modulo_importacion.ImportBatch(skills=[_skill_solo_en_espanol()], written=["es"]),
+    )
+    cliente = _ClienteFalso(json.dumps({"0": {"name": "Python"}}))
+    monkeypatch.setattr(
+        vista, "create_client",
+        lambda proveedor, clave, url_base="", modelo="": cliente,
+    )
+
+    cliente_web.post(
+        "/perfil/importar/traducir", data={"skill-0-nombre_es": "Python"}
+    )
+
+    lote = modulo_importacion.load_import(root)
+    assert lote.skills[0].name["en"] == "Python"
+    assert lote.skills[0].name["es"] == "Python"
+    assert lote.written == ["es", "en"]
+    assert len(cliente.llamadas) == 1
+
+
+def test_traducir_toda_la_importacion_es_una_sola_llamada(cliente_web, tmp_path: Path, monkeypatch):
+    """Five categories in one request: five would need five minutes of the
+    free tier's quota to do what fits in one answer."""
+    import json
+
+    import ancla.web.views.import_cv as vista
+
+    root = tmp_path / "perfil"
+    modulo_importacion.save_import(
+        root,
+        modulo_importacion.ImportBatch(
+            experiencias=[
+                Experience(
+                    id="ml-dev", title=Bilingual(es="Dev", en=""),
+                    period_start="2026", period_end="",
+                    bullets=Bilingual(es=["Uno"], en=[]), stack="Python", keywords=["ml"],
+                )
+            ],
+            skills=[_skill_solo_en_espanol()],
+            educacion=[
+                Education(
+                    id="grado", title=Bilingual(es="Grado", en=""),
+                    institution="UEMC", period_start="2023", period_end="2027",
+                )
+            ],
+            written=["es"],
+        ),
+    )
+    cliente = _ClienteFalso(
+        json.dumps(
+            {
+                "0": {"title": "Dev", "bullets": ["One"]},
+                "1": {"name": "Python"},
+                "2": {"title": "Degree"},
+            }
+        )
+    )
+    monkeypatch.setattr(
+        vista, "create_client",
+        lambda proveedor, clave, url_base="", modelo="": cliente,
+    )
+
+    cliente_web.post(
+        "/perfil/importar/traducir",
+        data={
+            "exp-0-titulo_es": "Dev", "exp-0-bullets_es": "Uno",
+            "exp-0-periodo_inicio": "2026", "exp-0-stack": "Python",
+            "skill-0-nombre_es": "Python",
+            "edu-0-titulo_es": "Grado", "edu-0-centro": "UEMC",
+            "edu-0-periodo_inicio": "2023", "edu-0-periodo_fin": "2027",
+        },
+    )
+
+    lote = modulo_importacion.load_import(root)
+    assert len(cliente.llamadas) == 1
+    assert lote.experiencias[0].bullets["en"] == ["One"]
+    assert lote.skills[0].name["en"] == "Python"
+    assert lote.educacion[0].title["en"] == "Degree"
+
+
+def test_traducir_conserva_lo_que_el_usuario_habia_corregido(cliente_web, tmp_path: Path, monkeypatch):
+    """The two buttons of the review screen submit the same form, so pressing
+    "translate" must not throw away the edits that "save" would have kept."""
+    import json
+
+    import ancla.web.views.import_cv as vista
+
+    root = tmp_path / "perfil"
+    modulo_importacion.save_import(
+        root,
+        modulo_importacion.ImportBatch(skills=[_skill_solo_en_espanol()], written=["es"]),
+    )
+    monkeypatch.setattr(
+        vista, "create_client",
+        lambda proveedor, clave, url_base="", modelo="": _ClienteFalso(
+            json.dumps({"0": {"name": "Advanced Python"}})
+        ),
+    )
+
+    cliente_web.post(
+        "/perfil/importar/traducir", data={"skill-0-nombre_es": "Python avanzado"}
+    )
+
+    lote = modulo_importacion.load_import(root)
+    assert lote.skills[0].name["es"] == "Python avanzado"
+    assert lote.skills[0].name["en"] == "Advanced Python"

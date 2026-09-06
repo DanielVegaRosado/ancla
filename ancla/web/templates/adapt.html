@@ -26,7 +26,26 @@
       </select>
     </div>
 
-    {% if previos %}
+    {# The warning names the entries instead of counting them: the choice
+       being offered is whether those particular ones matter for this
+       posting, and a number cannot be judged. Nothing is translated here —
+       that would be a call nobody asked for, immediately before the big
+       one. #}
+    {% if sin_traducir %}
+      <div class="tarjeta">
+        <p>{{ _('Estas entradas de tu perfil todavía no están en %(idioma)s, así que saldrían en blanco:', idioma=nombre_idioma(idioma)) }}</p>
+        <ul>
+          {% for nombre in sin_traducir %}<li>{{ nombre }}</li>{% endfor %}
+        </ul>
+        <p class="ayuda">{{ _('Puedes traducirlas desde «Mi perfil» y volver, o seguir adelante y generar la propuesta con lo que hay.') }}</p>
+        <div class="barra-acciones">
+          <a class="boton" href="{{ url_for('ancla.view_profile') }}">{{ _('Ir a traducirlas') }}</a>
+          <input type="hidden" name="forzar_idioma" value="1">
+          {% if forzar %}<input type="hidden" name="forzar" value="1">{% endif %}
+          <button type="submit" class="boton-primario">{{ _('Generar la propuesta de todas formas') }}</button>
+        </div>
+      </div>
+    {% elif previos %}
       <div class="tarjeta">
         <p>{{ _('Ya existe al menos un CV archivado para') }} <strong>{{ empresa }}</strong>:</p>
         <ul>
@@ -42,6 +61,7 @@
         <p class="ayuda">{{ _('Puedes reutilizar uno de esos o generar una propuesta nueva (por ejemplo, si esta vacante pide algo distinto).') }}</p>
         <div class="barra-acciones">
           <input type="hidden" name="forzar" value="1">
+          {% if forzar_idioma %}<input type="hidden" name="forzar_idioma" value="1">{% endif %}
           <button type="submit" class="boton-primario">{{ _('Generar una propuesta nueva de todas formas') }}</button>
         </div>
       </div>

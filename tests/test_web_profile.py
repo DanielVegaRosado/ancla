@@ -50,13 +50,16 @@ def test_crear_skill_personal_la_deja_ver_en_mi_perfil(cliente_web):
     assert "Trabajo en equipo".encode("utf-8") in respuesta.data
 
 
-def test_crear_skill_personal_sin_nombre_en_ingles_muestra_el_error(cliente_web):
+def test_crear_skill_personal_sin_nombre_en_ingles_se_guarda_y_avisa(cliente_web):
+    """Being written in one language is unfinished, not wrong: it saves, and
+    the notice says what is still missing."""
     respuesta = cliente_web.post(
         "/perfil/skills-personales/nueva",
         data={"nombre_es": "Trabajo en equipo", "keywords": "team player"},
+        follow_redirects=True,
     )
-    assert respuesta.status_code == 200  # se queda en el formulario, no redirige
-    assert "falta el nombre en inglés".encode("utf-8") in respuesta.data
+    assert "todavía no está en inglés".encode("utf-8") in respuesta.data
+    assert "Trabajo en equipo".encode("utf-8") in respuesta.data
 
 
 def test_crear_skill_personal_no_pide_categoria(cliente_web):
@@ -829,3 +832,107 @@ def test_al_editar_tampoco_se_ve_el_identificador(cliente_web, tmp_path: Path):
 
     assert "Identificador" not in html
     assert 'name="id"' not in html
+
+
+# --------------------------------------------------------------------------
+# Entries written in a single language
+# --------------------------------------------------------------------------
+
+
+class _ClienteFalsoTraductor:
+    def __init__(self, respuesta: str):
+        self.respuesta = respuesta
+        self.llamadas: list[tuple[str, str]] = []
+
+    def complete(self, sistema: str, usuario: str) -> str:
+        self.llamadas.append((sistema, usuario))
+        return self.respuesta
+
+    def available(self) -> bool:
+        return True
+
+
+def _con_clave(cliente_web):
+    cliente_web.post("/ajustes", data={"proveedor": "groq", "clave_api": "gsk_test123"})
+    return cliente_web
+
+
+def test_mi_perfil_marca_las_entradas_sin_traducir(cliente_web, tmp_path: Path):
+    store.save_skill(
+        tmp_path / "perfil",
+        Skill(id="sql", name=Bilingual(es="SQL", en=""), category="dato", keywords=["sql"]),
+    )
+
+    respuesta = cliente_web.get("/perfil")
+
+    assert "Falta en inglés".encode("utf-8") in respuesta.data
+
+
+def test_mi_perfil_ofrece_traducir_todo_lo_que_falte(cliente_web, tmp_path: Path):
+    """Twelve entries by hand would be twelve calls and twelve waits."""
+    _con_clave(cliente_web)
+    for id_ in ("sql", "docker"):
+        store.save_skill(
+            tmp_path / "perfil",
+            Skill(id=id_, name=Bilingual(es=id_, en=""), category="dato", keywords=[id_]),
+        )
+
+    respuesta = cliente_web.get("/perfil")
+
+    assert "Traducir todo lo que falte".encode("utf-8") in respuesta.data
+    assert b"/perfil/traducir/en" in respuesta.data
+
+
+def test_traducir_una_entrada_no_toca_el_original(cliente_web, tmp_path: Path, monkeypatch):
+    import json
+
+    import ancla.web.views.profile as vista
+
+    root = tmp_path / "perfil"
+    store.save_skill(
+        root, Skill(id="sql", name=Bilingual(es="SQL avanzado", en=""), category="dato", keywords=["sql"])
+    )
+    _con_clave(cliente_web)
+    monkeypatch.setattr(
+        vista, "create_client",
+        lambda proveedor, clave, url_base="", modelo="": _ClienteFalsoTraductor(
+            json.dumps({"0": {"name": "Advanced SQL"}})
+        ),
+    )
+
+    cliente_web.post("/perfil/traducir/en/skills/sql")
+
+    guardada = store.load_profile(root).skill("sql")
+    assert guardada.name["es"] == "SQL avanzado"
+    assert guardada.name["en"] == "Advanced SQL"
+
+
+def test_traducir_todo_lo_que_falte_es_una_sola_llamada(cliente_web, tmp_path: Path, monkeypatch):
+    import json
+
+    import ancla.web.views.profile as vista
+
+    root = tmp_path / "perfil"
+    store.save_skill(root, Skill(id="sql", name=Bilingual(es="SQL", en=""), category="dato", keywords=["sql"]))
+    store.save_language(
+        root,
+        SpokenLanguage(
+            id="ingles", name=Bilingual(es="Inglés", en=""),
+            level=Bilingual(es="C1", en=""), keywords=["english"],
+        ),
+    )
+    _con_clave(cliente_web)
+    cliente = _ClienteFalsoTraductor(
+        json.dumps({"0": {"name": "SQL"}, "1": {"name": "English", "level": "C1"}})
+    )
+    monkeypatch.setattr(
+        vista, "create_client",
+        lambda proveedor, clave, url_base="", modelo="": cliente,
+    )
+
+    cliente_web.post("/perfil/traducir/en")
+
+    perfil = store.load_profile(root)
+    assert len(cliente.llamadas) == 1
+    assert perfil.skill("sql").name["en"] == "SQL"
+    assert perfil.language("ingles").level["en"] == "C1"

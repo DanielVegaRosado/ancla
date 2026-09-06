@@ -5,6 +5,12 @@
   <p class="ayuda">
     {{ _('Solo se guardará lo que dejes marcado. Corrige lo que haga falta antes de confirmar. La IA ha extraído esto de tu CV, pero el criterio final es tuyo.') }}
   </p>
+  {% if falta_idioma %}
+    <p class="ayuda">
+      {{ _('Tu CV se ha leído en %(idioma)s, y eso es lo único que se ha pedido al modelo.', idioma=nombre_idioma(idioma_importado)) }}
+      {{ _('Si también vas a presentarte a vacantes en el otro idioma, tradúcelo ahora: es una segunda llamada, y puedes hacerla más tarde desde «Mi perfil».') }}
+    </p>
+  {% endif %}
 
   {% if importacion.avisos %}
     <div class="errores">
@@ -23,25 +29,33 @@
               <strong>{{ _('Guardar esta experiencia') }}</strong>
             </label>
             <div class="dos-columnas">
+              {% if 'es' in importacion.written %}
               <div class="campo">
                 <label>{{ _('Título (ES)') }}</label>
                 <input type="text" name="exp-{{ loop.index0 }}-titulo_es" value="{{ experiencia.title['es'] }}">
               </div>
+              {% endif %}
+              {% if 'en' in importacion.written %}
               <div class="campo">
                 <label>{{ _('Título (EN)') }}</label>
                 <input type="text" name="exp-{{ loop.index0 }}-titulo_en" value="{{ experiencia.title['en'] }}">
               </div>
+              {% endif %}
             </div>
             {% with elemento = experiencia, prefijo = "exp-" ~ loop.index0 ~ "-" %}{% include "_period_fields.html" %}{% endwith %}
             <div class="dos-columnas">
+              {% if 'es' in importacion.written %}
               <div class="campo">
                 <label>{{ _('Bullets (ES, uno por línea)') }}</label>
                 <textarea name="exp-{{ loop.index0 }}-bullets_es">{{ experiencia.bullets['es']|join('\n') }}</textarea>
               </div>
+              {% endif %}
+              {% if 'en' in importacion.written %}
               <div class="campo">
                 <label>{{ _('Bullets (EN, uno por línea)') }}</label>
                 <textarea name="exp-{{ loop.index0 }}-bullets_en">{{ experiencia.bullets['en']|join('\n') }}</textarea>
               </div>
+              {% endif %}
             </div>
             <div class="campo">
               <label>{{ _('Stack') }}</label>
@@ -62,14 +76,18 @@
               <strong>{{ _('Guardar esta skill') }}</strong>
             </label>
             <div class="dos-columnas">
+              {% if 'es' in importacion.written %}
               <div class="campo">
                 <label>{{ _('Nombre (ES)') }}</label>
                 <input type="text" name="skill-{{ loop.index0 }}-nombre_es" value="{{ skill.name['es'] }}">
               </div>
+              {% endif %}
+              {% if 'en' in importacion.written %}
               <div class="campo">
                 <label>{{ _('Nombre (EN)') }}</label>
                 <input type="text" name="skill-{{ loop.index0 }}-nombre_en" value="{{ skill.name['en'] }}">
               </div>
+              {% endif %}
             </div>
             <div class="campo">
               <label>{{ _('Categoría') }}</label>
@@ -90,14 +108,18 @@
               <strong>{{ _('Guardar esta skill personal') }}</strong>
             </label>
             <div class="dos-columnas">
+              {% if 'es' in importacion.written %}
               <div class="campo">
                 <label>{{ _('Nombre (ES)') }}</label>
                 <input type="text" name="skillpersonal-{{ loop.index0 }}-nombre_es" value="{{ skill.name['es'] }}">
               </div>
+              {% endif %}
+              {% if 'en' in importacion.written %}
               <div class="campo">
                 <label>{{ _('Nombre (EN)') }}</label>
                 <input type="text" name="skillpersonal-{{ loop.index0 }}-nombre_en" value="{{ skill.name['en'] }}">
               </div>
+              {% endif %}
             </div>
           </div>
         {% endfor %}
@@ -114,24 +136,32 @@
               <strong>{{ _('Guardar este idioma') }}</strong>
             </label>
             <div class="dos-columnas">
+              {% if 'es' in importacion.written %}
               <div class="campo">
                 <label>{{ _('Idioma (ES)') }}</label>
                 <input type="text" name="idioma-{{ loop.index0 }}-nombre_es" value="{{ idioma.name['es'] }}">
               </div>
+              {% endif %}
+              {% if 'en' in importacion.written %}
               <div class="campo">
                 <label>{{ _('Idioma (EN)') }}</label>
                 <input type="text" name="idioma-{{ loop.index0 }}-nombre_en" value="{{ idioma.name['en'] }}">
               </div>
+              {% endif %}
             </div>
             <div class="dos-columnas">
+              {% if 'es' in importacion.written %}
               <div class="campo">
                 <label>{{ _('Nivel (ES)') }}</label>
                 <input type="text" name="idioma-{{ loop.index0 }}-nivel_es" value="{{ idioma.level['es'] }}">
               </div>
+              {% endif %}
+              {% if 'en' in importacion.written %}
               <div class="campo">
                 <label>{{ _('Nivel (EN)') }}</label>
                 <input type="text" name="idioma-{{ loop.index0 }}-nivel_en" value="{{ idioma.level['en'] }}">
               </div>
+              {% endif %}
             </div>
           </div>
         {% endfor %}
@@ -148,14 +178,18 @@
               <strong>{{ _('Guardar esta educación') }}</strong>
             </label>
             <div class="dos-columnas">
+              {% if 'es' in importacion.written %}
               <div class="campo">
                 <label>{{ _('Título (ES)') }}</label>
                 <input type="text" name="edu-{{ loop.index0 }}-titulo_es" value="{{ educacion.title['es'] }}">
               </div>
+              {% endif %}
+              {% if 'en' in importacion.written %}
               <div class="campo">
                 <label>{{ _('Título (EN)') }}</label>
                 <input type="text" name="edu-{{ loop.index0 }}-titulo_en" value="{{ educacion.title['en'] }}">
               </div>
+              {% endif %}
             </div>
             <div class="campo">
               <label>{{ _('Centro') }}</label>
@@ -167,7 +201,16 @@
       </div>
     {% endif %}
 
+    {# Two buttons, and translating comes first only because it is the one
+       that stops being possible: saving ends the import and the candidates
+       are gone. Both submit the same form, so whatever the user has already
+       corrected by hand travels with either. #}
     <div class="barra-acciones">
+      {% if falta_idioma %}
+        <button type="submit" formaction="{{ url_for('ancla.translate_import') }}">
+          {{ _('Traducir al %(idioma)s', idioma=nombre_idioma(falta_idioma)) }}
+        </button>
+      {% endif %}
       <button type="submit" class="boton-primario">{{ _('Guardar lo seleccionado') }}</button>
     </div>
   </form>

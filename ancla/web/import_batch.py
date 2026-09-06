@@ -12,19 +12,45 @@ import json
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 
-from ancla.profile.model import Bilingual, Education, Experience, Skill, SpokenLanguage
+from ancla.profile.model import (
+    LANGUAGES,
+    Bilingual,
+    Education,
+    Experience,
+    Language,
+    Skill,
+    SpokenLanguage,
+)
 
 NOMBRE_FICHERO = ".importacion.json"
 
 
 @dataclass
 class ImportBatch:
+    """The candidates plus the languages they are written in.
+
+    `written` starts as the single language the CV was imported in and gains
+    the other one once the user asks for the translation. The review screen
+    draws a column per language in it, so a field nobody has paid a call for
+    is not shown as an empty box the user is meant to fill.
+    """
+
     experiencias: list[Experience] = field(default_factory=list)
     skills: list[Skill] = field(default_factory=list)
     skills_personales: list[Skill] = field(default_factory=list)
     idiomas: list[SpokenLanguage] = field(default_factory=list)
     educacion: list[Education] = field(default_factory=list)
     avisos: list[str] = field(default_factory=list)
+    written: list[Language] = field(default_factory=lambda: ["es"])
+
+    def sections(self) -> list[list]:
+        """Every candidate, whatever its category — for the operations that
+        do not care which section an entry came from, such as translating
+        the whole batch in one call."""
+        return [
+            self.experiencias, self.skills, self.skills_personales,
+            self.idiomas, self.educacion,
+        ]
 
 
 def _path(root: Path) -> Path:
@@ -51,6 +77,13 @@ def load_import(root: Path) -> ImportBatch | None:
             idiomas=[_to_language(i) for i in datos.get("idiomas", [])],
             educacion=[_to_education(e) for e in datos.get("educacion", [])],
             avisos=list(datos.get("avisos", [])),
+            # A batch saved before the import became single-language holds
+            # both languages, and reading it as such is what keeps a review
+            # already open from losing half its fields.
+            written=[
+                idioma for idioma in LANGUAGES
+                if idioma in datos.get("written", list(LANGUAGES))
+            ] or ["es"],
         )
     except (json.JSONDecodeError, OSError, KeyError, TypeError):
         return None
