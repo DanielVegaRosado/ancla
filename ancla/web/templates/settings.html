@@ -13,7 +13,9 @@
           "personalizado" va último ahí a propósito, y por eso también aquí.
         #}
         {% for clave, proveedor in proveedores.items() %}
-          <option value="{{ clave }}" {{ "selected" if ajustes.proveedor == clave else "" }}>{{ nombre_proveedor(clave, proveedor) }}</option>
+          <option value="{{ clave }}" {{ "selected" if ajustes.proveedor == clave else "" }}
+                  data-clave="{{ ajustes.saved_key(clave) }}"
+                  data-placeholder-clave="{{ (proveedor.key_hint ~ '...') if proveedor.key_hint else '' }}">{{ nombre_proveedor(clave, proveedor) }}</option>
         {% endfor %}
       </select>
       {#
@@ -40,41 +42,58 @@
 
     <div class="campo">
       <label for="clave_api">{{ _('Clave de API') }}</label>
+      {#
+        Un único valor en el atributo, pero uno por proveedor bajo la
+        cubierta: cada `<option>` lleva su propia clave guardada y su propio
+        prefijo esperado en `data-clave`/`data-prefijo-clave`, y `app.js` los
+        usa para rellenar este campo al cambiar de proveedor sin recargar —
+        si no, el campo seguiría enseñando la clave del proveedor anterior.
+      #}
       <input type="password" id="clave_api" name="clave_api" autocomplete="off"
-             value="{{ ajustes.clave_api }}" placeholder="gsk_...">
-      <p class="ayuda">
-        {% if ajustes.configured() %}{{ _('Ya tienes una clave guardada.') }}{% else %}{{ _('Todavía no has configurado ninguna clave.') }}{% endif %}
-        {% if ajustes.proveedor == "groq" %}{{ _('Las claves de Groq empiezan por gsk_.') }}{% endif %}
-      </p>
+             value="{{ ajustes.clave_api }}"
+             placeholder="{{ proveedores[ajustes.proveedor].key_hint ~ '...' if proveedores[ajustes.proveedor].key_hint else '' }}">
+      {#
+        Una línea por proveedor, igual que la descripción de arriba: si no
+        varía con el proveedor elegido, "ya tienes una clave guardada" acaba
+        siendo cierto para el proveedor equivocado.
+      #}
+      {% for clave, proveedor in proveedores.items() %}
+        <p class="ayuda" data-mostrar-si-proveedor="{{ clave }}"{{ "" if ajustes.proveedor == clave else " hidden" }}>
+          {% if ajustes.saved_key(clave) %}
+            {{ _('Ya tienes una clave de %(nombre)s guardada.', nombre=nombre_proveedor(clave, proveedor)) }}
+          {% else %}
+            {{ _('Todavía no has configurado ninguna clave de %(nombre)s.', nombre=nombre_proveedor(clave, proveedor)) }}
+          {% endif %}
+          {% if proveedor.key_hint %}
+            {{ _('Las claves de %(nombre)s empiezan por %(prefijo)s.', nombre=nombre_proveedor(clave, proveedor), prefijo=proveedor.key_hint) }}
+          {% endif %}
+        </p>
+      {% endfor %}
     </div>
 
     {#
-      Un único campo Modelo en todo el formulario (nunca dos con
-      name="modelo"): duplicarlo por proveedor enviaría los dos al guardar y
-      el servidor se quedaría con el que aparezca primero en el HTML, no con
-      el que se veía. Va ya relleno con el valor por defecto del proveedor,
-      plegado tras "Avanzado" para quien no necesita tocarlo — abierto solo
-      para "Otra API", que además de un modelo pide su propia URL y no tiene
-      ningún valor por defecto que ofrecer.
+      Solo "Otra API" pide Modelo y URL base: cada proveedor conocido ya
+      tiene un modelo por defecto que funciona (`Provider.default_model`) y
+      su URL fija, así que preguntarlos ahí también habría exigido un
+      segundo `name="modelo"` en el formulario — y con dos, el servidor se
+      queda con el que aparece primero en el HTML, no con el que se ve
+      (ver `Provider.default_model` en `web/providers.py`). Un único bloque,
+      sin plegable: al elegir "Otra API" hace falta rellenar los dos campos
+      sí o sí, así que ocultarlos tras un "Avanzado" solo añadía un clic.
     #}
-    <details class="campo" data-mostrar-si-proveedor="{{ proveedores_con_modelo|join(',') }}"
-              {{ "open" if ajustes.proveedor == "personalizado" else "" }}>
-      <summary>{{ _('Avanzado') }}</summary>
+    <div class="campo" data-mostrar-si-proveedor="personalizado"{{ "" if ajustes.proveedor == "personalizado" else " hidden" }}>
       <label for="modelo">{{ _('Modelo') }}</label>
       <input type="text" id="modelo" name="modelo" autocomplete="off"
-             value="{{ ajustes.modelo or proveedores[ajustes.proveedor].default_model }}"
-             placeholder="{{ proveedores[ajustes.proveedor].default_model }}">
+             value="{{ ajustes.modelo }}" placeholder="{{ _('p. ej. llama-3.3-70b-versatile') }}">
       <p class="ayuda">
-        {{ _('Ya hemos puesto un modelo que funciona. Cámbialo solo si quieres usar otro, copiándolo tal cual de la documentación de tu proveedor.') }}
+        {{ _('El nombre exacto del modelo, tal cual lo escribe la documentación de tu proveedor.') }}
       </p>
 
-      <div class="campo" data-mostrar-si-proveedor="personalizado">
-        <label for="url_base">{{ _('URL base') }}</label>
-        <input type="text" id="url_base" name="url_base" autocomplete="off"
-               value="{{ ajustes.url_base }}" placeholder="https://api.example.com/v1">
-        <p class="ayuda">{{ _('La dirección que te dé la documentación de tu proveedor. Los demás ya la llevan puesta.') }}</p>
-      </div>
-    </details>
+      <label for="url_base">{{ _('URL base') }}</label>
+      <input type="text" id="url_base" name="url_base" autocomplete="off"
+             value="{{ ajustes.url_base }}" placeholder="https://api.example.com/v1">
+      <p class="ayuda">{{ _('La dirección que te dé la documentación de tu proveedor.') }}</p>
+    </div>
 
     <div class="campo">
       <label for="idioma">{{ _('Idioma de la interfaz') }}</label>

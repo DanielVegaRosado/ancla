@@ -176,6 +176,22 @@ document.addEventListener("click", (evento) => {
   actualizar();
 })();
 
+// Settings: switching provider swaps in that provider's own remembered key
+// (and its placeholder) instead of leaving the previous provider's key
+// sitting in the field — the exact mix-up that let one provider's key get
+// saved under another provider's name.
+(() => {
+  const selector = document.getElementById("proveedor");
+  const campoClave = document.getElementById("clave_api");
+  if (!selector || !campoClave) return;
+
+  selector.addEventListener("change", () => {
+    const opcion = selector.options[selector.selectedIndex];
+    campoClave.value = opcion.dataset.clave || "";
+    campoClave.placeholder = opcion.dataset.placeholderClave || "";
+  });
+})();
+
 // Soporte: el placeholder del mensaje cambia según sea "problema" o
 // "sugerencia", para que el hueco en blanco ya sugiera qué escribir.
 document.addEventListener("change", (evento) => {

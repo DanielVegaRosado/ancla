@@ -17,7 +17,6 @@ def view_settings():
             "settings.html",
             ajustes=context.current_settings(),
             proveedores=PROVIDERS,
-            proveedores_con_modelo=modulo_ajustes.PROVEEDORES_CON_MODELO,
             nombre_proveedor=display_name,
         )
 
@@ -41,9 +40,14 @@ def view_settings():
     # has no default to fall back to (there is no endpoint to guess a model
     # for), so it keeps demanding one typed by hand.
     modelo = request.form.get("modelo", "").strip() or PROVIDERS[proveedor].default_model
+    # Only the key for the provider being saved changes; every other
+    # provider's remembered key is carried over untouched, which is the
+    # whole point of keeping one per provider instead of a single field.
+    claves = dict(actuales.claves_api)
+    claves[proveedor] = request.form.get("clave_api", "").strip()
     nuevos = modulo_ajustes.Settings(
         proveedor=proveedor,
-        clave_api=request.form.get("clave_api", "").strip(),
+        claves_api=claves,
         url_base=request.form.get("url_base", "").strip(),
         modelo=modelo,
         orden_perfil=actuales.orden_perfil,

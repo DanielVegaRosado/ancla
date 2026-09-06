@@ -5,13 +5,19 @@
    the mark and the button are written once: five copies would drift the
    first time either changes. Without a key configured the mark still shows
    — knowing a CV in that language would come out with this entry blank is
-   useful even when there is nothing to press. #}
+   useful even when there is nothing to press.
+
+   Set `en_formulario` when including this from an entry's own edit form
+   rather than from a list row: translating is a server-side call over what
+   is already saved, so it would silently drop anything typed and not yet
+   submitted in that same form. #}
 {% for cod in idiomas %}
   {% if entrada.id in sin_traducir[seccion][cod] %}
     <span class="insignia">{{ _('Falta en %(idioma)s', idioma=nombre_idioma(cod)) }}</span>
     {% if ia_configurada %}
       <form class="en-linea" method="post"
-            action="{{ url_for('ancla.translate_entry', idioma=cod, seccion=seccion, id_=entrada.id) }}">
+            action="{{ url_for('ancla.translate_entry', idioma=cod, seccion=seccion, id_=entrada.id) }}"
+            {% if en_formulario %}data-confirmar="{{ _('Traducir usa la última versión guardada. Los cambios sin guardar de este formulario se perderán. ¿Traducir de todas formas?') }}"{% endif %}>
         <button type="submit" class="boton-pequeno">{{ _('Traducir') }}</button>
       </form>
     {% endif %}

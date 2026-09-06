@@ -6,6 +6,7 @@ the provider factory and the Settings screen.
 """
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
 import pytest
@@ -85,6 +86,46 @@ def test_ajustes_con_fichero_corrupto_no_rompe(tmp_path: Path):
     ruta.write_text("esto no es json", encoding="utf-8")
     ajustes = modulo_ajustes.load_settings(ruta)
     assert ajustes == modulo_ajustes.Settings()
+
+
+def test_un_ajustes_json_con_una_sola_clave_se_lee_sin_perderla(tmp_path: Path):
+    """The shape before per-provider keys existed: a single top-level
+    `clave_api`, with no `claves_api` map at all. An installation that
+    already has one of these must keep working exactly as before."""
+    import json
+
+    ruta = tmp_path / "ajustes.json"
+    ruta.write_text(
+        json.dumps({"proveedor": "groq", "clave_api": "gsk_de_antes", "modelo": "", "url_base": ""}),
+        encoding="utf-8",
+    )
+
+    ajustes = modulo_ajustes.load_settings(ruta)
+    assert ajustes.clave_api == "gsk_de_antes"
+    assert ajustes.claves_api == {"groq": "gsk_de_antes"}
+    assert ajustes.configured()
+
+
+def test_guardar_la_clave_de_un_proveedor_no_pisa_la_de_otro(tmp_path: Path):
+    ruta = tmp_path / "ajustes.json"
+    modulo_ajustes.save_settings(
+        modulo_ajustes.Settings(proveedor="groq", clave_api="gsk_groq"), ruta
+    )
+
+    actuales = modulo_ajustes.load_settings(ruta)
+    modulo_ajustes.save_settings(
+        modulo_ajustes.Settings(
+            proveedor="openai",
+            claves_api={**actuales.claves_api, "openai": "sk-openai"},
+            modelo="gpt-4o-mini",
+        ),
+        ruta,
+    )
+
+    recargados = modulo_ajustes.load_settings(ruta)
+    assert recargados.claves_api == {"groq": "gsk_groq", "openai": "sk-openai"}
+    assert recargados.clave_api == "sk-openai"
+    assert recargados.saved_key("groq") == "gsk_groq"
 
 
 # --------------------------------------------------------------------------
@@ -228,6 +269,78 @@ def test_guardar_una_clave_de_grok_en_vez_de_groq_avisa_pero_no_bloquea(
     # It is saved all the same: it is not up to the app to decide if a key is valid.
     guardados = modulo_ajustes.load_settings(tmp_path / "ajustes.json")
     assert guardados.clave_api == "xai-abc123"
+
+
+def test_guardar_la_clave_de_un_proveedor_no_pisa_la_de_otro_en_el_formulario(
+    cliente_web, tmp_path: Path
+):
+    """The bug this card exists to close: switching provider used to leave
+    the previous provider's key sitting in the field, so saving without
+    retyping it saved that key under the new provider's name."""
+    cliente_web.post(
+        "/ajustes", data={"proveedor": "groq", "clave_api": "gsk_groq"}, follow_redirects=True
+    )
+    cliente_web.post(
+        "/ajustes", data={"proveedor": "openai", "clave_api": "sk-openai"}, follow_redirects=True
+    )
+
+    guardados = modulo_ajustes.load_settings(tmp_path / "ajustes.json")
+    assert guardados.saved_key("groq") == "gsk_groq"
+    assert guardados.saved_key("openai") == "sk-openai"
+
+
+def test_el_mensaje_de_clave_guardada_refleja_el_proveedor_elegido(cliente_web, tmp_path: Path):
+    """Only a key already saved for the *selected* provider should say so —
+    saving Groq's key must not make OpenAI's line claim one is saved too."""
+    cliente_web.post(
+        "/ajustes", data={"proveedor": "groq", "clave_api": "gsk_groq"}, follow_redirects=True
+    )
+
+    html = cliente_web.get("/ajustes").data.decode("utf-8")
+    assert "Ya tienes una clave de Groq guardada." in html
+    assert "Todavía no has configurado ninguna clave de OpenAI." in html
+
+
+def _bloque_del_modelo(html: str) -> str:
+    """The `<div class="campo" data-mostrar-si-proveedor="personalizado" ...>`
+    wrapper that holds Model and Base URL — where the `hidden` attribute
+    that decides whether it shows actually lives."""
+    inicio = html.index('<div class="campo" data-mostrar-si-proveedor="personalizado"')
+    return html[inicio : inicio + 100]
+
+
+def test_un_proveedor_conocido_no_ensena_el_campo_de_modelo(cliente_web, tmp_path: Path):
+    """With a known provider, only the key is asked for — the model uses
+    `Provider.default_model` silently, with no field to see or fill."""
+    cliente_web.post(
+        "/ajustes", data={"proveedor": "groq", "clave_api": "gsk_groq"}, follow_redirects=True
+    )
+
+    html = cliente_web.get("/ajustes").data.decode("utf-8")
+    assert 'id="modelo"' in html
+    assert "hidden" in _bloque_del_modelo(html)
+
+
+def test_otra_api_ensena_modelo_y_url_directamente_sin_plegable(cliente_web, tmp_path: Path):
+    cliente_web.post(
+        "/ajustes",
+        data={"proveedor": "personalizado", "clave_api": "clave", "modelo": "m", "url_base": "https://x"},
+        follow_redirects=True,
+    )
+
+    html = cliente_web.get("/ajustes").data.decode("utf-8")
+    assert "<details" not in html
+    assert 'id="modelo"' in html
+    assert "hidden" not in _bloque_del_modelo(html)
+
+
+def test_un_unico_input_de_modelo_en_el_dom_sea_cual_sea_el_proveedor(cliente_web, tmp_path: Path):
+    """Two `name="modelo"` inputs would both be submitted, and the server
+    keeps whichever appears first in the HTML — never the visible one."""
+    for proveedor in ("groq", "openai", "anthropic", "personalizado"):
+        cliente_web.post("/ajustes", data={"proveedor": proveedor, "clave_api": "x"}, follow_redirects=True)
+        html = cliente_web.get("/ajustes").data.decode("utf-8")
+        assert html.count('name="modelo"') == 1
 
 
 def test_pagina_inexistente_da_404_en_espanol(cliente_web):

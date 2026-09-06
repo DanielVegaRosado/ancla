@@ -10,6 +10,7 @@ from __future__ import annotations
 import json
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
+from typing import Any
 
 from ancla.web.providers import PROVIDERS
 from ancla.web.routes import data_root
@@ -45,7 +46,17 @@ IDIOMAS_INTERFAZ = ("es", "en")
 @dataclass
 class Settings:
     proveedor: str = PROVEEDOR_POR_DEFECTO
+    # The key for `proveedor` right now. Kept as a plain field (not derived
+    # on every read) so every existing caller that builds or reads a
+    # `Settings` by its key alone — `create_client(ajustes.proveedor,
+    # ajustes.clave_api, ...)`, the handful of tests that do
+    # `Settings(proveedor=..., clave_api=...)` — keeps working unchanged.
+    # `claves_api` is the one that actually gets saved to disk long-term:
+    # `__post_init__` is what keeps the two from drifting apart.
     clave_api: str = ""
+    # One remembered key per provider, so switching providers in Settings
+    # does not throw away the key already generated for the previous one.
+    claves_api: dict[str, str] = field(default_factory=dict)
     # `url_base` is only saved (and only needed) with proveedor="personalizado"
     # — for everyone else the URL is fixed in `web/providers.py`. `modelo`
     # is needed by everyone except Groq (see PROVEEDORES_CON_MODELO).
@@ -53,6 +64,25 @@ class Settings:
     modelo: str = ""
     orden_perfil: list[str] = field(default_factory=lambda: list(SECCIONES_PERFIL))
     idioma: str = IDIOMA_POR_DEFECTO
+
+    def __post_init__(self) -> None:
+        """A `clave_api` passed in (construction, not loading) is what the
+        caller means as the key for `proveedor`, so it is recorded into
+        `claves_api` under that key. Otherwise `clave_api` is derived back
+        out of `claves_api` for `proveedor` — the case `load_settings` hits
+        after reading a file that only carries the map."""
+        if self.clave_api:
+            self.claves_api = {**self.claves_api, self.proveedor: self.clave_api}
+        else:
+            self.clave_api = self.claves_api.get(self.proveedor, "")
+
+    def saved_key(self, proveedor: str) -> str:
+        """The key remembered for a provider other than the one currently
+        selected — lets Settings show what is already saved for whichever
+        provider the visitor picks in the dropdown, not just for `proveedor`
+        (see `static/app.js`, which reads it to swap the key field without
+        a page reload)."""
+        return self.claves_api.get(proveedor, "")
 
     def configured(self) -> bool:
         if not self.clave_api.strip():
@@ -86,6 +116,20 @@ def valid_profile_order(orden: object) -> list[str]:
     return list(SECCIONES_PERFIL)
 
 
+def _read_keys(datos: dict[str, Any], proveedor: str) -> dict[str, str]:
+    """Reads the per-provider map a current file has, falling back to the
+    single `clave_api` a file saved before this change still has — read as
+    belonging to `proveedor`, the only provider it could have been for.
+    Existing installations keep their key with no rewrite forced on them,
+    same approach as `profile/serialization.py`'s `_plain_text` for a field
+    that stopped being bilingual."""
+    claves = dict(datos.get("claves_api") or {})
+    clave_unica = datos.get("clave_api")
+    if clave_unica and proveedor not in claves:
+        claves[proveedor] = clave_unica
+    return claves
+
+
 def load_settings(ruta: Path = RUTA_POR_DEFECTO) -> Settings:
     """No file yet means not configured, not an error."""
     if not ruta.exists():
@@ -94,9 +138,10 @@ def load_settings(ruta: Path = RUTA_POR_DEFECTO) -> Settings:
         datos = json.loads(ruta.read_text(encoding="utf-8"))
     except (json.JSONDecodeError, OSError):
         return Settings()
+    proveedor = valid_provider(datos.get("proveedor"))
     return Settings(
-        proveedor=valid_provider(datos.get("proveedor")),
-        clave_api=datos.get("clave_api", ""),
+        proveedor=proveedor,
+        claves_api=_read_keys(datos, proveedor),
         url_base=datos.get("url_base", ""),
         modelo=datos.get("modelo", ""),
         orden_perfil=valid_profile_order(datos.get("orden_perfil")),

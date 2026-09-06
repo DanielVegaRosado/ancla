@@ -50,6 +50,13 @@ class Provider:
 
     `needs_model` is false only for `groq`: its client has its own default
     model, so Settings never shows a Model field for it at all.
+
+    `key_hint` is the prefix its keys are known to start with — shown next
+    to the key field as both a hint and the input's placeholder, and reused
+    to flag a key pasted from the wrong provider in `views/settings.py`.
+    Left empty for a provider with no fixed, confirmed prefix (`personalizado`
+    included: any format is legitimate there), rather than print a hint that
+    might not hold.
     """
 
     name: str
@@ -58,6 +65,7 @@ class Provider:
     default_model: str = ""
     free_tier: bool = False
     needs_model: bool = True
+    key_hint: str = ""
 
 
 def _groq_client(clave_api: str, url_base: str, modelo: str) -> AIClient:
@@ -99,6 +107,7 @@ PROVIDERS: dict[str, Provider] = {
         key_url=URL_CLAVE_GROQ,
         free_tier=True,
         needs_model=False,
+        key_hint="gsk_",
     ),
     "openai": Provider(
         name="OpenAI",
@@ -111,6 +120,7 @@ PROVIDERS: dict[str, Provider] = {
         create=_anthropic_client,
         key_url=URL_CLAVE_ANTHROPIC,
         default_model="claude-haiku-4-5",
+        key_hint="sk-ant-",
     ),
     "mistral": Provider(
         name="Mistral",

@@ -6,6 +6,10 @@
     {{ _('No pasa por selección de IA: en la Propuesta y en la exportación a .docx se muestra siempre completa, igual que idiomas y skills personales.') }}
   </p>
 
+  {% if not nueva %}
+    {% with seccion = "educacion", entrada = educacion, en_formulario = True %}{% include "_untranslated.html" %}{% endwith %}
+  {% endif %}
+
   {% if errors %}
     <div class="errores">
       <ul>{% for error in errors %}<li>{{ error }}</li>{% endfor %}</ul>

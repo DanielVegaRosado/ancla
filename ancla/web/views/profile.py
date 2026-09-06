@@ -89,6 +89,17 @@ def _untranslated_ids(perfil) -> dict[str, dict[str, list[str]]]:
     }
 
 
+def _translation_extras() -> dict:
+    """Context an entry's edit form needs to show the same missing-translation
+    badge and button as the profile list (see `_untranslated.html`), so the
+    template can flag it without another agent's route recomputing it.
+    """
+    return {
+        "sin_traducir": _untranslated_ids(context.current_profile()),
+        "ia_configurada": context.current_settings().configured(),
+    }
+
+
 @bp.route("/perfil/traducir/<idioma>", methods=["POST"])
 def translate_missing(idioma: str):
     """Everything the profile is missing in one language, in one call.
@@ -225,12 +236,18 @@ def edit_experience(id_: str):
         return redirect(url_for("ancla.view_profile"))
 
     if request.method == "GET":
-        return render_template("experience_form.html", experiencia=existente, errors=[], nueva=False)
+        return render_template(
+            "experience_form.html", experiencia=existente, errors=[], nueva=False,
+            seccion="experiencias", **_translation_extras(),
+        )
 
     experiencia = _experience_from_form(id_)
     problemas = validation.validate_experience(experiencia)
     if problemas.errors:
-        return render_template("experience_form.html", experiencia=experiencia, errors=problemas.errors, nueva=False)
+        return render_template(
+            "experience_form.html", experiencia=experiencia, errors=problemas.errors, nueva=False,
+            seccion="experiencias", **_translation_extras(),
+        )
 
     store.save_experience(context.root(), experiencia)
     flash(_("Experiencia «%(titulo)s» actualizada.", titulo=experiencia.title["es"]))
@@ -353,12 +370,18 @@ def edit_skill(id_: str):
         return redirect(url_for("ancla.view_profile"))
 
     if request.method == "GET":
-        return render_template("skill_form.html", skill=existente, errors=[], nueva=False)
+        return render_template(
+            "skill_form.html", skill=existente, errors=[], nueva=False,
+            seccion="skills", **_translation_extras(),
+        )
 
     skill = _skill_from_form(id_)
     problemas = validation.validate_skill(skill)
     if problemas.errors:
-        return render_template("skill_form.html", skill=skill, errors=problemas.errors, nueva=False)
+        return render_template(
+            "skill_form.html", skill=skill, errors=problemas.errors, nueva=False,
+            seccion="skills", **_translation_extras(),
+        )
 
     store.save_skill(context.root(), skill)
     flash(_("Skill «%(nombre)s» actualizada.", nombre=skill.name["es"]))
@@ -425,12 +448,18 @@ def edit_personal_skill(id_: str):
         return redirect(url_for("ancla.view_profile"))
 
     if request.method == "GET":
-        return render_template("personal_skill_form.html", skill=existente, errors=[], nueva=False)
+        return render_template(
+            "personal_skill_form.html", skill=existente, errors=[], nueva=False,
+            seccion="skills-personales", **_translation_extras(),
+        )
 
     skill = _skill_from_form(id_)
     problemas = validation.validate_personal_skill(skill)
     if problemas.errors:
-        return render_template("personal_skill_form.html", skill=skill, errors=problemas.errors, nueva=False)
+        return render_template(
+            "personal_skill_form.html", skill=skill, errors=problemas.errors, nueva=False,
+            seccion="skills-personales", **_translation_extras(),
+        )
 
     store.save_personal_skill(context.root(), skill)
     flash(_("Skill personal «%(nombre)s» actualizada.", nombre=skill.name["es"]))
@@ -510,12 +539,18 @@ def edit_language(id_: str):
         return redirect(url_for("ancla.view_profile"))
 
     if request.method == "GET":
-        return render_template("language_form.html", idioma=existente, errors=[], nuevo=False)
+        return render_template(
+            "language_form.html", idioma=existente, errors=[], nuevo=False,
+            seccion="idiomas", **_translation_extras(),
+        )
 
     idioma = _language_from_form(id_)
     problemas = validation.validate_language(idioma)
     if problemas.errors:
-        return render_template("language_form.html", idioma=idioma, errors=problemas.errors, nuevo=False)
+        return render_template(
+            "language_form.html", idioma=idioma, errors=problemas.errors, nuevo=False,
+            seccion="idiomas", **_translation_extras(),
+        )
 
     store.save_language(context.root(), idioma)
     flash(_("Idioma «%(nombre)s» actualizado.", nombre=idioma.name["es"]))
@@ -593,12 +628,18 @@ def edit_education(id_: str):
         return redirect(url_for("ancla.view_profile"))
 
     if request.method == "GET":
-        return render_template("education_form.html", educacion=existente, errors=[], nueva=False)
+        return render_template(
+            "education_form.html", educacion=existente, errors=[], nueva=False,
+            seccion="educacion", **_translation_extras(),
+        )
 
     educacion = _education_from_form(id_)
     problemas = validation.validate_education(educacion)
     if problemas.errors:
-        return render_template("education_form.html", educacion=educacion, errors=problemas.errors, nueva=False)
+        return render_template(
+            "education_form.html", educacion=educacion, errors=problemas.errors, nueva=False,
+            seccion="educacion", **_translation_extras(),
+        )
 
     store.save_education(context.root(), educacion)
     flash(_("Educación «%(titulo)s» actualizada.", titulo=educacion.title["es"]))

@@ -6,6 +6,10 @@
     {{ _('No pasa por selección de IA, en la Propuesta se muestran siempre todos, igual que en un CV real no se recorta la sección de idiomas según la vacante. Nunca puede aparecer en "Sobre mí" ni entre las skills técnicas.') }}
   </p>
 
+  {% if not nuevo %}
+    {% with seccion = "idiomas", entrada = idioma, en_formulario = True %}{% include "_untranslated.html" %}{% endwith %}
+  {% endif %}
+
   {% if errors %}
     <div class="errores">
       <ul>{% for error in errors %}<li>{{ error }}</li>{% endfor %}</ul>

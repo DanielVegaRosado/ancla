@@ -1009,3 +1009,85 @@ def test_traducir_todo_lo_que_falte_es_una_sola_llamada(cliente_web, tmp_path: P
     assert len(cliente.llamadas) == 1
     assert perfil.skill("sql").name["en"] == "SQL"
     assert perfil.language("ingles").level["en"] == "C1"
+
+
+# --------------------------------------------------------------------------
+# The same mark and button, but inside the entry's own edit form (not just
+# in the "My profile" list rows).
+# --------------------------------------------------------------------------
+
+
+def test_editar_una_skill_a_medias_ofrece_traducir_dentro_del_formulario(cliente_web, tmp_path: Path):
+    _con_clave(cliente_web)
+    store.save_skill(
+        tmp_path / "perfil",
+        Skill(id="sql", name=Bilingual(es="SQL", en=""), category="dato", keywords=["sql"]),
+    )
+
+    html = cliente_web.get("/perfil/skills/sql/editar").data.decode("utf-8")
+
+    assert "Falta en inglés" in html
+    assert "/perfil/traducir/en/skills/sql" in html
+
+
+def test_editar_una_skill_completa_no_ofrece_traducir(cliente_web, tmp_path: Path):
+    _con_clave(cliente_web)
+    store.save_skill(
+        tmp_path / "perfil",
+        Skill(id="sql", name=Bilingual(es="SQL", en="SQL"), category="dato", keywords=["sql"]),
+    )
+
+    html = cliente_web.get("/perfil/skills/sql/editar").data.decode("utf-8")
+
+    assert "Falta en" not in html
+    assert "/perfil/traducir/" not in html
+
+
+def test_editar_una_skill_a_medias_sin_clave_marca_el_hueco_sin_boton(cliente_web, tmp_path: Path):
+    """Knowing a language would come out blank is useful even with nothing
+    to press, same as in the "My profile" list rows."""
+    store.save_skill(
+        tmp_path / "perfil",
+        Skill(id="sql", name=Bilingual(es="SQL", en=""), category="dato", keywords=["sql"]),
+    )
+
+    html = cliente_web.get("/perfil/skills/sql/editar").data.decode("utf-8")
+
+    assert "Falta en inglés" in html
+    assert "/perfil/traducir/" not in html
+
+
+def test_el_boton_traducir_del_formulario_avisa_de_perder_lo_no_guardado(cliente_web, tmp_path: Path):
+    """Translating is a server-side call over what is already saved: it
+    would silently drop anything typed in the form and not yet submitted,
+    which is why this button (unlike the list's) needs a confirm step."""
+    _con_clave(cliente_web)
+    store.save_experience(
+        tmp_path / "perfil",
+        Experience(
+            id="quest-global", title=Bilingual(es="Backend", en=""),
+            period_start="2023", period_end="ongoing",
+            bullets=Bilingual(es=["hizo cosas"], en=[]), stack="python",
+        ),
+    )
+
+    html = cliente_web.get("/perfil/experiencias/quest-global/editar").data.decode("utf-8")
+
+    assert "data-confirmar" in html
+    assert "/perfil/traducir/en/experiencias/quest-global" in html
+
+
+def test_editar_un_idioma_a_medias_ofrece_traducir_dentro_del_formulario(cliente_web, tmp_path: Path):
+    _con_clave(cliente_web)
+    store.save_language(
+        tmp_path / "perfil",
+        SpokenLanguage(
+            id="ingles", name=Bilingual(es="Inglés", en=""),
+            level=Bilingual(es="C1", en=""), keywords=["english"],
+        ),
+    )
+
+    html = cliente_web.get("/perfil/idiomas/ingles/editar").data.decode("utf-8")
+
+    assert "Falta en inglés" in html
+    assert "/perfil/traducir/en/idiomas/ingles" in html
