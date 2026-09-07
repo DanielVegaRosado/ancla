@@ -10,10 +10,13 @@ instead of estimated, because the browser is measuring real text.
 Two entry points share the same core (`_preview`), mirroring the `.docx`
 export: the proposal being reviewed and an already-archived CV.
 
-Unlike the `.docx` path, overflow here cannot become a second page — a
-printed CV that ends with two entries and half a blank sheet is the whole
-reason this screen enforces a range instead of only warning about one (see
-`html-templates/README.md`). `capacidad` is how many experiences actually
+Unlike the `.docx` path, overflow here does not just happen — a printed CV
+that ends with two entries and half a blank sheet is the whole reason this
+screen enforces a range instead of only warning about one, and the type is
+then measured down to whatever fits the rest (`static/cv_fit.js`, see
+`html-templates/README.md`). Only a text too long for even the smallest
+type still prints two pages, and the screen says so first.
+`capacidad` is how many experiences actually
 go on the page: clamped to the template's own `[capacity_min, capacity_max]`
 range rather than read straight off the sidecar, because the design's
 range is a starting point and whether that many really look right is the

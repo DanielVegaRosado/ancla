@@ -9,7 +9,17 @@
 
    What is deliberately absent is any arithmetic about how much fits: the
    browser measures its own text, so where the page ends is stated as a
-   rule (`break-inside: avoid`) instead of solved for. */
+   rule (`break-inside: avoid`) instead of solved for.
+
+   Everything in the main column that has a vertical size is written as
+   `calc(<measured>pt * var(--cv-escala, 1))`. `--cv-escala` is the single
+   knob `ancla/web/static/cv_fit.js` turns until the CV fits one page, and
+   scaling the whole column by it — type, leading and the gaps between —
+   keeps the design's own proportions at every setting instead of only
+   shrinking the paragraphs and leaving the headings behind. The sidebar is
+   left out of it: its content is the profile's, not the proposal's, so it
+   does not grow with what the user writes. The column's own padding stays
+   fixed too, or the two columns would stop starting at the same height. */
 
 :root {
   --cv-navy: #0c233f;
@@ -170,7 +180,7 @@
 
 .cv-nombre {
   margin: 0;
-  font-size: 22.5pt;
+  font-size: calc(22.5pt * var(--cv-escala, 1));
   font-weight: 400;
   line-height: 1.15;
   text-transform: uppercase;
@@ -183,24 +193,25 @@
 }
 
 .cv-titular {
-  margin: 4pt 0 6pt;
-  font-size: 10.5pt;
+  margin: calc(4pt * var(--cv-escala, 1)) 0 calc(6pt * var(--cv-escala, 1));
+  font-size: calc(10.5pt * var(--cv-escala, 1));
   text-transform: uppercase;
   letter-spacing: 0.2pt;
   color: var(--cv-role);
   border-bottom: 1.5pt solid var(--cv-navy);
-  padding-bottom: 8pt;
+  padding-bottom: calc(8pt * var(--cv-escala, 1));
 }
 
 .cv-seccion {
-  margin-top: 16pt;
+  margin-top: calc(16pt * var(--cv-escala, 1));
 }
 
 .cv-cabecera-principal {
-  font-size: 10.5pt;
+  margin-bottom: calc(6pt * var(--cv-escala, 1));
+  font-size: calc(10.5pt * var(--cv-escala, 1));
   color: var(--cv-navy);
   border-bottom: 0.75pt solid var(--cv-navy);
-  padding-bottom: 3pt;
+  padding-bottom: calc(3pt * var(--cv-escala, 1));
 }
 
 .cv-sobre-mi {
@@ -210,33 +221,12 @@
   line-height: calc(1.35 * var(--cv-escala, 1));
 }
 
-/* This template is only ever asked to hold 3, 4 or 5 experiences
-   (`capacidad_experiencias_max` in the sidecar, enforced by the preview
-   screen) — a handful of fixed cases, not an open range, so the base size
-   for each is a fixed number rather than a formula: read off the printed
-   PDF once per case and left here as a constant, the same spirit as every
-   other measurement in this file. `.cv-escala-N` is set from the actual
-   count of experiences in `corporativa-clasica.html`. What a fixed number
-   per case cannot know is how long any one CV's "About me" is, or how many
-   bullets any one experience has — that variation is what the elastic
-   `.cv-espaciador` gaps below absorb, at the size the printed page actually
-   turns out to have, not a guess. */
-.cv-escala-3 { --cv-escala: 1.12; }
-.cv-escala-4 { --cv-escala: 1.05; }
-.cv-escala-5 { --cv-escala: 1; }
-
-/* Three, four or five experiences all draw the same page: the section
-   grows to take whatever room `.cv-principal` has left over (the header
-   and "About me" above it are whatever size their own text needs), and
-   that room is then shared out between the experience entries themselves
-   rather than left as a single gap at the foot of the page. A design drawn
-   for 5 that only has 3 still asks for more room per gap than one has to
-   give, so growth is capped per gap (`max-height`) instead of unbounded:
-   past the cap the extra room is simply left blank rather than stretched
-   into a spaced-out look. Nothing here is a guess about how much text
-   takes up how much space — the browser resolves the actual free space on
-   its own, the same way it resolves everything else about where a line
-   wraps or a page breaks. */
+/* Whatever room the header and "About me" leave, the experience section
+   takes, and it is then shared out between the entries themselves rather
+   than left as one gap at the foot of the page. Growth is capped per gap
+   (`max-height`) instead of unbounded: past the cap the extra room is
+   left blank rather than stretched into a spaced-out look. This is what
+   absorbs the last few points the type scale cannot land on exactly. */
 .cv-seccion-experiencia {
   flex: 1 1 auto;
   display: flex;
@@ -245,12 +235,12 @@
 
 .cv-espaciador {
   flex: 1 1 0;
-  max-height: 22pt;
+  max-height: calc(22pt * var(--cv-escala, 1));
 }
 
 /* An experience split across two pages reads as two different jobs. */
 .cv-experiencia {
-  margin-bottom: 11pt;
+  margin-bottom: calc(11pt * var(--cv-escala, 1));
   break-inside: avoid;
 }
 
@@ -263,7 +253,7 @@
 
 .cv-puesto {
   margin: 0;
-  font-size: 10.5pt;
+  font-size: calc(10.5pt * var(--cv-escala, 1));
   font-weight: 700;
   color: var(--cv-ink);
 }
@@ -271,26 +261,26 @@
 .cv-fechas {
   margin: 0;
   flex: none;
-  font-size: 8.5pt;
+  font-size: calc(8.5pt * var(--cv-escala, 1));
   text-transform: uppercase;
   letter-spacing: 0.2pt;
   color: var(--cv-muted);
 }
 
 .cv-bullets {
-  margin: 4pt 0 0;
+  margin: calc(4pt * var(--cv-escala, 1)) 0 0;
   padding-left: 12pt;
   font-size: calc(9.5pt * var(--cv-escala, 1));
   line-height: calc(1.3 * var(--cv-escala, 1));
 }
 
 .cv-bullets li {
-  margin-bottom: 1.5pt;
+  margin-bottom: calc(1.5pt * var(--cv-escala, 1));
 }
 
 .cv-stack {
-  margin: 4pt 0 0;
-  font-size: 9pt;
+  margin: calc(4pt * var(--cv-escala, 1)) 0 0;
+  font-size: calc(9pt * var(--cv-escala, 1));
   font-style: italic;
   color: var(--cv-muted);
 }

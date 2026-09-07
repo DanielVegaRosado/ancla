@@ -57,8 +57,9 @@ The one difference is `{{ foto }}`: here it is the URL of the profile photo
 `capacidad_experiencias_min`/`_max` is the range of experiences the design
 was **drawn for**, and the Proposal screen enforces it: the "experiences
 that fit" field on that screen is clamped to `[min, max]` for whichever
-template is selected, so **the preview can never run onto a second page** —
-unlike the `.docx` path, which still can (see `docx-templates/README.md`).
+template is selected. How many experiences there are is only half of what
+decides whether the CV fits one page, though — see "One page, whatever the
+user wrote" below for the other half.
 With more experiences in the proposal than `max`, the extra ones are left
 out of the print and named on screen instead, with their selection reason,
 so nothing disappears silently; dragging the experience cards on the
@@ -67,6 +68,48 @@ ones make the cut. With fewer than `min`, the CV still prints with what
 there is — rule 1 forbids inventing an experience to pad it — but the
 screen says the design was meant for more, since a page that's too sparse
 is a cosmetic risk, not a print-breaking one.
+
+## One page, whatever the user wrote
+
+A range of experiences is not enough to keep a CV on one page. How many
+experiences fit is bounded; how long the user's "About me" is, is not, so
+for any type size decided in advance there is a text long enough to
+overflow it — and rule 2 rules out the other way of making it fit, since
+the app never shortens or rewrites what the user wrote.
+
+So the size is not decided in advance. `ancla/web/static/cv_fit.js` lays
+the sheet out, measures the height its content asks for, and searches for
+the largest scale that still fits one page. It is the whole reason for
+laying a CV out in a browser rather than in a `.docx`: measuring is what a
+`.docx` cannot do, not what was given up when this path was written.
+
+A template owes it two things, both already in the stylesheets here:
+
+- `--cv-alto-pagina`, the page height **in points**, on `.cv`. It is what
+  the fitting is measured against.
+- `--cv-escala`, a multiplier every vertical measurement in the main
+  column is written against —
+  `font-size: calc(10.5pt * var(--cv-escala, 1))`, and the same for
+  leading, margins and the elastic gaps. Scale the whole column, not just
+  its paragraphs: a design whose body text shrinks while its headings stay
+  put stops being the design that was drawn. The sidebar is left out (its
+  content comes from the profile, not from the proposal, so it does not
+  grow with what the user writes), and so is the column's own padding, or
+  the two columns would stop starting at the same height.
+
+Both are checked by a test, so a design added later is fitted without
+being calibrated by hand. There is no per-case table of sizes to read off
+a printed PDF any more: a fixed number per case is exactly what could not
+survive a longer "About me".
+
+The search has a ceiling (1.2) and a floor (0.85). The ceiling is taste —
+past it a CV with little in it reads as large print rather than as a
+document. The floor is the point where body type reaches about 8pt, and
+below it a CV that fits is worse than a CV that doesn't. When even the
+floor does not fit, the preview screen says so before the user prints,
+with the same reasoning as the experiences that don't make the cut:
+nothing is trimmed and nothing happens silently, the user decides whether
+to shorten their "About me" or to print two pages.
 
 ## Writing the stylesheet
 
@@ -100,12 +143,10 @@ is a cosmetic risk, not a print-breaking one.
   same name: light grey sidebar with a terracotta accent, two-line name,
   each experience laid out as one running paragraph instead of bullets.
   Panel width, colors and the name treatment were traced by measuring
-  pixels on `canva-templates/minimalista-calida.pdf`; the three type
-  scales (`.cv-escala-3/4/5` in its CSS) come from printing the template
-  itself with real content and reading off the result, the same method as
-  Corporativa Clásica but its own numbers — this design is denser (a
-  two-line name and a running paragraph eat more height than a single-line
-  name and bullets), so its scales spread wider between the 3- and 5-case.
+  pixels on `canva-templates/minimalista-calida.pdf`. This design is denser
+  than Corporativa Clásica — a two-line name and a running paragraph eat
+  more height than a single-line name and bullets — which shows up as a
+  smaller scale for the same content rather than as anything to calibrate.
   It is drawn in IBM Plex Sans rather than the Montserrat of the `.docx`,
   which is not bundled with the app. The Canva original also shows a
   company address per experience and an "Interests" row of icons; neither

@@ -396,13 +396,14 @@ def test_un_cv_guardado_tambien_se_puede_ver_maquetado(tmp_path: Path):
 
 
 # --------------------------------------------------------------------------
-# Corporativa Clásica fills the page whether it holds 3, 4 or 5 experiences
-# (actual fill is measured on a printed PDF, not asserted here — see
-# `bitacora/llenar-la-hoja.md`). What a unit test can pin down is the markup
-# contract the CSS depends on: a spacer between every pair of consecutive
-# entries, none before the first or after the last, and a scale class that
-# names the exact count so `corporativa-clasica.css` can size that case's
-# text without guessing it from the DOM.
+# The CV fills the page and never spills onto a second one, whatever the
+# length of "About me" (actual fill and page count are measured on a printed
+# PDF, not asserted here — see `bitacora/garantizar-una-pagina.md`). What a
+# unit test can pin down is the contract that measurement rests on: a spacer
+# between every pair of consecutive entries, the fitting script on the page
+# with its warning ready but hidden, and every template stylesheet declaring
+# the two custom properties the script needs, so a design added later is
+# fitted without being calibrated by hand.
 # --------------------------------------------------------------------------
 
 
@@ -419,14 +420,32 @@ def test_una_sola_experiencia_no_lleva_ningun_espaciador(tmp_path: Path):
     assert "cv-espaciador" not in html
 
 
-def test_la_columna_principal_lleva_la_clase_de_escala_de_su_propio_numero_de_experiencias(tmp_path: Path):
+def test_la_pantalla_ajusta_el_cv_a_una_pagina_y_lleva_el_aviso_listo_pero_oculto(tmp_path: Path):
+    html = _vista_previa(_cliente(tmp_path, n_experiencias=5), capacidad=5)
+
+    assert "cv_fit.js" in html
+    assert "data-aviso-desborde hidden" in html
+
+
+def test_ninguna_plantilla_fija_el_tamano_por_numero_de_experiencias(tmp_path: Path):
+    """The size is measured on the laid-out page, not enumerated per case:
+    a fixed size can always be overflowed by a long enough "About me", which
+    is the one thing this path exists to prevent."""
     for cuantas in (3, 4, 5):
         html = _vista_previa(_cliente(tmp_path, n_experiencias=cuantas), capacidad=cuantas)
 
-        assert f"cv-escala-{cuantas}" in html
-        for otras in (3, 4, 5):
-            if otras != cuantas:
-                assert f"cv-escala-{otras}" not in html
+        assert "cv-escala-" not in html
+
+
+def test_toda_plantilla_declara_lo_que_el_ajuste_necesita_para_medirla():
+    """The fitting script knows nothing about any one design: it reads the
+    page height off the stylesheet and turns `--cv-escala`. A template that
+    declares neither would print at a size nobody chose."""
+    for hoja in PLANTILLAS_HTML.glob("*.css"):
+        css = hoja.read_text(encoding="utf-8")
+
+        assert "--cv-alto-pagina:" in css, hoja.name
+        assert "var(--cv-escala" in css, hoja.name
 
 
 def test_no_se_puede_bajar_del_minimo_que_declara_la_plantilla(tmp_path: Path):

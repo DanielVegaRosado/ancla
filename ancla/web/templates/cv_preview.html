@@ -48,10 +48,21 @@
              minimo=plantilla.capacity_min, total=total_experiencias) }}
       </p>
     {% endif %}
+    {#
+      Shown by `cv_fit.js` when the CV does not fit one page even with the
+      type at its smallest: rule 2 forbids trimming what the user wrote, so
+      the only honest move left is to say so before they print, the same
+      treatment the experiences that don't fit already get.
+    #}
+    <p class="aviso" data-aviso-desborde hidden>
+      {{ _('Con este «Sobre mí» y %(capacidad)s experiencias no cabe todo en una página, ni siquiera con el texto al tamaño mínimo: se imprimirá en dos. Acorta el «Sobre mí» o baja el número de experiencias — Ancla nunca recorta lo que has escrito.',
+           capacidad=capacidad) }}
+    </p>
   </div>
 
   <div class="hoja">{{ cuerpo|safe }}</div>
 
   <script src="{{ url_for('static', filename='app.js') }}"></script>
+  <script src="{{ url_for('static', filename='cv_fit.js') }}"></script>
 </body>
 </html>

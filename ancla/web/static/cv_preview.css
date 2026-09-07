@@ -51,6 +51,16 @@
   box-shadow: 0 2px 6px rgba(16, 24, 32, 0.12), 0 12px 32px rgba(16, 24, 32, 0.16);
 }
 
+/* Sizing the CV to one page (`cv_fit.js`) means measuring the height its
+   content asks for, and that is not the height of the sheet: the sheet has a
+   one-page floor, so it reads back as one page long however little is on it.
+   The floor is lifted for the length of the measurement. Two classes deep on
+   purpose — each template sets `min-height` on `.cv` in its own stylesheet,
+   which is linked after this one. */
+.cv.cv-midiendo {
+  min-height: 0;
+}
+
 @media print {
   .no-imprimir {
     display: none !important;

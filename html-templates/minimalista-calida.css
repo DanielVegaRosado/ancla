@@ -2,9 +2,7 @@
 
    Panel width, sidebar grey and the terracotta accent come from measuring
    pixels on `canva-templates/minimalista-calida.pdf` (the same way
-   `corporativa-clasica.css` was measured on its own reference); the type
-   scales below come from printing this template itself, not from the
-   reference PDF — see the note above `.cv-escala-3`.
+   `corporativa-clasica.css` was measured on its own reference.
 
    This design is denser than Corporativa Clásica: each experience is one
    running paragraph rather than bullets, and the name spans two lines at a
@@ -12,7 +10,16 @@
    even starts. What is deliberately absent, same as Corporativa Clásica,
    is any arithmetic about how much text fits: the browser measures its
    own text, so where the page ends is stated as a rule
-   (`break-inside: avoid`) instead of solved for. */
+   (`break-inside: avoid`) instead of solved for.
+
+   Everything in the main column that has a vertical size is written as
+   `calc(<measured>pt * var(--cv-escala, 1))`. `--cv-escala` is the single
+   knob `ancla/web/static/cv_fit.js` turns until the CV fits one page, and
+   scaling the whole column by it keeps this design's proportions — a name
+   twice the size of its headline, a paragraph tucked under a dated
+   heading — at every setting. The sidebar stays out of it: its content is
+   the profile's, not the proposal's. So does the column's own padding, or
+   the two columns would stop starting at the same height. */
 
 :root {
   --cv-terracota: #b3805a;
@@ -128,7 +135,8 @@
 }
 
 .cv-cabecera-principal {
-  font-size: 11pt;
+  margin-bottom: calc(8pt * var(--cv-escala, 1));
+  font-size: calc(11pt * var(--cv-escala, 1));
   color: var(--cv-terracota);
 }
 
@@ -194,32 +202,32 @@
 .cv-nombre {
   display: flex;
   flex-direction: column;
-  margin: 0 0 6pt;
+  margin: 0 0 calc(6pt * var(--cv-escala, 1));
   line-height: 1.05;
 }
 
 .cv-nombre-primero {
-  font-size: 27pt;
+  font-size: calc(27pt * var(--cv-escala, 1));
   font-weight: 700;
   color: var(--cv-ink);
 }
 
 .cv-nombre-resto {
-  font-size: 20pt;
+  font-size: calc(20pt * var(--cv-escala, 1));
   font-weight: 400;
   letter-spacing: 3pt;
   color: var(--cv-body);
 }
 
 .cv-titular {
-  margin: 6pt 0 0;
-  font-size: 10.5pt;
+  margin: calc(6pt * var(--cv-escala, 1)) 0 0;
+  font-size: calc(10.5pt * var(--cv-escala, 1));
   letter-spacing: 1.5pt;
   color: var(--cv-muted);
 }
 
 .cv-sobre-mi {
-  margin: 10pt 0 0;
+  margin: calc(10pt * var(--cv-escala, 1)) 0 0;
   text-align: justify;
   font-size: calc(9.5pt * var(--cv-escala, 1));
   line-height: calc(1.4 * var(--cv-escala, 1));
@@ -227,14 +235,13 @@
 }
 
 .cv-seccion {
-  margin-top: 16pt;
+  margin-top: calc(16pt * var(--cv-escala, 1));
 }
 
-/* Three, four or five experiences all draw the same page: the section
-   grows to take whatever room `.cv-principal` has left over, and that
-   room is shared out between the experience entries themselves rather
-   than left as one gap at the foot of the page — same mechanism as
-   Corporativa Clásica, see its CSS for the full reasoning. */
+/* Whatever room the header and "About me" leave, the experience section
+   takes, and it is shared out between the entries themselves rather than
+   left as one gap at the foot of the page — same mechanism as Corporativa
+   Clásica, see its CSS for the full reasoning. */
 .cv-seccion-experiencia {
   flex: 1 1 auto;
   display: flex;
@@ -243,25 +250,12 @@
 
 .cv-espaciador {
   flex: 1 1 0;
-  max-height: 38pt;
+  max-height: calc(38pt * var(--cv-escala, 1));
 }
-
-/* This template is only ever asked to hold 3, 4 or 5 experiences
-   (`capacidad_experiencias_max` in the sidecar, enforced by the preview
-   screen), so the base size for each is a fixed number read off the
-   printed PDF, not a formula — same approach as Corporativa Clásica, but
-   its own numbers: a running paragraph per experience and a two-line name
-   eat more vertical space than Corporativa's bullets and single-line
-   name, so this design needs a wider spread between its 3-case and its
-   5-case to make five fit at all. `.cv-escala-N` is set from the actual
-   count of experiences in `minimalista-calida.html`. */
-.cv-escala-3 { --cv-escala: 1.18; }
-.cv-escala-4 { --cv-escala: 1.06; }
-.cv-escala-5 { --cv-escala: 0.94; }
 
 /* An experience split across two pages reads as two different jobs. */
 .cv-experiencia {
-  margin-bottom: 10pt;
+  margin-bottom: calc(10pt * var(--cv-escala, 1));
   break-inside: avoid;
 }
 
@@ -292,7 +286,7 @@
 }
 
 .cv-puesto {
-  margin: 2pt 0 0;
+  margin: calc(2pt * var(--cv-escala, 1)) 0 0;
   padding-left: 13pt;
   font-size: calc(10pt * var(--cv-escala, 1));
   font-weight: 700;
@@ -300,7 +294,7 @@
 }
 
 .cv-parrafo {
-  margin: 3pt 0 0;
+  margin: calc(3pt * var(--cv-escala, 1)) 0 0;
   padding-left: 13pt;
   text-align: justify;
   font-size: calc(9pt * var(--cv-escala, 1));
@@ -308,9 +302,9 @@
 }
 
 .cv-stack {
-  margin: 3pt 0 0;
+  margin: calc(3pt * var(--cv-escala, 1)) 0 0;
   padding-left: 13pt;
-  font-size: 8.5pt;
+  font-size: calc(8.5pt * var(--cv-escala, 1));
   font-style: italic;
   color: var(--cv-muted);
 }
