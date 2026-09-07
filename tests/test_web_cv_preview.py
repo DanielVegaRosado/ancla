@@ -36,6 +36,7 @@ _EXPERIENCIAS = [
     ("exp-2", "Rol Dos · Empresa B", "Motivo B"),
     ("exp-3", "Rol Tres · Empresa C", "Motivo C"),
     ("exp-4", "Rol Cuatro · Empresa D", "Motivo D"),
+    ("exp-5", "Rol Cinco · Empresa E", "Motivo E"),
 ]
 
 _IDIOMAS = [("en", "Inglés", "C1"), ("fr", "Francés", "B1"), ("de", "Alemán", "A2")]
@@ -183,28 +184,29 @@ def test_solo_entran_en_la_hoja_las_experiencias_dentro_de_la_capacidad_pedida(t
     """The bullet text is what's unique to the sheet itself (the excluded
     list below only names the title and the reason, never the bullets), so
     it's what tells apart "printed" from "merely mentioned as left out"."""
-    cliente = _cliente(tmp_path, n_experiencias=4)
+    cliente = _cliente(tmp_path, n_experiencias=5)
 
-    html = _vista_previa(cliente, capacidad=2)
+    html = _vista_previa(cliente, capacidad=3)
 
     assert "Bullet de exp-1" in html
     assert "Bullet de exp-2" in html
-    assert "Bullet de exp-3" not in html
+    assert "Bullet de exp-3" in html
     assert "Bullet de exp-4" not in html
+    assert "Bullet de exp-5" not in html
 
 
 def test_las_que_quedan_fuera_se_nombran_con_su_motivo(tmp_path: Path):
     """Rule 3: cutting an experience is now the user's own choice (drag to
     reorder), but the app still has to say which ones it cut and why they
     were selected in the first place — nothing disappears silently."""
-    cliente = _cliente(tmp_path, n_experiencias=4)
+    cliente = _cliente(tmp_path, n_experiencias=5)
 
-    html = _vista_previa(cliente, capacidad=2)
+    html = _vista_previa(cliente, capacidad=3)
 
-    assert "Rol Tres · Empresa C" in html
-    assert "Motivo C" in html
     assert "Rol Cuatro · Empresa D" in html
     assert "Motivo D" in html
+    assert "Rol Cinco · Empresa E" in html
+    assert "Motivo E" in html
 
 
 def test_sin_desbordamiento_no_hay_aviso_de_excluidas(tmp_path: Path):
@@ -222,7 +224,7 @@ def test_la_capacidad_pedida_no_puede_superar_el_maximo_de_la_plantilla(tmp_path
 
     html = _vista_previa(cliente, capacidad=20)
 
-    for _id, titulo, _motivo in _EXPERIENCIAS:
+    for _id, titulo, _motivo in _EXPERIENCIAS[:4]:
         assert titulo in html
 
 
@@ -297,7 +299,7 @@ def test_una_plantilla_sin_maximo_declarado_no_limita_por_arriba(tmp_path: Path)
 
     html = cliente.get("/propuesta/vista-previa?plantilla_id=sin-tope").data.decode("utf-8")
 
-    for _id, titulo, _motivo in _EXPERIENCIAS:
+    for _id, titulo, _motivo in _EXPERIENCIAS[:4]:
         assert titulo in html
 
 
@@ -391,3 +393,51 @@ def test_un_cv_guardado_tambien_se_puede_ver_maquetado(tmp_path: Path):
     respuesta = cliente.get(f"/cvs/{cv.id}/vista-previa?plantilla_id={PLANTILLA}")
     assert respuesta.status_code == 200
     assert "Rol Uno · Empresa A" in respuesta.data.decode("utf-8")
+
+
+# --------------------------------------------------------------------------
+# Corporativa Clásica fills the page whether it holds 3, 4 or 5 experiences
+# (actual fill is measured on a printed PDF, not asserted here — see
+# `bitacora/llenar-la-hoja.md`). What a unit test can pin down is the markup
+# contract the CSS depends on: a spacer between every pair of consecutive
+# entries, none before the first or after the last, and a scale class that
+# names the exact count so `corporativa-clasica.css` can size that case's
+# text without guessing it from the DOM.
+# --------------------------------------------------------------------------
+
+
+def test_hay_un_espaciador_entre_cada_par_de_experiencias_consecutivas(tmp_path: Path):
+    for cuantas in (3, 4, 5):
+        html = _vista_previa(_cliente(tmp_path, n_experiencias=cuantas), capacidad=cuantas)
+
+        assert html.count('class="cv-espaciador"') == cuantas - 1
+
+
+def test_una_sola_experiencia_no_lleva_ningun_espaciador(tmp_path: Path):
+    html = _vista_previa(_cliente(tmp_path, n_experiencias=1))
+
+    assert "cv-espaciador" not in html
+
+
+def test_la_columna_principal_lleva_la_clase_de_escala_de_su_propio_numero_de_experiencias(tmp_path: Path):
+    for cuantas in (3, 4, 5):
+        html = _vista_previa(_cliente(tmp_path, n_experiencias=cuantas), capacidad=cuantas)
+
+        assert f"cv-escala-{cuantas}" in html
+        for otras in (3, 4, 5):
+            if otras != cuantas:
+                assert f"cv-escala-{otras}" not in html
+
+
+def test_no_se_puede_bajar_del_minimo_que_declara_la_plantilla(tmp_path: Path):
+    """Corporativa Clásica holds three experiences at least: below that the
+    sheet is mostly empty however much the type is scaled up. The server
+    clamps it, so editing the query string cannot get past it either."""
+    cliente = _cliente(tmp_path, n_experiencias=5)
+
+    html = _vista_previa(cliente, capacidad=1)
+
+    assert "Bullet de exp-1" in html
+    assert "Bullet de exp-2" in html
+    assert "Bullet de exp-3" in html
+    assert "Bullet de exp-4" not in html

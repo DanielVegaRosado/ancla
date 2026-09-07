@@ -64,7 +64,7 @@
     {% endif %}
   </aside>
 
-  <main class="cv-principal">
+  <main class="cv-principal cv-escala-{{ experiencias|length }}">
     <h1 class="cv-nombre"><strong>{{ nombre_primero }}</strong> {{ nombre_resto }}</h1>
     {% if titular %}<p class="cv-titular">{{ titular }}</p>{% endif %}
 
@@ -76,7 +76,7 @@
     {% endif %}
 
     {% if experiencias %}
-      <section class="cv-seccion cv-seccion-experiencia cv-escala-{{ experiencias|length }}">
+      <section class="cv-seccion cv-seccion-experiencia">
         <h2 class="cv-cabecera-principal">{{ etiqueta_experiencia_relevante }}</h2>
         {% for experiencia in experiencias %}
           <article class="cv-experiencia">

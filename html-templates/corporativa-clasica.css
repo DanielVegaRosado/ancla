@@ -206,7 +206,24 @@
 .cv-sobre-mi {
   margin: 0;
   text-align: justify;
+  font-size: calc(10.5pt * var(--cv-escala, 1));
+  line-height: calc(1.35 * var(--cv-escala, 1));
 }
+
+/* This template is only ever asked to hold 3, 4 or 5 experiences
+   (`capacidad_experiencias_max` in the sidecar, enforced by the preview
+   screen) — a handful of fixed cases, not an open range, so the base size
+   for each is a fixed number rather than a formula: read off the printed
+   PDF once per case and left here as a constant, the same spirit as every
+   other measurement in this file. `.cv-escala-N` is set from the actual
+   count of experiences in `corporativa-clasica.html`. What a fixed number
+   per case cannot know is how long any one CV's "About me" is, or how many
+   bullets any one experience has — that variation is what the elastic
+   `.cv-espaciador` gaps below absorb, at the size the printed page actually
+   turns out to have, not a guess. */
+.cv-escala-3 { --cv-escala: 1.12; }
+.cv-escala-4 { --cv-escala: 1.05; }
+.cv-escala-5 { --cv-escala: 1; }
 
 /* Three, four or five experiences all draw the same page: the section
    grows to take whatever room `.cv-principal` has left over (the header
@@ -228,7 +245,7 @@
 
 .cv-espaciador {
   flex: 1 1 0;
-  max-height: 48pt;
+  max-height: 22pt;
 }
 
 /* An experience split across two pages reads as two different jobs. */
@@ -263,8 +280,8 @@
 .cv-bullets {
   margin: 4pt 0 0;
   padding-left: 12pt;
-  font-size: 9.5pt;
-  line-height: 1.3;
+  font-size: calc(9.5pt * var(--cv-escala, 1));
+  line-height: calc(1.3 * var(--cv-escala, 1));
 }
 
 .cv-bullets li {
@@ -289,9 +306,13 @@
      of its own text, and `.cv-seccion-experiencia` has nothing to grow
      into — same bug as `.cv` above, one level down. `min-height` rather
      than `height`: a CV that genuinely overflows one page still has to be
-     free to run onto the next one. */
+     free to run onto the next one. A few points short of the full page,
+     not exactly it: pinning this to precisely `--cv-alto-pagina` printed
+     as a wasted, sidebar-only second page in testing — the browser's own
+     rounding between `pt` and its rendering unit tipped a height equal to
+     the page into one a hair taller than it. */
   .cv-principal {
-    min-height: var(--cv-alto-pagina);
+    min-height: calc(var(--cv-alto-pagina) - 8pt);
   }
 
   .cv-banda {
