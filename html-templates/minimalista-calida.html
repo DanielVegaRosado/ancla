@@ -1,0 +1,101 @@
+{#
+  Warm Minimalist, the HTML counterpart of the `.docx` of the same name:
+  light grey sidebar reaching every page edge with a terracotta accent,
+  main column with a two-line name and each experience as one running
+  paragraph instead of bullets.
+
+  Only the fields the catalog declares (`docx-templates/README.md`) are
+  used, so the two paths always show the same content. Every section is
+  guarded: a profile with no photo, no education or no languages leaves no
+  empty header behind.
+
+  The Canva original also has a company address next to each experience
+  and an "Interests" row of icons at the foot of the page — neither field
+  exists on the profile (`Experience.empresa` is always empty, and there is
+  no hobbies catalog), so both are left out rather than faked. The
+  original has no "About me" either; one is added here anyway, right under
+  the headline, because every profile in this app writes one and dropping
+  it would hide real content the user chose to include.
+#}
+<article class="cv">
+  <div class="cv-banda" aria-hidden="true"></div>
+
+  <aside class="cv-lateral">
+    {% if foto %}<div class="cv-foto"><img src="{{ foto }}" alt=""></div>{% endif %}
+
+    {% if contacto %}
+      <section class="cv-bloque">
+        <h2 class="cv-cabecera-lateral">{{ etiqueta_contacto }}</h2>
+        <ul class="cv-lista">
+          {% for linea in contacto %}<li>{{ linea }}</li>{% endfor %}
+        </ul>
+      </section>
+    {% endif %}
+
+    {% if educacion %}
+      <section class="cv-bloque">
+        <h2 class="cv-cabecera-lateral">{{ etiqueta_educacion }}</h2>
+        {% for entrada in educacion %}
+          <div class="cv-educacion">
+            <p class="cv-educacion-fechas">{{ entrada.fechas }}</p>
+            <p class="cv-educacion-titulo">{{ entrada.titulo }}</p>
+            <p class="cv-educacion-centro">{{ entrada.centro }}</p>
+          </div>
+        {% endfor %}
+      </section>
+    {% endif %}
+
+    {% if skills or skills_personales %}
+      <section class="cv-bloque">
+        <h2 class="cv-cabecera-lateral">{{ etiqueta_skills }}</h2>
+        {% if skills %}
+          <h3 class="cv-subcabecera-lateral">{{ etiqueta_tecnicas }}</h3>
+          <ul class="cv-lista cv-lista-punteada">
+            {% for skill in skills %}<li>{{ skill }}</li>{% endfor %}
+          </ul>
+        {% endif %}
+        {% if skills_personales %}
+          <h3 class="cv-subcabecera-lateral">{{ etiqueta_personales }}</h3>
+          <ul class="cv-lista cv-lista-punteada">
+            {% for skill in skills_personales %}<li>{{ skill }}</li>{% endfor %}
+          </ul>
+        {% endif %}
+      </section>
+    {% endif %}
+
+    {% if idiomas %}
+      <section class="cv-bloque">
+        <h2 class="cv-cabecera-lateral">{{ etiqueta_idiomas }}</h2>
+        <ul class="cv-lista cv-lista-punteada">
+          {% for idioma in idiomas %}<li>{{ idioma }}</li>{% endfor %}
+        </ul>
+      </section>
+    {% endif %}
+  </aside>
+
+  <main class="cv-principal cv-escala-{{ experiencias|length }}">
+    <h1 class="cv-nombre">
+      <span class="cv-nombre-primero">{{ nombre_primero }}</span>
+      <span class="cv-nombre-resto">{{ nombre_resto }}</span>
+    </h1>
+    {% if titular %}<p class="cv-titular">{{ titular }}</p>{% endif %}
+    {% if sobre_mi %}<p class="cv-sobre-mi">{{ sobre_mi }}</p>{% endif %}
+
+    {% if experiencias %}
+      <section class="cv-seccion cv-seccion-experiencia">
+        <h2 class="cv-cabecera-principal">{{ etiqueta_experiencia_relevante }}</h2>
+        {% for experiencia in experiencias %}
+          <article class="cv-experiencia">
+            <p class="cv-fechas">{{ experiencia.fechas }}</p>
+            <h3 class="cv-puesto">{{ experiencia.puesto }}</h3>
+            {% if experiencia.bullets %}
+              <p class="cv-parrafo">{{ experiencia.bullets|join(". ") }}.</p>
+            {% endif %}
+            {% if experiencia.stack %}<p class="cv-stack">{{ experiencia.stack }}</p>{% endif %}
+          </article>
+          {% if not loop.last %}<div class="cv-espaciador" aria-hidden="true"></div>{% endif %}
+        {% endfor %}
+      </section>
+    {% endif %}
+  </main>
+</article>

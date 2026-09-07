@@ -1,0 +1,345 @@
+/* Warm Minimalist — print stylesheet.
+
+   Panel width, sidebar grey and the terracotta accent come from measuring
+   pixels on `canva-templates/minimalista-calida.pdf` (the same way
+   `corporativa-clasica.css` was measured on its own reference); the type
+   scales below come from printing this template itself, not from the
+   reference PDF — see the note above `.cv-escala-3`.
+
+   This design is denser than Corporativa Clásica: each experience is one
+   running paragraph rather than bullets, and the name spans two lines at a
+   large size, so the header eats more of the page before "Experience"
+   even starts. What is deliberately absent, same as Corporativa Clásica,
+   is any arithmetic about how much text fits: the browser measures its
+   own text, so where the page ends is stated as a rule
+   (`break-inside: avoid`) instead of solved for. */
+
+:root {
+  --cv-terracota: #b3805a;
+  --cv-ink: #1a1a1a;
+  --cv-body: #333333;
+  --cv-muted: #6f6f6f;
+  --cv-lateral-fondo: #f6f6f6;
+  --cv-lateral-linea: #d8d3ce;
+  --cv-paper: #ffffff;
+  --cv-ancho-lateral: 205pt;
+  --cv-alto-pagina: 841.92pt;
+}
+
+@page {
+  size: A4;
+  /* The sidebar bleeds to the page edge, so the page must not add its own
+     margin — same reasoning as Corporativa Clásica. */
+  margin: 0;
+}
+
+.cv {
+  position: relative;
+  width: 595.32pt;
+  min-height: var(--cv-alto-pagina);
+  display: flex;
+  align-items: stretch;
+  background: var(--cv-paper);
+  color: var(--cv-body);
+  font-family: "IBM Plex Sans", Helvetica, Arial, sans-serif;
+  font-size: 10pt;
+  line-height: 1.35;
+}
+
+/* Painted by an empty element rather than by the sidebar itself, for the
+   same reason as Corporativa Clásica: the sidebar's own box ends where its
+   content ends, and a CV whose experience spills onto a second page still
+   needs the panel to reach the bottom of that page too. */
+.cv-banda {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: var(--cv-ancho-lateral);
+  height: 100%;
+  background: var(--cv-lateral-fondo);
+}
+
+.cv-lateral,
+.cv-principal {
+  position: relative;
+  padding-top: 40pt;
+  padding-bottom: 28pt;
+}
+
+.cv-lateral {
+  flex: 0 0 var(--cv-ancho-lateral);
+  width: var(--cv-ancho-lateral);
+  padding-left: 26pt;
+  padding-right: 22pt;
+}
+
+.cv-principal {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding-left: 30pt;
+  padding-right: 32pt;
+  display: flex;
+  flex-direction: column;
+}
+
+.cv-foto {
+  margin-bottom: 22pt;
+}
+
+.cv-foto img {
+  width: 92pt;
+  height: 92pt;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.cv-bloque {
+  margin-bottom: 18pt;
+}
+
+/* Shared by both column headers: bold caps followed by a rule that fills
+   whatever width is left, the dash-header look of the reference design.
+   `break-after: avoid` keeps a heading from being stranded at the bottom
+   of a page with its section starting on the next one. */
+.cv-cabecera-lateral,
+.cv-cabecera-principal {
+  display: flex;
+  align-items: center;
+  gap: 8pt;
+  margin: 0 0 8pt;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.3pt;
+  color: var(--cv-ink);
+  break-after: avoid;
+}
+
+.cv-cabecera-lateral::after,
+.cv-cabecera-principal::after {
+  content: "";
+  flex: 1 1 auto;
+  height: 0.75pt;
+  background: currentColor;
+  opacity: 0.5;
+}
+
+.cv-cabecera-lateral {
+  font-size: 10pt;
+}
+
+.cv-cabecera-principal {
+  font-size: 11pt;
+  color: var(--cv-terracota);
+}
+
+.cv-subcabecera-lateral {
+  margin: 10pt 0 4pt;
+  font-size: 8.5pt;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.3pt;
+  color: var(--cv-muted);
+  break-after: avoid;
+}
+
+.cv-lista {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 9pt;
+}
+
+.cv-lista li {
+  margin-bottom: 5pt;
+}
+
+.cv-lista-punteada {
+  padding-left: 11pt;
+  list-style: disc;
+  color: var(--cv-terracota);
+}
+
+.cv-lista-punteada li {
+  margin-bottom: 3pt;
+  color: var(--cv-body);
+}
+
+.cv-educacion {
+  margin-bottom: 10pt;
+  font-size: 9pt;
+  break-inside: avoid;
+}
+
+.cv-educacion p {
+  margin: 0;
+}
+
+.cv-educacion-fechas {
+  color: var(--cv-terracota);
+  font-weight: 700;
+}
+
+.cv-educacion-titulo {
+  font-weight: 700;
+  color: var(--cv-ink);
+}
+
+.cv-educacion-centro {
+  color: var(--cv-muted);
+}
+
+/* The name is the one place the reference design spends real space:
+   two lines, the first name solid and bold, the surname light and spaced
+   out — traced from the Canva PDF, not a generic heading treatment. */
+.cv-nombre {
+  display: flex;
+  flex-direction: column;
+  margin: 0 0 6pt;
+  line-height: 1.05;
+}
+
+.cv-nombre-primero {
+  font-size: 27pt;
+  font-weight: 700;
+  color: var(--cv-ink);
+}
+
+.cv-nombre-resto {
+  font-size: 20pt;
+  font-weight: 400;
+  letter-spacing: 3pt;
+  color: var(--cv-body);
+}
+
+.cv-titular {
+  margin: 6pt 0 0;
+  font-size: 10.5pt;
+  letter-spacing: 1.5pt;
+  color: var(--cv-muted);
+}
+
+.cv-sobre-mi {
+  margin: 10pt 0 0;
+  text-align: justify;
+  font-size: calc(9.5pt * var(--cv-escala, 1));
+  line-height: calc(1.4 * var(--cv-escala, 1));
+  color: var(--cv-body);
+}
+
+.cv-seccion {
+  margin-top: 16pt;
+}
+
+/* Three, four or five experiences all draw the same page: the section
+   grows to take whatever room `.cv-principal` has left over, and that
+   room is shared out between the experience entries themselves rather
+   than left as one gap at the foot of the page — same mechanism as
+   Corporativa Clásica, see its CSS for the full reasoning. */
+.cv-seccion-experiencia {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.cv-espaciador {
+  flex: 1 1 0;
+  max-height: 38pt;
+}
+
+/* This template is only ever asked to hold 3, 4 or 5 experiences
+   (`capacidad_experiencias_max` in the sidecar, enforced by the preview
+   screen), so the base size for each is a fixed number read off the
+   printed PDF, not a formula — same approach as Corporativa Clásica, but
+   its own numbers: a running paragraph per experience and a two-line name
+   eat more vertical space than Corporativa's bullets and single-line
+   name, so this design needs a wider spread between its 3-case and its
+   5-case to make five fit at all. `.cv-escala-N` is set from the actual
+   count of experiences in `minimalista-calida.html`. */
+.cv-escala-3 { --cv-escala: 1.18; }
+.cv-escala-4 { --cv-escala: 1.06; }
+.cv-escala-5 { --cv-escala: 0.94; }
+
+/* An experience split across two pages reads as two different jobs. */
+.cv-experiencia {
+  margin-bottom: 10pt;
+  break-inside: avoid;
+}
+
+.cv-fechas {
+  position: relative;
+  margin: 0;
+  padding-left: 13pt;
+  font-size: calc(8.5pt * var(--cv-escala, 1));
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.3pt;
+  color: var(--cv-ink);
+}
+
+/* The reference design marks each entry with a small terracotta dot
+   instead of a bullet list — the one piece of "Interests" iconography
+   this template keeps, repurposed as a timeline marker instead of an
+   illustration the profile has no data for. */
+.cv-fechas::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.45em;
+  width: 5pt;
+  height: 5pt;
+  border-radius: 50%;
+  background: var(--cv-terracota);
+}
+
+.cv-puesto {
+  margin: 2pt 0 0;
+  padding-left: 13pt;
+  font-size: calc(10pt * var(--cv-escala, 1));
+  font-weight: 700;
+  color: var(--cv-ink);
+}
+
+.cv-parrafo {
+  margin: 3pt 0 0;
+  padding-left: 13pt;
+  text-align: justify;
+  font-size: calc(9pt * var(--cv-escala, 1));
+  line-height: calc(1.35 * var(--cv-escala, 1));
+}
+
+.cv-stack {
+  margin: 3pt 0 0;
+  padding-left: 13pt;
+  font-size: 8.5pt;
+  font-style: italic;
+  color: var(--cv-muted);
+}
+
+@media print {
+  .cv {
+    width: auto;
+    min-height: auto;
+  }
+
+  /* Without a floor here the column's height on paper is just the height
+     of its own text, and `.cv-seccion-experiencia` has nothing to grow
+     into — the same fix Corporativa Clásica needed, one level down. A
+     few points short of the full page, not exactly it: pinning this to
+     precisely `--cv-alto-pagina` printed a wasted, sidebar-only second
+     page in testing. */
+  .cv-principal {
+    min-height: calc(var(--cv-alto-pagina) - 8pt);
+  }
+
+  .cv-banda {
+    /* Stretched between both edges rather than given a height: a length
+       resolves against the viewport, which on paper is not the page.
+       Anchoring top and bottom makes the band exactly the page, whatever
+       the page turns out to be — measured on the printed PDF, never by
+       looking at the screen. */
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    height: auto;
+  }
+}

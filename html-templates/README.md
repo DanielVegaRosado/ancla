@@ -95,3 +95,21 @@ is a cosmetic risk, not a print-breaking one.
   versions of the template stay comparable. It is drawn in IBM Plex Sans,
   the font the app already ships, rather than the Aileron of the `.docx`,
   which is not bundled with the app.
+
+- **`minimalista-calida`** — the HTML counterpart of the `.docx` of the
+  same name: light grey sidebar with a terracotta accent, two-line name,
+  each experience laid out as one running paragraph instead of bullets.
+  Panel width, colors and the name treatment were traced by measuring
+  pixels on `canva-templates/minimalista-calida.pdf`; the three type
+  scales (`.cv-escala-3/4/5` in its CSS) come from printing the template
+  itself with real content and reading off the result, the same method as
+  Corporativa Clásica but its own numbers — this design is denser (a
+  two-line name and a running paragraph eat more height than a single-line
+  name and bullets), so its scales spread wider between the 3- and 5-case.
+  It is drawn in IBM Plex Sans rather than the Montserrat of the `.docx`,
+  which is not bundled with the app. The Canva original also shows a
+  company address per experience and an "Interests" row of icons; neither
+  exists on the profile (`empresa` is always empty, there is no hobbies
+  catalog), so both are left out rather than invented, and the original
+  has no "About me" section at all — one is kept here anyway since every
+  profile in this app writes one.
