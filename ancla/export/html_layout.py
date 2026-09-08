@@ -1,13 +1,9 @@
-"""Lays a proposal out as printable HTML — the browser-rendered
-counterpart of `fill.py`'s `.docx`.
+"""Lays a proposal out as printable HTML — the browser prints it to PDF.
 
-The field catalog is not redefined here: it is `fill.build_context` itself,
-so anything a `.docx` template can show an HTML one can show too, and the
-two can never drift apart. What changes is who measures the text. A `.docx`
-cannot be measured without rendering it, which is why `fill.py` estimates
-line wrapping from character-width tables; a browser knows the height of
-every line it draws, so the page break is expressed as a rule
-(`break-inside: avoid`) instead of being solved for.
+The field catalog is not redefined here: it is `fields.build_context`
+itself. The browser knows the height of every line it draws, so the page
+break is expressed as a rule (`break-inside: avoid`) instead of being
+estimated (see `static/cv_fit.js`).
 
 Templates render in their own Jinja environment, rooted at the templates
 folder and deliberately separate from the app's own
@@ -22,7 +18,7 @@ from pathlib import Path
 
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
-from ancla.export import fill
+from ancla.export import fields
 from ancla.export.html_templates import HtmlTemplate
 from ancla.profile.model import Experience, Profile, Proposal
 
@@ -38,7 +34,7 @@ def render(
     """The template's own markup, filled with the proposal's content. Not a
     whole page: the preview screen wraps it, so a template only ever
     describes the CV itself."""
-    contexto = fill.build_context(propuesta, perfil, experiencias, nombre, photo_url)
+    contexto = fields.build_context(propuesta, perfil, experiencias, nombre, photo_url)
     return _environment(plantilla.path.parent).get_template(plantilla.path.name).render(contexto)
 
 

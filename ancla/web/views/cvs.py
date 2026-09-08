@@ -9,9 +9,8 @@ from flask_babel import gettext as _
 
 from ancla.archive import repository as archivo
 from ancla.export import html_templates as plantillas_html
-from ancla.export import templates as plantillas_docx
 from ancla.profile.model import CVStatus, SavedCV
-from ancla.proposal.format import to_markdown, to_text
+from ancla.proposal.format import to_markdown
 from ancla.web import context
 from ancla.web.blueprint import bp
 from ancla.web.presentation import etiquetas_estado
@@ -50,10 +49,8 @@ def view_cv(id_: str):
         "cv_detail.html",
         cv=cv,
         perfil=perfil,
-        texto_plano=to_text(cv.proposal, perfil),
         texto_markdown=to_markdown(cv.proposal, perfil),
         estados=list(CVStatus),
-        plantillas_docx=plantillas_docx.list_templates(context.docx_templates_root()),
         plantillas_html=plantillas_html.list_templates(context.html_templates_root()),
         adjuntos=_display_names(cv),
     )

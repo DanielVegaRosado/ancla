@@ -10,7 +10,6 @@ from flask_babel import gettext as _
 
 from ancla.ai.client import AIError
 from ancla.export import html_templates as plantillas_html
-from ancla.export import templates as plantillas_docx
 from ancla.profile.model import (
     N_EXPERIENCES,
     N_SKILLS,
@@ -20,8 +19,6 @@ from ancla.profile.model import (
     SelectedExperience,
 )
 from ancla.proposal.format import (
-    to_markdown,
-    to_text,
     language_lines,
     personal_skill_names,
     experience_text,
@@ -75,10 +72,7 @@ def view_proposal():
         texto_skills=texto_skills,
         texto_skills_personales=texto_skills_personales,
         texto_idiomas=texto_idiomas,
-        texto_plano=to_text(propuesta, perfil),
-        texto_markdown=to_markdown(propuesta, perfil),
         hoy=date.today().isoformat(),
-        plantillas_docx=plantillas_docx.list_templates(context.docx_templates_root()),
         plantillas_html=plantillas_html.list_templates(context.html_templates_root()),
     )
 

@@ -26,3 +26,8 @@ exportaciones/
 # nunca se versionan (y build/ puede pesar varios GB).
 /build/
 /dist/
+
+# Vista previa PNG de cada plantilla de Canva: generada de la primera PDF
+# que la pide y cacheada junto a ella (ver ancla/web/views/canva_templates.py),
+# nunca a mano — se regenera sola si el PDF cambia.
+canva-templates/*.png

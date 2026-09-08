@@ -108,7 +108,7 @@
 
     <section class="tarjeta">
       <h2>{{ _('Foto de perfil') }}</h2>
-      <p class="ayuda">{{ _('Opcional. Si la subes, aparece en las plantillas .docx que tengan sitio para una foto.') }}</p>
+      <p class="ayuda">{{ _('Opcional. Si la subes, aparece en las plantillas de CV maquetado que tengan sitio para una foto.') }}</p>
       {% if perfil.photo %}
         <img src="{{ url_for('ancla.photo_file') }}" alt="{{ _('Foto de perfil') }}" style="max-width: 8rem; border-radius: 50%; display: block; margin-bottom: 0.75rem;">
       {% endif %}

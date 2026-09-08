@@ -1,36 +1,18 @@
-"""Renders the proposal to text the user copies and pastes.
+"""Renders the proposal to text: the per-section copy buttons on the
+Proposal screen (`experience_text`, `skill_names`, ...) and the saved-CV
+Markdown record (`to_markdown`) shown on a CV's detail page.
 
-The app does not generate the PDF: the design remains the user's (Canva or
-another tool). This only produces clean text, in the same order it appears
-on the CV, ready to paste block by block.
+The app does not generate the PDF: the layout is the browser's own print
+(`ancla/export/html_layout.py`), not something this module produces.
 
 Personal skills and languages are **always shown in full**, read live from
 the profile — they never go through `Proposal`, because there is no AI
 selection to store: unlike experience or technical skills, a real CV does
 not trim these two sections per job posting.
-
-CONTRACT — implemented by agent C.
 """
 from __future__ import annotations
 
 from ancla.profile.model import Experience, Language, Profile, Proposal, period_text
-
-_ENCABEZADOS = {
-    "es": {
-        "sobre_mi": "SOBRE MÍ",
-        "skills": "SKILLS TÉCNICAS",
-        "experiencia": "EXPERIENCIA RELEVANTE",
-        "skills_personales": "SKILLS PERSONALES",
-        "idiomas": "IDIOMAS",
-    },
-    "en": {
-        "sobre_mi": "ABOUT ME",
-        "skills": "TECHNICAL SKILLS",
-        "experiencia": "RELEVANT EXPERIENCE",
-        "skills_personales": "PERSONAL SKILLS",
-        "idiomas": "LANGUAGES",
-    },
-}
 
 _MOTIVOS_MD = {
     "es": {
@@ -86,42 +68,6 @@ def personal_skill_names(perfil: Profile, idioma: Language) -> list[str]:
 
 def language_lines(perfil: Profile, idioma: Language) -> list[str]:
     return [f"{item.name[idioma]} — {item.level[idioma]}" for item in perfil.languages]
-
-
-def to_text(propuesta: Proposal, perfil: Profile) -> str:
-    """Plain text, for pasting into Canva. No reasons: just the CV content."""
-    idioma = propuesta.language
-    encabezados = _ENCABEZADOS[idioma]
-    bloques: list[str] = []
-
-    bloques.append(f"{encabezados['sobre_mi']}\n\n{propuesta.about_me.text}")
-
-    nombres_skills = skill_names(propuesta, perfil)
-    if nombres_skills:
-        bloques.append(f"{encabezados['skills']}\n\n" + " · ".join(nombres_skills))
-
-    experiencias = [
-        perfil.experience(seleccionada.id) for seleccionada in propuesta.experiences
-    ]
-    experiencias_texto = "\n\n".join(
-        experience_text(experiencia, idioma)
-        for experiencia in experiencias
-        if experiencia is not None
-    )
-    if experiencias_texto:
-        bloques.append(f"{encabezados['experiencia']}\n\n{experiencias_texto}")
-
-    nombres_personales = personal_skill_names(perfil, idioma)
-    if nombres_personales:
-        bloques.append(
-            f"{encabezados['skills_personales']}\n\n" + " · ".join(nombres_personales)
-        )
-
-    idiomas_texto = language_lines(perfil, idioma)
-    if idiomas_texto:
-        bloques.append(f"{encabezados['idiomas']}\n\n" + " · ".join(idiomas_texto))
-
-    return "\n\n".join(bloques) + "\n"
 
 
 def to_markdown(propuesta: Proposal, perfil: Profile) -> str:

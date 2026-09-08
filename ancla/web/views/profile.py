@@ -787,9 +787,9 @@ def export_profile_zip():
     """Downloads the whole profile folder (attachments included) as a
     single .zip, for backup or moving to another computer. Built in a
     temp file (`export_zip` needs a real path to write atomically) and
-    streamed as bytes, the same pattern as the .docx export in `export.py`
-    — a `send_file` on the temp path would race its own cleanup, since the
-    response isn't actually sent until after this function returns.
+    streamed as bytes — a `send_file` on the temp path would race its own
+    cleanup, since the response isn't actually sent until after this
+    function returns.
     """
     with tempfile.TemporaryDirectory() as carpeta_temporal:
         ruta_zip = store.export_zip(context.root(), Path(carpeta_temporal) / "ancla-perfil.zip")

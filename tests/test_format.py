@@ -11,7 +11,7 @@ from ancla.profile.model import (
     Skill,
     SpokenLanguage,
 )
-from ancla.proposal.format import to_markdown, to_text
+from ancla.proposal.format import to_markdown
 
 
 def _perfil() -> Profile:
@@ -49,45 +49,6 @@ def _propuesta(idioma: str = "es", huecos: list[str] | None = None) -> Proposal:
     )
 
 
-def test_a_texto_no_incluye_motivos():
-    texto = to_text(_propuesta(), _perfil())
-    assert "Motivo" not in texto
-    assert "Encaja con" not in texto
-
-
-def test_a_texto_incluye_el_contenido_en_orden():
-    texto = to_text(_propuesta(), _perfil())
-    pos_sobre_mi = texto.index("SOBRE MÍ")
-    pos_skills = texto.index("SKILLS TÉCNICAS")
-    pos_experiencia = texto.index("EXPERIENCIA RELEVANTE")
-    assert pos_sobre_mi < pos_skills < pos_experiencia
-    assert "Ingeniero con foco en datos, backend y cloud." in texto
-    assert "Python · SQL · GCP" in texto
-    assert "Ingeniero de Datos — 2023 · 2024" in texto
-    assert "- Diseñé el pipeline de ingesta" in texto
-    assert "Python, Airflow, GCP" in texto
-
-
-def test_a_texto_respeta_el_idioma():
-    texto = to_text(_propuesta(idioma="en"), _perfil())
-    assert "ABOUT ME" in texto
-    assert "TECHNICAL SKILLS" in texto
-    assert "RELEVANT EXPERIENCE" in texto
-    assert "Data Engineer — 2023 · 2024" in texto
-    assert "- Designed the ingestion pipeline" in texto
-
-
-def test_a_texto_omite_experiencias_que_ya_no_existen_en_el_perfil():
-    propuesta = Proposal(
-        language="es",
-        about_me=_propuesta().about_me,
-        skills=[],
-        experiences=[SelectedExperience(id="no-existe", reason="x")],
-    )
-    texto = to_text(propuesta, _perfil())
-    assert "EXPERIENCIA RELEVANTE" not in texto
-
-
 def test_a_markdown_incluye_motivos():
     markdown = to_markdown(_propuesta(), _perfil())
     assert "Motivo: Encaja con los requisitos principales de la vacante." in markdown
@@ -104,17 +65,6 @@ def test_a_markdown_lista_los_huecos_detectados():
     markdown = to_markdown(_propuesta(huecos=["Kubernetes", "Terraform"]), _perfil())
     assert "- Kubernetes" in markdown
     assert "- Terraform" in markdown
-
-
-def test_a_texto_omite_skills_que_ya_no_existen_en_el_perfil():
-    propuesta = Proposal(
-        language="es",
-        about_me=_propuesta().about_me,
-        skills=["python", "id-borrado", "sql"],
-        experiences=[],
-    )
-    texto = to_text(propuesta, _perfil())
-    assert "Python · SQL" in texto
 
 
 def test_a_markdown_marca_experiencias_desaparecidas_del_perfil():
@@ -153,23 +103,6 @@ def _perfil_con_personales_e_idiomas() -> Profile:
     )
 
 
-def test_a_texto_incluye_skills_personales_e_idiomas_completos():
-    texto = to_text(_propuesta(), _perfil_con_personales_e_idiomas())
-    assert "SKILLS PERSONALES" in texto
-    assert "Trabajo en equipo · Comunicación" in texto
-    assert "IDIOMAS" in texto
-    assert "Inglés — C1 — Avanzado" in texto
-
-
-def test_a_texto_en_ingles_traduce_encabezados_y_nombres():
-    perfil = _perfil_con_personales_e_idiomas()
-    texto = to_text(_propuesta(idioma="en"), perfil)
-    assert "PERSONAL SKILLS" in texto
-    assert "Teamwork · Communication" in texto
-    assert "LANGUAGES" in texto
-    assert "English — C1 — Advanced" in texto
-
-
 def test_a_markdown_lista_skills_personales_e_idiomas():
     markdown = to_markdown(_propuesta(), _perfil_con_personales_e_idiomas())
     assert "## Skills personales" in markdown
@@ -181,9 +114,9 @@ def test_a_markdown_lista_skills_personales_e_idiomas():
 def test_sin_skills_personales_ni_idiomas_no_aparecen_los_bloques():
     """They are optional: if the user has not filled them in, an empty
     section is not shown."""
-    texto = to_text(_propuesta(), _perfil())
-    assert "SKILLS PERSONALES" not in texto
-    assert "IDIOMAS" not in texto
+    markdown = to_markdown(_propuesta(), _perfil())
+    assert "## Skills personales" not in markdown
+    assert "## Idiomas" not in markdown
 
 
 def test_skills_personales_e_idiomas_se_leen_del_perfil_no_de_la_propuesta():
@@ -191,5 +124,5 @@ def test_skills_personales_e_idiomas_se_leen_del_perfil_no_de_la_propuesta():
     is enough, no need to regenerate the proposal."""
     propuesta = _propuesta()
     perfil_ampliado = _perfil_con_personales_e_idiomas()
-    assert "Inglés" in to_text(propuesta, perfil_ampliado)
-    assert "Inglés" not in to_text(propuesta, _perfil())
+    assert "Inglés" in to_markdown(propuesta, perfil_ampliado)
+    assert "Inglés" not in to_markdown(propuesta, _perfil())

@@ -23,7 +23,6 @@ from flask_babel import gettext as _
 from ancla.web.routes import data_root
 
 RAIZ_PERFIL_POR_DEFECTO = data_root() / "perfil"
-RAIZ_PLANTILLAS_DOCX_POR_DEFECTO = data_root() / "docx-templates"
 RAIZ_PLANTILLAS_CANVA_POR_DEFECTO = data_root() / "canva-templates"
 RAIZ_PLANTILLAS_HTML_POR_DEFECTO = data_root() / "html-templates"
 # Caps any single upload (CV import, profile zip restore). Flask enforces
@@ -42,7 +41,6 @@ def create_app(
     raiz_perfil: Path | None = None,
     settings_path: Path | None = None,
     demo_mode: bool | None = None,
-    docx_templates_root: Path | None = None,
     canva_templates_root: Path | None = None,
     html_templates_root: Path | None = None,
 ) -> Flask:
@@ -62,7 +60,6 @@ def create_app(
     app.config["MAX_CONTENT_LENGTH"] = TAMANO_MAXIMO_SUBIDA
     app.config["RAIZ_PERFIL"] = raiz_perfil or RAIZ_PERFIL_POR_DEFECTO
     app.config["RUTA_AJUSTES"] = settings_path or modulo_ajustes.RUTA_POR_DEFECTO
-    app.config["RAIZ_PLANTILLAS_DOCX"] = docx_templates_root or RAIZ_PLANTILLAS_DOCX_POR_DEFECTO
     app.config["RAIZ_PLANTILLAS_CANVA"] = canva_templates_root or RAIZ_PLANTILLAS_CANVA_POR_DEFECTO
     app.config["RAIZ_PLANTILLAS_HTML"] = html_templates_root or RAIZ_PLANTILLAS_HTML_POR_DEFECTO
     app.config["MODO_DEMO"] = MODO_DEMO_POR_DEFECTO if demo_mode is None else demo_mode

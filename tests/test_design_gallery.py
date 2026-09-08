@@ -1,7 +1,8 @@
 """Tests for `ancla/design/gallery.py`: discovering Canva template PDF
 previews from their YAML sidecars — same discovery rules as
-`ancla/export/templates.py`'s `.docx` templates, tested separately because
-it's a different, unrelated concept (a preview, not something rendered)."""
+`ancla/export/html_templates.py`'s HTML templates, tested separately
+because it's a different, unrelated concept (a preview, not something
+rendered)."""
 from __future__ import annotations
 
 from pathlib import Path

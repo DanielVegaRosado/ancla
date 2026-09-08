@@ -51,36 +51,9 @@
     </section>
   {% endif %}
 
-  <textarea id="copia-todo" hidden>{{ texto_plano }}</textarea>
-  <textarea id="copia-todo-md" hidden>{{ texto_markdown }}</textarea>
-  <div class="barra-acciones">
-    <button type="button" class="boton" data-copiar="copia-todo">{{ _('Copiar todo (texto plano)') }}</button>
-    <button type="button" class="boton" data-copiar="copia-todo-md">{{ _('Copiar todo (con motivos, Markdown)') }}</button>
-  </div>
-
   {% with accion = url_for('ancla.preview_cv', id_=cv.id), idioma = cv.proposal.language %}
     {% include "_cv_preview_form.html" %}
   {% endwith %}
-
-  <!-- Secundario: casi ninguna oferta pide un Word, así que este botón no
-       compite con el PDF de arriba. -->
-  <section class="tarjeta">
-    <h2>{{ _('Descargar CV maquetado (.docx)') }}</h2>
-    <p class="ayuda">{{ _('Solo si te lo piden en Word: la mayoría de ofertas se cubren con el PDF de arriba.') }}</p>
-    {% if plantillas_docx %}
-      <form class="en-linea" method="post" action="{{ url_for('ancla.export_cv', id_=cv.id) }}">
-        <select name="plantilla_id">
-          {% for plantilla in plantillas_docx %}
-            <option value="{{ plantilla.id }}">{{ plantilla.name[cv.proposal.language] }} ({{ plantilla.capacity_experiences }} {{ _('experiencias') }})</option>
-          {% endfor %}
-        </select>
-        <button type="submit" class="boton">{{ _('Descargar .docx') }}</button>
-      </form>
-      <p class="ayuda">{{ _('El documento se rellena tal cual: sin IA, sin tocar tus textos ni el diseño de la plantilla.') }}</p>
-    {% else %}
-      <p class="ayuda">{{ _('Todavía no hay ninguna plantilla .docx en «docx-templates/».') }}</p>
-    {% endif %}
-  </section>
 
   <section class="tarjeta">
     <h2>{{ _('Propuesta guardada') }}</h2>

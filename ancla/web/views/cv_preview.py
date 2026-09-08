@@ -7,26 +7,25 @@ program prints. That keeps the export path free of native dependencies —
 and it is what lets the page break be *decided* (`break-inside: avoid`)
 instead of estimated, because the browser is measuring real text.
 
-Two entry points share the same core (`_preview`), mirroring the `.docx`
-export: the proposal being reviewed and an already-archived CV.
+Both entry points share the same core (`_preview`): the proposal being
+reviewed and an already-archived CV.
 
-Unlike the `.docx` path, overflow here does not just happen — a printed CV
-that ends with two entries and half a blank sheet is the whole reason this
-screen enforces a range instead of only warning about one, and the type is
-then measured down to whatever fits the rest (`static/cv_fit.js`, see
+Overflow here does not just happen — a printed CV that ends with two
+entries and half a blank sheet is the whole reason this screen enforces a
+range instead of only warning about one, and the type is then measured
+down to whatever fits the rest (`static/cv_fit.js`, see
 `html-templates/README.md`). Only a text too long for even the smallest
 type still prints two pages, and the screen says so first.
 `capacidad` is how many experiences actually
 go on the page: clamped to the template's own `[capacity_min, capacity_max]`
 range rather than read straight off the sidecar, because the design's
 range is a starting point and whether that many really look right is the
-user's call, same as before. Whatever sits beyond it is left out of the
-render and named on screen instead, with its selection reason — the same
-"never disappear silently" treatment `export_overflow.html` gives the
-`.docx` path's own overflow. Fewer experiences than `capacity_min` is not
-cut short the other way: rule 1 forbids padding the CV with anything that
-isn't in the profile, so the page prints exactly what there is, with a
-notice that the design was drawn for more.
+user's call. Whatever sits beyond it is left out of the render and named
+on screen instead, with its selection reason — never disappearing
+silently. Fewer experiences than `capacity_min` is not cut short the
+other way: rule 1 forbids padding the CV with anything that isn't in the
+profile, so the page prints exactly what there is, with a notice that the
+design was drawn for more.
 """
 from __future__ import annotations
 
@@ -34,7 +33,7 @@ from flask import flash, redirect, render_template, request, session, url_for
 from flask_babel import gettext as _
 
 from ancla.archive import repository as archivo
-from ancla.export import fill, html_layout, html_templates
+from ancla.export import fields, html_layout, html_templates
 from ancla.profile.model import Proposal
 from ancla.web import context
 from ancla.web import draft as modulo_borrador
@@ -92,7 +91,7 @@ def _preview(propuesta: Proposal, volver: str):
         return redirect(volver)
 
     perfil = context.current_profile()
-    seleccion = fill.resolved_selection(propuesta, perfil)
+    seleccion = fields.resolved_selection(propuesta, perfil)
     capacidad = _capacity(plantilla)
     incluidas = seleccion[:capacidad]
     excluidas = seleccion[capacidad:]

@@ -38,9 +38,6 @@
              value="{{ _capacidad_inicial }}">
       <button type="submit" class="boton boton-primario">{{ _('Ver el CV (PDF)') }}</button>
     </form>
-    <p class="ayuda">
-      {{ _('El PDF lo guarda tu navegador con Ctrl+P, igual que hoy lo exportas desde Word. Casi ninguna oferta pide un Word: empieza por aquí. La plantilla tiene un máximo de experiencias que caben en una página — si tu propuesta trae más, se te dice cuáles quedan fuera y puedes arrastrar las tarjetas de «Experiencia relevante» para elegir cuáles entran.') }}
-    </p>
   {% else %}
     <p class="ayuda">{{ _('Todavía no hay ninguna plantilla HTML en «html-templates/».') }}</p>
   {% endif %}

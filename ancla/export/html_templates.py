@@ -1,27 +1,25 @@
 """Discovers the HTML print templates a CV can be laid out with.
 
-Same sidecar rule as the `.docx` templates (`ancla/export/templates.py`):
-a `<name>.html` Jinja fragment, its `<name>.css` print stylesheet and a
-`<name>.yaml` describing the visible name and how many experiences the
-design was drawn for. Adding a template is dropping those files into
-`html-templates/` — never a code change.
+A `<name>.html` Jinja fragment, its `<name>.css` print stylesheet and a
+`<name>.yaml` sidecar (read via `ancla/export/sidecar.py`) describing the
+visible name and how many experiences the design was drawn for. Adding a
+template is dropping those files into `html-templates/` — never a code
+change.
 
-Nothing about the page geometry is declared here, unlike the `.docx`
-sidecar: a browser measures its own text, so there is no line-wrapping to
-estimate and no density to solve for. What a `.yaml` here declares instead
-is a *range* — `capacidad_experiencias_min`/`_max` — because a browser can
+A browser measures its own text, so there is no line-wrapping to estimate
+and no density to solve for. What a `.yaml` here declares instead is a
+*range* — `capacidad_experiencias_min`/`_max` — because a browser can
 measure text but not judge taste: too few experiences and a design like
 Minimalista Cálida looks sparse, too many and the layout no longer fits the
-one page it was drawn for. Unlike the `.docx` path (which spills onto a
-second page rather than lose anything), the printable HTML preview cannot
-let more than `capacity_max` through — see `ancla/web/views/cv_preview.py`.
+one page it was drawn for. The printable HTML preview cannot let more than
+`capacity_max` through — see `ancla/web/views/cv_preview.py`.
 """
 from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
 
-from ancla.export.templates import read_yaml_sidecar
+from ancla.export.sidecar import read_yaml_sidecar
 from ancla.profile.model import Bilingual
 
 CARPETA_POR_DEFECTO = "html-templates"
@@ -62,9 +60,8 @@ def find_template(root: Path, id: str) -> HtmlTemplate | None:
 def _read_sidecar(html_path: Path) -> HtmlTemplate | None:
     """`None` for a template whose sidecar is missing, unreadable, or
     declares a range that makes no sense (a minimum above its own maximum):
-    one someone is still preparing is skipped, the same way the `.docx`
-    side does it, instead of breaking the Proposal screen for everyone
-    else."""
+    one someone is still preparing is skipped instead of breaking the
+    Proposal screen for everyone else."""
     datos = read_yaml_sidecar(html_path)
     if datos is None:
         return None

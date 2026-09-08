@@ -1,5 +1,5 @@
 """One screen, one module: `profile`, `adapt`, `proposal`, `cvs`, `settings`,
-`support`, `canva_templates`, `import_cv`, `terms`, `export`, `cv_preview`. Each registers
+`support`, `canva_templates`, `import_cv`, `terms`, `cv_preview`. Each registers
 its routes on `ancla.web.blueprint.bp` when imported — importing this
 package is all it takes for every route to be registered.
 """
@@ -10,7 +10,6 @@ from ancla.web.views import (
     canva_templates,
     cv_preview,
     cvs,
-    export,
     import_cv,
     profile,
     proposal,
@@ -24,7 +23,6 @@ __all__ = [
     "canva_templates",
     "cv_preview",
     "cvs",
-    "export",
     "import_cv",
     "profile",
     "proposal",

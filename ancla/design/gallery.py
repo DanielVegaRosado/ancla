@@ -8,8 +8,9 @@ in `canva-templates/` and it shows up. A `.pdf` without its `.yaml`, or
 with one that fails to parse, is skipped.
 
 These are design references shown inline in the app, never filled or
-exported — unrelated to `ancla/export/templates.py`'s `.docx` templates,
-even though a design and its matching export template often share a name.
+exported — unrelated to `ancla/export/html_templates.py`'s printable HTML
+templates, even though a design and its matching export template often
+share a name.
 """
 from __future__ import annotations
 

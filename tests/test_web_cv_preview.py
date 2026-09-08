@@ -311,19 +311,16 @@ def test_una_plantilla_sin_rango_declarado_hereda_el_estandar_de_tres_a_cinco(tm
 
 
 # --------------------------------------------------------------------------
-# PDF is the primary path, .docx no longer competes with it
+# PDF is the only export path: no .docx, no "copy all"
 # --------------------------------------------------------------------------
 
 
-def test_el_boton_de_ver_el_cv_es_primario_y_el_de_docx_no(tmp_path: Path):
+def test_no_se_ofrece_ni_docx_ni_copiar_todo(tmp_path: Path):
     html = _cliente(tmp_path, n_experiencias=1).get("/propuesta").data.decode("utf-8")
 
-    inicio_docx = html.index("Descargar CV maquetado (.docx)")
-    boton_docx = html.index("Descargar .docx", inicio_docx)
-    etiqueta_boton_docx = html.rindex("<button", inicio_docx, boton_docx)
-
     assert 'class="boton boton-primario"' in html  # el de «Ver el CV (PDF)»
-    assert "boton-primario" not in html[etiqueta_boton_docx:boton_docx]
+    assert "docx" not in html.lower()
+    assert "Copiar todo" not in html
 
 
 # --------------------------------------------------------------------------
