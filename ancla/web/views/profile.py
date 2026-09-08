@@ -62,6 +62,7 @@ def view_profile():
 # and the URLs use. One table instead of five near-identical routes: adding
 # a section is an entry here, not another copy of the same three steps.
 _SECTIONS: dict[str, tuple] = {
+    "sobre-mi": (lambda perfil: [perfil.about_me], store.save_about_me),
     "experiencias": (lambda perfil: perfil.experiences, store.save_experience),
     "skills": (lambda perfil: perfil.skills, store.save_skill),
     "skills-personales": (lambda perfil: perfil.personal_skills, store.save_personal_skill),
@@ -733,6 +734,7 @@ def _render_about_me_form(sobre_mi: AboutMe | None, errors: list[str]):
         errors=errors,
         huecos_a=huecos[:N_ABOUT_ME_GROUP],
         huecos_b=huecos[N_ABOUT_ME_GROUP:],
+        **_translation_extras(),
     )
 
 

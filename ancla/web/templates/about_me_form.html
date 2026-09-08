@@ -2,6 +2,9 @@
 {% block titulo %}{{ _('Plantilla de «Sobre mí»') }} · Ancla{% endblock %}
 {% block contenido %}
   <h1>{{ _('Plantilla de «Sobre mí»') }}</h1>
+  {% if sobre_mi %}
+    {% with seccion = "sobre-mi", entrada = sobre_mi, en_formulario = True %}{% include "_untranslated.html" %}{% endwith %}
+  {% endif %}
   <p class="ayuda">
     {{ _('Escribe tu «Sobre mí» con tus palabras, en español y en inglés. Luego marca seis huecos: selecciona en el texto las palabras que quieras sustituir y pulsa el botón del hueco. El sistema los rellena con nombres de skills que ya tienes, y el resto del texto no cambia nunca.') }}
   </p>

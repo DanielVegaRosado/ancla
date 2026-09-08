@@ -12,6 +12,7 @@ import json
 
 from ancla.profile import translation
 from ancla.profile.model import (
+    AboutMe,
     Bilingual,
     Education,
     Experience,
@@ -164,3 +165,34 @@ def test_una_educacion_solo_en_ingles_se_traduce_al_espanol():
 
     assert resultado.entries[0].title["es"] == "Grado en Ingeniería Informática"
     assert resultado.entries[0].title["en"] == "BSc in Computer Engineering"
+
+
+# --------------------------------------------------------------------------
+# El «Sobre mí»
+# --------------------------------------------------------------------------
+
+
+def _sobre_mi(es: str, en: str = "") -> AboutMe:
+    return AboutMe(template=Bilingual(es=es, en=en))
+
+
+def test_el_sobre_mi_se_traduce_conservando_sus_huecos():
+    original = _sobre_mi("Desarrollador de {GROUP_A_1} con {GROUP_B_1}.")
+    respuesta = json.dumps({"0": {"template": "{GROUP_A_1} developer working with {GROUP_B_1}."}})
+
+    resultado = translation.translate(ClienteFalso(respuesta), [original], "en")
+
+    assert resultado.entries[0].template["en"] == "{GROUP_A_1} developer working with {GROUP_B_1}."
+    assert resultado.entries[0].template["es"] == original.template["es"]
+
+
+def test_una_traduccion_que_pierde_un_hueco_se_descarta():
+    """Un hueco perdido deja ese idioma renderizando mal, y nada río abajo
+    puede detectarlo: mejor sin traducir que traducido y roto."""
+    original = _sobre_mi("Desarrollador de {GROUP_A_1} con {GROUP_B_1}.")
+    respuesta = json.dumps({"0": {"template": "Developer working with {GROUP_B_1}."}})
+
+    resultado = translation.translate(ClienteFalso(respuesta), [original], "en")
+
+    assert resultado.entries[0].template["en"] == ""
+    assert resultado.avisos

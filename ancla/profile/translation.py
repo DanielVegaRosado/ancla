@@ -37,12 +37,14 @@ the other language by hand works with no provider at all.
 from __future__ import annotations
 
 import json
+import re
 from dataclasses import dataclass, field, replace
 
 from flask_babel import gettext as _
 
 from ancla.ai.client import AIClient
 from ancla.profile.model import (
+    AboutMe,
     Bilingual,
     Education,
     Experience,
@@ -58,6 +60,7 @@ from ancla.text import json_block, to_text, to_texts
 # purpose (technology and institution names are proper nouns), and
 # `keywords` are how a job posting names a skill, not prose to translate.
 TRANSLATABLE_FIELDS: dict[type, tuple[str, ...]] = {
+    AboutMe: ("template",),
     Experience: ("title", "bullets"),
     Skill: ("name",),
     SpokenLanguage: ("name", "level"),
@@ -83,7 +86,9 @@ esas tres cosas.
 Docker, PostgreSQL, UEMC, AWS...). No los traduzcas ni los expandas.
 4. Una lista de bullets se traduce bullet a bullet y devuelve el MISMO número de \
 elementos, en el mismo orden. No fusiones ni dividas bullets.
-5. Devuelve exactamente los mismos identificadores y los mismos campos que te paso, sin \
+5. Los huecos entre llaves ({GROUP_A_1}, {GROUP_B_2}...) se copian tal cual, en el mismo \
+punto de la frase. Ni los traduzcas ni los quites ni añadas otros.
+6. Devuelve exactamente los mismos identificadores y los mismos campos que te paso, sin \
 añadir ni quitar ninguno.
 
 Responde ÚNICAMENTE con un JSON, sin texto alrededor ni bloques de código, con esta \
@@ -183,6 +188,8 @@ def pending(entradas: list, idioma: Language) -> list:
 def entry_name(entrada, idioma: Language | None = None) -> str:
     """How to name an entry to the user: its title or name, in whichever
     language it is written in."""
+    if isinstance(entrada, AboutMe):
+        return _("Sobre mí")
     etiqueta = getattr(entrada, "title", None) or getattr(entrada, "name", None)
     if etiqueta is None:
         return getattr(entrada, "id", "")
@@ -258,10 +265,22 @@ def _apply(entrada, campos: dict, idioma: Language):
     for campo in _fields_to_translate(entrada, idioma):
         original = getattr(entrada, campo)
         traducido = _same_shape(campos.get(campo), original[_other(idioma)])
-        if not _has_content(traducido):
+        if not _has_content(traducido) or not _keeps_gaps(original[_other(idioma)], traducido):
             continue
         cambios[campo] = _with_language(original, idioma, traducido)
     return replace(entrada, **cambios) if cambios else entrada
+
+
+def _keeps_gaps(original, traducido) -> bool:
+    """Whether the translation carries the same `{GROUP_A_1}`-style gaps as
+    the original. A lost or invented gap would leave the "About me" of that
+    language rendering wrong, which nothing downstream can detect."""
+    return _gaps(original) == _gaps(traducido)
+
+
+def _gaps(valor) -> set[str]:
+    texto = " ".join(valor) if isinstance(valor, list) else str(valor)
+    return set(re.findall(r"\{[A-Z_0-9]+\}", texto))
 
 
 def _same_shape(valor: object, original):

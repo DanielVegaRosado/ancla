@@ -1162,6 +1162,18 @@ def test_ningun_idioma_es_obligatorio_en_el_formulario(cliente_web, ruta, campos
         assert f'name="{campo}"\n' in html or f'name="{campo}" ' in html
 
 
+def test_el_sobre_mi_sin_ingles_se_marca_y_ofrece_traducirlo(cliente_web, tmp_path: Path):
+    """Lo mismo que ya hacía cada entrada del perfil: sin la marca, el usuario
+    descubre que falta al leer un CV en inglés con el bloque vacío."""
+    store.save_about_me(
+        tmp_path / "perfil", AboutMe(template=Bilingual(es="Desarrollador de {GROUP_A_1}.", en=""))
+    )
+
+    for ruta in ("/perfil", "/perfil/sobre-mi"):
+        html = cliente_web.get(ruta).data.decode("utf-8")
+        assert "Falta en inglés" in html, ruta
+
+
 def test_vaciar_los_puntos_en_ingles_de_una_experiencia_se_guarda(cliente_web, tmp_path: Path):
     """Quedarse sin puntos en un idioma es cómo se quita esa mitad de la
     entrada: avisa y la marca como sin traducir, pero no bloquea el guardado."""

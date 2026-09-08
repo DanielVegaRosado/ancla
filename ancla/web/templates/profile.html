@@ -68,6 +68,9 @@
         <p class="ayuda">{{ _('La plantilla fija de tu bloque «Sobre mí», con seis huecos que rellena el sistema.') }}</p>
       </div>
       <div class="acciones">
+        {% if perfil.about_me %}
+          {% with seccion = "sobre-mi", entrada = perfil.about_me %}{% include "_untranslated.html" %}{% endwith %}
+        {% endif %}
         <a class="boton" href="{{ url_for('ancla.edit_about_me') }}">
           {{ _("Editar") if perfil.about_me else _("Definir plantilla") }}
         </a>

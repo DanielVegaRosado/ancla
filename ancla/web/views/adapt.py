@@ -103,7 +103,7 @@ def _untranslated_names(perfil, idioma: str) -> list[str]:
     decide whether those four matter for this posting.
     """
     catalogos = (
-        perfil.experiences, perfil.skills, perfil.personal_skills,
+        [perfil.about_me], perfil.experiences, perfil.skills, perfil.personal_skills,
         perfil.languages, perfil.education,
     )
     return [

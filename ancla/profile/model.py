@@ -16,7 +16,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from datetime import date, time
 from enum import Enum
-from typing import Generic, Literal, TypeVar
+from typing import ClassVar, Generic, Literal, TypeVar
 
 Language = Literal["es", "en"]
 LANGUAGES: tuple[Language, ...] = ("es", "en")
@@ -176,6 +176,10 @@ class AboutMe:
     """
 
     template: Bilingual[str]
+
+    # There is only ever one "About me", but the screens and routes that
+    # flag and translate a bilingual entry address it by id like any other.
+    id: ClassVar[str] = "sobre-mi"
 
     def gaps(self) -> tuple[str, ...]:
         return tuple(
