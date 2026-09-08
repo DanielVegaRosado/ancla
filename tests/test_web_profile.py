@@ -1118,3 +1118,72 @@ def test_editar_un_idioma_a_medias_ofrece_traducir_dentro_del_formulario(cliente
 
     assert "Falta en inglés" in html
     assert "/perfil/traducir/en/idiomas/ingles" in html
+
+
+# --------------------------------------------------------------------------
+# Dejar una entrada en un solo idioma
+# --------------------------------------------------------------------------
+
+
+def test_vaciar_un_idioma_de_una_skill_ya_traducida_se_guarda(cliente_web, tmp_path: Path):
+    """Quitar la traducción es una decisión del usuario, no un error: quien
+    tradujo algo y se arrepiente tiene que poder quedarse solo con un idioma."""
+    raiz = tmp_path / "perfil"
+    store.save_skill(
+        raiz,
+        Skill(id="py", name=Bilingual(es="Python", en="Python"), category="Lenguajes", keywords=["python"]),
+    )
+    respuesta = cliente_web.post(
+        "/perfil/skills/py/editar",
+        data={"nombre_es": "Python", "nombre_en": "", "categoria": "Lenguajes", "keywords": "python"},
+        follow_redirects=True,
+    )
+
+    assert store.load_profile(raiz).skills[0].name["en"] == ""
+    assert "todavía no está en inglés".encode("utf-8") in respuesta.data
+
+
+@pytest.mark.parametrize(
+    "ruta, campos",
+    [
+        ("/perfil/experiencias/nueva", ("titulo_es", "titulo_en")),
+        ("/perfil/skills/nueva", ("nombre_es", "nombre_en")),
+        ("/perfil/skills-personales/nueva", ("nombre_es", "nombre_en")),
+        ("/perfil/idiomas/nuevo", ("nombre_es", "nombre_en", "nivel_es", "nivel_en")),
+        ("/perfil/educacion/nueva", ("titulo_es", "titulo_en")),
+    ],
+)
+def test_ningun_idioma_es_obligatorio_en_el_formulario(cliente_web, ruta, campos):
+    """`required` en los dos lados bloquea en el navegador, antes de que la
+    validación del servidor —que solo pide un idioma— llegue a opinar."""
+    html = cliente_web.get(ruta).data.decode("utf-8")
+    for campo in campos:
+        assert f'name="{campo}" required' not in html
+        assert f'name="{campo}"\n' in html or f'name="{campo}" ' in html
+
+
+def test_vaciar_los_puntos_en_ingles_de_una_experiencia_se_guarda(cliente_web, tmp_path: Path):
+    """Quedarse sin puntos en un idioma es cómo se quita esa mitad de la
+    entrada: avisa y la marca como sin traducir, pero no bloquea el guardado."""
+    raiz = tmp_path / "perfil"
+    store.save_experience(
+        raiz,
+        Experience(
+            id="e1", title=Bilingual(es="Dev", en="Dev"),
+            bullets=Bilingual(es=["hice a"], en=["did a"]),
+            period_start="2024", period_end="2025", stack="Python", keywords=["x"],
+        ),
+    )
+    respuesta = cliente_web.post(
+        "/perfil/experiencias/e1/editar",
+        data={
+            "titulo_es": "Dev", "titulo_en": "Dev",
+            "bullets_es": "hice a", "bullets_en": "",
+            "periodo_inicio": "2024", "periodo_fin": "2025",
+            "stack": "Python", "keywords": "x",
+        },
+        follow_redirects=True,
+    )
+
+    assert store.load_profile(raiz).experiences[0].bullets["en"] == []
+    assert "Falta en inglés".encode("utf-8") in respuesta.data

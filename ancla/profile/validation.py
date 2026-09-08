@@ -172,12 +172,24 @@ def validate_experience(experiencia: Experience) -> Issues:
     escritos = written_languages(experiencia.title)
     if not escritos:
         problemas.append(_("%(etiqueta)s: falta el título.", etiqueta=etiqueta))
-    for idioma in escritos:
-        problemas += _bullet_problems(
-            experiencia.bullets[idioma], etiqueta, language_name(idioma)
-        )
 
     avisos = _untranslated(etiqueta, missing_languages(experiencia.title))
+    for idioma in escritos:
+        nombre = language_name(idioma)
+        bullets = experiencia.bullets[idioma]
+        if not bullets:
+            # Clearing a language's bullets is how half an entry is removed,
+            # so it warns instead of blocking: the entry is already marked as
+            # untranslated, and the translate button fills them back in.
+            avisos.append(
+                _(
+                    "%(etiqueta)s: no tiene ningún punto en %(nombre)s.",
+                    etiqueta=etiqueta, nombre=nombre,
+                )
+            )
+        else:
+            problemas += _bullet_problems(bullets, etiqueta, nombre)
+
     if not experiencia.keywords:
         avisos.append(
             _(
@@ -190,9 +202,9 @@ def validate_experience(experiencia: Experience) -> Issues:
 
 
 def _bullet_problems(bullets: list[str], etiqueta: str, nombre: str) -> list[str]:
-    if not bullets:
-        problemas = [_("%(etiqueta)s: no tiene ningún punto en %(nombre)s.", etiqueta=etiqueta, nombre=nombre)]
-    elif any(not bullet.strip() for bullet in bullets):
+    """Only a malformed list. Having no bullets at all in one language is
+    the writer's own call, warned about from `validate_experience`."""
+    if any(not bullet.strip() for bullet in bullets):
         problemas = [
             _(
                 "%(etiqueta)s: hay algún punto vacío en %(nombre)s; escríbelo o quítalo.",
@@ -342,9 +354,9 @@ def validate_about_me(sobre_mi: AboutMe) -> Issues:
     huecos = set(sobre_mi.gaps())
     escritos = written_languages(sobre_mi.template)
 
-    if not escritos:
-        return Issues([_("El «Sobre mí» está vacío.")])
-
+    # Empty in both languages is not an error: the user clearing it on
+    # purpose (there is no "cancel" on this form, only "save") has to
+    # go through — the missing-language warning below already covers it.
     for idioma in escritos:
         nombre = language_name(idioma)
         texto = sobre_mi.template[idioma]

@@ -19,25 +19,25 @@
   <form class="pila" method="post">
     <div class="campo">
       <label for="nombre_es">{{ _('Idioma (ES)') }}</label>
-      <input type="text" id="nombre_es" name="nombre_es" {% if nuevo %}{% endif %} required
+      <input type="text" id="nombre_es" name="nombre_es"
              placeholder="Inglés" value="{{ idioma.name['es'] if idioma else '' }}">
     </div>
 
     <div class="campo">
       <label for="nombre_en">{{ _('Idioma (EN)') }}</label>
-      <input type="text" id="nombre_en" name="nombre_en" required
+      <input type="text" id="nombre_en" name="nombre_en"
              placeholder="English" value="{{ idioma.name['en'] if idioma else '' }}">
     </div>
 
     <div class="campo">
       <label for="nivel_es">{{ _('Nivel (ES)') }}</label>
-      <input type="text" id="nivel_es" name="nivel_es" required
+      <input type="text" id="nivel_es" name="nivel_es"
              placeholder="C1 · Avanzado" value="{{ idioma.level['es'] if idioma else '' }}">
     </div>
 
     <div class="campo">
       <label for="nivel_en">{{ _('Nivel (EN)') }}</label>
-      <input type="text" id="nivel_en" name="nivel_en" required
+      <input type="text" id="nivel_en" name="nivel_en"
              placeholder="C1 · Advanced" value="{{ idioma.level['en'] if idioma else '' }}">
     </div>
 

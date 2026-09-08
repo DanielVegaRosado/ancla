@@ -16,13 +16,13 @@
   <form class="pila" method="post">
     <div class="campo">
       <label for="titulo_es">{{ _('Título (ES)') }}</label>
-      <input type="text" id="titulo_es" name="titulo_es" {% if nueva %}{% endif %} required
+      <input type="text" id="titulo_es" name="titulo_es"
              value="{{ experiencia.title['es'] if experiencia else '' }}">
     </div>
 
     <div class="campo">
       <label for="titulo_en">{{ _('Título (EN)') }}</label>
-      <input type="text" id="titulo_en" name="titulo_en" required value="{{ experiencia.title['en'] if experiencia else '' }}">
+      <input type="text" id="titulo_en" name="titulo_en" value="{{ experiencia.title['en'] if experiencia else '' }}">
     </div>
 
     {% with elemento = experiencia %}{% include "_period_fields.html" %}{% endwith %}

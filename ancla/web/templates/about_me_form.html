@@ -22,7 +22,7 @@
     {% for campo, idioma, etiqueta in [('plantilla_es', 'es', _('Plantilla (ES)')), ('plantilla_en', 'en', _('Plantilla (EN)'))] %}
       <div class="campo">
         <label for="{{ campo }}">{{ etiqueta }}</label>
-        <textarea id="{{ campo }}" name="{{ campo }}" class="alta" required>{{ sobre_mi.template[idioma] if sobre_mi else "" }}</textarea>
+        <textarea id="{{ campo }}" name="{{ campo }}" class="alta">{{ sobre_mi.template[idioma] if sobre_mi else "" }}</textarea>
         <div class="barra-huecos">
           <span class="ayuda">{{ _('Marcar hueco:') }}</span>
           {% for hueco in huecos_a + huecos_b %}

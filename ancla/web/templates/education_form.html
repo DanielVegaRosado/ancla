@@ -19,13 +19,13 @@
   <form class="pila" method="post">
     <div class="campo">
       <label for="titulo_es">{{ _('Titulación (ES)') }}</label>
-      <input type="text" id="titulo_es" name="titulo_es" {% if nueva %}{% endif %} required
+      <input type="text" id="titulo_es" name="titulo_es"
              placeholder="Grado en Ingeniería Informática" value="{{ educacion.title['es'] if educacion else '' }}">
     </div>
 
     <div class="campo">
       <label for="titulo_en">{{ _('Titulación (EN)') }}</label>
-      <input type="text" id="titulo_en" name="titulo_en" required
+      <input type="text" id="titulo_en" name="titulo_en"
              placeholder="BSc in Computer Engineering" value="{{ educacion.title['en'] if educacion else '' }}">
     </div>
 

@@ -16,13 +16,13 @@
   <form class="pila" method="post">
     <div class="campo">
       <label for="nombre_es">{{ _('Nombre (ES)') }}</label>
-      <input type="text" id="nombre_es" name="nombre_es" {% if nueva %}{% endif %} required
+      <input type="text" id="nombre_es" name="nombre_es"
              value="{{ skill.name['es'] if skill else '' }}">
     </div>
 
     <div class="campo">
       <label for="nombre_en">{{ _('Nombre (EN)') }}</label>
-      <input type="text" id="nombre_en" name="nombre_en" required value="{{ skill.name['en'] if skill else '' }}">
+      <input type="text" id="nombre_en" name="nombre_en" value="{{ skill.name['en'] if skill else '' }}">
     </div>
 
     <div class="campo">

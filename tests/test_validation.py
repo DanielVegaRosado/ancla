@@ -232,11 +232,13 @@ def test_un_sobre_mi_escrito_en_un_solo_idioma_solo_avisa():
     assert "español" in problemas.warnings[0]
 
 
-def test_detecta_un_sobre_mi_vacio_en_los_dos_idiomas():
-    problemas = validation.validate_about_me(_sobre_mi(es="", en="")).messages()
+def test_un_sobre_mi_vacio_en_los_dos_idiomas_no_bloquea_el_guardado():
+    """Vaciar los dos idiomas es una decisión válida del usuario, no un
+    error — y `missing_languages` no avisa cuando no hay nada escrito."""
+    problemas = validation.validate_about_me(_sobre_mi(es="", en=""))
 
-    assert len(problemas) == 1
-    assert "vacío" in problemas[0]
+    assert problemas.errors == []
+    assert problemas.warnings == []
 
 
 # --------------------------------------------------------------------------
