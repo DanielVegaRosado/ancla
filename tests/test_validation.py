@@ -127,10 +127,12 @@ def test_detecta_un_punto_en_blanco():
 
 
 def test_avisa_de_una_experiencia_sin_palabras_clave():
-    """Breaks nothing: it would simply never be chosen, and that is invisible."""
-    problemas = validation.validate_experience(_experiencia(keywords=[])).messages()
+    """Breaks nothing: it would simply never be chosen, and that is invisible.
+    A warning, not an error — it must not block saving."""
+    problemas = validation.validate_experience(_experiencia(keywords=[]))
 
-    assert any("palabras clave" in p for p in problemas)
+    assert problemas.errors == []
+    assert any("palabras clave" in p for p in problemas.warnings)
 
 
 def test_un_inicio_posterior_al_fin_es_un_error():
@@ -191,11 +193,11 @@ def test_los_mensajes_van_en_castellano_y_sin_jerga():
 
 
 def test_detecta_una_skill_sin_categoria_ni_palabras_clave():
-    problemas = validation.validate_skill(_skill(category="", keywords=[])).messages()
+    problemas = validation.validate_skill(_skill(category="", keywords=[]))
 
-    assert len(problemas) == 2
-    assert any("categoría" in p for p in problemas)
-    assert any("palabras clave" in p for p in problemas)
+    assert len(problemas.messages()) == 2
+    assert any("categoría" in p for p in problemas.errors)
+    assert any("palabras clave" in p for p in problemas.warnings)
 
 
 # --------------------------------------------------------------------------
@@ -313,8 +315,9 @@ def test_una_skill_personal_no_necesita_categoria():
 
 def test_detecta_una_skill_personal_sin_palabras_clave():
     skill = Skill(id="equipo", name=Bilingual(es="Trabajo en equipo", en="Teamwork"))
-    problemas = validation.validate_personal_skill(skill).messages()
-    assert any("palabras clave" in problema for problema in problemas)
+    problemas = validation.validate_personal_skill(skill)
+    assert problemas.errors == []
+    assert any("palabras clave" in problema for problema in problemas.warnings)
 
 
 def test_un_idioma_completo_no_tiene_ningun_problema():
@@ -329,8 +332,9 @@ def test_detecta_que_falta_el_nivel_de_un_idioma():
 
 def test_avisa_de_un_idioma_sin_palabras_clave():
     idioma = _idioma(keywords=[])
-    problemas = validation.validate_language(idioma).messages()
-    assert any("hueco" in problema for problema in problemas)
+    problemas = validation.validate_language(idioma)
+    assert problemas.errors == []
+    assert any("hueco" in problema for problema in problemas.warnings)
 
 
 def test_una_educacion_completa_no_tiene_ningun_problema():

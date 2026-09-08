@@ -177,15 +177,16 @@ def validate_experience(experiencia: Experience) -> Issues:
             experiencia.bullets[idioma], etiqueta, language_name(idioma)
         )
 
+    avisos = _untranslated(etiqueta, missing_languages(experiencia.title))
     if not experiencia.keywords:
-        problemas.append(
+        avisos.append(
             _(
                 "%(etiqueta)s: no tiene palabras clave, así que casi nunca se elegirá "
                 "para un CV. Añade los términos con los que la buscaría una empresa.",
                 etiqueta=etiqueta,
             )
         )
-    return Issues(problemas, _untranslated(etiqueta, missing_languages(experiencia.title)))
+    return Issues(problemas, avisos)
 
 
 def _bullet_problems(bullets: list[str], etiqueta: str, nombre: str) -> list[str]:
@@ -224,15 +225,16 @@ def validate_skill(skill: Skill) -> Issues:
                 etiqueta=etiqueta,
             )
         )
+    avisos = _untranslated(etiqueta, missing_languages(skill.name))
     if not skill.keywords:
-        problemas.append(
+        avisos.append(
             _(
                 "%(etiqueta)s: no tiene palabras clave, así que casi nunca se elegirá "
                 "para un CV. Añade cómo la nombran las ofertas.",
                 etiqueta=etiqueta,
             )
         )
-    return Issues(problemas, _untranslated(etiqueta, missing_languages(skill.name)))
+    return Issues(problemas, avisos)
 
 
 def validate_personal_skill(skill: Skill) -> Issues:
@@ -251,8 +253,9 @@ def validate_personal_skill(skill: Skill) -> Issues:
         )
     if not written_languages(skill.name):
         problemas.append(_("%(etiqueta)s: falta el nombre.", etiqueta=etiqueta))
+    avisos = _untranslated(etiqueta, missing_languages(skill.name))
     if not skill.keywords:
-        problemas.append(
+        avisos.append(
             _(
                 "%(etiqueta)s: no tiene palabras clave, así que puede que una vacante "
                 "la siga marcando como hueco aunque ya la tengas. Añade cómo se "
@@ -260,7 +263,7 @@ def validate_personal_skill(skill: Skill) -> Issues:
                 etiqueta=etiqueta,
             )
         )
-    return Issues(problemas, _untranslated(etiqueta, missing_languages(skill.name)))
+    return Issues(problemas, avisos)
 
 
 def validate_language(idioma: SpokenLanguage) -> Issues:
@@ -288,8 +291,9 @@ def validate_language(idioma: SpokenLanguage) -> Issues:
                     etiqueta=etiqueta, nombre=language_name(cod),
                 )
             )
+    avisos = _untranslated(etiqueta, missing_languages(idioma.name))
     if not idioma.keywords:
-        problemas.append(
+        avisos.append(
             _(
                 "%(etiqueta)s: no tiene palabras clave, así que puede que una vacante "
                 "lo siga marcando como hueco aunque ya lo tengas. Añade cómo se "
@@ -297,7 +301,7 @@ def validate_language(idioma: SpokenLanguage) -> Issues:
                 etiqueta=etiqueta,
             )
         )
-    return Issues(problemas, _untranslated(etiqueta, missing_languages(idioma.name)))
+    return Issues(problemas, avisos)
 
 
 def validate_education(educacion: Education) -> Issues:

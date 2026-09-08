@@ -127,7 +127,9 @@ resumas varias experiencias en una.
 6. Para cada skill TÉCNICA, propón una categoría breve (lenguaje, cloud, dato, \
 framework...) y unas pocas keywords de cómo se nombra en ofertas de empleo. No añadas \
 tecnologías relacionadas que no aparezcan en el texto — de una mención a "Docker" no \
-propongas "Kubernetes" como skill aparte.
+propongas "Kubernetes" como skill aparte. Propón también unas pocas keywords de cómo se \
+nombra en ofertas de empleo para cada experiencia, cada skill PERSONAL y cada idioma \
+HABLADO — mismo criterio que para las skills técnicas.
 7. Distingue skill TÉCNICA de skill PERSONAL: una tecnología, lenguaje o herramienta \
 concreta (Python, SQL, Docker...) es técnica; una cualidad o forma de trabajar \
 (trabajo en equipo, resolución de problemas, atención al detalle, autonomía...) es \
