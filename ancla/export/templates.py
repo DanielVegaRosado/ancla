@@ -118,8 +118,14 @@ def find_template(root: Path, id: str) -> ExportTemplate | None:
     return next((plantilla for plantilla in list_templates(root) if plantilla.id == id), None)
 
 
-def _read_sidecar(docx_path: Path) -> ExportTemplate | None:
-    yaml_path = docx_path.with_suffix(".yaml")
+def read_yaml_sidecar(resource_path: Path) -> dict[str, Any] | None:
+    """Reads and parses the `.yaml` sidecar next to a template resource
+    (a `.docx` here, an `.html` fragment in `html_templates.py`). `None`
+    when the sidecar is missing, invalid YAML, or not a mapping — shared by
+    both discovery paths so a template someone is still preparing is
+    skipped the same way on either side, instead of crashing the screen.
+    """
+    yaml_path = resource_path.with_suffix(".yaml")
     if not yaml_path.exists():
         return None
     try:
@@ -127,6 +133,13 @@ def _read_sidecar(docx_path: Path) -> ExportTemplate | None:
     except yaml.YAMLError:
         return None
     if not isinstance(datos, dict):
+        return None
+    return datos
+
+
+def _read_sidecar(docx_path: Path) -> ExportTemplate | None:
+    datos = read_yaml_sidecar(docx_path)
+    if datos is None:
         return None
     try:
         capacidad = int(datos.get("capacidad_experiencias", 0))

@@ -21,8 +21,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 
-import yaml
-
+from ancla.export.templates import read_yaml_sidecar
 from ancla.profile.model import Bilingual
 
 CARPETA_POR_DEFECTO = "html-templates"
@@ -33,10 +32,11 @@ class HtmlTemplate:
     id: str
     name: Bilingual[str]
     path: Path
-    # The range of experiences the design was drawn for. `capacity_max <= 0`
-    # means the sidecar didn't declare one — treated as "no upper bound"
-    # rather than crashing, same as a missing field elsewhere in this
-    # module, though in practice every real template names one.
+    # The range of experiences the design was drawn for. A sidecar that
+    # doesn't declare `capacidad_experiencias_min`/`_max` (or declares a
+    # non-positive value) falls back to 3/5 — the standard range every
+    # current template already states explicitly — rather than crashing or
+    # going unbounded.
     capacity_min: int
     capacity_max: int
 
@@ -65,17 +65,11 @@ def _read_sidecar(html_path: Path) -> HtmlTemplate | None:
     one someone is still preparing is skipped, the same way the `.docx`
     side does it, instead of breaking the Proposal screen for everyone
     else."""
-    yaml_path = html_path.with_suffix(".yaml")
-    if not yaml_path.exists():
+    datos = read_yaml_sidecar(html_path)
+    if datos is None:
         return None
-    try:
-        datos = yaml.safe_load(yaml_path.read_text(encoding="utf-8")) or {}
-    except yaml.YAMLError:
-        return None
-    if not isinstance(datos, dict):
-        return None
-    capacidad_min = _entero_positivo(datos.get("capacidad_experiencias_min"), por_defecto=1)
-    capacidad_max = _entero_positivo(datos.get("capacidad_experiencias_max"), por_defecto=0)
+    capacidad_min = _entero_positivo(datos.get("capacidad_experiencias_min"), por_defecto=3)
+    capacidad_max = _entero_positivo(datos.get("capacidad_experiencias_max"), por_defecto=5)
     if capacidad_max and capacidad_min > capacidad_max:
         return None
     return HtmlTemplate(
