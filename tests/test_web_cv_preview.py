@@ -11,6 +11,7 @@ from datetime import date
 from pathlib import Path
 
 from ancla.archive import repository as archivo
+from ancla.export import html_templates
 from ancla.profile import store
 from ancla.profile.model import (
     AboutMe,
@@ -284,23 +285,29 @@ def test_el_campo_de_capacidad_no_admite_menos_del_minimo_ni_mas_del_maximo(tmp_
     assert 'max="4"' in html
 
 
-def test_una_plantilla_sin_maximo_declarado_no_limita_por_arriba(tmp_path: Path):
-    """`capacity_max <= 0` means the sidecar simply didn't declare an upper
-    bound — treated as unbounded rather than as zero experiences."""
+def test_una_plantilla_sin_rango_declarado_hereda_el_estandar_de_tres_a_cinco(tmp_path: Path):
+    """A sidecar that names no `capacidad_experiencias_min`/`_max` at all
+    falls back to the project standard (3–5), not to "no upper bound" —
+    only a template that declares its own range gets an exception."""
     plantillas = tmp_path / "html-templates"
     plantillas.mkdir()
-    (plantillas / "sin-tope.html").write_text(
+    (plantillas / "sin-rango.html").write_text(
         "<article class='cv'>{% for e in experiencias %}<p>{{ e.puesto }}</p>{% endfor %}</article>",
         encoding="utf-8",
     )
-    (plantillas / "sin-tope.css").write_text("@page { size: A4; }", encoding="utf-8")
-    (plantillas / "sin-tope.yaml").write_text("nombre: Sin tope\n", encoding="utf-8")
-    cliente = _cliente(tmp_path, n_experiencias=4, plantillas_root=plantillas)
+    (plantillas / "sin-rango.css").write_text("@page { size: A4; }", encoding="utf-8")
+    (plantillas / "sin-rango.yaml").write_text("nombre: Sin rango\n", encoding="utf-8")
+    cliente = _cliente(tmp_path, n_experiencias=5, plantillas_root=plantillas)
 
-    html = cliente.get("/propuesta/vista-previa?plantilla_id=sin-tope").data.decode("utf-8")
+    html = cliente.get("/propuesta/vista-previa?plantilla_id=sin-rango&capacidad=20").data.decode("utf-8")
 
-    for _id, titulo, _motivo in _EXPERIENCIAS[:4]:
+    for _id, titulo, _motivo in _EXPERIENCIAS[:5]:
         assert titulo in html
+
+    plantilla = html_templates.find_template(plantillas, "sin-rango")
+    assert plantilla is not None
+    assert plantilla.capacity_min == 3
+    assert plantilla.capacity_max == 5
 
 
 # --------------------------------------------------------------------------

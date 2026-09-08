@@ -24,7 +24,7 @@ LANGUAGES: tuple[Language, ...] = ("es", "en")
 # How many items fit in each CV section. These are defaults (the ones for a
 # one-page CV), not a law: the user can change them in settings because every
 # template has different space.
-N_EXPERIENCES = 4
+N_EXPERIENCES = 5
 N_SKILLS = 9
 N_ABOUT_ME_GROUP = 3
 

@@ -146,12 +146,16 @@ def _adaptar(respuesta: str | Exception = None, perfil: Profile | None = None, *
 
 
 def test_respeta_las_elecciones_y_el_orden_del_modelo():
+    """`_respuesta()` only names 4 experiences, but `N_EXPERIENCES` is 5:
+    the model's own picks come first, in its own order, and `_choose_experiences`
+    tops up the fifth slot from the profile by relevance (never invented)."""
     propuesta, _ = _adaptar()
     assert [e.id for e in propuesta.experiences] == [
         "api-pagos",
         "pipeline-datos",
         "bot-telegram",
         "tfg-vision",
+        "web-inmobiliaria",
     ]
     assert propuesta.skills[:4] == ["python", "fastapi", "bbdd", "airflow"]
     assert propuesta.language == "es"
