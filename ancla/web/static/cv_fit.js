@@ -10,22 +10,36 @@
 //
 // What a browser can do — and a `.docx` cannot, which is why the estimates in
 // `export/fill.py` exist — is measure the page it just laid out. So the size
-// is not chosen, it is searched for: the largest `--cv-escala` whose content
-// still fits one page. Measuring is not the guesswork that was dropped from
-// the `.docx` path; it is the reason for having moved to HTML.
+// is not chosen, it is searched for: the largest scale whose content still
+// fits one page. Measuring is not the guesswork that was dropped from the
+// `.docx` path; it is the reason for having moved to HTML.
 //
 // It lives with the preview screen and not in any template because it needs
 // nothing design-specific: a template declares its page height
-// (`--cv-alto-pagina`) and how its own type answers to `--cv-escala`, and
-// gets fitting for free. A design added later needs no calibration.
+// (`--cv-alto-pagina`) and how its own type answers to `--cv-escala` and
+// `--cv-escala-lateral`, and gets fitting for free. A design added later
+// needs no calibration.
 //
 // Measuring on screen is what makes the result hold on paper, and it has to
 // be done here because `@media print` never applies on screen: the sheet is
 // laid out at exactly the printed page's width, so the height reported here
 // is the height the printer will have to paginate.
+//
+// Two columns, two independent searches. The sidebar's content (contact,
+// skills, languages) is the profile's, not the proposal's, so it never grows
+// past its own natural size to fill blank space the way the main column
+// does — its ceiling is 1, not 1.2. It also cannot shrink as far: its type
+// is already smaller than the main column's body text, so its floor sits
+// higher than `MIN_SCALE`. Sharing one variable between the two would tie a
+// short "About me" growing to fill the page to the sidebar's own fit, with
+// nothing to do with each other; searching them separately against the same
+// page limit is what makes a long "About me" and a long skills list each pay
+// only for their own overflow.
 (() => {
   const cv = document.querySelector(".cv");
-  if (!cv) return;
+  const principal = document.querySelector(".cv-principal");
+  if (!cv || !principal) return;
+  const lateral = document.querySelector(".cv-lateral");
 
   // The ceiling is a matter of taste rather than of fit — past it a CV with
   // little in it stops reading as a document and starts reading as large
@@ -35,6 +49,13 @@
   // CV that doesn't.
   const MAX_SCALE = 1.2;
   const MIN_SCALE = 0.85;
+
+  // The sidebar's own range: measured the same way, against a sidebar
+  // deliberately stuffed with technical skills, personal skills and
+  // languages (see `bitacora/barra-lateral-encoge.md`).
+  const MAX_SCALE_LATERAL = 1;
+  const MIN_SCALE_LATERAL = 0.8;
+
   const PRECISION = 0.005;
 
   // Room left for the difference between the height measured here and the
@@ -49,22 +70,22 @@
     return toPixels(parseFloat(declared));
   }
 
-  function heightAt(scale) {
-    cv.style.setProperty("--cv-escala", scale);
-    return cv.getBoundingClientRect().height;
+  function heightAt(el, property, scale) {
+    cv.style.setProperty(property, scale);
+    return el.getBoundingClientRect().height;
   }
 
   // The largest scale whose content fits, or the floor when even that
   // doesn't: the caller measures once more to tell the two apart, so there
   // is no second way of saying "it doesn't fit" to keep in step with this one.
-  function largestScaleThatFits(limit) {
-    if (heightAt(MAX_SCALE) <= limit) return MAX_SCALE;
+  function largestScaleThatFits(el, property, max, min, limit) {
+    if (heightAt(el, property, max) <= limit) return max;
 
-    let fits = MIN_SCALE;
-    let overflows = MAX_SCALE;
+    let fits = min;
+    let overflows = max;
     while (overflows - fits > PRECISION) {
       const middle = (fits + overflows) / 2;
-      if (heightAt(middle) <= limit) fits = middle;
+      if (heightAt(el, property, middle) <= limit) fits = middle;
       else overflows = middle;
     }
     return fits;
@@ -74,17 +95,37 @@
     const limit = pageHeight() - toPixels(PRINT_GUARD_PT);
     if (!isFinite(limit)) return;
 
-    // While measuring, the sheet is released from its one-page floor so that
-    // what gets measured is the height the content asks for, not the height
-    // the page imposes on it.
+    // While measuring, the sheet is released from its one-page floor and its
+    // columns from mutual stretch, so what gets measured is the height each
+    // column's own content asks for, not the height the page or the other
+    // column imposes on it.
     cv.classList.add("cv-midiendo");
-    const scale = largestScaleThatFits(limit);
-    const fits = heightAt(scale) <= limit;
+
+    const scalePrincipal = largestScaleThatFits(
+      principal,
+      "--cv-escala",
+      MAX_SCALE,
+      MIN_SCALE,
+      limit,
+    );
+    const principalFits = heightAt(principal, "--cv-escala", scalePrincipal) <= limit;
+
+    let lateralFits = true;
+    if (lateral) {
+      const scaleLateral = largestScaleThatFits(
+        lateral,
+        "--cv-escala-lateral",
+        MAX_SCALE_LATERAL,
+        MIN_SCALE_LATERAL,
+        limit,
+      );
+      lateralFits = heightAt(lateral, "--cv-escala-lateral", scaleLateral) <= limit;
+    }
+
     cv.classList.remove("cv-midiendo");
 
-    cv.style.setProperty("--cv-escala", scale);
     const warning = document.querySelector("[data-aviso-desborde]");
-    if (warning) warning.hidden = fits;
+    if (warning) warning.hidden = principalFits && lateralFits;
   }
 
   // Text laid out in a font that hasn't loaded yet is text of the wrong

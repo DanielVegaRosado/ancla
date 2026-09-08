@@ -56,9 +56,18 @@
    one-page floor, so it reads back as one page long however little is on it.
    The floor is lifted for the length of the measurement. Two classes deep on
    purpose — each template sets `min-height` on `.cv` in its own stylesheet,
-   which is linked after this one. */
+   which is linked after this one.
+
+   `align-items: flex-start` replaces the template's own `stretch` for the
+   same reason: `.cv` is a flex row, so with `stretch` the shorter of the two
+   columns is inflated to match the taller one's box, and a column measured
+   at its sibling's height instead of its own tells the search nothing about
+   whether that column's own content fits. Both columns are searched
+   independently (`--cv-escala` for the main one, `--cv-escala-lateral` for
+   the sidebar), so each needs its own true content height while measuring. */
 .cv.cv-midiendo {
   min-height: 0;
+  align-items: flex-start;
 }
 
 @media print {

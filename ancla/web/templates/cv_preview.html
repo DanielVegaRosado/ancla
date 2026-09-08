@@ -50,12 +50,13 @@
     {% endif %}
     {#
       Shown by `cv_fit.js` when the CV does not fit one page even with the
-      type at its smallest: rule 2 forbids trimming what the user wrote, so
-      the only honest move left is to say so before they print, the same
-      treatment the experiences that don't fit already get.
+      type at its smallest — either column, main or sidebar, can be the
+      cause: rule 2 forbids trimming what the user wrote, so the only
+      honest move left is to say so before they print, the same treatment
+      the experiences that don't fit already get.
     #}
     <p class="aviso" data-aviso-desborde hidden>
-      {{ _('Con este «Sobre mí» y %(capacidad)s experiencias no cabe todo en una página, ni siquiera con el texto al tamaño mínimo: se imprimirá en dos. Acorta el «Sobre mí» o baja el número de experiencias — Ancla nunca recorta lo que has escrito.',
+      {{ _('Con este «Sobre mí», %(capacidad)s experiencias y este perfil no cabe todo en una página, ni siquiera con el texto al tamaño mínimo: se imprimirá en dos. Acorta el «Sobre mí», baja el número de experiencias, o reduce las skills o los idiomas de tu perfil — Ancla nunca recorta lo que has escrito.',
            capacidad=capacidad) }}
     </p>
   </div>

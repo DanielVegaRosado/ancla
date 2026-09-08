@@ -13,13 +13,17 @@
    (`break-inside: avoid`) instead of solved for.
 
    Everything in the main column that has a vertical size is written as
-   `calc(<measured>pt * var(--cv-escala, 1))`. `--cv-escala` is the single
-   knob `ancla/web/static/cv_fit.js` turns until the CV fits one page, and
+   `calc(<measured>pt * var(--cv-escala, 1))`. `--cv-escala` is one of the two
+   knobs `ancla/web/static/cv_fit.js` turns until the CV fits one page, and
    scaling the whole column by it keeps this design's proportions — a name
    twice the size of its headline, a paragraph tucked under a dated
-   heading — at every setting. The sidebar stays out of it: its content is
-   the profile's, not the proposal's. So does the column's own padding, or
-   the two columns would stop starting at the same height. */
+   heading — at every setting. The sidebar answers to its own knob,
+   `--cv-escala-lateral`, for the same reason kept separate: its content is
+   the profile's, not the proposal's, so it never grows to fill blank space
+   the way the main column does, and its type is already smaller, so it
+   cannot shrink as far either — see `cv_fit.js` for the two ranges. Neither
+   column's own padding scales, or the two columns would stop starting at
+   the same height. */
 
 :root {
   --cv-terracota: #b3805a;
@@ -90,7 +94,7 @@
 }
 
 .cv-foto {
-  margin-bottom: 22pt;
+  margin-bottom: calc(22pt * var(--cv-escala-lateral, 1));
 }
 
 .cv-foto img {
@@ -101,7 +105,7 @@
 }
 
 .cv-bloque {
-  margin-bottom: 18pt;
+  margin-bottom: calc(18pt * var(--cv-escala-lateral, 1));
 }
 
 /* Shared by both column headers: bold caps followed by a rule that fills
@@ -131,7 +135,8 @@
 }
 
 .cv-cabecera-lateral {
-  font-size: 10pt;
+  margin-bottom: calc(8pt * var(--cv-escala-lateral, 1));
+  font-size: calc(10pt * var(--cv-escala-lateral, 1));
 }
 
 .cv-cabecera-principal {
@@ -141,8 +146,8 @@
 }
 
 .cv-subcabecera-lateral {
-  margin: 10pt 0 4pt;
-  font-size: 8.5pt;
+  margin: calc(10pt * var(--cv-escala-lateral, 1)) 0 calc(4pt * var(--cv-escala-lateral, 1));
+  font-size: calc(8.5pt * var(--cv-escala-lateral, 1));
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.3pt;
@@ -154,11 +159,11 @@
   margin: 0;
   padding: 0;
   list-style: none;
-  font-size: 9pt;
+  font-size: calc(9pt * var(--cv-escala-lateral, 1));
 }
 
 .cv-lista li {
-  margin-bottom: 5pt;
+  margin-bottom: calc(5pt * var(--cv-escala-lateral, 1));
 }
 
 .cv-lista-punteada {
@@ -168,13 +173,13 @@
 }
 
 .cv-lista-punteada li {
-  margin-bottom: 3pt;
+  margin-bottom: calc(3pt * var(--cv-escala-lateral, 1));
   color: var(--cv-body);
 }
 
 .cv-educacion {
-  margin-bottom: 10pt;
-  font-size: 9pt;
+  margin-bottom: calc(10pt * var(--cv-escala-lateral, 1));
+  font-size: calc(9pt * var(--cv-escala-lateral, 1));
   break-inside: avoid;
 }
 
