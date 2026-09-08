@@ -2,6 +2,7 @@
 in-app PDF preview — never a redirect out to canva.com."""
 from __future__ import annotations
 
+import os
 from pathlib import Path
 
 import pytest
@@ -10,11 +11,44 @@ from ancla.web import create_app
 from ancla.web import settings as modulo_ajustes
 
 
+def _pdf_minimo() -> bytes:
+    """A byte-for-byte valid, blank one-page PDF — real enough for
+    `pdftoppm` to render, unlike a `%PDF` prefix on arbitrary bytes."""
+    objetos = [
+        b"<</Type/Catalog/Pages 2 0 R>>",
+        b"<</Type/Pages/Kids[3 0 R]/Count 1>>",
+        b"<</Type/Page/Parent 2 0 R/MediaBox[0 0 300 400]>>",
+    ]
+    partes = [b"%PDF-1.4\n"]
+    offsets = [0]
+    for n, cuerpo in enumerate(objetos, start=1):
+        offsets.append(sum(len(p) for p in partes))
+        partes.append(f"{n} 0 obj".encode() + cuerpo + b"endobj\n")
+    inicio_xref = sum(len(p) for p in partes)
+    xref = [b"xref\n", f"0 {len(objetos) + 1}\n".encode(), b"0000000000 65535 f \n"]
+    for offset in offsets[1:]:
+        xref.append(f"{offset:010d} 00000 n \n".encode())
+    partes += xref
+    partes.append(f"trailer<</Size {len(objetos) + 1}/Root 1 0 R>>\nstartxref\n{inicio_xref}\n%%EOF".encode())
+    return b"".join(partes)
+
+
 @pytest.fixture
 def plantillas_canva(tmp_path: Path) -> Path:
     raiz = tmp_path / "canva-templates"
     raiz.mkdir()
     (raiz / "calida.pdf").write_bytes(b"%PDF-1.4 contenido falso")
+    (raiz / "calida.yaml").write_text(
+        "nombre:\n  es: Minimalista Cálida\n  en: Warm Minimalist\n", encoding="utf-8"
+    )
+    return raiz
+
+
+@pytest.fixture
+def plantillas_canva_reales(tmp_path: Path) -> Path:
+    raiz = tmp_path / "canva-templates"
+    raiz.mkdir()
+    (raiz / "calida.pdf").write_bytes(_pdf_minimo())
     (raiz / "calida.yaml").write_text(
         "nombre:\n  es: Minimalista Cálida\n  en: Warm Minimalist\n", encoding="utf-8"
     )
@@ -81,3 +115,49 @@ def test_una_plantilla_desconocida_da_404(tmp_path: Path, plantillas_canva: Path
     cliente = _cliente(tmp_path, plantillas_canva)
     assert cliente.get("/plantillas/no-existe").status_code == 404
     assert cliente.get("/plantillas/no-existe/archivo").status_code == 404
+    assert cliente.get("/plantillas/no-existe/vista-previa.png").status_code == 404
+
+
+def test_la_galeria_muestra_una_imagen_de_vista_previa_no_el_pdf_embebido(
+    tmp_path: Path, plantillas_canva: Path
+):
+    cliente = _cliente(tmp_path, plantillas_canva)
+    html = cliente.get("/plantillas").data.decode("utf-8")
+    assert 'src="/plantillas/calida/vista-previa.png"' in html
+    assert "<embed" not in html
+
+
+def test_la_vista_previa_renderiza_la_primera_pagina_del_pdf_como_png(
+    tmp_path: Path, plantillas_canva_reales: Path
+):
+    cliente = _cliente(tmp_path, plantillas_canva_reales)
+    respuesta = cliente.get("/plantillas/calida/vista-previa.png")
+    assert respuesta.status_code == 200
+    assert respuesta.mimetype == "image/png"
+    assert respuesta.data[:8] == b"\x89PNG\r\n\x1a\n"
+
+
+def test_la_vista_previa_se_cachea_junto_al_pdf(tmp_path: Path, plantillas_canva_reales: Path):
+    cliente = _cliente(tmp_path, plantillas_canva_reales)
+    cliente.get("/plantillas/calida/vista-previa.png")
+    cacheada = plantillas_canva_reales / "calida.png"
+    assert cacheada.exists()
+
+    mtime_tras_primera = cacheada.stat().st_mtime
+    cliente.get("/plantillas/calida/vista-previa.png")
+    assert cacheada.stat().st_mtime == mtime_tras_primera
+
+
+def test_la_vista_previa_se_regenera_si_el_pdf_cambia(tmp_path: Path, plantillas_canva_reales: Path):
+    cliente = _cliente(tmp_path, plantillas_canva_reales)
+    cliente.get("/plantillas/calida/vista-previa.png")
+    cacheada = plantillas_canva_reales / "calida.png"
+    mtime_tras_primera = cacheada.stat().st_mtime
+
+    pdf_path = plantillas_canva_reales / "calida.pdf"
+    nuevo_mtime = mtime_tras_primera + 5
+    pdf_path.write_bytes(pdf_path.read_bytes())
+    os.utime(pdf_path, (nuevo_mtime, nuevo_mtime))
+
+    cliente.get("/plantillas/calida/vista-previa.png")
+    assert cacheada.stat().st_mtime > mtime_tras_primera

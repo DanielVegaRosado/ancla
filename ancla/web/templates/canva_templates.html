@@ -8,10 +8,10 @@
       {% for plantilla in canva_templates %}
         <div class="tarjeta tarjeta-plantilla">
           <div class="tarjeta-plantilla-vista">
-            <embed
-              src="{{ url_for('ancla.canva_template_file', id=plantilla.id) }}#page=1&toolbar=0&navpanes=0&scrollbar=0"
-              type="application/pdf"
-              aria-hidden="true"
+            <img
+              src="{{ url_for('ancla.canva_template_preview', id=plantilla.id) }}"
+              alt="{{ plantilla.name[idioma] }}"
+              loading="lazy"
             >
           </div>
           <div class="tarjeta-plantilla-cuerpo">

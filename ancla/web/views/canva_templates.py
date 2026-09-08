@@ -7,14 +7,34 @@ which cannot export an editable format), not profile data: they live in
 the user edits from the app nor something that varies between installations.
 Shown inline, full-page — never a redirect out to canva.com, so the app
 stays the only place a user needs to be to see them.
+
+The gallery card preview is a PNG of the PDF's first page, not the PDF
+embedded directly: `<embed>` follows Chrome/Acrobat's viewer conventions
+(fragment params like `#toolbar=0`, an implicit margin some viewers add
+around the page), which Firefox's own PDF viewer does not honour the same
+way. A rendered image has no viewer chrome to disagree about. It is built
+with `pdftoppm` (already used elsewhere in this project to measure template
+PDFs) the first time it is requested, then cached next to the source PDF in
+`canva-templates/` as `<id>.png` — regenerated only if the PDF is newer than
+the cached image, so replacing a template's PDF by hand is enough to refresh
+its preview without touching code. That folder is already the writable,
+user-editable home for these templates (including in the packaged desktop
+build, where it travels next to the executable), so it is also the natural
+place to keep a derived file that belongs to one specific PDF.
 """
 from __future__ import annotations
+
+import subprocess
+from pathlib import Path
 
 from flask import abort, render_template, send_file
 
 from ancla.design import gallery
+from ancla.design.gallery import DesignTemplate
 from ancla.web import context
 from ancla.web.blueprint import bp
+
+_RESOLUCION_VISTA_PREVIA = 150
 
 
 @bp.route("/plantillas")
@@ -37,3 +57,24 @@ def canva_template_file(id: str):
     if plantilla is None:
         abort(404)
     return send_file(plantilla.path)
+
+
+@bp.route("/plantillas/<id>/vista-previa.png")
+def canva_template_preview(id: str):
+    plantilla = gallery.find_template(context.canva_templates_root(), id)
+    if plantilla is None:
+        abort(404)
+    return send_file(_ensure_preview(plantilla), mimetype="image/png")
+
+
+def _ensure_preview(plantilla: DesignTemplate) -> Path:
+    """Renders the PDF's first page to a cached PNG next to it, unless a
+    cached one already exists and is not older than the PDF itself."""
+    preview_path = plantilla.path.with_suffix(".png")
+    if not preview_path.exists() or preview_path.stat().st_mtime < plantilla.path.stat().st_mtime:
+        prefix = str(preview_path.with_suffix(""))
+        subprocess.run(
+            ["pdftoppm", "-png", "-singlefile", "-r", str(_RESOLUCION_VISTA_PREVIA), str(plantilla.path), prefix],
+            check=True,
+        )
+    return preview_path

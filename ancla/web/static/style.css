@@ -225,17 +225,15 @@ section[id] { scroll-margin-top: 4.5rem; }
   overflow: hidden;
 }
 
-.tarjeta-plantilla-vista embed {
+.tarjeta-plantilla-vista img {
   position: absolute;
-  /* El visor de PDF de Chrome deja a veces un margen residual en algunos
-     archivos (aunque la página en sí no lo tenga). Se sobreescala un poco
-     y se recorta con overflow:hidden en el contenedor para que ese margen
-     quede siempre fuera de la vista, en vez de romper el encuadre. */
-  inset: -4%;
-  width: 108%;
-  height: 108%;
-  border: 0;
-  pointer-events: none;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  /* Es una imagen renderizada de la página, con el mismo ratio que el
+     contenedor (A4) — cover solo compensa el redondeo de píxeles entre
+     el PNG y el aspect-ratio del contenedor, no un margen de visor. */
+  object-fit: cover;
 }
 
 .tarjeta-plantilla-cuerpo {

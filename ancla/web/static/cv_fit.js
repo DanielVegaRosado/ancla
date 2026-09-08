@@ -8,11 +8,10 @@
 // enough to overflow it. Rule 2 forbids the other way out: the user's text is
 // never shortened or rewritten to make it fit.
 //
-// What a browser can do — and a `.docx` cannot, which is why the estimates in
-// `export/fill.py` exist — is measure the page it just laid out. So the size
-// is not chosen, it is searched for: the largest scale whose content still
-// fits one page. Measuring is not the guesswork that was dropped from the
-// `.docx` path; it is the reason for having moved to HTML.
+// What a browser can do — and the old `.docx` export could not, which is why
+// it had to estimate line wrapping instead — is measure the page it just
+// laid out. So the size is not chosen, it is searched for: the largest scale
+// whose content still fits one page.
 //
 // It lives with the preview screen and not in any template because it needs
 // nothing design-specific: a template declares its page height
