@@ -43,6 +43,7 @@ engine, the web layer, and the archive already depend on them.
 """
 from __future__ import annotations
 
+import io
 import os
 import re
 import zipfile
@@ -50,6 +51,7 @@ from pathlib import Path
 from typing import Any
 
 from flask_babel import gettext as _
+from PIL import Image, UnidentifiedImageError
 
 from ancla.profile import serialization, zip_safety
 from ancla.profile.errors import ProfileError
@@ -101,6 +103,18 @@ FICHERO_CONTACTO = "contact.yaml"
 # actually uploaded (jpg, png...) is preserved instead of forcing a convert.
 NOMBRE_FOTO = "photo"
 EXTENSIONES_FOTO = (".jpg", ".jpeg", ".png", ".webp")
+
+# The largest photo box declared by a real template is `.cv-foto img` in
+# `html-templates/corporativa-clasica.css` (113pt; Minimalista Cálida asks
+# for less, 92pt, and `--cv-escala-lateral` never scales it past 1x — see
+# `MAX_SCALE_LATERAL` in `web/static/cv_fit.js`). Converted at 300dpi, the
+# top of the print-quality range this project already measures templates
+# against (`pdftoppm -r 150` in `bitacora/minimalista-calida-html.md`; 300
+# is the conservative end so a CV printed sharper than a 96dpi screen still
+# holds up) rather than the 96dpi screen scale `cv_fit.js` itself uses for
+# on-page layout: 113pt * 300 / 72 = 470.8px. Rounded up to a clean number
+# with headroom so a photo right at that edge is not rejected by rounding.
+MINIMO_PX_FOTO = 500
 
 EXTENSIONES = (".yaml", ".yml")
 
@@ -258,6 +272,7 @@ def save_photo(root: Path, filename: str, contenido: bytes) -> None:
                 nombre=filename,
             )
         )
+    _check_photo_size(contenido)
     delete_photo(root)
     ruta = Path(root) / f"{NOMBRE_FOTO}{extension}"
     ruta.parent.mkdir(parents=True, exist_ok=True)
@@ -267,6 +282,32 @@ def save_photo(root: Path, filename: str, contenido: bytes) -> None:
         raise ProfileError(
             _("No se pudo guardar la foto: %(detalle)s.", detalle=exc.strerror)
         ) from exc
+
+
+def _check_photo_size(contenido: bytes) -> None:
+    """Rejects a photo smaller than the biggest template's photo box
+    (`MINIMO_PX_FOTO`, both dimensions): the browser's `accept` attribute
+    only filters by file type, so a real check has to happen here, on the
+    actual pixel dimensions of what was uploaded, not the request's
+    Content-Length.
+    """
+    try:
+        with Image.open(io.BytesIO(contenido)) as imagen:
+            ancho, alto = imagen.size
+    except UnidentifiedImageError as exc:
+        raise ProfileError(_("El fichero no es una imagen válida.")) from exc
+
+    if ancho < MINIMO_PX_FOTO or alto < MINIMO_PX_FOTO:
+        raise ProfileError(
+            _(
+                "La foto es demasiado pequeña (%(ancho)sx%(alto)s px). Sube una de "
+                "al menos %(minimo)sx%(minimo)s px para que no se vea pixelada en "
+                "el CV.",
+                ancho=ancho,
+                alto=alto,
+                minimo=MINIMO_PX_FOTO,
+            )
+        )
 
 
 def delete_photo(root: Path) -> None:

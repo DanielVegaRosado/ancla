@@ -9,9 +9,11 @@ asked— is to test it through the real routes, not only at the
 """
 from __future__ import annotations
 
+import io
 from pathlib import Path
 
 import pytest
+from PIL import Image
 
 from ancla.profile import store
 from ancla.profile.model import (
@@ -23,6 +25,14 @@ from ancla.profile.model import (
     SelectedAboutMe,
     Skill,
 )
+
+
+def _imagen_png(ancho: int, alto: int) -> bytes:
+    """A real, decodable PNG of the given size — the upload route now reads
+    actual pixel dimensions, so a fake byte string no longer stands in."""
+    buffer = io.BytesIO()
+    Image.new("RGB", (ancho, alto), color="gray").save(buffer, format="PNG")
+    return buffer.getvalue()
 from ancla.web import draft as modulo_borrador
 from ancla.web import settings as modulo_ajustes
 from ancla.web import create_app
@@ -310,9 +320,10 @@ def test_guardar_contacto_lo_deja_ver_en_mi_perfil(cliente_web, tmp_path: Path):
 def test_subir_foto_la_guarda_en_el_perfil(cliente_web, tmp_path: Path):
     from io import BytesIO
 
+    contenido = _imagen_png(store.MINIMO_PX_FOTO, store.MINIMO_PX_FOTO)
     respuesta = cliente_web.post(
         "/perfil/foto",
-        data={"foto": (BytesIO(b"contenido-de-imagen-falso"), "mi-foto.png")},
+        data={"foto": (BytesIO(contenido), "mi-foto.png")},
         content_type="multipart/form-data",
         follow_redirects=True,
     )
@@ -327,12 +338,28 @@ def test_subir_foto_sin_fichero_avisa_sin_fallar(cliente_web):
     assert "No se ha seleccionado ninguna foto".encode("utf-8") in respuesta.data
 
 
+def test_subir_foto_mas_pequena_que_el_minimo_no_se_guarda_y_avisa(cliente_web, tmp_path: Path):
+    from io import BytesIO
+
+    contenido = _imagen_png(store.MINIMO_PX_FOTO - 1, store.MINIMO_PX_FOTO)
+    respuesta = cliente_web.post(
+        "/perfil/foto",
+        data={"foto": (BytesIO(contenido), "pequena.png")},
+        content_type="multipart/form-data",
+        follow_redirects=True,
+    )
+    assert respuesta.status_code == 200
+    assert str(store.MINIMO_PX_FOTO).encode("utf-8") in respuesta.data
+    perfil = store.load_profile(tmp_path / "perfil")
+    assert perfil.photo == ""
+
+
 def test_borrar_foto_la_quita_del_perfil(cliente_web, tmp_path: Path):
     from io import BytesIO
 
     cliente_web.post(
         "/perfil/foto",
-        data={"foto": (BytesIO(b"contenido"), "foto.jpg")},
+        data={"foto": (BytesIO(_imagen_png(store.MINIMO_PX_FOTO, store.MINIMO_PX_FOTO)), "foto.jpg")},
         content_type="multipart/form-data",
     )
     cliente_web.post("/perfil/foto/borrar")

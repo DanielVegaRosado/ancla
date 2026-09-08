@@ -7,14 +7,24 @@ rather than crashing.
 """
 from __future__ import annotations
 
+import io
 import zipfile
 from pathlib import Path
 
 import pytest
+from PIL import Image
 
 from ancla.profile import store
 from ancla.profile.store import ProfileError
 from ancla.profile.model import AboutMe, Bilingual, Education, Experience, Skill
+
+
+def _imagen_png(ancho: int, alto: int) -> bytes:
+    """A real, decodable PNG of the given size — `save_photo` now reads
+    actual pixel dimensions, so a fake byte string no longer stands in."""
+    buffer = io.BytesIO()
+    Image.new("RGB", (ancho, alto), color="gray").save(buffer, format="PNG")
+    return buffer.getvalue()
 
 
 def _educacion(id: str = "grado") -> Education:
@@ -349,16 +359,17 @@ def test_sin_foto_el_perfil_no_tiene_foto(tmp_path: Path):
 
 
 def test_guardar_y_cargar_foto_hace_ida_y_vuelta(tmp_path: Path):
-    store.save_photo(tmp_path, "foto.png", b"contenido-de-imagen-falso")
+    contenido = _imagen_png(store.MINIMO_PX_FOTO, store.MINIMO_PX_FOTO)
+    store.save_photo(tmp_path, "foto.png", contenido)
     perfil = store.load_profile(tmp_path)
     assert perfil.photo == "photo.png"
     assert store.photo_path(tmp_path) == tmp_path / "photo.png"
-    assert (tmp_path / "photo.png").read_bytes() == b"contenido-de-imagen-falso"
+    assert (tmp_path / "photo.png").read_bytes() == contenido
 
 
 def test_subir_una_foto_nueva_reemplaza_la_anterior_aunque_cambie_la_extension(tmp_path: Path):
-    store.save_photo(tmp_path, "foto.jpg", b"version-jpg")
-    store.save_photo(tmp_path, "foto.png", b"version-png")
+    store.save_photo(tmp_path, "foto.jpg", _imagen_png(store.MINIMO_PX_FOTO, store.MINIMO_PX_FOTO))
+    store.save_photo(tmp_path, "foto.png", _imagen_png(store.MINIMO_PX_FOTO, store.MINIMO_PX_FOTO))
 
     perfil = store.load_profile(tmp_path)
     assert perfil.photo == "photo.png"
@@ -367,7 +378,25 @@ def test_subir_una_foto_nueva_reemplaza_la_anterior_aunque_cambie_la_extension(t
 
 def test_guardar_una_foto_con_formato_no_admitido_da_error(tmp_path: Path):
     with pytest.raises(ProfileError):
-        store.save_photo(tmp_path, "foto.gif", b"contenido")
+        store.save_photo(tmp_path, "foto.gif", _imagen_png(store.MINIMO_PX_FOTO, store.MINIMO_PX_FOTO))
+
+
+def test_guardar_una_foto_mas_pequena_que_el_minimo_da_error_con_el_minimo_exacto(tmp_path: Path):
+    with pytest.raises(ProfileError) as excinfo:
+        store.save_photo(tmp_path, "foto.png", _imagen_png(store.MINIMO_PX_FOTO - 1, store.MINIMO_PX_FOTO))
+    assert str(store.MINIMO_PX_FOTO) in str(excinfo.value)
+    assert store.photo_path(tmp_path) is None
+
+
+def test_guardar_una_foto_justo_en_el_minimo_no_da_error(tmp_path: Path):
+    store.save_photo(tmp_path, "foto.png", _imagen_png(store.MINIMO_PX_FOTO, store.MINIMO_PX_FOTO))
+    assert store.photo_path(tmp_path) is not None
+
+
+def test_guardar_un_fichero_que_no_es_una_imagen_da_error(tmp_path: Path):
+    with pytest.raises(ProfileError):
+        store.save_photo(tmp_path, "foto.png", b"esto no es una imagen")
+    assert store.photo_path(tmp_path) is None
 
 
 def test_borrar_foto_sin_que_exista_no_falla(tmp_path: Path):

@@ -542,19 +542,21 @@ def test_render_con_foto_embebe_la_imagen(tmp_path: Path):
     without one on its own."""
     import base64
 
-    from ancla.profile import store as profile_store
-
     perfil = _perfil()
     propuesta = _propuesta()
     plantilla = templates.find_template(PLANTILLA_PRUEBA.parent, "prueba")
     experiencias = fill.resolved_experiences(propuesta, perfil)
     # A real, minimal 1x1 PNG: InlineImage needs to read its dimensions
-    # from the file itself, an arbitrary byte string won't do.
+    # from the file itself, an arbitrary byte string won't do. Written
+    # straight to disk rather than through `store.save_photo` — that
+    # function now enforces a minimum size meant for the upload endpoint,
+    # unrelated to what this test exercises (`render` embedding whatever
+    # photo file is already on disk).
     png_1x1 = base64.b64decode(
         "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk"
         "+A8AAQUBAScY42YAAAAASUVORK5CYII="
     )
-    profile_store.save_photo(tmp_path, "foto.png", png_1x1)
+    (tmp_path / "photo.png").write_bytes(png_1x1)
 
     # The test template has no {{ foto }} tag, so this only checks that
     # render() doesn't crash while building a real InlineImage that the
