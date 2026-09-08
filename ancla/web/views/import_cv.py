@@ -15,10 +15,11 @@ from flask import flash, redirect, render_template, request, url_for
 from flask_babel import gettext as _
 
 from ancla.ai.client import AIError
-from ancla.profile import store, importer, translation, validation
+from ancla.profile import store, importer, gaps, translation, validation
 from ancla.profile.extraction import ExtractionError, extract_text
 from ancla.profile.model import (
     LANGUAGES,
+    AboutMe,
     Bilingual,
     Education,
     Experience,
@@ -26,6 +27,7 @@ from ancla.profile.model import (
     Skill,
     SpokenLanguage,
 )
+from ancla.text import normalize
 from ancla.web import context
 from ancla.web import import_batch as modulo_importacion
 from ancla.web.blueprint import bp
@@ -58,18 +60,41 @@ def import_cv():
         return redirect(url_for("ancla.view_settings"))
 
     idioma = _chosen_language(request.form.get("idioma_cv", ""), texto_cv)
-    resultado = importer.analyze_cv(cliente, texto_cv, context.current_profile(), idioma)
+    perfil = context.current_profile()
+    resultado = importer.analyze_cv(cliente, texto_cv, perfil, idioma)
+
+    sobre_mi = resultado.sobre_mi
+    avisos = list(resultado.avisos)
+    if sobre_mi is not None:
+        # Same accelerator as the manual "About me" editor
+        # (`suggest_about_me_gaps`), called automatically here so the
+        # review screen shows the huecos already placed instead of a raw
+        # paragraph. Both the profile's existing technical skills and the
+        # ones this same CV just proposed are offered: a paragraph copied
+        # from the CV can equally reference a skill already saved from a
+        # previous import or one this one is proposing for the first time,
+        # and `gaps.py` already deduplicates names on its own.
+        propuesta = gaps.suggest_gaps(cliente, sobre_mi, resultado.skills + perfil.skills)
+        sobre_mi = propuesta.about_me
+        avisos += propuesta.avisos
+
+    contacto = resultado.contacto
     lote = modulo_importacion.ImportBatch(
         experiencias=resultado.experiencias,
         skills=resultado.skills,
         skills_personales=resultado.skills_personales,
         idiomas=resultado.idiomas,
         educacion=resultado.educacion,
-        avisos=resultado.avisos,
+        contacto_nombre=contacto.name if contacto else "",
+        contacto_titular=contacto.headline if contacto else Bilingual(es="", en=""),
+        contacto_lineas=contacto.lines if contacto else [],
+        sobre_mi=sobre_mi,
+        avisos=avisos,
         written=[idioma],
+        resto=resultado.restante,
     )
-    if not any(_candidates(lote, seccion) for seccion in SECTIONS):
-        for aviso in resultado.avisos:
+    if not lote.has_content():
+        for aviso in avisos:
             flash(aviso)
         return render_template("import.html", ia_configurada=ajustes.configured())
 
@@ -109,6 +134,32 @@ def review_import():
     )
 
 
+def _contact_from_form(form, importacion: modulo_importacion.ImportBatch) -> tuple[str, Bilingual[str], list[str]]:
+    """Name, headline and lines with whatever the user edited on the review
+    screen — falls back to the imported values for a field the form did not
+    send, same convention as `_edited_experience` and the rest."""
+    nombre = form.get("contacto-nombre", importacion.contacto_nombre).strip()
+    titular = Bilingual(
+        es=form.get("contacto-titular_es", importacion.contacto_titular["es"]).strip(),
+        en=form.get("contacto-titular_en", importacion.contacto_titular["en"]).strip(),
+    )
+    lineas = lines_to_list(form.get("contacto-lineas", "\n".join(importacion.contacto_lineas)))
+    return nombre, titular, lineas
+
+
+def _about_me_from_form(form, importacion: modulo_importacion.ImportBatch) -> AboutMe | None:
+    """`None` when nothing was proposed — there is no card and no fields on
+    the review screen to read edits from."""
+    if importacion.sobre_mi is None:
+        return None
+    return AboutMe(
+        template=Bilingual(
+            es=form.get("sobre-mi-plantilla_es", importacion.sobre_mi.template["es"]),
+            en=form.get("sobre-mi-plantilla_en", importacion.sobre_mi.template["en"]),
+        )
+    )
+
+
 @bp.route("/perfil/importar/guardar", methods=["POST"])
 def save_import():
     importacion = modulo_importacion.load_import(context.root())
@@ -122,6 +173,23 @@ def save_import():
         nuevas, fallidas = _save_section(request.form, importacion, seccion)
         guardadas += nuevas
         con_error += fallidas
+
+    if request.form.get("contacto") == "1":
+        nombre, titular, lineas = _contact_from_form(request.form, importacion)
+        store.save_contact(context.root(), nombre, titular, lineas)
+        guardadas += 1
+
+    if request.form.get("sobre-mi") == "1":
+        sobre_mi = _about_me_from_form(request.form, importacion)
+        # `sobre_mi` is only `None` when the checkbox itself could not have
+        # been rendered (no card without a proposal), so this never fires
+        # in practice — kept as a guard, not a silent skip.
+        if sobre_mi is not None:
+            if validation.validate_about_me(sobre_mi).errors:
+                con_error += 1
+            else:
+                store.save_about_me(context.root(), sobre_mi)
+                guardadas += 1
 
     modulo_importacion.delete_import(context.root())
 
@@ -254,8 +322,48 @@ SECTIONS = (
 )
 
 
+# The field that carries an entry's name, for the five categories: "title"
+# for the two with a title (experiences, education), "name" for the three
+# named by a single word (skills, personal skills, languages). Used only to
+# de-duplicate a second import's candidates against the batch's own — the
+# profile-level duplicate check already keyed on this same distinction lives
+# in `importer.py`, and this mirrors it rather than reaching into that
+# module's private helpers for what is a one-line lookup.
+_ATRIBUTO_NOMBRE = {
+    "experiencias": "title", "skills": "name", "skills_personales": "name",
+    "idiomas": "name", "educacion": "title",
+}
+
+
 def _candidates(lote: modulo_importacion.ImportBatch, seccion: _ReviewSection) -> list:
     return getattr(lote, seccion.attribute)
+
+
+def _sin_repetidos_en_lote(nuevas: list, existentes: list, atributo: str) -> list:
+    """`nuevas` with whatever `existentes` already names (ES or EN,
+    case/accent-insensitive) dropped.
+
+    Importing a second part only asks `analyze_cv` to compare against the
+    saved profile, because that is the only catalog it knows about — the
+    first part's own candidates are still unsaved, sitting in this same
+    batch. Without this, a skill mentioned in both halves of a CV (its
+    summary near the top, its stack lower down) would show up twice on the
+    review screen.
+    """
+    ya = {
+        normalize(valor)
+        for item in existentes
+        for valor in (getattr(item, atributo)["es"], getattr(item, atributo)["en"])
+        if valor
+    }
+    return [
+        candidata for candidata in nuevas
+        if not any(
+            normalize(valor) in ya
+            for valor in (getattr(candidata, atributo)["es"], getattr(candidata, atributo)["en"])
+            if valor
+        )
+    ]
 
 
 def _save_section(form, lote: modulo_importacion.ImportBatch, seccion: _ReviewSection) -> tuple[int, int]:
@@ -343,11 +451,62 @@ def _apply_edits(form, lote: modulo_importacion.ImportBatch) -> None:
             seccion.edited(form, f"{seccion.prefix}-{indice}", candidata)
             for indice, candidata in enumerate(candidatas)
         ]
+    lote.contacto_nombre, lote.contacto_titular, lote.contacto_lineas = _contact_from_form(form, lote)
+    lote.sobre_mi = _about_me_from_form(form, lote)
 
 
 def _missing_language(importacion: modulo_importacion.ImportBatch) -> Language | None:
     faltan = [idioma for idioma in LANGUAGES if idioma not in importacion.written]
     return faltan[0] if faltan else None
+
+
+@bp.route("/perfil/importar/segunda-parte", methods=["POST"])
+def import_second_part():
+    """Analyses whatever `_recortar` had to leave out of the first call, as a
+    second, independent one.
+
+    Same reasoning as `translate_import`: it is another call against the
+    same per-minute budget, spent later only because reviewing the first
+    part took a minute on its own — and the section boundary it starts on
+    was already computed for free when the first part was cut, so there is
+    no new text to locate here.
+
+    The results land in the very same batch under review rather than a
+    screen of their own: they are appended to each category's list, so the
+    next render of `review_import` simply shows more cards. If the leftover
+    was itself too long for one call, `importacion.resto` comes back
+    non-empty again and the button on the review screen stays available for
+    a third part, without this needing to special-case it.
+    """
+    importacion = modulo_importacion.load_import(context.root())
+    if importacion is None:
+        flash(_("Esa importación ya no está disponible, vuelve a subir el CV."))
+        return redirect(url_for("ancla.import_cv"))
+    if not importacion.resto:
+        flash(_("No queda ninguna parte pendiente de importar de este CV."))
+        return redirect(url_for("ancla.review_import"))
+
+    ajustes = context.current_settings()
+    try:
+        cliente = create_client(ajustes.proveedor, ajustes.clave_api, ajustes.url_base, ajustes.modelo)
+    except AIError as error:
+        flash(str(error))
+        return redirect(url_for("ancla.review_import"))
+
+    _apply_edits(request.form, importacion)
+    resultado = importer.analyze_cv(
+        cliente, importacion.resto, context.current_profile(), importacion.written[0]
+    )
+    for seccion in SECTIONS:
+        atributo = seccion.attribute
+        nuevas = _sin_repetidos_en_lote(
+            getattr(resultado, atributo), getattr(importacion, atributo), _ATRIBUTO_NOMBRE[atributo]
+        )
+        getattr(importacion, atributo).extend(nuevas)
+    importacion.avisos.extend(resultado.avisos)
+    importacion.resto = resultado.restante
+    modulo_importacion.save_import(context.root(), importacion)
+    return redirect(url_for("ancla.review_import"))
 
 
 @bp.route("/perfil/importar/descartar", methods=["POST"])

@@ -1,6 +1,6 @@
-"""Analyses a CV's text and proposes candidates for the profile's five
-sections: experience, technical skills, personal skills, languages, and
-education.
+"""Analyses a CV's text and proposes candidates for the profile's seven
+sections: experience, technical skills, personal skills, languages,
+education, contact details, and the "About me" paragraph.
 
 Different from `migrador.py`: that one converts a rigid, purpose-built
 format (`TITULO_ES:`, `BULLETS_ES:`...) with regular expressions, no AI,
@@ -46,6 +46,26 @@ language is detected here and can be corrected by the user before the call
 — a wrong guess that cannot be fixed is worse than asking. Translating into
 the other language is a separate, optional call (`translation.py`), which
 lands in a different minute on its own because reviewing takes one.
+
+**A CV too long for one call keeps the part `_recortar` had to leave out**
+(`ImportResult.restante`), instead of discarding it: the web layer stores it
+next to the batch under review and can send it through `analyze_cv` again as
+a second, independent call, the same one-more-minute pattern as the
+translation above. If that second call is itself too long, `restante` comes
+back non-empty again — the same mechanism repeats rather than needing to
+special-case a third part.
+
+**Contact and "About me" follow the same semantic criterion as the other
+five categories: nothing here depends on a literal header appearing in the
+text.** A CV with no heading at all before its opening paragraph, or one
+that calls it "Perfil profesional" or "Summary" instead of "Sobre mí", is
+read the same way. "About me" comes back as **plain text, exactly as
+written** — the prompt is never asked to place the `{GROUP_A_*}`/
+`{GROUP_B_*}` gaps; that stays `gaps.py`'s job, called separately by the web
+layer once the text is back, using the same model that already places gaps
+over text a person typed by hand. Contact fields follow rule 1 like
+everything else: only what is literally in the text, never a guessed email
+or phone number.
 """
 from __future__ import annotations
 
@@ -59,6 +79,7 @@ from ancla.ai.client import AIClient, AIError, complete_with_budget
 from ancla.profile import extraction
 from ancla.profile.serialization import split_period
 from ancla.profile.model import (
+    AboutMe,
     Bilingual,
     Education,
     Experience,
@@ -110,7 +131,8 @@ MAX_TOKENS_RESPUESTA = MAX_CARACTERES_CV  # never asked for more than a full CV 
 PLANTILLA_SISTEMA = """\
 Analizas el texto de un CV para ayudar a una persona a construir su base de datos \
 profesional. No escribes su CV: identificas qué hay en el texto y lo estructuras en \
-CINCO categorías: experiencias, skills técnicas, skills personales, idiomas y educación.
+SIETE categorías: experiencias, skills técnicas, skills personales, idiomas, educación, \
+contacto y sobre mí.
 
 Reglas:
 1. Extrae SOLO lo que está literalmente en el texto. No añadas responsabilidades, \
@@ -157,6 +179,20 @@ no es una experiencia ni una skill, aunque el CV la liste en el mismo apartado: 
 título de una titulación ("Grado en Ingeniería Informática") nunca se propone además \
 como experiencia ni como skill aparte. Si el texto no dice el centro o el periodo, deja \
 ese campo vacío.
+12. Extrae también el CONTACTO: el nombre completo de la persona, la línea que va bajo \
+el nombre si describe un rol o titulación (p. ej. "Ingeniero Informático", "Data \
+Engineer" — nunca el nombre de una empresa), y las líneas de contacto sueltas (teléfono, \
+email, ciudad, LinkedIn, GitHub, portfolio...) tal como aparecen. Nunca dependas de que \
+haya un apartado con la palabra "Contacto": esta información suele ir junto al nombre, \
+al principio del CV, sin ningún título propio. No inventes ni completes ningún dato de \
+contacto que no esté escrito.
+13. Extrae también el SOBRE MÍ: si el CV trae un párrafo de presentación personal — a \
+veces bajo un título como "Sobre mí", "Perfil profesional", "Summary" u "Objective", \
+pero a menudo sin ningún título, como el primer párrafo de prosa del documento — \
+cópialo TAL CUAL, sin resumirlo, acortarlo ni reescribirlo con otras palabras: es la \
+única categoría que se copia entera en vez de estructurarse en campos. Si el CV no trae \
+ningún párrafo así, deja este campo vacío — no lo construyas a partir de la experiencia \
+ni de las skills.
 
 Responde ÚNICAMENTE con este JSON, sin texto alrededor ni bloques de código:
 {{
@@ -174,7 +210,9 @@ Responde ÚNICAMENTE con este JSON, sin texto alrededor ni bloques de código:
   ],
   "educacion": [
     {{"titulo": "", "centro": "", "periodo": ""}}
-  ]
+  ],
+  "contacto": {{"nombre": "", "titular": "", "lineas": []}},
+  "sobre_mi": ""
 }}"""
 
 # Function words frequent enough that a handful of lines already separates
@@ -213,13 +251,18 @@ def detect_language(texto: str) -> Language:
     return "en" if conteo["en"] > conteo["es"] else "es"
 
 
-def _recortar(texto: str) -> tuple[str, str]:
-    """The part of an oversized CV that fits, and the warning to show for it.
+def _recortar(texto: str) -> tuple[str, str, str]:
+    """The part of an oversized CV that fits, the warning to show for it, and
+    what was left out.
 
     Cutting on a section boundary is what the warning is really for: the
     piece that was read is a whole run of sections and the piece that was
     not starts with its own title, so the advice can name the exact line to
-    split the file on instead of a character count nobody can act on.
+    split the file on instead of a character count nobody can act on. That
+    same boundary is what makes the leftover worth keeping instead of
+    discarding: the caller can offer it back as a second, independent call
+    later, on its own minute of quota, rather than making the user cut the
+    file by hand.
 
     A CV with no recognisable section falls back to the line cut, which is
     not a lesser case to tidy up later: a CV pasted as one loose paragraph
@@ -242,7 +285,11 @@ def _recortar(texto: str) -> tuple[str, str]:
             "han leído los primeros %(analizados)s.",
             total=len(texto), analizados=analizados,
         )
-    return texto[:analizados].rstrip() + "\n[...texto recortado...]", aviso
+    return (
+        texto[:analizados].rstrip() + "\n[...texto recortado...]",
+        aviso,
+        texto[analizados:].lstrip(),
+    )
 
 
 def _corte_por_linea(texto: str, limite: int) -> int:
@@ -260,13 +307,37 @@ def _corte_por_linea(texto: str, limite: int) -> int:
 
 
 @dataclass(frozen=True)
+class ContactCandidate:
+    """Proposed name, headline and contact lines — the same three values
+    `profile/store.py::save_contact` takes, kept together here only for
+    convenience. Not a `profile/model.py` type: a contact has never been
+    its own persisted shape, just three loose fields on `Profile`."""
+
+    name: str = ""
+    headline: Bilingual[str] = field(default_factory=lambda: Bilingual(es="", en=""))
+    lines: list[str] = field(default_factory=list)
+
+    def is_empty(self) -> bool:
+        return not (self.name or self.lines or self.headline["es"] or self.headline["en"])
+
+
+@dataclass(frozen=True)
 class ImportResult:
     experiencias: list[Experience] = field(default_factory=list)
     skills: list[Skill] = field(default_factory=list)
     skills_personales: list[Skill] = field(default_factory=list)
     idiomas: list[SpokenLanguage] = field(default_factory=list)
     educacion: list[Education] = field(default_factory=list)
+    # Single values, not lists: a CV has one name and one "About me", never
+    # several candidates to choose among. `None` means nothing recognisable
+    # was found, same convention as an empty title dropping an experience.
+    contacto: ContactCandidate | None = None
+    sobre_mi: AboutMe | None = None
     avisos: list[str] = field(default_factory=list)
+    # What `_recortar` left out, if this CV was too long for one call. Empty
+    # unless a cut happened — the web layer is what decides whether to keep
+    # it around and offer it back as a second import.
+    restante: str = ""
 
 
 def analyze_cv(
@@ -281,6 +352,7 @@ def analyze_cv(
     """
     texto = texto_cv.strip()
     avisos: list[str] = []
+    restante = ""
     if not texto:
         return ImportResult(avisos=[_("No hay texto que analizar.")])
     if not cliente.available():
@@ -289,7 +361,7 @@ def analyze_cv(
         )
 
     if len(texto) > MAX_CARACTERES_CV:
-        texto, aviso = _recortar(texto)
+        texto, aviso, restante = _recortar(texto)
         avisos.append(aviso)
 
     try:
@@ -345,7 +417,14 @@ def analyze_cv(
         + duplicadas_idiomas + duplicadas_educacion
     )
 
-    if not any((experiencias, skills, skills_personales, idiomas, educacion)):
+    # Contact and "About me" are single values, never checked against the
+    # profile for duplicates: re-importing a CV is meant to let the person
+    # refresh their name or contact lines, not have them silently skipped
+    # because a "Contacto" with that name already exists.
+    contacto = _to_contact(datos.get("contacto"), idioma)
+    sobre_mi = _to_about_me(datos.get("sobre_mi"), idioma)
+
+    if not any((experiencias, skills, skills_personales, idiomas, educacion, contacto, sobre_mi)):
         if duplicadas:
             avisos.append(
                 _(
@@ -371,7 +450,10 @@ def analyze_cv(
         skills_personales=skills_personales,
         idiomas=idiomas,
         educacion=educacion,
+        contacto=contacto,
+        sobre_mi=sobre_mi,
         avisos=avisos,
+        restante=restante,
     )
 
 
@@ -507,6 +589,30 @@ def _to_education(datos: dict, ids_usados: set[str], idioma: Language) -> Educat
         institution=_single_text(datos.get("centro")),
         **dict(zip(("period_start", "period_end"), split_period(_single_text(datos.get("periodo"))))),
     )
+
+
+def _to_contact(datos: object, idioma: Language) -> ContactCandidate | None:
+    """`nombre` and `lineas` are read as `_single_text`/plain lists — they
+    are not bilingual, same as `Profile.name` and `Profile.contact`
+    themselves. `titular` is the one field of the three that changes with
+    the CV's language, so it goes through `_bilingual` like a title or a
+    skill name: it lands under `idioma` and the other side stays empty for
+    `translation.py`."""
+    datos = _as_dict(datos)
+    candidata = ContactCandidate(
+        name=_single_text(datos.get("nombre")),
+        headline=_bilingual(datos.get("titular"), idioma),
+        lines=to_texts(datos.get("lineas")),
+    )
+    return None if candidata.is_empty() else candidata
+
+
+def _to_about_me(datos: object, idioma: Language) -> AboutMe | None:
+    """The paragraph as the model copied it, under `idioma` only — this
+    module never asks for the `{GROUP_A_*}`/`{GROUP_B_*}` gaps, that is
+    `gaps.py`'s job once this text is back (see the module docstring)."""
+    texto = _single_text(datos)
+    return AboutMe(template=_only(texto, idioma)) if texto.strip() else None
 
 
 def _bilingual(datos: object, idioma: Language) -> Bilingual[str]:

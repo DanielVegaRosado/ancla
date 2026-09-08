@@ -647,6 +647,7 @@ def test_un_cv_por_debajo_del_limite_llega_entero():
     _, usuario = cliente.llamadas[0]
     assert usuario == texto.strip()
     assert not any("caracteres" in aviso for aviso in resultado.avisos)
+    assert resultado.restante == ""
 
 
 def test_el_recorte_no_parte_una_palabra_por_la_mitad():
@@ -696,6 +697,10 @@ def test_un_cv_largo_se_corta_donde_empieza_una_seccion():
     assert enviado.endswith("de verdad")
     assert "EDUCACIÓN" not in enviado
     assert any("EDUCACIÓN" in aviso for aviso in resultado.avisos)
+    # The leftover starts exactly where the warning said to cut, so a
+    # second call over it never repeats what the first one already read.
+    assert resultado.restante.startswith("EDUCACIÓN")
+    assert "IDIOMAS" in resultado.restante
 
 
 def test_un_cv_largo_en_ingles_se_corta_igual_que_uno_en_espanol():
@@ -722,3 +727,104 @@ def test_un_cv_largo_sin_secciones_sigue_cortando_por_linea():
     enviado = usuario.rsplit("\n[...texto recortado...]", 1)[0]
     assert enviado.endswith("software.")
     assert any("caracteres" in aviso for aviso in resultado.avisos)
+    assert resultado.restante != ""
+
+
+# --------------------------------------------------------------------------
+# Contact and "About me" — same semantic criterion as the five categories
+# above: nothing here should depend on a literal header appearing in the
+# text, the CV can bury both under the name with no section title at all.
+# --------------------------------------------------------------------------
+
+
+def _respuesta_con_contacto_y_sobre_mi(**cambios) -> str:
+    datos = {
+        "experiencias": [], "skills": [], "skills_personales": [], "idiomas": [],
+        "educacion": [],
+        "contacto": {
+            "nombre": "Ana Ejemplo",
+            "titular": "Ingeniera de Datos",
+            "lineas": ["ana@ejemplo.com", "+34 600 000 000", "Madrid, España"],
+        },
+        "sobre_mi": "Ingeniera con pasión por los datos y el aprendizaje automático.",
+    }
+    datos.update(cambios)
+    return json.dumps(datos, ensure_ascii=False)
+
+
+def test_propone_contacto_y_sobre_mi():
+    resultado = analyze_cv(ClienteFalso(_respuesta_con_contacto_y_sobre_mi()), "texto", Profile())
+
+    assert resultado.contacto is not None
+    assert resultado.contacto.name == "Ana Ejemplo"
+    assert resultado.contacto.headline["es"] == "Ingeniera de Datos"
+    assert resultado.contacto.headline["en"] == ""  # single-language import
+    assert resultado.contacto.lines == ["ana@ejemplo.com", "+34 600 000 000", "Madrid, España"]
+
+    assert resultado.sobre_mi is not None
+    assert resultado.sobre_mi.template["es"] == (
+        "Ingeniera con pasión por los datos y el aprendizaje automático."
+    )
+    assert resultado.sobre_mi.template["en"] == ""
+
+
+def test_el_sobre_mi_llega_como_texto_plano_sin_huecos():
+    """The importer never places {GROUP_A_*}/{GROUP_B_*} itself — that is
+    `gaps.py`'s job, called by the web layer once this text is back."""
+    resultado = analyze_cv(ClienteFalso(_respuesta_con_contacto_y_sobre_mi()), "texto", Profile())
+    assert "{GROUP_A_1}" not in resultado.sobre_mi.template["es"]
+    assert "{GROUP_B_1}" not in resultado.sobre_mi.template["es"]
+
+
+def test_sin_contacto_ni_sobre_mi_en_la_respuesta_no_revienta():
+    resultado = analyze_cv(ClienteFalso(_respuesta()), "texto", Profile())
+    assert resultado.contacto is None
+    assert resultado.sobre_mi is None
+
+
+def test_un_contacto_vacio_se_descarta_no_se_propone():
+    respuesta = _respuesta_con_contacto_y_sobre_mi(
+        contacto={"nombre": "", "titular": "", "lineas": []}
+    )
+    resultado = analyze_cv(ClienteFalso(respuesta), "texto", Profile())
+    assert resultado.contacto is None
+
+
+def test_un_sobre_mi_vacio_se_descarta_no_se_propone():
+    respuesta = _respuesta_con_contacto_y_sobre_mi(sobre_mi="")
+    resultado = analyze_cv(ClienteFalso(respuesta), "texto", Profile())
+    assert resultado.sobre_mi is None
+
+
+def test_solo_contacto_cuenta_como_algo_encontrado():
+    """A CV where only the contact block was recognisable must not warn
+    that nothing was found — same guarantee as `test_una_educacion_sola_
+    cuenta_como_algo_encontrado`, extended to the two new categories."""
+    respuesta = _respuesta_con_contacto_y_sobre_mi(sobre_mi="")
+    resultado = analyze_cv(ClienteFalso(respuesta), "texto", Profile())
+    assert resultado.avisos == []
+    assert resultado.contacto is not None
+
+
+def test_el_prompt_pide_contacto_y_sobre_mi():
+    cliente = ClienteFalso(_respuesta())
+    analyze_cv(cliente, "texto", Profile())
+    sistema, _usuario = cliente.llamadas[0]
+    assert "contacto" in sistema.lower()
+    assert "sobre mí" in sistema.lower()
+
+
+def test_el_nombre_de_contacto_no_se_traduce_aunque_el_modelo_lo_devuelva_bilingue():
+    """`nombre` and `lineas` follow the same non-bilingual rule as
+    `Profile.name`/`Profile.contact`: a name or a phone number reads the
+    same in any language, so a model that answers with an {es, en} pair
+    anyway still collapses to one value, like `stack` and `centro` do."""
+    respuesta = _respuesta_con_contacto_y_sobre_mi(
+        contacto={
+            "nombre": {"es": "Ana Ejemplo", "en": "Ana Ejemplo"},
+            "titular": "Ingeniera de Datos",
+            "lineas": ["ana@ejemplo.com"],
+        }
+    )
+    resultado = analyze_cv(ClienteFalso(respuesta), "texto", Profile())
+    assert resultado.contacto.name == "Ana Ejemplo"

@@ -19,6 +19,67 @@
   {% endif %}
 
   <form class="pila" method="post" action="{{ url_for('ancla.save_import') }}">
+    {% if importacion.has_contact() %}
+      <h2>{{ _('Contacto') }}</h2>
+      <div class="lista-tarjetas">
+        <div class="tarjeta">
+          <label class="opcion-tipo">
+            <input type="checkbox" name="contacto" value="1" checked>
+            <strong>{{ _('Guardar el contacto') }}</strong>
+          </label>
+          <div class="campo">
+            <label>{{ _('Nombre') }}</label>
+            <input type="text" name="contacto-nombre" value="{{ importacion.contacto_nombre }}">
+          </div>
+          <div class="dos-columnas">
+            {% if 'es' in importacion.written %}
+            <div class="campo">
+              <label>{{ _('Titulación o rol (ES)') }}</label>
+              <input type="text" name="contacto-titular_es" value="{{ importacion.contacto_titular['es'] }}">
+            </div>
+            {% endif %}
+            {% if 'en' in importacion.written %}
+            <div class="campo">
+              <label>{{ _('Titulación o rol (EN)') }}</label>
+              <input type="text" name="contacto-titular_en" value="{{ importacion.contacto_titular['en'] }}">
+            </div>
+            {% endif %}
+          </div>
+          <div class="campo">
+            <label>{{ _('Líneas de contacto') }}</label>
+            <textarea name="contacto-lineas" class="alta">{{ importacion.contacto_lineas|lista_a_lineas }}</textarea>
+          </div>
+        </div>
+      </div>
+    {% endif %}
+
+    {% if importacion.sobre_mi %}
+      <h2>{{ _('Sobre mí') }}</h2>
+      <div class="lista-tarjetas">
+        <div class="tarjeta">
+          <label class="opcion-tipo">
+            <input type="checkbox" name="sobre-mi" value="1" checked>
+            <strong>{{ _('Guardar el «Sobre mí»') }}</strong>
+          </label>
+          {% if 'es' in importacion.written %}
+          <div class="campo">
+            <label>{{ _('Sobre mí (ES)') }}</label>
+            <textarea name="sobre-mi-plantilla_es" class="alta">{{ importacion.sobre_mi.template['es'] }}</textarea>
+          </div>
+          {% endif %}
+          {% if 'en' in importacion.written %}
+          <div class="campo">
+            <label>{{ _('Sobre mí (EN)') }}</label>
+            <textarea name="sobre-mi-plantilla_en" class="alta">{{ importacion.sobre_mi.template['en'] }}</textarea>
+          </div>
+          {% endif %}
+          <p class="ayuda">
+            {{ _('El texto es tal cual lo escribiste en el CV, con los huecos de skills que se hayan podido colocar. Si a alguno le falta un hueco, termínalo a mano después desde «Editar Sobre mí», donde puedes seleccionar palabras y marcarlas.') }}
+          </p>
+        </div>
+      </div>
+    {% endif %}
+
     {% if importacion.experiencias %}
       <h2>{{ _('Experiencias') }} ({{ importacion.experiencias|length }})</h2>
       <div class="lista-tarjetas">
@@ -201,11 +262,17 @@
       </div>
     {% endif %}
 
-    {# Two buttons, and translating comes first only because it is the one
-       that stops being possible: saving ends the import and the candidates
-       are gone. Both submit the same form, so whatever the user has already
-       corrected by hand travels with either. #}
+    {# Three buttons at most, and the two that spend a call come first only
+       because they are the ones that stop being possible: saving ends the
+       import and the candidates are gone. All three submit the same form,
+       so whatever the user has already corrected by hand travels with any
+       of them. #}
     <div class="barra-acciones">
+      {% if importacion.resto %}
+        <button type="submit" formaction="{{ url_for('ancla.import_second_part') }}">
+          {{ _('Importar el resto del CV') }}
+        </button>
+      {% endif %}
       {% if falta_idioma %}
         <button type="submit" formaction="{{ url_for('ancla.translate_import') }}">
           {{ _('Traducir al %(idioma)s', idioma=nombre_idioma(falta_idioma)) }}

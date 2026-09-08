@@ -9,7 +9,7 @@ from pathlib import Path
 import pytest
 
 from ancla.profile import store
-from ancla.profile.model import Bilingual, Education, Experience, SpokenLanguage, Skill
+from ancla.profile.model import AboutMe, Bilingual, Education, Experience, SpokenLanguage, Skill
 from ancla.web import create_app
 from ancla.web import import_batch as modulo_importacion
 
@@ -71,6 +71,15 @@ def test_sin_importacion_guardada_no_hay_nada_que_cargar(tmp_path: Path):
 def test_guardar_y_cargar_importacion_hace_ida_y_vuelta(tmp_path: Path):
     original = modulo_importacion.ImportBatch(
         experiencias=[_experiencia()], skills=[_skill()], avisos=["ojo con esto"]
+    )
+    modulo_importacion.save_import(tmp_path, original)
+    recargada = modulo_importacion.load_import(tmp_path)
+    assert recargada == original
+
+
+def test_guardar_y_cargar_el_resto_pendiente_hace_ida_y_vuelta(tmp_path: Path):
+    original = modulo_importacion.ImportBatch(
+        skills=[_skill()], resto="EDUCACIÓN\nGrado en Ingeniería\n"
     )
     modulo_importacion.save_import(tmp_path, original)
     recargada = modulo_importacion.load_import(tmp_path)
@@ -793,3 +802,275 @@ def test_traducir_conserva_lo_que_el_usuario_habia_corregido(cliente_web, tmp_pa
     lote = modulo_importacion.load_import(root)
     assert lote.skills[0].name["es"] == "Python avanzado"
     assert lote.skills[0].name["en"] == "Advanced Python"
+
+
+# --------------------------------------------------------------------------
+# Importar la segunda parte de un CV recortado
+# --------------------------------------------------------------------------
+
+
+def test_revisar_ofrece_importar_el_resto_si_quedo_pendiente(cliente_web, tmp_path: Path):
+    modulo_importacion.save_import(
+        tmp_path / "perfil",
+        modulo_importacion.ImportBatch(skills=[_skill()], resto="EDUCACIÓN\nGrado\n"),
+    )
+
+    respuesta = cliente_web.get("/perfil/importar/revisar")
+
+    assert "Importar el resto del CV".encode("utf-8") in respuesta.data
+
+
+def test_revisar_no_ofrece_importar_el_resto_si_no_quedo_nada(cliente_web, tmp_path: Path):
+    modulo_importacion.save_import(
+        tmp_path / "perfil", modulo_importacion.ImportBatch(skills=[_skill()])
+    )
+
+    respuesta = cliente_web.get("/perfil/importar/revisar")
+
+    assert "Importar el resto del CV".encode("utf-8") not in respuesta.data
+
+
+def test_importar_la_segunda_parte_anade_sus_candidatas_al_mismo_lote(
+    cliente_web, tmp_path: Path, monkeypatch
+):
+    import json
+
+    import ancla.web.views.import_cv as vista
+
+    root = tmp_path / "perfil"
+    modulo_importacion.save_import(
+        root,
+        modulo_importacion.ImportBatch(
+            skills=[_skill()], resto="EDUCACIÓN\nGrado en Ingeniería\n", written=["es"],
+        ),
+    )
+    cliente = _ClienteFalso(
+        json.dumps({"educacion": [{"titulo": "Grado en Ingeniería", "centro": "UEMC"}]})
+    )
+    monkeypatch.setattr(
+        vista, "create_client",
+        lambda proveedor, clave, url_base="", modelo="": cliente,
+    )
+
+    respuesta = cliente_web.post(
+        "/perfil/importar/segunda-parte",
+        data={"skill-0-nombre_es": "Python"},
+        follow_redirects=True,
+    )
+
+    assert respuesta.status_code == 200
+    lote = modulo_importacion.load_import(root)
+    assert lote.educacion[0].title["es"] == "Grado en Ingeniería"
+    # The leftover text was fully analysed in one call: nothing left pending.
+    assert lote.resto == ""
+    # The first part's own edit travelled with the request, same as translating.
+    assert lote.skills[0].name["es"] == "Python"
+    assert len(cliente.llamadas) == 1
+
+
+def test_importar_la_segunda_parte_no_repite_lo_que_ya_estaba_en_el_lote(
+    cliente_web, tmp_path: Path, monkeypatch
+):
+    import json
+
+    import ancla.web.views.import_cv as vista
+
+    root = tmp_path / "perfil"
+    modulo_importacion.save_import(
+        root,
+        modulo_importacion.ImportBatch(
+            skills=[_skill()], resto="algo mas del cv", written=["es"],
+        ),
+    )
+    cliente = _ClienteFalso(json.dumps({"skills": [{"nombre": "Python"}]}))
+    monkeypatch.setattr(
+        vista, "create_client",
+        lambda proveedor, clave, url_base="", modelo="": cliente,
+    )
+
+    cliente_web.post("/perfil/importar/segunda-parte", data={"skill-0-nombre_es": "Python"})
+
+    lote = modulo_importacion.load_import(root)
+    assert len(lote.skills) == 1
+
+
+def test_importar_la_segunda_parte_sin_nada_pendiente_redirige_a_revisar(
+    cliente_web, tmp_path: Path
+):
+    modulo_importacion.save_import(
+        tmp_path / "perfil", modulo_importacion.ImportBatch(skills=[_skill()])
+    )
+
+    respuesta = cliente_web.post("/perfil/importar/segunda-parte", follow_redirects=True)
+
+    assert "No queda ninguna parte pendiente".encode("utf-8") in respuesta.data
+
+
+def test_importar_la_segunda_parte_sin_importacion_pendiente_redirige_a_importar(cliente_web):
+    respuesta = cliente_web.post("/perfil/importar/segunda-parte", follow_redirects=True)
+
+    assert "vuelve a subir el CV".encode("utf-8") in respuesta.data
+
+
+# --------------------------------------------------------------------------
+# Contact and "About me": single values, not lists — added so an import
+# proposes the whole profile, not just the five professional categories.
+# --------------------------------------------------------------------------
+
+
+def _sobre_mi_con_huecos(idioma: str = "es") -> AboutMe:
+    """A template with all six gaps already placed in the language it was
+    imported in — the shape `analyze_cv` + `gaps.place` hand to the review
+    screen when every fragment could be matched."""
+    huecos = " ".join(AboutMe(template=Bilingual(es="", en="")).gaps())
+    return AboutMe(template=Bilingual(**{idioma: f"Perfil con {huecos}.", "en" if idioma == "es" else "es": ""}))
+
+
+def test_guardar_y_cargar_contacto_y_sobre_mi_hace_ida_y_vuelta(tmp_path: Path):
+    original = modulo_importacion.ImportBatch(
+        contacto_nombre="Ana Ejemplo",
+        contacto_titular=Bilingual(es="Ingeniera de Datos", en=""),
+        contacto_lineas=["ana@ejemplo.com", "Madrid, España"],
+        sobre_mi=_sobre_mi_con_huecos(),
+    )
+    modulo_importacion.save_import(tmp_path, original)
+
+    cargado = modulo_importacion.load_import(tmp_path)
+
+    assert cargado.contacto_nombre == "Ana Ejemplo"
+    assert cargado.contacto_titular["es"] == "Ingeniera de Datos"
+    assert cargado.contacto_lineas == ["ana@ejemplo.com", "Madrid, España"]
+    assert cargado.sobre_mi.template["es"] == original.sobre_mi.template["es"]
+
+
+def test_un_lote_sin_contacto_ni_sobre_mi_carga_igual(tmp_path: Path):
+    modulo_importacion.save_import(tmp_path, modulo_importacion.ImportBatch(skills=[_skill()]))
+    cargado = modulo_importacion.load_import(tmp_path)
+    assert cargado.has_contact() is False
+    assert cargado.sobre_mi is None
+
+
+def test_revisar_muestra_el_contacto_y_el_sobre_mi(cliente_web, tmp_path: Path):
+    modulo_importacion.save_import(
+        tmp_path / "perfil",
+        modulo_importacion.ImportBatch(
+            contacto_nombre="Ana Ejemplo",
+            contacto_titular=Bilingual(es="Ingeniera de Datos", en=""),
+            contacto_lineas=["ana@ejemplo.com"],
+            sobre_mi=_sobre_mi_con_huecos(),
+        ),
+    )
+    respuesta = cliente_web.get("/perfil/importar/revisar")
+    html = respuesta.data.decode("utf-8")
+    assert "Ana Ejemplo" in html
+    assert "ana@ejemplo.com" in html
+    assert "Perfil con" in html
+
+
+def test_revisar_sin_contacto_ni_sobre_mi_no_muestra_esas_tarjetas(cliente_web, tmp_path: Path):
+    modulo_importacion.save_import(
+        tmp_path / "perfil", modulo_importacion.ImportBatch(skills=[_skill()])
+    )
+    html = cliente_web.get("/perfil/importar/revisar").data.decode("utf-8")
+    assert "Guardar el contacto" not in html
+    assert "Guardar el «Sobre mí»" not in html
+
+
+def test_guardar_el_contacto_importado_va_al_perfil(cliente_web, tmp_path: Path):
+    root = tmp_path / "perfil"
+    modulo_importacion.save_import(
+        root,
+        modulo_importacion.ImportBatch(
+            contacto_nombre="Ana Ejemplo",
+            contacto_titular=Bilingual(es="Ingeniera de Datos", en=""),
+            contacto_lineas=["ana@ejemplo.com", "Madrid, España"],
+        ),
+    )
+    cliente_web.post(
+        "/perfil/importar/guardar",
+        data={
+            "contacto": "1",
+            "contacto-nombre": "Ana Ejemplo",
+            "contacto-titular_es": "Ingeniera de Datos",
+            "contacto-lineas": "ana@ejemplo.com\nMadrid, España",
+        },
+    )
+    perfil = store.load_profile(root)
+    assert perfil.name == "Ana Ejemplo"
+    assert perfil.headline["es"] == "Ingeniera de Datos"
+    assert perfil.contact == ["ana@ejemplo.com", "Madrid, España"]
+
+
+def test_el_contacto_no_marcado_no_se_guarda(cliente_web, tmp_path: Path):
+    root = tmp_path / "perfil"
+    modulo_importacion.save_import(
+        root, modulo_importacion.ImportBatch(contacto_nombre="Ana Ejemplo")
+    )
+    cliente_web.post("/perfil/importar/guardar", data={})
+    assert store.load_profile(root).name == ""
+
+
+def test_guardar_el_sobre_mi_importado_con_los_huecos_ya_colocados(cliente_web, tmp_path: Path):
+    root = tmp_path / "perfil"
+    sobre_mi = _sobre_mi_con_huecos()
+    modulo_importacion.save_import(root, modulo_importacion.ImportBatch(sobre_mi=sobre_mi))
+
+    cliente_web.post(
+        "/perfil/importar/guardar",
+        data={"sobre-mi": "1", "sobre-mi-plantilla_es": sobre_mi.template["es"]},
+    )
+
+    perfil = store.load_profile(root)
+    assert perfil.about_me is not None
+    assert perfil.about_me.template["es"] == sobre_mi.template["es"]
+
+
+def test_un_sobre_mi_con_huecos_sin_colocar_no_se_guarda_pero_avisa(cliente_web, tmp_path: Path):
+    """Same treatment as the five list categories: a candidate that fails
+    validation is rejected, not written half-finished — here that means
+    finishing it by hand later from «Editar Sobre mí», which can mark the
+    remaining gaps over the same text."""
+    root = tmp_path / "perfil"
+    incompleto = AboutMe(template=Bilingual(es="Perfil con experiencia variada.", en=""))
+    modulo_importacion.save_import(root, modulo_importacion.ImportBatch(sobre_mi=incompleto))
+
+    respuesta = cliente_web.post(
+        "/perfil/importar/guardar",
+        data={"sobre-mi": "1", "sobre-mi-plantilla_es": incompleto.template["es"]},
+        follow_redirects=True,
+    )
+
+    assert store.load_profile(root).about_me is None
+    assert "no se pudieron guardar".encode("utf-8") in respuesta.data
+
+
+def test_el_sobre_mi_no_marcado_no_se_guarda(cliente_web, tmp_path: Path):
+    root = tmp_path / "perfil"
+    sobre_mi = _sobre_mi_con_huecos()
+    modulo_importacion.save_import(root, modulo_importacion.ImportBatch(sobre_mi=sobre_mi))
+    cliente_web.post("/perfil/importar/guardar", data={})
+    assert store.load_profile(root).about_me is None
+
+
+def test_una_importacion_solo_con_contacto_llega_a_la_pantalla_de_revision(
+    cliente_web, tmp_path, monkeypatch
+):
+    import json
+
+    import ancla.web.views.import_cv as vista
+
+    monkeypatch.setattr(
+        vista, "create_client",
+        lambda proveedor, clave, url_base="", modelo="": _ClienteFalso(
+            json.dumps(
+                {
+                    "experiencias": [], "skills": [], "skills_personales": [], "idiomas": [],
+                    "educacion": [],
+                    "contacto": {"nombre": "Ana Ejemplo", "titular": "", "lineas": []},
+                }
+            )
+        ),
+    )
+    respuesta = cliente_web.post("/perfil/importar", data={"texto": "cv de sobra largo " * 5})
+    assert respuesta.status_code == 302
+    assert respuesta.location.endswith("/perfil/importar/revisar")
