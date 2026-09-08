@@ -121,15 +121,11 @@
   <section class="tarjeta" data-mostrar-si-proveedor="groq">
     <h2>{{ _('Límite diario del nivel gratuito de Groq') }}</h2>
     <p class="ayuda">
-      {{ _('El nivel gratuito de Groq permite 30 peticiones por minuto, 1.000 peticiones al día, 8.000 tokens por minuto y') }}
-      <strong>{{ _('200.000 tokens al día') }}</strong>. {{ _('Cada adaptación o importación de CV es una sola petición, pero puede gastar varios miles de tokens, así que el límite que más se nota con uso normal es el diario, no el de cada minuto.') }}
+      {{ _('El nivel gratuito de Groq da 200.000 tokens al día — el límite que se nota con uso normal. Si ves «Has agotado la cuota gratuita de Groq», es este: se libera poco a poco a lo largo de 24 horas, no de golpe, así que puede tardar más que unos minutos.') }}
     </p>
     <p class="ayuda">
-      {{ _('Si ves el aviso "Has agotado la cuota gratuita de Groq", casi siempre es este límite diario. Groq no indica cuánto queda exactamente, y se libera poco a poco a lo largo de 24 horas, no de golpe. Puede tardar bastante más que unos minutos en volver a funcionar.') }}
-    </p>
-    <p class="ayuda">
-      {{ _('Como cada cuenta de Groq gratuita tiene su propio límite independiente, una forma sencilla de no quedarte nunca sin margen es crear una segunda cuenta gratuita (con otro correo) y generar otra clave. Cuando se agote la que tienes puesta aquí, pega la otra en') }}
-      <strong>{{ _('Clave de API') }}</strong> {{ _('y sigue trabajando mientras la primera se recupera.') }}
+      {{ _('Cada cuenta gratuita tiene su propio límite aparte, así que una segunda cuenta (con otro correo) y su propia clave te da margen extra: cuando se agote la que tienes aquí, pega la otra en') }}
+      <strong>{{ _('Clave de API') }}</strong>.
     </p>
   </section>
 {% endblock %}

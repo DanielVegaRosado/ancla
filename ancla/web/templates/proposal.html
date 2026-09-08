@@ -47,10 +47,6 @@
             <input type="text" name="grupo_b_{{ n }}" value="{{ propuesta.about_me.group_b[n-1] if propuesta.about_me.group_b|length >= n else '' }}">
           {% endfor %}
         </div>
-        <div class="campo">
-          <label>{{ _('Motivo') }}</label>
-          <input type="text" name="motivo" value="{{ propuesta.about_me.reason }}">
-        </div>
         <div class="barra-acciones">
           <button type="submit" class="boton boton-pequeno boton-primario">{{ _('Actualizar texto') }}</button>
         </div>
@@ -96,13 +92,6 @@
     </ol>
 
     {% if propuesta.skills_reason %}<p class="motivo">{{ _('Motivo:') }} {{ propuesta.skills_reason }}</p>{% endif %}
-    <details>
-      <summary>{{ _('Editar motivo') }}</summary>
-      <form class="en-linea" method="post" action="{{ url_for('ancla.adjust_skills_reason') }}">
-        <input type="text" name="motivo" value="{{ propuesta.skills_reason }}" style="min-width: 20rem;">
-        <button type="submit" class="boton-pequeno">{{ _('Guardar') }}</button>
-      </form>
-    </details>
   </section>
 
   <!-- Experiencia -->
@@ -153,10 +142,6 @@
                     <option value="{{ candidata.id }}" {{ "selected" if candidata.id == seleccionada.id else "" }}>{{ candidata.title["es"] }}</option>
                   {% endfor %}
                 </select>
-              </div>
-              <div class="campo">
-                <label>{{ _('Motivo') }}</label>
-                <input type="text" name="motivo" value="{{ seleccionada.reason }}">
               </div>
               <div class="barra-acciones">
                 <button type="submit" class="boton boton-pequeno boton-primario">{{ _('Actualizar') }}</button>

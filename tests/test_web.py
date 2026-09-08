@@ -235,7 +235,7 @@ def test_ajustes_explica_el_limite_diario_de_groq(cliente_web):
     Settings has to say so with that figure, not just "wait a while"."""
     respuesta = cliente_web.get("/ajustes")
     assert "200.000 tokens al día".encode("utf-8") in respuesta.data
-    assert "segunda cuenta gratuita".encode("utf-8") in respuesta.data
+    assert "una segunda cuenta".encode("utf-8") in respuesta.data
 
 
 def test_guardar_ajustes_los_persiste(cliente_web, tmp_path: Path):

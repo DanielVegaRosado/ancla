@@ -99,7 +99,6 @@ def adjust_about_me():
     f = request.form
     grupo_a = [f.get(f"grupo_a_{n}", "").strip() for n in (1, 2, 3)]
     grupo_b = [f.get(f"grupo_b_{n}", "").strip() for n in (1, 2, 3)]
-    motivo = f.get("motivo", "").strip()
 
     try:
         texto = perfil.about_me.render(grupo_a, grupo_b, borrador.propuesta.language)
@@ -107,7 +106,12 @@ def adjust_about_me():
         flash(str(error))
         return redirect(url_for("ancla.view_proposal"))
 
-    nueva_seleccion = SelectedAboutMe(group_a=grupo_a, group_b=grupo_b, text=texto, reason=motivo)
+    # The reason explains the model's own choice; it is never user-editable
+    # (there is no form field for it), so a direct adjustment here keeps
+    # whichever one the proposal already had instead of blanking it out.
+    nueva_seleccion = SelectedAboutMe(
+        group_a=grupo_a, group_b=grupo_b, text=texto, reason=borrador.propuesta.about_me.reason
+    )
     borrador.propuesta = replace(borrador.propuesta, about_me=nueva_seleccion)
     modulo_borrador.save_draft(context.root(), borrador)
     flash(_("«Sobre mí» actualizado."))
@@ -131,17 +135,6 @@ def adjust_skill():
     return redirect(url_for("ancla.view_proposal"))
 
 
-@bp.route("/propuesta/ajustar-motivo-skills", methods=["POST"])
-def adjust_skills_reason():
-    borrador = _with_draft_or_redirect()
-    if borrador is None:
-        return redirect(url_for("ancla.adapt"))
-
-    borrador.propuesta = replace(borrador.propuesta, skills_reason=request.form.get("motivo", "").strip())
-    modulo_borrador.save_draft(context.root(), borrador)
-    return redirect(url_for("ancla.view_proposal"))
-
-
 @bp.route("/propuesta/ajustar-experiencia", methods=["POST"])
 def adjust_experience():
     borrador = _with_draft_or_redirect()
@@ -150,10 +143,12 @@ def adjust_experience():
 
     indice = int(request.form.get("indice", -1))
     new_id = request.form.get("experiencia_id", "")
-    motivo = request.form.get("motivo", "").strip()
     experiencias = list(borrador.propuesta.experiences)
     if 0 <= indice < len(experiencias) and new_id:
-        experiencias[indice] = SelectedExperience(id=new_id, reason=motivo)
+        # No reason: the one shown before belonged to a different
+        # experience, and a manual swap is not a model choice that needs
+        # justifying to the user — they made it themselves.
+        experiencias[indice] = SelectedExperience(id=new_id, reason="")
         borrador.propuesta = replace(borrador.propuesta, experiences=experiencias)
         modulo_borrador.save_draft(context.root(), borrador)
         flash(_("Experiencia actualizada."))
