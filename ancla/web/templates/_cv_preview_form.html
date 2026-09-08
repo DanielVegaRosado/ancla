@@ -8,7 +8,18 @@
   `app.js`) so the request can't ask for more than the design supports —
   `cv_preview.py::_capacity` clamps it again server-side regardless, since
   a URL is easy to hand-edit.
+
+  The field's starting value is whatever was last chosen for the
+  template preselected below, read straight from the session Flask
+  already injects into every template (`cv_preview.py` is what writes
+  it, under the same "capacidad_html" key, keyed per template id since
+  each design has its own capacity range). Switching templates in the
+  dropdown updates min/max live (`app.js`) but not this starting value —
+  it only has to be right for whichever template loads the page.
 #}
+{% set _plantilla_html_inicial = plantillas_html[0] if plantillas_html else none %}
+{% set _capacidad_por_defecto = (_plantilla_html_inicial.capacity_max if _plantilla_html_inicial.capacity_max > 0 else _plantilla_html_inicial.capacity_min) if _plantilla_html_inicial else 0 %}
+{% set _capacidad_inicial = session.get('capacidad_html', {}).get(_plantilla_html_inicial.id, _capacidad_por_defecto) if _plantilla_html_inicial else 0 %}
 <section class="tarjeta">
   <h2>{{ _('Ver el CV maquetado (y guardarlo en PDF)') }}</h2>
   {% if plantillas_html %}
@@ -24,7 +35,7 @@
       <input type="number" id="capacidad_html" name="capacidad"
              min="{{ plantillas_html[0].capacity_min }}"
              {% if plantillas_html[0].capacity_max > 0 %}max="{{ plantillas_html[0].capacity_max }}"{% endif %}
-             value="{{ plantillas_html[0].capacity_max if plantillas_html[0].capacity_max > 0 else plantillas_html[0].capacity_min }}">
+             value="{{ _capacidad_inicial }}">
       <button type="submit" class="boton boton-primario">{{ _('Ver el CV (PDF)') }}</button>
     </form>
     <p class="ayuda">

@@ -30,7 +30,7 @@ notice that the design was drawn for more.
 """
 from __future__ import annotations
 
-from flask import flash, redirect, render_template, request, url_for
+from flask import flash, redirect, render_template, request, session, url_for
 from flask_babel import gettext as _
 
 from ancla.archive import repository as archivo
@@ -39,6 +39,15 @@ from ancla.profile.model import Proposal
 from ancla.web import context
 from ancla.web import draft as modulo_borrador
 from ancla.web.blueprint import bp
+
+# Session key for the last chosen capacity, per template id. The session
+# (not the draft) is what this belongs to: the same preference must also
+# hold for an already-archived CV's preview (`preview_cv`), which has no
+# draft at all, and it is a UI habit tied to this browser, not a fact of
+# the proposal being reviewed. Keyed by template id rather than a single
+# number because each design has its own `[capacity_min, capacity_max]`
+# range — what fits a dense one-column layout doesn't fit a spacious one.
+_CLAVE_SESION_CAPACIDAD = "capacidad_html"
 
 
 @bp.route("/propuesta/vista-previa")
@@ -114,15 +123,34 @@ def _capacity(plantilla: html_templates.HtmlTemplate) -> int:
     asked for, clamped to the template's own `[capacity_min, capacity_max]`
     — a value the user cannot spoil, unlike the old free-standing warning,
     because letting it exceed `capacity_max` is exactly what used to spill
-    onto a second page. An unreadable request falls back to the design's
-    own maximum, or its minimum if it declares no maximum at all."""
+    onto a second page. A missing or unreadable request falls back to
+    whatever was last chosen for this same template in this session, and
+    only then to the design's own maximum (or its minimum, if it declares
+    no maximum at all) — the choice made this call is remembered for next
+    time either way, so a plain reload or a trip back to the form and
+    back doesn't reset it."""
     minimo = max(plantilla.capacity_min, 1)
     por_defecto = plantilla.capacity_max if plantilla.capacity_max > 0 else minimo
+    recordada = _capacidad_recordada(plantilla.id)
     try:
-        pedida = int(request.args.get("capacidad", ""))
-    except ValueError:
-        pedida = por_defecto
+        pedida = int(request.args["capacidad"])
+    except (KeyError, ValueError):
+        pedida = recordada if recordada is not None else por_defecto
     pedida = max(pedida, minimo)
     if plantilla.capacity_max > 0:
         pedida = min(pedida, plantilla.capacity_max)
+    _recordar_capacidad(plantilla.id, pedida)
     return pedida
+
+
+def _capacidad_recordada(plantilla_id: str) -> int | None:
+    return session.get(_CLAVE_SESION_CAPACIDAD, {}).get(plantilla_id)
+
+
+def _recordar_capacidad(plantilla_id: str, capacidad: int) -> None:
+    # Flask only detects a session write when the value itself is
+    # reassigned, not when a nested dict already inside it is mutated in
+    # place — so a fresh dict is built and reassigned rather than patched.
+    recordadas = dict(session.get(_CLAVE_SESION_CAPACIDAD, {}))
+    recordadas[plantilla_id] = capacidad
+    session[_CLAVE_SESION_CAPACIDAD] = recordadas
