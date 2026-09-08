@@ -141,8 +141,14 @@ def suggest_gaps(cliente: AIClient, sobre_mi: AboutMe, skills: list[Skill]) -> G
     textos: dict[Language, str] = {}
     avisos: list[str] = []
     for idioma in LANGUAGES:
+        original = sobre_mi.template[idioma]
+        # An empty language has nowhere to place a fragment — not the same
+        # as the model failing to find one in real text.
+        if not original.strip():
+            textos[idioma] = original
+            continue
         texto, sin_colocar = place(
-            sobre_mi.template[idioma],
+            original,
             {hueco: pareja[idioma] for hueco, pareja in fragmentos.items()},
         )
         textos[idioma] = texto

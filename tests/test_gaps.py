@@ -80,6 +80,18 @@ def test_los_seis_huecos_quedan_en_el_mismo_sitio_en_los_dos_idiomas():
     )
 
 
+def test_un_idioma_sin_escribir_no_avisa_de_huecos_sin_colocar():
+    """Un idioma vacío no tiene nada donde colocar un fragmento — no es lo
+    mismo que el modelo fallando sobre texto real, así que no avisa."""
+    propuesta = gaps.suggest_gaps(
+        ClienteFalso(_respuesta_completa()), _sobre_mi(en=""), []
+    )
+
+    assert propuesta.avisos == []
+    assert propuesta.about_me.template["en"] == ""
+    assert "{GROUP_A_1}" in propuesta.about_me.template["es"]
+
+
 def test_un_fragmento_que_no_esta_literal_se_descarta_y_se_avisa():
     """La garantía de la regla 2: el modelo no puede meter texto propio, solo
     señalar trozos del texto del usuario. Un fragmento reescrito («machine
