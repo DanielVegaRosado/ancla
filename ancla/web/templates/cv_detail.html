@@ -51,7 +51,7 @@
     </section>
   {% endif %}
 
-  {% with accion = url_for('ancla.preview_cv', id_=cv.id), idioma = cv.proposal.language %}
+  {% with accion = url_for('ancla.preview_cv', id_=cv.id) %}
     {% include "_cv_preview_form.html" %}
   {% endwith %}
 

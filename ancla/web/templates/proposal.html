@@ -13,7 +13,7 @@
   </p>
 
   <!-- Vista previa maquetada en HTML: el PDF lo imprime el navegador -->
-  {% with accion = url_for('ancla.preview_proposal'), idioma = propuesta.language %}
+  {% with accion = url_for('ancla.preview_proposal') %}
     {% include "_cv_preview_form.html" %}
   {% endwith %}
 

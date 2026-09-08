@@ -1,7 +1,8 @@
 {#
   Shared by the Proposal screen and a saved CV: laying one out is the same
-  action wherever the proposal comes from. Expects `accion` (where the form
-  points), `plantillas_html` and `idioma`.
+  action wherever the proposal comes from. Expects `accion` (where the form points) and `plantillas_html`. The
+  template's name follows the interface language, not the CV's: it names a
+  design to pick, not content that reaches the sheet.
 
   "Experiencias que caben" is clamped in the browser to whichever template
   is selected (`data-capacidad-min`/`data-capacidad-max`, wired in
@@ -21,14 +22,14 @@
 {% set _capacidad_por_defecto = (_plantilla_html_inicial.capacity_max if _plantilla_html_inicial.capacity_max > 0 else _plantilla_html_inicial.capacity_min) if _plantilla_html_inicial else 0 %}
 {% set _capacidad_inicial = session.get('capacidad_html', {}).get(_plantilla_html_inicial.id, _capacidad_por_defecto) if _plantilla_html_inicial else 0 %}
 <section class="tarjeta">
-  <h2>{{ _('Ver el CV maquetado (y guardarlo en PDF)') }}</h2>
+  <h2>{{ _('Ver el CV maquetado') }}</h2>
   {% if plantillas_html %}
     <form class="en-linea" method="get" action="{{ accion }}">
       <select id="plantilla_html" name="plantilla_id">
         {% for plantilla in plantillas_html %}
           <option value="{{ plantilla.id }}"
                   data-capacidad-min="{{ plantilla.capacity_min }}"
-                  data-capacidad-max="{{ plantilla.capacity_max }}">{{ plantilla.name[idioma] }}</option>
+                  data-capacidad-max="{{ plantilla.capacity_max }}">{{ plantilla.name[idioma_interfaz] }}</option>
         {% endfor %}
       </select>
       <label for="capacidad_html">{{ _('Experiencias que caben:') }}</label>

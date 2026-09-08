@@ -100,6 +100,10 @@ def create_app(
             # language ("Traducir al inglés"), and the name has to follow
             # the interface's own language, not the CV's.
             "nombre_idioma": language_name,
+            # The interface's own language, for chrome that names something
+            # bilingual (a template's name) rather than showing CV content:
+            # those follow the language of the CV, this one does not.
+            "idioma_interfaz": context.current_language(),
             # Lets the nav dim "Última propuesta" while there is nothing to
             # show there yet, without hiding the link (see base.html).
             "hay_borrador": modulo_borrador.load_draft(context.root()) is not None,
