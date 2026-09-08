@@ -2,141 +2,141 @@
 // copy to clipboard, confirm deletions, show the fields the chosen provider
 // needs, and suggest keywords with AI.
 
-document.addEventListener("click", (evento) => {
-  const boton = evento.target.closest("[data-copiar]");
-  if (!boton) return;
+document.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-copiar]");
+  if (!button) return;
 
-  const origen = document.getElementById(boton.getAttribute("data-copiar"));
-  if (!origen) return;
+  const source = document.getElementById(button.getAttribute("data-copiar"));
+  if (!source) return;
 
-  const texto = "value" in origen ? origen.value : origen.textContent;
-  navigator.clipboard.writeText(texto).then(() => {
-    const original = boton.textContent;
-    boton.textContent = document.body.dataset.textoCopiado;
-    setTimeout(() => { boton.textContent = original; }, 1500);
+  const text = "value" in source ? source.value : source.textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const original = button.textContent;
+    button.textContent = document.body.dataset.textoCopiado;
+    setTimeout(() => { button.textContent = original; }, 1500);
   });
 });
 
-document.addEventListener("submit", (evento) => {
-  const formulario = evento.target;
-  const mensaje = formulario.getAttribute("data-confirmar");
-  if (mensaje && !window.confirm(mensaje)) {
-    evento.preventDefault();
+document.addEventListener("submit", (event) => {
+  const form = event.target;
+  const message = form.getAttribute("data-confirmar");
+  if (message && !window.confirm(message)) {
+    event.preventDefault();
   }
 });
 
 // Suggest keywords with AI. They are ADDED to whatever is already written,
 // never replacing it: what the user typed always wins over what the model suggests.
-document.addEventListener("click", async (evento) => {
-  const boton = evento.target.closest("[data-sugerir-keywords]");
-  if (!boton) return;
+document.addEventListener("click", async (event) => {
+  const button = event.target.closest("[data-sugerir-keywords]");
+  if (!button) return;
 
-  const destino = document.getElementById(boton.getAttribute("data-destino"));
-  const aviso = boton.closest(".campo").querySelector("[data-aviso-keywords]");
-  if (!destino) return;
+  const target = document.getElementById(button.getAttribute("data-destino"));
+  const notice = button.closest(".campo").querySelector("[data-aviso-keywords]");
+  if (!target) return;
 
-  const cuerpo = { tipo: boton.getAttribute("data-tipo") };
-  for (const par of boton.getAttribute("data-campos").split(",")) {
-    const [campo, clave] = par.includes(":") ? par.split(":") : [par, par];
-    cuerpo[clave] = (document.getElementById(campo) || {}).value || "";
+  const payload = { tipo: button.getAttribute("data-tipo") };
+  for (const pair of button.getAttribute("data-campos").split(",")) {
+    const [field, key] = pair.includes(":") ? pair.split(":") : [pair, pair];
+    payload[key] = (document.getElementById(field) || {}).value || "";
   }
 
-  const original = boton.textContent;
-  boton.textContent = document.body.dataset.textoPensando;
-  boton.disabled = true;
-  aviso.hidden = true;
+  const original = button.textContent;
+  button.textContent = document.body.dataset.textoPensando;
+  button.disabled = true;
+  notice.hidden = true;
 
   try {
-    const respuesta = await fetch("/perfil/keywords", {
+    const response = await fetch("/perfil/keywords", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(cuerpo),
+      body: JSON.stringify(payload),
     });
-    const datos = await respuesta.json();
+    const data = await response.json();
 
-    const yaEstaban = destino.value.split(",").map((k) => k.trim()).filter(Boolean);
-    const conocidas = new Set(yaEstaban.map((k) => k.toLowerCase()));
-    const nuevas = (datos.keywords || []).filter((k) => !conocidas.has(k.toLowerCase()));
-    destino.value = yaEstaban.concat(nuevas).join(", ");
+    const alreadyPresent = target.value.split(",").map((k) => k.trim()).filter(Boolean);
+    const known = new Set(alreadyPresent.map((k) => k.toLowerCase()));
+    const newOnes = (data.keywords || []).filter((k) => !known.has(k.toLowerCase()));
+    target.value = alreadyPresent.concat(newOnes).join(", ");
 
-    if (datos.aviso) {
-      aviso.textContent = datos.aviso;
-      aviso.hidden = false;
+    if (data.aviso) {
+      notice.textContent = data.aviso;
+      notice.hidden = false;
     }
   } catch (error) {
-    aviso.textContent = document.body.dataset.textoFalloKeywords;
-    aviso.hidden = false;
+    notice.textContent = document.body.dataset.textoFalloKeywords;
+    notice.hidden = false;
   } finally {
-    boton.textContent = original;
-    boton.disabled = false;
+    button.textContent = original;
+    button.disabled = false;
   }
 });
 
 // Generic drag-to-reorder for a list of cards, each carrying its own
 // `data-clave`. Dragging only works by grabbing the "⠿" handle
 // (`.manija-arrastrar`) — not the whole card — so it doesn't interfere
-// with clicks on the card's own buttons. `guardarOrden` is called with the
+// with clicks on the card's own buttons. `saveOrder` is called with the
 // new key order on every drop; the card has already moved on screen
 // regardless of whether that request succeeds, and it's only retried the
 // next time something gets reordered. Shared by "Mi perfil" (panel order)
 // and the Proposal screen (which experiences make a template's cut) so
 // the two never end up with two different drag implementations.
-function activarArrastreDeOrden(contenedor, guardarOrden) {
-  let arrastrado = null;
+function activateDragToReorder(container, saveOrder) {
+  let dragged = null;
 
-  contenedor.addEventListener("mousedown", (evento) => {
-    if (!evento.target.closest(".manija-arrastrar")) return;
-    const tarjeta = evento.target.closest("[data-arrastrable]");
-    if (tarjeta) tarjeta.draggable = true;
+  container.addEventListener("mousedown", (event) => {
+    if (!event.target.closest(".manija-arrastrar")) return;
+    const card = event.target.closest("[data-arrastrable]");
+    if (card) card.draggable = true;
   });
 
-  contenedor.addEventListener("dragstart", (evento) => {
-    const tarjeta = evento.target.closest("[data-arrastrable]");
-    if (!tarjeta) return;
-    arrastrado = tarjeta;
-    tarjeta.classList.add("arrastrable-arrastrando");
-    evento.dataTransfer.effectAllowed = "move";
+  container.addEventListener("dragstart", (event) => {
+    const card = event.target.closest("[data-arrastrable]");
+    if (!card) return;
+    dragged = card;
+    card.classList.add("arrastrable-arrastrando");
+    event.dataTransfer.effectAllowed = "move";
   });
 
-  contenedor.addEventListener("dragover", (evento) => {
-    const tarjeta = evento.target.closest("[data-arrastrable]");
-    if (!tarjeta || tarjeta === arrastrado) return;
-    evento.preventDefault();
-    contenedor.querySelectorAll("[data-arrastrable]").forEach((t) => t.classList.remove("arrastrable-destino"));
-    tarjeta.classList.add("arrastrable-destino");
+  container.addEventListener("dragover", (event) => {
+    const card = event.target.closest("[data-arrastrable]");
+    if (!card || card === dragged) return;
+    event.preventDefault();
+    container.querySelectorAll("[data-arrastrable]").forEach((t) => t.classList.remove("arrastrable-destino"));
+    card.classList.add("arrastrable-destino");
   });
 
-  contenedor.addEventListener("drop", (evento) => {
-    const destino = evento.target.closest("[data-arrastrable]");
-    if (!destino || !arrastrado || destino === arrastrado) return;
-    evento.preventDefault();
+  container.addEventListener("drop", (event) => {
+    const target = event.target.closest("[data-arrastrable]");
+    if (!target || !dragged || target === dragged) return;
+    event.preventDefault();
 
-    const antes = evento.clientY < destino.getBoundingClientRect().top + destino.offsetHeight / 2;
-    destino.parentNode.insertBefore(arrastrado, antes ? destino : destino.nextSibling);
+    const before = event.clientY < target.getBoundingClientRect().top + target.offsetHeight / 2;
+    target.parentNode.insertBefore(dragged, before ? target : target.nextSibling);
 
-    guardarOrden([...contenedor.querySelectorAll("[data-arrastrable]")].map((t) => t.dataset.clave));
+    saveOrder([...container.querySelectorAll("[data-arrastrable]")].map((t) => t.dataset.clave));
   });
 
-  contenedor.addEventListener("dragend", () => {
-    contenedor.querySelectorAll("[data-arrastrable]").forEach((t) => {
+  container.addEventListener("dragend", () => {
+    container.querySelectorAll("[data-arrastrable]").forEach((t) => {
       t.draggable = false;
       t.classList.remove("arrastrable-arrastrando", "arrastrable-destino");
     });
-    arrastrado = null;
+    dragged = null;
   });
 }
 
 // My profile: drag the panels (Experience, Skills...) to change the order
 // they're shown in.
 (() => {
-  const contenedor = document.querySelector("[data-paneles-perfil]");
-  if (!contenedor) return;
+  const container = document.querySelector("[data-paneles-perfil]");
+  if (!container) return;
 
-  activarArrastreDeOrden(contenedor, (orden) => {
+  activateDragToReorder(container, (order) => {
     fetch("/perfil/orden", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ orden }),
+      body: JSON.stringify({ orden: order }),
     }).catch(() => {});
   });
 })();
@@ -145,14 +145,14 @@ function activarArrastreDeOrden(contenedor, guardarOrden) {
 // inside a template's maximum (see cv_preview.py) once there are more of
 // them than a chosen design has room for.
 (() => {
-  const contenedor = document.querySelector("[data-experiencias-propuesta]");
-  if (!contenedor) return;
+  const container = document.querySelector("[data-experiencias-propuesta]");
+  if (!container) return;
 
-  activarArrastreDeOrden(contenedor, (orden) => {
+  activateDragToReorder(container, (order) => {
     fetch("/propuesta/orden-experiencias", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ orden }),
+      body: JSON.stringify({ orden: order }),
     }).catch(() => {});
   });
 })();
@@ -160,27 +160,27 @@ function activarArrastreDeOrden(contenedor, guardarOrden) {
 // My CVs: the stats panel doubles as a filter. Clicking a card (Sent,
 // Interview...) filters the list without reloading the page; every CV
 // stays in the HTML, only the ones that don't match get hidden.
-document.addEventListener("click", (evento) => {
-  const boton = evento.target.closest("[data-filtro]");
-  if (!boton) return;
+document.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-filtro]");
+  if (!button) return;
 
-  const panel = boton.closest("[data-filtro-cvs]");
-  const lista = document.querySelector("[data-lista-cvs]");
-  if (!panel || !lista) return;
+  const panel = button.closest("[data-filtro-cvs]");
+  const list = document.querySelector("[data-lista-cvs]");
+  if (!panel || !list) return;
 
   panel.querySelectorAll("[data-filtro]").forEach((b) => b.classList.remove("bento-tarjeta-activa"));
-  boton.classList.add("bento-tarjeta-activa");
+  button.classList.add("bento-tarjeta-activa");
 
-  const filtro = boton.getAttribute("data-filtro");
-  let visibles = 0;
-  lista.querySelectorAll("[data-estado]").forEach((tarjeta) => {
-    const coincide = filtro === "todos" || tarjeta.getAttribute("data-estado") === filtro;
-    tarjeta.hidden = !coincide;
-    if (coincide) visibles += 1;
+  const filter = button.getAttribute("data-filtro");
+  let visibleCount = 0;
+  list.querySelectorAll("[data-estado]").forEach((card) => {
+    const matches = filter === "todos" || card.getAttribute("data-estado") === filter;
+    card.hidden = !matches;
+    if (matches) visibleCount += 1;
   });
 
-  const sinResultados = document.querySelector("[data-sin-resultados]");
-  if (sinResultados) sinResultados.hidden = visibles > 0;
+  const noResults = document.querySelector("[data-sin-resultados]");
+  if (noResults) noResults.hidden = visibleCount > 0;
 });
 
 // Settings: the base URL and model fields (and the Groq daily-limit notice)
@@ -189,17 +189,17 @@ document.addEventListener("click", (evento) => {
 (() => {
   const selector = document.getElementById("proveedor");
   if (!selector) return;
-  const campos = document.querySelectorAll("[data-mostrar-si-proveedor]");
+  const fields = document.querySelectorAll("[data-mostrar-si-proveedor]");
 
-  const actualizar = () => {
-    campos.forEach((campo) => {
-      const permitidos = campo.getAttribute("data-mostrar-si-proveedor").split(",").map((v) => v.trim());
-      campo.hidden = !permitidos.includes(selector.value);
+  const update = () => {
+    fields.forEach((field) => {
+      const allowed = field.getAttribute("data-mostrar-si-proveedor").split(",").map((v) => v.trim());
+      field.hidden = !allowed.includes(selector.value);
     });
   };
 
-  selector.addEventListener("change", actualizar);
-  actualizar();
+  selector.addEventListener("change", update);
+  update();
 })();
 
 // Settings: switching provider swaps in that provider's own remembered key
@@ -208,32 +208,32 @@ document.addEventListener("click", (evento) => {
 // saved under another provider's name.
 (() => {
   const selector = document.getElementById("proveedor");
-  const campoClave = document.getElementById("clave_api");
-  if (!selector || !campoClave) return;
+  const keyField = document.getElementById("clave_api");
+  if (!selector || !keyField) return;
 
   selector.addEventListener("change", () => {
-    const opcion = selector.options[selector.selectedIndex];
-    campoClave.value = opcion.dataset.clave || "";
-    campoClave.placeholder = opcion.dataset.placeholderClave || "";
+    const option = selector.options[selector.selectedIndex];
+    keyField.value = option.dataset.clave || "";
+    keyField.placeholder = option.dataset.placeholderClave || "";
   });
 })();
 
 // Support: the message placeholder changes depending on whether it's a
 // "problem" or a "suggestion", so the blank field itself hints at what to write.
-document.addEventListener("change", (evento) => {
-  if (!evento.target.matches("[data-cambia-placeholder]")) return;
+document.addEventListener("change", (event) => {
+  if (!event.target.matches("[data-cambia-placeholder]")) return;
 
-  const mensaje = document.getElementById("mensaje");
-  if (!mensaje) return;
-  const clave = `placeholder${evento.target.value.charAt(0).toUpperCase()}${evento.target.value.slice(1)}`;
-  const nuevo = mensaje.dataset[clave];
-  if (nuevo) mensaje.placeholder = nuevo;
+  const message = document.getElementById("mensaje");
+  if (!message) return;
+  const key = `placeholder${event.target.value.charAt(0).toUpperCase()}${event.target.value.slice(1)}`;
+  const newValue = message.dataset[key];
+  if (newValue) message.placeholder = newValue;
 });
 
 // CV preview: opens the browser's own print dialog, which is what turns the
 // page into a PDF. The app never generates the file itself.
-document.addEventListener("click", (evento) => {
-  if (evento.target.closest("[data-imprimir]")) window.print();
+document.addEventListener("click", (event) => {
+  if (event.target.closest("[data-imprimir]")) window.print();
 });
 
 // Proposal / saved CV: how many experiences fit is a property of the chosen
@@ -242,28 +242,28 @@ document.addEventListener("click", (evento) => {
 // (the server clamps it again regardless, see cv_preview.py::_capacity).
 (() => {
   const selector = document.getElementById("plantilla_html");
-  const capacidad = document.getElementById("capacidad_html");
-  if (!selector || !capacidad) return;
+  const capacity = document.getElementById("capacidad_html");
+  if (!selector || !capacity) return;
 
-  const limitesPlantillaActual = () => {
-    const opcion = selector.options[selector.selectedIndex];
-    const minimo = Number(opcion.dataset.capacidadMin) || 1;
-    const maximo = Number(opcion.dataset.capacidadMax) || 0; // 0 = sin máximo declarado
-    return { minimo, maximo };
+  const currentTemplateLimits = () => {
+    const option = selector.options[selector.selectedIndex];
+    const min = Number(option.dataset.capacidadMin) || 1;
+    const max = Number(option.dataset.capacidadMax) || 0; // 0 = no maximum declared
+    return { min, max };
   };
 
-  const ajustarCamposAlLimite = () => {
-    const { minimo, maximo } = limitesPlantillaActual();
-    capacidad.min = minimo;
-    if (maximo > 0) capacidad.max = maximo;
-    else capacidad.removeAttribute("max");
+  const adjustFieldsToLimit = () => {
+    const { min, max } = currentTemplateLimits();
+    capacity.min = min;
+    if (max > 0) capacity.max = max;
+    else capacity.removeAttribute("max");
 
-    let valor = Number(capacidad.value) || (maximo > 0 ? maximo : minimo);
-    valor = Math.max(valor, minimo);
-    if (maximo > 0) valor = Math.min(valor, maximo);
-    capacidad.value = valor;
+    let value = Number(capacity.value) || (max > 0 ? max : min);
+    value = Math.max(value, min);
+    if (max > 0) value = Math.min(value, max);
+    capacity.value = value;
   };
 
-  selector.addEventListener("change", ajustarCamposAlLimite);
-  capacidad.addEventListener("change", ajustarCamposAlLimite);
+  selector.addEventListener("change", adjustFieldsToLimit);
+  capacity.addEventListener("change", adjustFieldsToLimit);
 })();
