@@ -79,3 +79,15 @@ def test_ninguna_traduccion_lleva_escapes_unicode_sin_resolver():
     ]
 
     assert not con_escapes, "Traducciones con escapes literales: " + " | ".join(con_escapes)
+
+
+def test_ninguna_traduccion_usa_comillas_angulares():
+    """«» is Spanish punctuation. The catalog quotes with “”, and a stray
+    pair is a line translated without touching its quotes."""
+    con_angulares = [
+        original
+        for original, traduccion, _ in _entradas()
+        if "«" in traduccion or "»" in traduccion
+    ]
+
+    assert not con_angulares, "Traducciones con comillas españolas: " + " | ".join(con_angulares)
