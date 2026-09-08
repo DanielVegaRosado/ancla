@@ -196,18 +196,18 @@ def test_solo_entran_en_la_hoja_las_experiencias_dentro_de_la_capacidad_pedida(t
     assert "Bullet de exp-5" not in html
 
 
-def test_las_que_quedan_fuera_se_nombran_con_su_motivo(tmp_path: Path):
-    """Rule 3: cutting an experience is now the user's own choice (drag to
-    reorder), but the app still has to say which ones it cut and why they
-    were selected in the first place — nothing disappears silently."""
+def test_las_que_quedan_fuera_no_se_imprimen_ni_se_nombran(tmp_path: Path):
+    """Choosing how many fit is the user's own call, made on this very
+    screen (the capacity field) and on «Última propuesta» (drag to
+    reorder) — the sheet does not repeat which ones that leaves out."""
     cliente = _cliente(tmp_path, n_experiencias=5)
 
     html = _vista_previa(cliente, capacidad=3)
 
-    assert "Rol Cuatro · Empresa D" in html
-    assert "Motivo D" in html
-    assert "Rol Cinco · Empresa E" in html
-    assert "Motivo E" in html
+    assert "Rol Cuatro · Empresa D" not in html
+    assert "Motivo D" not in html
+    assert "Rol Cinco · Empresa E" not in html
+    assert "Motivo E" not in html
 
 
 def test_sin_desbordamiento_no_hay_aviso_de_excluidas(tmp_path: Path):

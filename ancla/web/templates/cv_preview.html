@@ -26,22 +26,6 @@
     <p class="ayuda">
       {{ _('En el diálogo de impresión elige «Guardar como PDF», márgenes «Ninguno» y activa los gráficos de fondo.') }}
     </p>
-    {% if excluidas %}
-      <div class="aviso">
-        <p>
-          {{ _('Esta plantilla admite como máximo %(capacidad)s experiencias y la propuesta trae %(total)s. Se quedan fuera de este CV (arrastra las tarjetas en «Última propuesta» para elegir cuáles entran):',
-               capacidad=capacidad, total=total_experiencias) }}
-        </p>
-        <ul>
-          {% for seleccionada, experiencia in excluidas %}
-            <li>
-              {{ experiencia.title[idioma] }}
-              {% if seleccionada.reason %} — {{ seleccionada.reason }}{% endif %}
-            </li>
-          {% endfor %}
-        </ul>
-      </div>
-    {% endif %}
     {% if bajo_el_minimo %}
       <p class="aviso">
         {{ _('Esta plantilla está pensada para al menos %(minimo)s experiencias y aquí hay %(total)s. Puede verse con más espacio en blanco del previsto.',
