@@ -31,18 +31,42 @@ jobs:
       - name: Compilar con PyInstaller
         run: pyinstaller --noconfirm desktop.spec
 
-      - name: Subir el .exe (Windows)
+      # desktop.spec solo empaqueta ancla/web/templates y static (código de
+      # la app) dentro del ejecutable a propósito: docx-templates/,
+      # canva-templates/ y html-templates/ siguen el mismo patrón de "añadir
+      # una plantilla es dejar sus ficheros en una carpeta" que ya tienen en
+      # el repo (ver cada README), así que viajan como carpetas sueltas
+      # junto al ejecutable en vez de incrustadas de forma no editable.
+      # data_root() (ancla/web/routes.py) ya las busca ahí cuando la app
+      # está congelada.
+      - name: Preparar carpeta de publicación (ejecutable + plantillas editables)
+        shell: bash
+        run: |
+          mkdir -p dist/paquete
+          if [ "$RUNNER_OS" = "Windows" ]; then
+            cp dist/Ancla.exe dist/paquete/
+          else
+            cp -r dist/Ancla.app dist/paquete/
+          fi
+          cp -r docx-templates canva-templates html-templates dist/paquete/
+
+      - name: Comprimir (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: Compress-Archive -Path dist/paquete/* -DestinationPath dist/Ancla-Windows.zip
+
+      - name: Subir (Windows)
         if: runner.os == 'Windows'
         uses: actions/upload-artifact@v4
         with:
           name: Ancla-Windows
-          path: dist/Ancla.exe
+          path: dist/Ancla-Windows.zip
 
-      - name: Comprimir el .app (macOS)
+      - name: Comprimir (macOS)
         if: runner.os == 'macOS'
-        run: ditto -c -k --sequesterRsrc dist/Ancla.app dist/Ancla-macOS.zip
+        run: ditto -c -k --sequesterRsrc dist/paquete dist/Ancla-macOS.zip
 
-      - name: Subir el .app (macOS)
+      - name: Subir (macOS)
         if: runner.os == 'macOS'
         uses: actions/upload-artifact@v4
         with:
@@ -64,5 +88,5 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            dist/Ancla-Windows/Ancla.exe
+            dist/Ancla-Windows/Ancla-Windows.zip
             dist/Ancla-macOS/Ancla-macOS.zip

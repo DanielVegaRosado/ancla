@@ -32,6 +32,14 @@ a = Analysis(
     datas=[
         ("ancla/web/templates", "ancla/web/templates"),
         ("ancla/web/static", "ancla/web/static"),
+        # docx-templates/, canva-templates/ and html-templates/ deliberately
+        # stay OUT of this list: they're user-editable content (see each
+        # folder's README — "drop the files here, no code change needed"),
+        # not app code, and a PyInstaller onefile bundle isn't a place users
+        # can add their own file to at runtime. They ship instead as sibling
+        # folders next to the built executable (see build-desktop.yml),
+        # which is also where data_root() (ancla/web/routes.py) looks for
+        # them once the app is frozen.
     ],
     hiddenimports=[
         # pywebview picks its backend at runtime based on the operating system,
