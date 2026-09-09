@@ -90,7 +90,7 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           pip install flatpak-pip-generator
-          flatpak-pip-generator \
+          flatpak_pip_generator \
             --runtime='org.gnome.Sdk//50' \
             --requirements-file='empaquetado/flatpak/requirements-flatpak.txt' \
             --output empaquetado/flatpak/python3-requirements
