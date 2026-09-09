@@ -1,15 +1,7 @@
 # HTML CV templates
 
-A CV laid out here is printed to PDF by the user's own browser (Ctrl+P →
-Save as PDF), the same way the `.docx` is exported from their own Word. The
-app never produces a PDF, and needs no native dependency to do any of this.
-
-The point of laying a CV out in HTML rather than only in `.docx` is the page
-break. A `.docx` cannot be measured without rendering it, so
-`ancla/export/fill.py` estimates line wrapping from character-width tables
-and a geometry declared by hand in each template's `.yaml` — and a CV still
-spills onto a second page now and then. A browser measures its own text, so
-where a page ends is *stated* (`break-inside: avoid`) instead of guessed.
+A CV laid out here is printed to PDF by the user's own browser. This is the only way Ancla exports a CV.
+The app never produces the PDF itself, and needs no native dependency to lay a CV out.
 
 ## The files
 
@@ -34,23 +26,33 @@ Each template is three files with the same name:
   don't have a real lower bound, only a real upper one.
 
 Drop them here and the template shows up on the Proposal screen and on any
-saved CV. **No code change** — `ancla/export/html_templates.py` discovers
+saved CV. **No code change** , `ancla/export/html_templates.py` discovers
 them by scanning this folder, and an `.html` without its `.yaml` (or with
 one that fails to parse) is skipped rather than breaking the screen for
 everyone else.
 
-Unlike the `.docx` sidecar, there is no `geometria` block: nothing about the
-page has to be declared, because nothing about it is being estimated.
-
 ## Field catalog
 
-Exactly the same as the `.docx` one — see `docx-templates/README.md`. Both
-paths are filled by `fill.build_context`, so a field one can show the other
-can show too, and neither can drift.
+Every tag a template can use, built by `ancla/export/fields.py::build_context`:
 
-The one difference is `{{ foto }}`: here it is the URL of the profile photo
-(empty string when there is none), so `<img src="{{ foto }}">` inside an
-`{% if foto %}` is all it takes.
+- `nombre`, `nombre_primero`, `nombre_resto` — the profile's name, whole and
+  split on the first space (some designs style the first name differently
+  from the rest; a template that doesn't need that keeps using `nombre`).
+- `sobre_mi` — the "About me" text, in the proposal's language, gaps
+  already filled in.
+- `experiencias` — a list of `{puesto, empresa, fechas, bullets, stack}`.
+  `empresa` is always empty: `Experience.title` already bundles "role ·
+  company" together (see `ancla/profile/model.py`), so a template that
+  wants them on separate lines has nothing to split them from.
+- `skills`, `idiomas`, `skills_personales` — plain lists of names/lines, the
+  chosen technical skills plus the personal skills and languages, which are
+  always shown in full (never selected by the AI, see the root
+  `CLAUDE.md`).
+- `contacto` — the profile's contact lines (phone, email, city...).
+- `titular` — the headline under the name, in the proposal's language.
+- `educacion` — a list of `{titulo, centro, fechas}`.
+- `foto` — the URL of the profile photo, empty string when there is none,
+  so `<img src="{{ foto }}">` inside an `{% if foto %}` is all it takes.
 
 ## Range, not a single number
 
@@ -61,11 +63,11 @@ template is selected. How many experiences there are is only half of what
 decides whether the CV fits one page, though — see "One page, whatever the
 user wrote" below for the other half.
 With more experiences in the proposal than `max`, the extra ones are left
-out of the print and named on screen instead, with their selection reason,
-so nothing disappears silently; dragging the experience cards on the
-Proposal screen (same mechanism as reordering "Mi perfil") decides which
-ones make the cut. With fewer than `min`, the CV still prints with what
-there is — rule 1 forbids inventing an experience to pad it — but the
+out of the print; dragging the experience cards on the Proposal screen
+(same mechanism as reordering "Mi perfil") decides which ones make the
+cut — nothing is picked automatically. With fewer than `min`, the CV still
+prints with what there is — rule 1 forbids inventing an experience to pad
+it — but the
 screen says the design was meant for more, since a page that's too sparse
 is a cosmetic risk, not a print-breaking one.
 
@@ -80,8 +82,8 @@ the app never shortens or rewrites what the user wrote.
 So the size is not decided in advance. `ancla/web/static/cv_fit.js` lays
 the sheet out, measures the height its content asks for, and searches for
 the largest scale that still fits one page. It is the whole reason for
-laying a CV out in a browser rather than in a `.docx`: measuring is what a
-`.docx` cannot do, not what was given up when this path was written.
+laying a CV out in a browser: measuring is what the old `.docx` path could
+not do without rendering it first.
 
 A template owes it two things, both already in the stylesheets here:
 
@@ -131,26 +133,23 @@ to shorten their "About me" or to print two pages.
 
 ## Current templates
 
-- **`corporativa-clasica`** — the HTML counterpart of the `.docx` of the
-  same name, from the same Canva design. Every measurement (panel width and
-  color, text colors, paddings, type sizes) comes from the spec measured on
-  that PDF in `herramientas/construir-corporativa-clasica.py`, so both
-  versions of the template stay comparable. It is drawn in IBM Plex Sans,
-  the font the app already ships, rather than the Aileron of the `.docx`,
+- **`corporativa-clasica`** — measured on the Canva export in
+  `canva-templates/corporativa-clasica.pdf`: panel width and color, text
+  colors, paddings, type sizes. Drawn in IBM Plex Sans, the font the app
+  already ships, rather than the Aileron of the original Canva design,
   which is not bundled with the app.
-
-- **`minimalista-calida`** — the HTML counterpart of the `.docx` of the
-  same name: light grey sidebar with a terracotta accent, two-line name,
-  each experience laid out as one running paragraph instead of bullets.
-  Panel width, colors and the name treatment were traced by measuring
-  pixels on `canva-templates/minimalista-calida.pdf`. This design is denser
-  than Corporativa Clásica — a two-line name and a running paragraph eat
-  more height than a single-line name and bullets — which shows up as a
-  smaller scale for the same content rather than as anything to calibrate.
-  It is drawn in IBM Plex Sans rather than the Montserrat of the `.docx`,
-  which is not bundled with the app. The Canva original also shows a
-  company address per experience and an "Interests" row of icons; neither
-  exists on the profile (`empresa` is always empty, there is no hobbies
+- **`minimalista-calida`** — light grey sidebar with a terracotta accent,
+  two-line name, each experience laid out as one running paragraph instead
+  of bullets. Panel width, colors and the name treatment were traced by
+  measuring pixels on `canva-templates/minimalista-calida.pdf`. This design
+  is denser than Corporativa Clásica — a two-line name and a running
+  paragraph eat more height than a single-line name and bullets — which
+  shows up as a smaller scale for the same content rather than as anything
+  to calibrate. It is drawn in IBM Plex Sans rather than the Montserrat of
+  the original Canva design, which is not bundled with the app. The Canva
+  original also shows a company address per experience and an "Interests"
+  row of icons; neither exists on the profile (`empresa` is always empty,
+  there is no hobbies
   catalog), so both are left out rather than invented, and the original
   has no "About me" section at all — one is kept here anyway since every
   profile in this app writes one.

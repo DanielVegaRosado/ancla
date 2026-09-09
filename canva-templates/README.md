@@ -1,10 +1,11 @@
 # Template gallery (previews)
 
 Ancla doesn't design a CV layout from scratch — it fills an existing one
-(see `docx-templates/README.md` for the `.docx` templates that actually
-get filled and downloaded). This folder is upstream of that: the original
-Canva designs, kept here only as PDF previews shown inline on the app's
-Templates screen — never a redirect out to canva.com.
+(see `html-templates/README.md` for the templates that actually get
+filled and laid out). This folder is upstream of that: the original Canva
+designs each HTML template was measured from, kept here as PDF previews
+shown inline on the app's Templates screen — never a redirect out to
+canva.com.
 
 ## Adding a template
 

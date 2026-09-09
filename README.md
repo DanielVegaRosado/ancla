@@ -19,10 +19,8 @@ a minute. For your own data, download the app or run it locally.
   (OpenAI, Anthropic, Mistral, OpenRouter, or any other with a compatible API) are
   also supported.
 - Fills a ready-made template for you. Pick one of the [built-in
-  designs](canva-templates/README.md) and download a finished `.docx`, already laid
-  out, so you never have to copy-paste it into another tool.
-- Or see it [laid out as a page](html-templates/README.md) and save it as a PDF with
-  your browser's own Ctrl+P — no other program in the middle.
+  designs](html-templates/README.md), see your CV laid out as a finished page, and
+  save it as a PDF.
 - Your whole profile downloads as a single `.zip` from Settings, whenever you want a
   backup or you're moving to another computer.
 - Free and open source, and it stays that way. Paid features may show up later for
@@ -54,28 +52,24 @@ Either way, once the app is open:
 2. Fill in your profile, either by hand under "My profile" or by importing an
    existing CV (PDF or Word) and reviewing what it finds before saving it.
 3. Paste a job posting under "Adapt" and generate the proposal.
-4. Pick a template and take the CV out. Either "See your CV laid out", which
-   shows the finished page and lets you save it as a PDF with Ctrl+P, or
-   "Download .docx" for a ready-made Word file to open in Word, LibreOffice or
-   Google Docs. Ancla never generates the PDF itself: your browser or your word
-   processor does, the same as always.
+4. Pick a template and see your CV laid out as a finished page. Save it as a PDF
+   with your browser's own Ctrl+P. Ancla never generates the PDF itself, your
+   browser does, the same as always.
 
 ## Status (v1)
 
-| Piece | Status |
-|---|---|
-| Data model and interfaces | ✅ |
-| Profile store (YAML) | ✅ |
-| Selection engine | ✅ |
-| Web interface (bilingual ES/EN) | ✅ |
-| CV archive | ✅ |
-| Import from an existing CV (PDF/Word) | ✅ |
-| Fill a `.docx` template with the proposal | ✅ |
-| Lay the proposal out as a printable page (browser → PDF) | ✅ |
-| Support and template gallery | ✅ |
-| Profile backup (download as `.zip`) | ✅ |
-| Sample profile to try the app with | ✅ |
-| Multiple AI providers (Groq, OpenAI, Anthropic, Mistral, OpenRouter, custom) | ✅ |
+| Piece                                                                        | Status |
+| ---------------------------------------------------------------------------- | ------ |
+| Data model and interfaces                                                    | ✅     |
+| Profile store (YAML)                                                         | ✅     |
+| Selection engine                                                             | ✅     |
+| Web interface (bilingual ES/EN)                                              | ✅     |
+| CV archive                                                                   | ✅     |
+| Lay the proposal out as a printable page (browser → PDF)                    | ✅     |
+| Support and template gallery                                                 | ✅     |
+| Profile backup (download as`.zip`)                                         | ✅     |
+| Sample profile to try the app with                                           | ✅     |
+| Multiple AI providers (Groq, OpenAI, Anthropic, Mistral, OpenRouter, custom) | ✅     |
 
 Tested end to end, locally: creating experience and skills, defining the "About me"
 template, pasting a job posting and generating the proposal with a real Groq key.
@@ -92,9 +86,9 @@ try the app without writing their whole profile first.
 3. Zero account, zero cloud. Also verifiable by reading the code, not a line like
    "securely synced to the cloud."
 4. Free, no paywall, using your own key. Groq's free tier costs nothing to start with.
-5. Doesn't design a layout from scratch. It fills one of the built-in templates
-   ([`.docx`](canva-templates/README.md) or [HTML](html-templates/README.md)),
-   never composing a page itself. Using your own template isn't supported yet.
+5. Doesn't design a layout from scratch. It fills one of the [built-in
+   templates](html-templates/README.md), never composing a page itself. Using your
+   own template isn't supported yet.
 
 ## What criteria the AI follows
 
@@ -181,8 +175,7 @@ blocks the app outright without offering that option, you've hit Smart App
 Control, a stricter Windows 11 feature that's on by default on new installs.
 The only way past it right now is switching it off in Settings → Privacy &
 security → Windows Security → App & browser control, and that's a one-way
-switch until Windows gets reinstalled. We've applied for free code signing
-through SignPath Foundation to fix this properly. See *Code signing* below.
+switch until Windows gets reinstalled.
 
 Prefer to build it yourself?
 
@@ -196,25 +189,6 @@ PyInstaller doesn't cross-compile for a different OS than the one running it: a
 `.exe` is built on Windows, a `.app` on macOS. `.github/workflows/build-desktop.yml`
 builds both at once in the cloud (one per OS) when triggered manually or when a
 `v*` tag is pushed.
-
-### Code signing
-
-Ancla has applied to [SignPath Foundation](https://signpath.org/)'s free
-code signing program for open source projects, so the desktop builds can
-carry a real publisher signature instead of triggering SmartScreen and Smart
-App Control warnings. SignPath's terms require projects to publish a signing
-policy, so here it is.
-
-Daniel Vega Rosado is the project's sole maintainer and acts as author,
-reviewer and approver for every signing request. The desktop build makes no
-network call of its own: the only outbound request it ever sends is the one
-you trigger by adapting a job posting, straight to the AI provider and key
-you configured in Settings. Nothing about you or your usage gets collected
-or tracked. Full detail is in the in-app Terms and Conditions screen.
-
-Once approved, this line goes here: *"Code signing for Ancla is provided by
-[SignPath.io](https://signpath.io/), certificates by
-[SignPath Foundation](https://signpath.org/)."*
 
 ## License
 
