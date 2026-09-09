@@ -105,9 +105,14 @@ jobs:
           pip install flatpak-pip-generator
           cat requirements.txt empaquetado/flatpak/requirements-flatpak.txt \
             > /tmp/requirements-flatpak-aplanado.txt
+          # pydantic-core (dependencia de groq/openai/anthropic) es Rust:
+          # sin --prefer-wheels el generador puede elegir su .tar.gz fuente
+          # en vez de una rueda ya compilada, y compilarlo pide un toolchain
+          # de Rust (maturin) que no existe en el sandbox de flatpak-builder.
           python3 -m flatpak_pip_generator \
             --runtime='org.gnome.Sdk//50' \
             --requirements-file=/tmp/requirements-flatpak-aplanado.txt \
+            --prefer-wheels=pydantic-core \
             --output empaquetado/flatpak/python3-requirements
 
       - name: Construir el Flatpak (solo Linux)
