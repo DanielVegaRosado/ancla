@@ -24,7 +24,7 @@ ES_WINDOWS = sys.platform == "win32"
 ES_MACOS = sys.platform == "darwin"
 
 NAME = "Ancla"
-VERSION = "1.0.2"
+VERSION = "1.0.1"
 ICONS_FOLDER = "empaquetado/iconos"
 WINDOWS_ICON = f"{ICONS_FOLDER}/ancla.ico"
 MACOS_ICON = f"{ICONS_FOLDER}/ancla.icns"
