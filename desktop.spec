@@ -19,7 +19,7 @@ operating system.
 import sys
 
 NAME = "Ancla"
-VERSION = "1.1.0"
+VERSION = "1.0.1"
 ICONS_FOLDER = "empaquetado/iconos"
 WINDOWS_ICON = f"{ICONS_FOLDER}/ancla.ico"
 MACOS_ICON = f"{ICONS_FOLDER}/ancla.icns"
