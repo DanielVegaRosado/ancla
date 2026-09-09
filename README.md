@@ -31,10 +31,12 @@ a minute. For your own data, download the app or run it locally.
 
 Two ways to run it. Pick one.
 
-**Download it** (no Python, no terminal). Grab `Ancla.exe` for Windows or
-`Ancla-macOS.zip` for macOS from [Releases](../../releases/latest) and double-click
-it. Read *Desktop app* below first: the app isn't code-signed yet, so your operating
-system will warn you the first time you open it.
+**Download it** (no Python, no terminal). Grab `Ancla.exe` for Windows,
+`Ancla-macOS.zip` for macOS, or `Ancla-Linux.tar.gz` for Linux from
+[Releases](../../releases/latest) and double-click it (on Linux, extract the
+archive first and run the `Ancla` binary — mark it executable if your file
+manager doesn't do it for you). Read *Desktop app* below first: the app isn't
+code-signed yet, so Windows and macOS will warn you the first time you open it.
 
 **Or run it from the source code**, if you'd rather:
 
@@ -163,32 +165,37 @@ version once v1.1 itself is done.
 
 ## Desktop app
 
-The `.exe` and `.app` from *Getting started* above are built with
+The `.exe`, `.app` and Linux binary from *Getting started* above are built with
 [pywebview](https://pywebview.flowrl.com/), a single file, no installer, that
-opens the app in its own window instead of a browser tab.
+opens the app in its own window instead of a browser tab. On Linux, pywebview
+uses the GTK backend (WebKitGTK), so building it there needs a few system
+packages beyond `pip` — see the Linux command below.
 
-Neither is code-signed yet, so Windows and macOS will warn you the first time
-you open it. That's expected and doesn't mean anything is wrong. On the
-regular SmartScreen prompt, click through ("more
-info" → "run anyway" on Windows, right-click → open on macOS). If Windows
-blocks the app outright without offering that option, you've hit Smart App
-Control, a stricter Windows 11 feature that's on by default on new installs.
-The only way past it right now is switching it off in Settings → Privacy &
-security → Windows Security → App & browser control, and that's a one-way
-switch until Windows gets reinstalled.
+Windows and macOS builds aren't code-signed yet, so both will warn you the
+first time you open them. That's expected and doesn't mean anything is wrong.
+On the regular SmartScreen prompt, click through ("more info" → "run anyway"
+on Windows, right-click → open on macOS). If Windows blocks the app outright
+without offering that option, you've hit Smart App Control, a stricter
+Windows 11 feature that's on by default on new installs. The only way past it
+right now is switching it off in Settings → Privacy & security → Windows
+Security → App & browser control, and that's a one-way switch until Windows
+gets reinstalled.
 
 Prefer to build it yourself?
 
 ```bash
+# Linux only — GTK + WebKit2 bindings pywebview needs, not on PyPI:
+sudo apt install python3-gi python3-gi-cairo gir1.2-gtk-3.0 gir1.2-webkit2-4.1 gir1.2-soup-3.0
+
 pip install -r requirements-desktop.txt
 python desktop.py       # try it from source
-pyinstaller --noconfirm desktop.spec   # builds dist/Ancla.exe (or .app on macOS)
+pyinstaller --noconfirm desktop.spec   # builds dist/Ancla.exe, .app or the Linux binary
 ```
 
 PyInstaller doesn't cross-compile for a different OS than the one running it: a
-`.exe` is built on Windows, a `.app` on macOS. `.github/workflows/build-desktop.yml`
-builds both at once in the cloud (one per OS) when triggered manually or when a
-`v*` tag is pushed.
+`.exe` is built on Windows, a `.app` on macOS, a plain binary on Linux.
+`.github/workflows/build-desktop.yml` builds all three at once in the cloud
+(one per OS) when triggered manually or when a `v*` tag is pushed.
 
 ## License
 

@@ -1,8 +1,8 @@
 # -*- mode: python ; coding: utf-8 -*-
 """Packages desktop.py as a single executable with PyInstaller.
 
-One .spec for both Windows and macOS, with the real difference between them
-resolved through `sys.platform` rather than two separate files:
+One .spec for Windows, macOS and Linux, with the real differences between
+them resolved through `sys.platform` rather than separate files:
 
 - Windows: the `.exe` from `EXE(...)` already is "the program", a standalone
   file you double-click. That's exactly the portable executable we want.
@@ -10,13 +10,18 @@ resolved through `sys.platform` rather than two separate files:
   and it carries no icon of its own. It has to be wrapped in a `.app` via
   `BUNDLE(...)`. Technically that's a folder, but Finder treats it as a single
   icon, which is how macOS natively gives you the same behaviour as Windows.
+- Linux: like Windows, the `EXE(...)` binary is already "the program" — no
+  bundle step, just an executable file you run directly.
 
 PyInstaller doesn't cross-compile: this .spec produces the .exe when run ON
-Windows and the .app when run ON macOS. See the GitHub Actions workflow
-(`.github/workflows/build-desktop.yml`) to build both at once, one per
-operating system.
+Windows, the .app when run ON macOS, and the plain binary when run ON Linux.
+See the GitHub Actions workflow (`.github/workflows/build-desktop.yml`) to
+build all three at once, one per operating system.
 """
 import sys
+
+ES_WINDOWS = sys.platform == "win32"
+ES_MACOS = sys.platform == "darwin"
 
 NAME = "Ancla"
 VERSION = "1.0.1"
@@ -44,8 +49,15 @@ a = Analysis(
     hiddenimports=[
         # pywebview picks its backend at runtime based on the operating system,
         # not through static imports, which is precisely what PyInstaller's
-        # static analysis can fail to detect on its own.
-        "webview.platforms.winforms" if sys.platform == "win32" else "webview.platforms.cocoa",
+        # static analysis can fail to detect on its own. Linux uses the GTK
+        # backend (webview.platforms.gtk) — the default and lightest pywebview
+        # recommends there, backed by python3-gi + WebKit2GTK at the system
+        # level (see build-desktop.yml for the apt packages).
+        "webview.platforms.winforms"
+        if ES_WINDOWS
+        else "webview.platforms.cocoa"
+        if ES_MACOS
+        else "webview.platforms.gtk",
     ],
     hookspath=[],
     # pywebview supports several backends (winforms, Qt...) and picks one at
@@ -65,18 +77,20 @@ exe = EXE(
     a.binaries,
     a.datas,
     [],
-    name=NAME if sys.platform != "darwin" else "desktop",
+    name=NAME if not ES_MACOS else "desktop",
     console=False,  # a window, not a console behind it
     onefile=True,
-    icon=WINDOWS_ICON if sys.platform == "win32" else MACOS_ICON,
+    # PyInstaller only applies `icon` on Windows and macOS; on Linux it's a
+    # no-op; there's no bundle step to hand it to either, so it's just None.
+    icon=WINDOWS_ICON if ES_WINDOWS else MACOS_ICON if ES_MACOS else None,
     # SignPath Foundation requires signed binaries to carry consistent product
     # name and version metadata. macOS takes it from BUNDLE()'s `version` below;
     # the PE resource only applies on Windows, since version_info.txt uses
     # PyInstaller's Windows-only VSVersionInfo format.
-    version=WINDOWS_VERSION_INFO if sys.platform == "win32" else None,
+    version=WINDOWS_VERSION_INFO if ES_WINDOWS else None,
 )
 
-if sys.platform == "darwin":
+if ES_MACOS:
     app = BUNDLE(
         exe,
         name=f"{NAME}.app",

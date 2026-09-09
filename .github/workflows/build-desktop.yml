@@ -1,9 +1,10 @@
 name: Compilar app de escritorio
 
 # PyInstaller no compila cruzado (un .exe se genera EN Windows, un .app EN
-# macOS), así que la única forma práctica de tener los dos ejecutables sin
-# tener las dos máquinas es una matriz de runners, uno de cada sistema
-# operativo, compilando en paralelo con el mismo desktop.spec.
+# macOS, un binario EN Linux), así que la única forma práctica de tener los
+# tres ejecutables sin tener las tres máquinas es una matriz de runners, uno
+# de cada sistema operativo, compilando en paralelo con el mismo
+# desktop.spec.
 
 on:
   workflow_dispatch:
@@ -16,17 +17,51 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-latest, macos-latest]
+        os: [windows-latest, macos-latest, ubuntu-latest]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
 
+      # En Linux NO se usa actions/setup-python: instala su propio Python
+      # aislado del que ve apt, y python3-gi (más abajo) se registra en el
+      # dist-packages del Python del sistema — con un Python aparte, el
+      # backend GTK de pywebview no podría hacer `import gi`. El runner de
+      # ubuntu-latest ya trae Python 3 de sistema, así que basta con usarlo.
       - uses: actions/setup-python@v5
+        if: runner.os != 'Linux'
         with:
           python-version: "3.11"
 
+      # pywebview en Linux usa GTK como backend (webview.platforms.gtk, ver
+      # desktop.spec): son bindings de sistema, no un paquete de PyPI, así
+      # que hacen falta también estos paquetes de apt. gir1.2-webkit2-4.1 es
+      # el motor de renderizado (WebKitGTK); pywebview cae solo a la 4.0 si
+      # no la encuentra, pero los runners de ubuntu-latest sí la traen.
+      - name: Instalar dependencias de sistema (GTK + WebKit2, solo Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            python3-gi \
+            python3-gi-cairo \
+            gir1.2-gtk-3.0 \
+            gir1.2-webkit2-4.1 \
+            gir1.2-soup-3.0 \
+            python3-pip \
+            python3-venv
+
+      # En Linux, pip instala en el Python de sistema (--break-system-packages,
+      # porque Ubuntu lo marca como "gestionado externamente" desde 24.04) en
+      # vez de en un venv, precisamente para que comparta dist-packages con
+      # python3-gi y pueda hacer `import gi`.
       - name: Instalar dependencias
-        run: pip install -r requirements-desktop.txt
+        shell: bash
+        run: |
+          if [ "$RUNNER_OS" = "Linux" ]; then
+            sudo pip install --break-system-packages -r requirements-desktop.txt
+          else
+            pip install -r requirements-desktop.txt
+          fi
 
       - name: Compilar con PyInstaller
         run: pyinstaller --noconfirm desktop.spec
@@ -45,8 +80,10 @@ jobs:
           mkdir -p dist/paquete
           if [ "$RUNNER_OS" = "Windows" ]; then
             cp dist/Ancla.exe dist/paquete/
-          else
+          elif [ "$RUNNER_OS" = "macOS" ]; then
             cp -r dist/Ancla.app dist/paquete/
+          else
+            cp dist/Ancla dist/paquete/
           fi
           cp -r canva-templates html-templates dist/paquete/
 
@@ -73,6 +110,22 @@ jobs:
           name: Ancla-macOS
           path: dist/Ancla-macOS.zip
 
+      # .tar.gz en vez de .zip: conserva el bit ejecutable del binario
+      # (`chmod +x`) al descomprimir, que .zip no garantiza en Linux.
+      - name: Comprimir (Linux)
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          chmod +x dist/paquete/Ancla
+          tar -czf dist/Ancla-Linux.tar.gz -C dist/paquete .
+
+      - name: Subir (Linux)
+        if: runner.os == 'Linux'
+        uses: actions/upload-artifact@v4
+        with:
+          name: Ancla-Linux
+          path: dist/Ancla-Linux.tar.gz
+
   publicar:
     needs: compilar
     if: startsWith(github.ref, 'refs/tags/v')
@@ -90,3 +143,4 @@ jobs:
           files: |
             dist/Ancla-Windows/Ancla-Windows.zip
             dist/Ancla-macOS/Ancla-macOS.zip
+            dist/Ancla-Linux/Ancla-Linux.tar.gz
