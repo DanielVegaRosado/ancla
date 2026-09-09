@@ -47,21 +47,22 @@ jobs:
             gir1.2-gtk-3.0 \
             gir1.2-webkit2-4.1 \
             gir1.2-soup-3.0 \
-            python3-pip \
             python3-venv
 
-      # En Linux, pip instala en el Python de sistema (--break-system-packages,
-      # porque Ubuntu lo marca como "gestionado externamente" desde 24.04) en
-      # vez de en un venv, precisamente para que comparta dist-packages con
-      # python3-gi y pueda hacer `import gi`.
-      - name: Instalar dependencias
-        shell: bash
+      # Un venv normal aislaría python3-gi (instalado por apt en el Python de
+      # sistema, no visible desde un venv corriente). `--system-site-packages`
+      # lo hereda sin más, así que pip vuelve a instalar en un venv propio en
+      # vez de sobre el Python de sistema — evita que reinstale un paquete que
+      # ya puso `apt` (typing_extensions, en concreto: pip no puede
+      # desinstalarlo primero porque dpkg no deja el `RECORD` que pip espera).
+      - name: Crear venv con acceso a los paquetes de sistema (solo Linux)
+        if: runner.os == 'Linux'
         run: |
-          if [ "$RUNNER_OS" = "Linux" ]; then
-            sudo pip install --break-system-packages -r requirements-desktop.txt
-          else
-            pip install -r requirements-desktop.txt
-          fi
+          python3 -m venv --system-site-packages .venv
+          echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
+
+      - name: Instalar dependencias
+        run: pip install -r requirements-desktop.txt
 
       - name: Compilar con PyInstaller
         run: pyinstaller --noconfirm desktop.spec
