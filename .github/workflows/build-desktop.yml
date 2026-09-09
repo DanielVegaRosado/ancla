@@ -121,6 +121,7 @@ jobs:
         run: |
           flatpak-builder --user --force-clean --repo=repo build-dir \
             empaquetado/flatpak/com.danielvegarosado.Ancla.yml
+          mkdir -p dist
           flatpak build-bundle repo dist/Ancla-Linux.flatpak com.danielvegarosado.Ancla
 
       - name: Comprimir (Windows)
