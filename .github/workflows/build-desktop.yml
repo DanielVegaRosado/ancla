@@ -32,11 +32,11 @@ jobs:
         run: pyinstaller --noconfirm desktop.spec
 
       # desktop.spec solo empaqueta ancla/web/templates y static (código de
-      # la app) dentro del ejecutable a propósito: docx-templates/,
-      # canva-templates/ y html-templates/ siguen el mismo patrón de "añadir
-      # una plantilla es dejar sus ficheros en una carpeta" que ya tienen en
-      # el repo (ver cada README), así que viajan como carpetas sueltas
-      # junto al ejecutable en vez de incrustadas de forma no editable.
+      # la app) dentro del ejecutable a propósito: canva-templates/ y
+      # html-templates/ siguen el mismo patrón de "añadir una plantilla es
+      # dejar sus ficheros en una carpeta" que ya tienen en el repo (ver
+      # cada README), así que viajan como carpetas sueltas junto al
+      # ejecutable en vez de incrustadas de forma no editable.
       # data_root() (ancla/web/routes.py) ya las busca ahí cuando la app
       # está congelada.
       - name: Preparar carpeta de publicación (ejecutable + plantillas editables)
@@ -48,7 +48,7 @@ jobs:
           else
             cp -r dist/Ancla.app dist/paquete/
           fi
-          cp -r docx-templates canva-templates html-templates dist/paquete/
+          cp -r canva-templates html-templates dist/paquete/
 
       - name: Comprimir (Windows)
         if: runner.os == 'Windows'
