@@ -216,7 +216,7 @@ wget https://raw.githubusercontent.com/linuxdeploy/linuxdeploy-plugin-gtk/master
 chmod +x linuxdeploy-x86_64.AppImage linuxdeploy-plugin-gtk.sh
 
 ./linuxdeploy-x86_64.AppImage --appdir AppDir --executable dist/Ancla \
-  --desktop-file empaquetado/ancla.desktop --icon-file empaquetado/iconos/ancla.png \
+  --desktop-file empaquetado/ancla.desktop --icon-file empaquetado/iconos/ancla-appimage.png \
   --plugin gtk --output appimage
 ```
 

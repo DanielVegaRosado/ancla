@@ -155,7 +155,7 @@ jobs:
             --appdir AppDir \
             --executable dist/Ancla \
             --desktop-file empaquetado/ancla.desktop \
-            --icon-file empaquetado/iconos/ancla.png \
+            --icon-file empaquetado/iconos/ancla-appimage.png \
             --plugin gtk \
             --output appimage
           mkdir -p dist/paquete
