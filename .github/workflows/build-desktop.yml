@@ -86,13 +86,21 @@ jobs:
         with:
           python-version: "3.11"
 
+      # flatpak-pip-generator resuelve un `-r otro-fichero.txt` anidado
+      # relativo a una copia temporal suya, no al fichero que lo contiene
+      # ni al directorio de trabajo — así que un requirements-flatpak.txt
+      # con `-r requirements.txt` dentro falla a ciegas dentro del propio
+      # generador. Se aplana aquí a un único fichero sin referencias
+      # anidadas, en vez de arrastrar esa limitación al fichero versionado.
       - name: Generar dependencias Python del Flatpak (solo Linux)
         if: runner.os == 'Linux'
         run: |
           pip install flatpak-pip-generator
+          cat requirements.txt empaquetado/flatpak/requirements-flatpak.txt \
+            > /tmp/requirements-flatpak-aplanado.txt
           flatpak_pip_generator \
             --runtime='org.gnome.Sdk//50' \
-            --requirements-file='empaquetado/flatpak/requirements-flatpak.txt' \
+            --requirements-file=/tmp/requirements-flatpak-aplanado.txt \
             --output empaquetado/flatpak/python3-requirements
 
       - name: Construir el Flatpak (solo Linux)
