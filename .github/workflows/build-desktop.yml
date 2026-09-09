@@ -141,6 +141,11 @@ jobs:
         if: runner.os == 'Linux'
         env:
           APPIMAGE_EXTRACT_AND_RUN: "1"
+          # linuxdeploy-plugin-gtk no autodetecta la versión de GTK del
+          # binario (que usa gi.repository en tiempo de ejecución, no un
+          # símbolo estático que el plugin pueda inspeccionar) — hay que
+          # decírsela. GTK3 es la que se instaló por apt (gir1.2-gtk-3.0).
+          DEPLOY_GTK_VERSION: "3"
         run: |
           rm -rf AppDir
           mkdir -p AppDir/usr/bin
