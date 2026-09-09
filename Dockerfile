@@ -5,6 +5,14 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
+# poppler-utils provides pdftoppm, used to render a template PDF's first
+# page to PNG for the gallery preview (ancla/web/views/canva_templates.py).
+# The PNG itself is a cached derivative, not checked in (see
+# canva-templates/*.png in .gitignore), so the binary has to exist on
+# whatever server renders it for the first time.
+RUN apt-get update && apt-get install -y --no-install-recommends poppler-utils \
+    && rm -rf /var/lib/apt/lists/*
+
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt gunicorn
 
