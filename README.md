@@ -32,13 +32,19 @@ a minute. For your own data, download the app or run it locally.
 Two ways to run it. Pick one.
 
 **Download it** (no Python, no terminal). Grab `Ancla.exe` for Windows,
-`Ancla-macOS.zip` for macOS, or `Ancla-Linux.AppImage` for Linux from
+`Ancla-macOS.zip` for macOS, or `Ancla-Linux.flatpak` for Linux from
 [Releases](../../releases/latest). Windows and macOS: double-click it. Linux:
-mark it executable (`chmod +x Ancla-Linux.AppImage`, or through your file
-manager's Properties → Permissions) and run it — no GTK or WebKit install
-needed, the AppImage carries its own. Read *Desktop app* below first: the app
-isn't code-signed yet, so Windows and macOS will warn you the first time you
-open it.
+
+```bash
+flatpak install --user Ancla-Linux.flatpak
+flatpak run com.danielvegarosado.Ancla
+```
+
+No GTK or WebKit install needed: the `flatpak install` step pulls
+`org.gnome.Platform`, which already brings them, the first time (Flatpak
+reuses it afterwards for anything else that needs the same runtime). Read
+*Desktop app* below first: the app isn't code-signed yet, so Windows and
+macOS will warn you the first time you open it.
 
 **Or run it from the source code**, if you'd rather:
 
@@ -167,13 +173,20 @@ version once v1.1 itself is done.
 
 ## Desktop app
 
-The `.exe`, `.app` and Linux `.AppImage` from *Getting started* above are built
-with [pywebview](https://pywebview.flowrl.com/), a single file, no installer,
-that opens the app in its own window instead of a browser tab. On Linux,
-pywebview uses the GTK backend (WebKitGTK). The AppImage bundles GTK, WebKit
-and their system dependencies inside itself, so running it needs nothing
-installed beyond `chmod +x`; building it, however, still needs those
-packages on the build machine — see the Linux commands below.
+The `.exe` and `.app` from *Getting started* above are built with
+[pywebview](https://pywebview.flowrl.com/), a single file, no installer, that
+opens the app in its own window instead of a browser tab.
+
+Linux uses a different path: a [Flatpak](https://flatpak.org/), not
+PyInstaller. Two earlier attempts (a plain PyInstaller binary, then an
+AppImage) both hit the same failure on a real machine: WebKitGTK compiled by
+hand into the artifact doesn't match, symbol for symbol, the WebKitGTK
+already installed on whatever distro opens it — a known, documented clash for
+any app that bundles GTK/WebKitGTK this way. A Flatpak sidesteps it by using
+`org.gnome.Platform`, GNOME's own shared runtime, where GTK3, WebKit2GTK and
+PyGObject are already built and tested against each other; Ancla's Python
+code and its own dependencies (`empaquetado/flatpak/`) are installed as
+source on top, no compiling, no PyInstaller.
 
 Windows and macOS builds aren't code-signed yet, so both will warn you the
 first time you open them. That's expected and doesn't mean anything is wrong.
@@ -188,45 +201,35 @@ gets reinstalled.
 Prefer to build it yourself?
 
 ```bash
-# Linux only — GTK + WebKit2 bindings pywebview needs, not on PyPI:
-sudo apt install python3-gi python3-gi-cairo gir1.2-gtk-3.0 gir1.2-webkit2-4.1 gir1.2-soup-3.0
-
+# Windows/macOS — PyInstaller path:
 pip install -r requirements-desktop.txt
 python desktop.py       # try it from source
-pyinstaller --noconfirm desktop.spec   # builds dist/Ancla.exe, .app or the plain Linux binary
+pyinstaller --noconfirm desktop.spec   # builds dist/Ancla.exe or dist/Ancla.app
+
+# Linux — Flatpak path (needs flatpak and flatpak-builder installed):
+flatpak install flathub org.gnome.Platform//50 org.gnome.Sdk//50
+flatpak-builder --user --force-clean --repo=repo build-dir \
+  empaquetado/flatpak/com.danielvegarosado.Ancla.yml
+flatpak build-bundle repo Ancla-Linux.flatpak com.danielvegarosado.Ancla
 ```
 
 PyInstaller doesn't cross-compile for a different OS than the one running it: a
-`.exe` is built on Windows, a `.app` on macOS, a plain binary on Linux.
-`.github/workflows/build-desktop.yml` builds all three at once in the cloud
-(one per OS) when triggered manually or when a `v*` tag is pushed.
-
-The Linux binary PyInstaller produces on its own still only borrows GTK/WebKit
-from whatever is installed on the machine that runs it — the same problem the
-system packages above solve for the *build* machine, not for anyone else's.
-Turning it into the self-contained `.AppImage` from *Getting started* is a
-separate step, done with
-[linuxdeploy](https://github.com/linuxdeploy/linuxdeploy) and its
-[GTK plugin](https://github.com/linuxdeploy/linuxdeploy-plugin-gtk), which
-copy GTK/WebKit and their system dependencies into the AppImage itself:
-
-```bash
-wget https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage
-wget https://raw.githubusercontent.com/linuxdeploy/linuxdeploy-plugin-gtk/master/linuxdeploy-plugin-gtk.sh
-chmod +x linuxdeploy-x86_64.AppImage linuxdeploy-plugin-gtk.sh
-
-./linuxdeploy-x86_64.AppImage --appdir AppDir --executable dist/Ancla \
-  --desktop-file empaquetado/ancla.desktop --icon-file empaquetado/iconos/appimage/ancla.png \
-  --plugin gtk --output appimage
-```
+`.exe` is built on Windows, a `.app` on macOS. `.github/workflows/build-desktop.yml`
+builds all three (Windows, macOS, the Linux Flatpak) at once in the cloud when
+triggered manually or when a `v*` tag is pushed; the Python dependencies for the
+Flatpak (`empaquetado/flatpak/python3-requirements.json`) are generated fresh on
+every build with
+[`flatpak-pip-generator`](https://github.com/flatpak/flatpak-builder-tools/tree/master/pip)
+rather than committed, so they can never drift out of sync with
+`requirements.txt`.
 
 Windows and macOS carry `canva-templates/` and `html-templates/` as plain folders
 next to the executable, so adding your own template there is just dropping files
 in (see [html-templates/README.md](html-templates/README.md)) — no rebuild needed.
-An AppImage is a single read-only file, so there's no "next to it" to drop files
-into: the AppImage build copies both folders inside the image instead, and the
-templates it ships with work out of the box, but adding your own means extracting
-the AppImage first (`./Ancla-Linux.AppImage --appimage-extract`) and rebuilding.
+The Flatpak installs both as read-only, alongside Ancla's own code inside the
+sandbox, the same trade-off as any Flatpak app that ships bundled data: the
+templates it ships with work out of the box, but adding your own means
+rebuilding the Flatpak rather than dropping a file in.
 
 ## License
 

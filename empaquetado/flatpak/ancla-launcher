@@ -1,0 +1,6 @@
+#!/bin/sh
+# Installed as /app/bin/ancla (see com.danielvegarosado.Ancla.yml). Ancla's
+# code has no shebang of its own — it's a Flask app run either through
+# run.py (browser) or desktop.py (pywebview window) — so this is the
+# `command:` the manifest points to instead of desktop.py directly.
+exec python3 /app/lib/ancla/desktop.py "$@"

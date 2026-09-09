@@ -1,0 +1,60 @@
+app-id: com.danielvegarosado.Ancla
+runtime: org.gnome.Platform
+runtime-version: '50'
+sdk: org.gnome.Sdk
+command: ancla
+
+# GNOME's runtime brings GTK3, WebKit2GTK and PyGObject already built and
+# tested against each other, which is the whole point of using it here:
+# the two AppImage attempts (see ../../bitacora/build-escritorio-linux.md)
+# failed because they mixed a hand-copied GTK/WebKit with whatever the
+# host system had, and the two disagreed symbol-for-symbol. A shared,
+# versioned runtime can't end up in that mixed state.
+finish-args:
+  # Ancla's own AI-provider calls (Groq, OpenAI, Anthropic...).
+  - --share=network
+  - --socket=wayland
+  - --socket=fallback-x11
+  # GPU acceleration for WebKitGTK's compositor. Not strictly required —
+  # WebKitGTK falls back to software rendering without it — but several
+  # real-world WebKitGTK Flatpaks add it because software compositing of
+  # a full page (this app's whole UI) is a noticeably worse experience.
+  - --device=dri
+  # `$HOME` deliberately gets no `--filesystem` entry: Flatpak already
+  # virtualizes it to this app's own persistent directory with no extra
+  # permission needed (see desktop.py, `_flatpak_data_root`), and asking
+  # for the real host `$HOME` here would be a needless widening of the
+  # sandbox for data that already has a safe place to live.
+
+cleanup-commands:
+  - find /app/lib/ancla -name __pycache__ -type d -exec rm -rf {} +
+
+modules:
+  # Generated from requirements.txt + pywebview with flatpak-pip-generator
+  # (see build-desktop.yml) — not committed, see the note in
+  # ../../bitacora/build-escritorio-linux.md for why.
+  - python3-requirements.json
+
+  - name: ancla
+    buildsystem: simple
+    build-commands:
+      # Installed as source, not compiled: unlike Windows/macOS, this path
+      # never runs PyInstaller (the runtime already supplies Python, GTK,
+      # WebKit2GTK and PyGObject; only Ancla's own pure-Python code and its
+      # dependencies are missing, and the module above installs those).
+      - mkdir -p /app/lib/ancla
+      - cp -r ancla /app/lib/ancla/ancla
+      - cp desktop.py /app/lib/ancla/desktop.py
+      # Templates travel as plain sibling folders of desktop.py, exactly
+      # like the unfrozen/source case data_root() (ancla/web/routes.py)
+      # already resolves correctly — no override needed in desktop.py for
+      # these two, only for the profile and settings, which must be
+      # writable and /app is not.
+      - cp -r canva-templates /app/lib/ancla/canva-templates
+      - cp -r html-templates /app/lib/ancla/html-templates
+      - install -Dm755 empaquetado/flatpak/ancla-launcher /app/bin/ancla
+      - install -Dm644 empaquetado/flatpak/com.danielvegarosado.Ancla.desktop /app/share/applications/com.danielvegarosado.Ancla.desktop
+      - install -Dm644 empaquetado/iconos/ancla.png /app/share/icons/hicolor/512x512/apps/com.danielvegarosado.Ancla.png
+    sources:
+      - type: dir
+        path: ../..
