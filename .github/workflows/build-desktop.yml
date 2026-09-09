@@ -92,13 +92,20 @@ jobs:
       # con `-r requirements.txt` dentro falla a ciegas dentro del propio
       # generador. Se aplana aquí a un único fichero sin referencias
       # anidadas, en vez de arrastrar esa limitación al fichero versionado.
+      #
+      # `python3 -m flatpak_pip_generator`, no el script de consola que
+      # instala pip: ese script (`entry_points.txt`) importa un `main` que
+      # no existe en `__main__.py` (el módulo hace su trabajo directamente
+      # al ejecutarse, no dentro de una función `main`) y revienta al
+      # salir — después de haber generado ya el fichero de verdad, así que
+      # el fallo es solo del wrapper, no del propio trabajo.
       - name: Generar dependencias Python del Flatpak (solo Linux)
         if: runner.os == 'Linux'
         run: |
           pip install flatpak-pip-generator
           cat requirements.txt empaquetado/flatpak/requirements-flatpak.txt \
             > /tmp/requirements-flatpak-aplanado.txt
-          flatpak_pip_generator \
+          python3 -m flatpak_pip_generator \
             --runtime='org.gnome.Sdk//50' \
             --requirements-file=/tmp/requirements-flatpak-aplanado.txt \
             --output empaquetado/flatpak/python3-requirements
