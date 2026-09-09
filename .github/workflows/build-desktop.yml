@@ -72,13 +72,12 @@ jobs:
       # html-templates/ siguen el mismo patrón de "añadir una plantilla es
       # dejar sus ficheros en una carpeta" que ya tienen en el repo (ver
       # cada README), así que viajan como carpetas sueltas junto al
-      # ejecutable en vez de incrustadas de forma no editable.
-      # data_root() (ancla/web/routes.py) ya las busca ahí cuando la app
-      # está congelada. En Linux esto vale también dentro del AppImage: el
-      # AppImage arranca corriendo AppRun desde el propio squashfs, así que
-      # "junto al ejecutable" pasaría a ser una ruta de solo lectura dentro
-      # del montaje — se copian junto al .AppImage final, no dentro del
-      # AppDir, exactamente igual que Windows/macOS copian junto al binario.
+      # ejecutable en vez de incrustadas de forma no editable. data_root()
+      # (ancla/web/routes.py) ya las busca ahí cuando la app está congelada.
+      # Linux no pasa por aquí (ver el paso de construir el AppImage más
+      # abajo): un AppImage es un único fichero de solo lectura, así que no
+      # hay "carpeta junto al binario" que dejar editable — las plantillas
+      # van dentro del propio AppDir en su lugar.
       - name: Preparar carpeta de publicación (ejecutable + plantillas editables, Windows/macOS)
         if: runner.os != 'Linux'
         shell: bash
@@ -107,7 +106,7 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           wget -q https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage
-          wget -q https://github.com/linuxdeploy/linuxdeploy-plugin-gtk/releases/download/continuous/linuxdeploy-plugin-gtk.sh
+          wget -q https://raw.githubusercontent.com/linuxdeploy/linuxdeploy-plugin-gtk/master/linuxdeploy-plugin-gtk.sh
           chmod +x linuxdeploy-x86_64.AppImage linuxdeploy-plugin-gtk.sh
 
       # linuxdeploy en sí es un AppImage, y montarlo necesita FUSE — que los
