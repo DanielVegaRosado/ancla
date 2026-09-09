@@ -1,7 +1,12 @@
 # Python-only dependencies for the Flatpak build. Unlike
-# requirements-desktop.txt (Windows/macOS/AppImage, PyInstaller-based),
-# this path never needs pyinstaller: org.gnome.Sdk/Platform already
-# supplies Python, GTK3, WebKit2GTK and PyGObject, so only the pure-Python
-# packages Ancla imports are missing.
--r ../../requirements.txt
+# requirements-desktop.txt (Windows/macOS, PyInstaller-based), this path
+# never needs pyinstaller: org.gnome.Sdk/Platform already supplies Python,
+# GTK3, WebKit2GTK and PyGObject, so only the pure-Python packages Ancla
+# imports are missing.
+#
+# The path below is relative to the working directory flatpak-pip-generator
+# runs from (the repo root, see build-desktop.yml), not to this file's own
+# location — a `-r` line in a requirements file is not resolved the way a
+# relative import path would be.
+-r requirements.txt
 pywebview>=5.0

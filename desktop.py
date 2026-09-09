@@ -1,8 +1,8 @@
 """Desktop launcher: starts the Flask server on a thread and shows it in a
 native window with pywebview, instead of in a browser tab. It's the entry
-point PyInstaller packages (`desktop.spec`) for the Windows/macOS/AppImage
-builds, and the entry point the Flatpak manifest (`empaquetado/flatpak/`)
-installs as source, unpackaged.
+point PyInstaller packages (`desktop.spec`) for the Windows/macOS builds,
+and the entry point the Flatpak manifest (`empaquetado/flatpak/`) installs
+as source, unpackaged, for Linux.
 
 Anyone running the app from source keeps using `run.py`, which opens the
 system browser and does not depend on pywebview — that path is unchanged.
