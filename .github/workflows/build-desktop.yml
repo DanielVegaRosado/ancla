@@ -74,19 +74,89 @@ jobs:
       # cada README), así que viajan como carpetas sueltas junto al
       # ejecutable en vez de incrustadas de forma no editable.
       # data_root() (ancla/web/routes.py) ya las busca ahí cuando la app
-      # está congelada.
-      - name: Preparar carpeta de publicación (ejecutable + plantillas editables)
+      # está congelada. En Linux esto vale también dentro del AppImage: el
+      # AppImage arranca corriendo AppRun desde el propio squashfs, así que
+      # "junto al ejecutable" pasaría a ser una ruta de solo lectura dentro
+      # del montaje — se copian junto al .AppImage final, no dentro del
+      # AppDir, exactamente igual que Windows/macOS copian junto al binario.
+      - name: Preparar carpeta de publicación (ejecutable + plantillas editables, Windows/macOS)
+        if: runner.os != 'Linux'
         shell: bash
         run: |
           mkdir -p dist/paquete
           if [ "$RUNNER_OS" = "Windows" ]; then
             cp dist/Ancla.exe dist/paquete/
-          elif [ "$RUNNER_OS" = "macOS" ]; then
-            cp -r dist/Ancla.app dist/paquete/
           else
-            cp dist/Ancla dist/paquete/
+            cp -r dist/Ancla.app dist/paquete/
           fi
           cp -r canva-templates html-templates dist/paquete/
+
+      # linuxdeploy (no vía apt: no hay paquete de sistema, se distribuye
+      # como AppImage propio) arrastra al AppDir las librerías de sistema
+      # que el binario de PyInstaller pide prestadas en tiempo de ejecución
+      # (ver bitácora build-escritorio-linux.md: esto es justo lo que el
+      # .tar.gz anterior no hacía, y por lo que no arrancaba fuera del
+      # runner). linuxdeploy-plugin-gtk es el que sabe además arrastrar
+      # WebKitGTK/GTK3 y sus dependencias de sistema — los mismos paquetes
+      # de apt instalados arriba, que aquí no son solo para compilar sino
+      # también el material fuente que el plugin va a copiar dentro del
+      # AppDir. Ambos son binarios ejecutables sueltos: `continuous` es el
+      # release que cada proyecto mantiene siempre apuntando a la última
+      # build de su rama principal.
+      - name: Descargar linuxdeploy + plugin GTK (solo Linux)
+        if: runner.os == 'Linux'
+        run: |
+          wget -q https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage
+          wget -q https://github.com/linuxdeploy/linuxdeploy-plugin-gtk/releases/download/continuous/linuxdeploy-plugin-gtk.sh
+          chmod +x linuxdeploy-x86_64.AppImage linuxdeploy-plugin-gtk.sh
+
+      # linuxdeploy en sí es un AppImage, y montarlo necesita FUSE — que los
+      # runners de ubuntu-latest actuales (basados en Ubuntu 22.04+, que
+      # dejó de traer libfuse2 por defecto) no tienen. La propia
+      # documentación de AppImage recomienda este modo de fallback:
+      # extraerse a una carpeta temporal y ejecutarse desde ahí en vez de
+      # montarse vía FUSE. Se fija por variable de entorno para que aplique
+      # también dentro del propio proceso de linuxdeploy cuando invoque a
+      # appimagetool internamente para el --output appimage final.
+      # canva-templates/ y html-templates/ se copian DENTRO del AppDir, junto
+      # al binario (usr/bin/), no al lado del .AppImage final: un AppImage es
+      # un único fichero (una imagen squashfs de solo lectura), no hay "junto
+      # al ejecutable" posible como en Windows/macOS. data_root()
+      # (ancla/web/routes.py) resuelve la carpeta de datos como el directorio
+      # de `sys.executable`, y un binario lanzado desde dentro de un AppImage
+      # ve su propio `sys.executable` dentro del punto de montaje temporal
+      # (`/tmp/.mount_*/usr/bin/Ancla`) — así que colocarlas en
+      # `AppDir/usr/bin/` es lo que hace que se encuentren en tiempo de
+      # ejecución sin tocar ese código. Sigue siendo peor que Windows/macOS
+      # en un sentido real: esas dos plataformas dejan las carpetas como
+      # ficheros sueltos editables sin recompilar nada (ver
+      # html-templates/README.md, "añadir una plantilla es dejar sus
+      # ficheros en una carpeta"), y aquí quedan encerradas en la imagen de
+      # solo lectura — quien quiera una plantilla propia en Linux tiene que
+      # extraer el AppImage (`--appimage-extract`) para tocarlas. Es la app
+      # funcionando con las plantillas de fábrica lo que estaba realmente
+      # roto (sin esto, cero plantillas, pantalla de exportar vacía), así que
+      # se prioriza sobre esa editabilidad — sin verificar todavía contra un
+      # runner real.
+      - name: Construir el AppImage (solo Linux)
+        if: runner.os == 'Linux'
+        env:
+          APPIMAGE_EXTRACT_AND_RUN: "1"
+        run: |
+          rm -rf AppDir
+          mkdir -p AppDir/usr/bin
+          cp dist/Ancla AppDir/usr/bin/Ancla
+          cp -r canva-templates html-templates AppDir/usr/bin/
+          ./linuxdeploy-x86_64.AppImage \
+            --appdir AppDir \
+            --executable dist/Ancla \
+            --desktop-file empaquetado/ancla.desktop \
+            --icon-file empaquetado/iconos/ancla.png \
+            --plugin gtk \
+            --output appimage
+          mkdir -p dist/paquete
+          mv Ancla-*.AppImage dist/paquete/Ancla-Linux.AppImage
+          chmod +x dist/paquete/Ancla-Linux.AppImage
 
       - name: Comprimir (Windows)
         if: runner.os == 'Windows'
@@ -111,21 +181,15 @@ jobs:
           name: Ancla-macOS
           path: dist/Ancla-macOS.zip
 
-      # .tar.gz en vez de .zip: conserva el bit ejecutable del binario
-      # (`chmod +x`) al descomprimir, que .zip no garantiza en Linux.
-      - name: Comprimir (Linux)
-        if: runner.os == 'Linux'
-        shell: bash
-        run: |
-          chmod +x dist/paquete/Ancla
-          tar -czf dist/Ancla-Linux.tar.gz -C dist/paquete .
-
+      # El AppImage ya es el artefacto final (lleva GTK/WebKit y sus
+      # dependencias dentro, ver el paso de construcción arriba), así que
+      # no hace falta comprimirlo — se sube tal cual, como fichero único.
       - name: Subir (Linux)
         if: runner.os == 'Linux'
         uses: actions/upload-artifact@v4
         with:
           name: Ancla-Linux
-          path: dist/Ancla-Linux.tar.gz
+          path: dist/paquete/Ancla-Linux.AppImage
 
   publicar:
     needs: compilar
@@ -144,4 +208,4 @@ jobs:
           files: |
             dist/Ancla-Windows/Ancla-Windows.zip
             dist/Ancla-macOS/Ancla-macOS.zip
-            dist/Ancla-Linux/Ancla-Linux.tar.gz
+            dist/Ancla-Linux/Ancla-Linux.AppImage

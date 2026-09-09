@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Ancla
+Comment=Adapt your CV to a job posting from facts you've already verified
+Exec=Ancla
+Icon=ancla
+Categories=Office;
+Terminal=false

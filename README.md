@@ -32,11 +32,13 @@ a minute. For your own data, download the app or run it locally.
 Two ways to run it. Pick one.
 
 **Download it** (no Python, no terminal). Grab `Ancla.exe` for Windows,
-`Ancla-macOS.zip` for macOS, or `Ancla-Linux.tar.gz` for Linux from
-[Releases](../../releases/latest) and double-click it (on Linux, extract the
-archive first and run the `Ancla` binary — mark it executable if your file
-manager doesn't do it for you). Read *Desktop app* below first: the app isn't
-code-signed yet, so Windows and macOS will warn you the first time you open it.
+`Ancla-macOS.zip` for macOS, or `Ancla-Linux.AppImage` for Linux from
+[Releases](../../releases/latest). Windows and macOS: double-click it. Linux:
+mark it executable (`chmod +x Ancla-Linux.AppImage`, or through your file
+manager's Properties → Permissions) and run it — no GTK or WebKit install
+needed, the AppImage carries its own. Read *Desktop app* below first: the app
+isn't code-signed yet, so Windows and macOS will warn you the first time you
+open it.
 
 **Or run it from the source code**, if you'd rather:
 
@@ -165,11 +167,13 @@ version once v1.1 itself is done.
 
 ## Desktop app
 
-The `.exe`, `.app` and Linux binary from *Getting started* above are built with
-[pywebview](https://pywebview.flowrl.com/), a single file, no installer, that
-opens the app in its own window instead of a browser tab. On Linux, pywebview
-uses the GTK backend (WebKitGTK), so building it there needs a few system
-packages beyond `pip` — see the Linux command below.
+The `.exe`, `.app` and Linux `.AppImage` from *Getting started* above are built
+with [pywebview](https://pywebview.flowrl.com/), a single file, no installer,
+that opens the app in its own window instead of a browser tab. On Linux,
+pywebview uses the GTK backend (WebKitGTK). The AppImage bundles GTK, WebKit
+and their system dependencies inside itself, so running it needs nothing
+installed beyond `chmod +x`; building it, however, still needs those
+packages on the build machine — see the Linux commands below.
 
 Windows and macOS builds aren't code-signed yet, so both will warn you the
 first time you open them. That's expected and doesn't mean anything is wrong.
@@ -189,13 +193,40 @@ sudo apt install python3-gi python3-gi-cairo gir1.2-gtk-3.0 gir1.2-webkit2-4.1 g
 
 pip install -r requirements-desktop.txt
 python desktop.py       # try it from source
-pyinstaller --noconfirm desktop.spec   # builds dist/Ancla.exe, .app or the Linux binary
+pyinstaller --noconfirm desktop.spec   # builds dist/Ancla.exe, .app or the plain Linux binary
 ```
 
 PyInstaller doesn't cross-compile for a different OS than the one running it: a
 `.exe` is built on Windows, a `.app` on macOS, a plain binary on Linux.
 `.github/workflows/build-desktop.yml` builds all three at once in the cloud
 (one per OS) when triggered manually or when a `v*` tag is pushed.
+
+The Linux binary PyInstaller produces on its own still only borrows GTK/WebKit
+from whatever is installed on the machine that runs it — the same problem the
+system packages above solve for the *build* machine, not for anyone else's.
+Turning it into the self-contained `.AppImage` from *Getting started* is a
+separate step, done with
+[linuxdeploy](https://github.com/linuxdeploy/linuxdeploy) and its
+[GTK plugin](https://github.com/linuxdeploy/linuxdeploy-plugin-gtk), which
+copy GTK/WebKit and their system dependencies into the AppImage itself:
+
+```bash
+wget https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage
+wget https://github.com/linuxdeploy/linuxdeploy-plugin-gtk/releases/download/continuous/linuxdeploy-plugin-gtk.sh
+chmod +x linuxdeploy-x86_64.AppImage linuxdeploy-plugin-gtk.sh
+
+./linuxdeploy-x86_64.AppImage --appdir AppDir --executable dist/Ancla \
+  --desktop-file empaquetado/ancla.desktop --icon-file empaquetado/iconos/ancla.png \
+  --plugin gtk --output appimage
+```
+
+Windows and macOS carry `canva-templates/` and `html-templates/` as plain folders
+next to the executable, so adding your own template there is just dropping files
+in (see [html-templates/README.md](html-templates/README.md)) — no rebuild needed.
+An AppImage is a single read-only file, so there's no "next to it" to drop files
+into: the AppImage build copies both folders inside the image instead, and the
+templates it ships with work out of the box, but adding your own means extracting
+the AppImage first (`./Ancla-Linux.AppImage --appimage-extract`) and rebuilding.
 
 ## License
 
