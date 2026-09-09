@@ -54,7 +54,11 @@ modules:
       - cp -r html-templates /app/lib/ancla/html-templates
       - install -Dm755 empaquetado/flatpak/ancla-launcher /app/bin/ancla
       - install -Dm644 empaquetado/flatpak/com.danielvegarosado.Ancla.desktop /app/share/applications/com.danielvegarosado.Ancla.desktop
-      - install -Dm644 empaquetado/iconos/ancla.png /app/share/icons/hicolor/512x512/apps/com.danielvegarosado.Ancla.png
+      # empaquetado/iconos/ancla.png es 1024x1024 -- demasiado grande para
+      # el directorio hicolor 512x512 (mismo límite ya visto al construir
+      # el AppImage, ver bitácora); se reutiliza el .png ya redimensionado
+      # a 512x512 de aquel intento.
+      - install -Dm644 empaquetado/iconos/ancla-512.png /app/share/icons/hicolor/512x512/apps/com.danielvegarosado.Ancla.png
     sources:
       - type: dir
         path: ../..
