@@ -34,6 +34,8 @@ Two ways to run it. Pick one.
 **Download it** (no Python, no terminal). Grab `Ancla.exe` for Windows,
 `Ancla-macOS.zip` for macOS, or `Ancla-Linux.flatpak` for Linux from
 [Releases](../../releases/latest). Windows and macOS: double-click it. Linux:
+if your distro has a graphical software center (GNOME Software, KDE Discover, the default on Ubuntu, Fedora and most others), double-click the
+`.flatpak` file too, once `flatpak` itself is installed. From a terminal:
 
 ```bash
 flatpak install --user Ancla-Linux.flatpak
@@ -42,9 +44,10 @@ flatpak run com.danielvegarosado.Ancla
 
 No GTK or WebKit install needed: the `flatpak install` step pulls
 `org.gnome.Platform`, which already brings them, the first time (Flatpak
-reuses it afterwards for anything else that needs the same runtime). Read
-*Desktop app* below first: the app isn't code-signed yet, so Windows and
-macOS will warn you the first time you open it.
+reuses it afterwards for anything else that needs the same runtime), this
+is a one-time setup per machine, not per app. Read *Desktop app* below
+first: the app isn't code-signed yet, so Windows and macOS will warn you
+the first time you open it.
 
 **Or run it from the source code**, if you'd rather:
 
