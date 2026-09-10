@@ -20,11 +20,11 @@ finish-args:
   # real-world WebKitGTK Flatpaks add it because software compositing of
   # a full page (this app's whole UI) is a noticeably worse experience.
   - --device=dri
-  # `$HOME` deliberately gets no `--filesystem` entry: Flatpak already
-  # virtualizes it to this app's own persistent directory with no extra
-  # permission needed (see desktop.py, `_flatpak_data_root`), and asking
-  # for the real host `$HOME` here would be a needless widening of the
-  # sandbox for data that already has a safe place to live.
+  # No `--filesystem=home`: the profile and settings live in the per-app
+  # `$XDG_DATA_HOME` (~/.var/app/<app-id>/data), persistent without any
+  # extra permission (see desktop.py, `_flatpak_data_root`). Without that
+  # permission `$HOME` inside the sandbox is an in-memory directory that
+  # is thrown away on exit, so nothing may be written there.
 
 cleanup-commands:
   - find /app/lib/ancla -name __pycache__ -type d -exec rm -rf {} +

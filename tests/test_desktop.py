@@ -52,3 +52,22 @@ def test_lanza_un_error_claro_si_nunca_arranca():
     puerto = _free_port()
     with pytest.raises(RuntimeError):
         _wait_for_server("127.0.0.1", puerto, attempts=3, wait=0.01)
+
+
+def test_fuera_de_flatpak_no_cambia_donde_se_guarda_el_perfil(monkeypatch):
+    from desktop import _flatpak_data_root
+
+    monkeypatch.delenv("FLATPAK_ID", raising=False)
+    assert _flatpak_data_root() is None
+
+
+def test_dentro_de_flatpak_el_perfil_va_a_xdg_data_home_no_a_home(monkeypatch, tmp_path):
+    """Dentro del sandbox `$HOME` es una carpeta en memoria que se tira al
+    cerrar la app; lo único persistente es `$XDG_DATA_HOME`."""
+    from desktop import _flatpak_data_root
+
+    monkeypatch.setenv("FLATPAK_ID", "com.danielvegarosado.Ancla")
+    monkeypatch.setenv("XDG_DATA_HOME", str(tmp_path / "data"))
+    monkeypatch.setenv("HOME", str(tmp_path / "home-efimero"))
+
+    assert _flatpak_data_root() == tmp_path / "data" / "Ancla"

@@ -27,18 +27,22 @@ def _flatpak_data_root() -> Path | None:
     Flatpak's default `data_root()` (`ancla/web/routes.py`) only knows
     about PyInstaller's `sys.frozen`; without it, it falls back to the
     source tree, which under Flatpak is installed in `/app`, read-only at
-    runtime — the app would open but couldn't save a profile or a
-    settings change. `FLATPAK_ID` is set by Flatpak for every app running
-    inside its sandbox, and `Path.home()` there already resolves to the
-    per-app persistent directory Flatpak virtualizes `$HOME` to, with no
-    extra `finish-args` permission needed. Template folders are not
+    runtime. `FLATPAK_ID` is set by Flatpak for every app running inside
+    its sandbox.
+
+    Not `Path.home()`: inside the sandbox `$HOME` keeps the host path, but
+    without a `--filesystem=home` permission it is an in-memory directory
+    that disappears when the app closes — writes there succeed and are
+    lost on the next launch. The only persistent, writable location is
+    the per-app directory Flatpak exposes as `$XDG_DATA_HOME`
+    (`~/.var/app/<app-id>/data` on the host). Template folders are not
     included here: they are read-only in every packaging (see
     `html-templates/README.md`), so the default resolved from the
     installed source tree already points at the right place.
     """
     if "FLATPAK_ID" not in os.environ:
         return None
-    return Path.home() / "Ancla"
+    return Path(os.environ["XDG_DATA_HOME"]) / "Ancla"
 
 
 def _start_server() -> None:
