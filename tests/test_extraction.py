@@ -276,3 +276,55 @@ def test_los_dos_puntos_y_los_acentos_no_estorban():
 
     assert frontera is not None
     assert frontera.heading == "Formación académica:"
+
+
+# pypdf reads some Canva PDFs with a space between every letter and two
+# between words.
+
+
+def test_un_encabezado_con_letras_separadas_se_reconoce():
+    texto = "relleno de contenido suficientemente largo\n" * 6 + "E x p e r i e n c i a\n"
+
+    frontera = last_section_boundary(texto, len(texto))
+
+    assert frontera is not None
+    assert frontera.heading == "E x p e r i e n c i a"
+
+
+def test_un_encabezado_de_varias_palabras_con_letras_separadas_se_reconoce():
+    texto = "relleno de contenido suficientemente largo\n" * 6 + "S o b r e   m í\n"
+
+    assert last_section_boundary(texto, len(texto)) is not None
+
+
+def test_la_frontera_apunta_al_texto_tal_cual_se_extrajo():
+    """The heading is only collapsed to recognise it: the position and the
+    heading returned still point into the text the model is given, unchanged."""
+    relleno = "r e l l e n o  d e  c o n t e n i d o  l a r g o\n" * 6
+    texto = relleno + "E d u c a t i o n\n" + "c o n t e n t\n"
+
+    frontera = last_section_boundary(texto, len(texto))
+
+    assert frontera is not None
+    assert frontera.position == len(relleno)
+    assert texto[frontera.position:].startswith("E d u c a t i o n")
+
+
+def test_siglas_y_lineas_cortas_de_letras_sueltas_no_son_encabezados():
+    """Collapsing a run of single letters only makes a line a candidate; the
+    vocabulary still has to confirm it."""
+    texto = (
+        "linea de relleno para llegar a la mitad del limite permitido\n" * 6
+        + "C V\nA B C\nI T  S Q L\nE. E. U. U.\nP h o n e\nx\n"
+    )
+
+    assert last_section_boundary(texto, len(texto)) is None
+
+
+def test_una_vineta_con_letras_separadas_no_es_encabezado():
+    texto = (
+        "linea de relleno para llegar a la mitad del limite permitido\n" * 6
+        + "• E x p e r i e n c e\n"
+    )
+
+    assert last_section_boundary(texto, len(texto)) is None

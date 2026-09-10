@@ -828,3 +828,36 @@ def test_el_nombre_de_contacto_no_se_traduce_aunque_el_modelo_lo_devuelva_biling
     )
     resultado = analyze_cv(ClienteFalso(respuesta), "texto", Profile())
     assert resultado.contacto.name == "Ana Ejemplo"
+
+
+def _espaciado_como_canva(texto: str) -> str:
+    """`texto` as `pypdf` extracts some Canva PDFs: a space between every
+    letter and two between words."""
+    return "\n".join(
+        "  ".join(" ".join(palabra) for palabra in linea.split(" "))
+        for linea in texto.splitlines()
+    ) + "\n"
+
+
+def test_un_cv_con_letras_separadas_se_corta_antes_del_sobre_mi_no_dentro():
+    """Letter-spacing nearly doubles a CV's length, so it is the kind of
+    text most likely to need cutting. If its headings were not recognised,
+    the only cut left would be the blind line one, which can leave the
+    "About me" heading on one side and its paragraph on the other."""
+    experiencia = "Desarrollo de servicios de datos para clientes del sector\n"
+    sobre_mi = "Ingeniero de datos con varios años construyendo tuberías\n"
+    lineas_experiencia = int(MAX_CARACTERES_CV * 0.7) // len(_espaciado_como_canva(experiencia))
+    texto = _espaciado_como_canva(
+        "Experiencia\n" + experiencia * lineas_experiencia + "Sobre mí\n" + sobre_mi * 20
+    )
+    encabezado = _espaciado_como_canva("Sobre mí").strip()
+    assert texto.index(encabezado) < MAX_CARACTERES_CV < len(texto)
+    cliente = ClienteFalso(_respuesta_un_idioma())
+
+    resultado = analyze_cv(cliente, texto, Profile(), "es")
+
+    _, usuario = cliente.llamadas[0]
+    assert encabezado not in usuario
+    assert resultado.restante.startswith(encabezado)
+    assert resultado.restante.count(_espaciado_como_canva(sobre_mi).strip()) == 20
+    assert any(encabezado in aviso for aviso in resultado.avisos)

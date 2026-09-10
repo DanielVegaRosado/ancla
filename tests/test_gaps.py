@@ -140,6 +140,92 @@ def test_un_hueco_ya_escrito_a_mano_no_se_mueve():
     assert sin_colocar == []
 
 
+def test_una_palabra_partida_por_guion_de_fin_de_linea_se_coloca_con_el_trozo_original():
+    """El modelo, al copiar «back-\\nend» de un párrafo justificado, lo devuelve
+    como «back‑end» (sin salto y con U+2011). Solo sirve para localizar: lo que
+    se sustituye es el trozo tal cual lo escribió el usuario, y el resto del
+    texto no cambia ni un carácter."""
+    texto = "Trabajo en desarrollo back-\nend. Programo en Python."
+    fragmento_del_modelo = "desarrollo back\u2011end"
+
+    resultado, sin_colocar = gaps.place(texto, {"{GROUP_A_1}": fragmento_del_modelo})
+
+    assert sin_colocar == []
+    assert resultado == texto.replace("desarrollo back-\nend", "{GROUP_A_1}")
+    assert "\u2011" not in resultado
+
+
+def test_se_toleran_saltos_de_linea_espacios_y_guiones_distintos():
+    texto = "Experto en machine\n  learning y en full-stack."
+
+    resultado, sin_colocar = gaps.place(
+        texto,
+        {"{GROUP_A_1}": "machine learning", "{GROUP_A_2}": "full\u2013stack"},
+    )
+
+    assert sin_colocar == []
+    assert resultado == "Experto en {GROUP_A_1} y en {GROUP_A_2}."
+
+
+def test_la_palabra_partida_sin_guion_en_el_fragmento_tambien_se_encuentra():
+    texto = "Centrado en aprendi-\nzaje automático."
+
+    resultado, sin_colocar = gaps.place(texto, {"{GROUP_A_1}": "aprendizaje automático"})
+
+    assert sin_colocar == []
+    assert resultado == "Centrado en {GROUP_A_1}."
+
+
+def test_la_tolerancia_no_alcanza_a_mayusculas_ni_tildes():
+    """Relajar eso podría llevar el hueco a otras palabras del usuario, no a
+    las mismas escritas de otra forma."""
+    texto, sin_colocar = gaps.place(
+        "Análisis de datos", {"{GROUP_A_1}": "analisis de datos", "{GROUP_A_2}": "ANÁLISIS"}
+    )
+
+    assert texto == "Análisis de datos"
+    assert sin_colocar == ["{GROUP_A_1}", "{GROUP_A_2}"]
+
+
+def test_una_coincidencia_exacta_manda_sobre_una_aproximada_anterior():
+    """Un texto que ya se colocaba bien sigue cayendo en el mismo sitio."""
+    texto, _ = gaps.place("back-\nend y luego back-end", {"{GROUP_A_1}": "back-end"})
+
+    assert texto == "back-\nend y luego {GROUP_A_1}"
+
+
+def test_la_tolerancia_tampoco_solapa_huecos_ni_repite():
+    texto, sin_colocar = gaps.place(
+        "trabajo en back-\nend",
+        {"{GROUP_A_1}": "back\u2011end", "{GROUP_A_2}": "backend"},
+    )
+
+    assert texto == "trabajo en {GROUP_A_1}"
+    assert sin_colocar == ["{GROUP_A_2}"]
+
+
+def test_un_fragmento_con_texto_propio_sigue_sin_colocarse():
+    texto, sin_colocar = gaps.place(
+        "Desarrollo back-\nend.", {"{GROUP_A_1}": "desarrollo backend moderno"}
+    )
+
+    assert texto == "Desarrollo back-\nend."
+    assert sin_colocar == ["{GROUP_A_1}"]
+
+
+def test_suggest_gaps_coloca_el_hueco_del_diagnostico_de_extremo_a_extremo():
+    respuesta = json.loads(_respuesta_completa())
+    respuesta["GROUP_A_2"] = {"es": "back\u2011end", "en": "back\u2011end"}
+    es = SOBRE_MI_ES.replace("backend", "back-\nend")
+    en = SOBRE_MI_EN.replace("backend", "back-\nend")
+
+    propuesta = gaps.suggest_gaps(ClienteFalso(json.dumps(respuesta)), _sobre_mi(es, en), [])
+
+    assert propuesta.avisos == []
+    assert "{GROUP_A_2}" in propuesta.about_me.template["es"]
+    assert "{GROUP_A_2}" in propuesta.about_me.template["en"]
+
+
 # --------------------------------------------------------------------------
 # Qué llega al modelo
 # --------------------------------------------------------------------------

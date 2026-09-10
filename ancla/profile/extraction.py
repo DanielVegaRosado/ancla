@@ -243,7 +243,7 @@ def _is_section_heading(linea: str) -> bool:
     a CV, and the vocabulary alone accepts a bullet that happens to start
     with "Experience".
     """
-    encabezado = linea.strip()
+    encabezado = _without_letter_spacing(linea.strip())
     if not 0 < len(encabezado) <= MAX_CARACTERES_ENCABEZADO:
         return False
     if encabezado[0] in _MARCAS_DE_VINETA or encabezado[-1] in ".,;":
@@ -252,3 +252,26 @@ def _is_section_heading(linea: str) -> bool:
     if len(palabras) > MAX_PALABRAS_ENCABEZADO:
         return False
     return any(palabra in _PALABRAS_DE_SECCION for palabra in palabras)
+
+
+def _without_letter_spacing(linea: str) -> str:
+    """`linea` with its letter-spacing undone, if it is letter-spaced at all.
+
+    Some PDF exporters (Canva among them) place every glyph on its own, and
+    `pypdf` reads each gap between letters as a word break: "Experience"
+    comes out as "E x p e r i e n c e", and the real space between two
+    words as two or more spaces. Counted as-is, every letter is a word, so
+    no heading would ever fit `MAX_PALABRAS_ENCABEZADO`.
+
+    Only used to *recognise* a heading, never to rewrite the extracted text:
+    what the model analyses stays exactly what came out of the file. That is
+    also why the undoing is this strict — a line qualifies only when every
+    token is a single character, so ordinary text with a stray one-letter
+    word ("Python y R") is returned untouched. A short run of single letters
+    that is not a heading (an acronym spelled out, "C V") does collapse, but
+    the vocabulary check still has to confirm it, as with any other line.
+    """
+    grupos = re.split(r"\s{2,}", linea)
+    if not all(len(token) == 1 for grupo in grupos for token in grupo.split(" ")):
+        return linea
+    return " ".join(grupo.replace(" ", "") for grupo in grupos)

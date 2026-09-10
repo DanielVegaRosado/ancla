@@ -6,13 +6,15 @@ is the first wall for someone starting with an empty profile, so this module
 lets a model mark the positions instead.
 
 **The model never returns rewritten text.** It answers with the fragments it
-proposes to replace in each language, and `place` swaps each one for its gap
-with a literal, single-occurrence replacement. A fragment that does not
-appear verbatim in what the user wrote is dropped, and the gap comes back
-unplaced with a warning. That is what keeps "never rewrite the user"
-guaranteed by architecture instead of by prompt: even a model that ignores
-every instruction and answers with a whole paragraph of its own can only
-fail to match, never edit.
+proposes to replace in each language, and `place` swaps each one for its gap,
+once. The fragment is only used to find the spot — tolerating the
+typographic retouches models make while copying, like a different hyphen or
+a dropped line break — and the span replaced is always the user's own. A
+fragment that does not appear in what the user wrote is dropped, and the
+gap comes back unplaced with a warning. That is what keeps "never rewrite
+the user" guaranteed by architecture instead of by prompt: even a model that
+ignores every instruction and answers with a whole paragraph of its own can
+only fail to match, never edit.
 
 Two consequences worth knowing before changing anything here:
 
@@ -37,6 +39,7 @@ with no provider at all, and this is only the accelerator on top.
 from __future__ import annotations
 
 import json
+import re
 from dataclasses import dataclass, field
 
 from flask_babel import gettext as _
@@ -158,12 +161,17 @@ def suggest_gaps(cliente: AIClient, sobre_mi: AboutMe, skills: list[Skill]) -> G
 
 
 def place(texto: str, fragmentos: dict[str, str]) -> tuple[str, list[str]]:
-    """Replaces each fragment with its gap, literally and once each.
+    """Replaces each fragment with its gap, once each.
 
     Returns the resulting text and the gaps left unplaced, either because
-    the fragment is empty or because it is not in the text word for word —
-    including the case where an earlier gap already consumed it, which is
-    how overlapping fragments end up rejected instead of tangled.
+    the fragment is empty or because it is not in the text — including the
+    case where an earlier gap already consumed it, which is how overlapping
+    fragments end up rejected instead of tangled.
+
+    The fragment only says *where* the gap goes (see `_locate`); what gets
+    replaced is always the span as it stands in the user's text, so a model
+    that retyped a hyphen or dropped a line break still cannot put a single
+    character of its own into the result.
 
     A gap already present in the text is left where the user put it: this
     screen's manual marking and this proposal edit the same field, and the
@@ -174,12 +182,59 @@ def place(texto: str, fragmentos: dict[str, str]) -> tuple[str, list[str]]:
     for hueco, fragmento in fragmentos.items():
         if hueco in resultado:
             continue
-        fragmento = fragmento.strip()
-        if not fragmento or fragmento not in resultado:
+        tramo = _locate(resultado, fragmento.strip())
+        if tramo is None:
             sin_colocar.append(hueco)
             continue
-        resultado = resultado.replace(fragmento, hueco, 1)
+        inicio, fin = tramo
+        resultado = resultado[:inicio] + hueco + resultado[fin:]
     return resultado, sin_colocar
+
+
+# Characters a model may type in place of the hyphen the user wrote.
+_DASHES = "-\u2010\u2011\u2012\u2013\u2014\u2015\u2212"
+_SOFT_HYPHEN = "\u00ad"
+_DASH = f"[{re.escape(_DASHES)}]"
+# A word split across two lines by a justified paragraph ("back-\nend"),
+# or joined by an invisible soft hyphen, which a model copies back whole.
+_SPLIT_WORD = rf"(?:[{re.escape(_DASHES)}{_SOFT_HYPHEN}][^\S\n]*\n\s*|{_SOFT_HYPHEN})?"
+
+
+def _locate(texto: str, fragmento: str) -> tuple[int, int] | None:
+    """Start and end of `fragmento` inside `texto`, or `None` if absent.
+
+    An exact match wins, so text that placed before keeps placing in the
+    same spot. Otherwise the search tolerates only differences of form that
+    models introduce when copying: whitespace and line breaks, one kind of
+    hyphen for another, and a word split by a line-end hyphen. Case and
+    accents are never relaxed — a match there could land the gap on words
+    the user wrote differently, which is a different place, not a different
+    shape of the same one.
+    """
+    if not fragmento:
+        return None
+    inicio = texto.find(fragmento)
+    if inicio != -1:
+        return inicio, inicio + len(fragmento)
+    coincidencia = _tolerant_pattern(fragmento).search(texto)
+    return coincidencia.span() if coincidencia else None
+
+
+def _tolerant_pattern(fragmento: str) -> re.Pattern[str]:
+    partes: list[str] = []
+    anterior = ""
+    for caracter in fragmento:
+        if caracter.isspace():
+            if not anterior.isspace():
+                partes.append(r"\s+")
+        elif caracter in _DASHES:
+            partes.append(_DASH + r"\s*")
+        else:
+            if anterior.isalnum() and caracter.isalnum():
+                partes.append(_SPLIT_WORD)
+            partes.append(re.escape(caracter))
+        anterior = caracter
+    return re.compile("".join(partes))
 
 
 # --------------------------------------------------------------------------
