@@ -191,6 +191,12 @@ PyGObject are already built and tested against each other; Ancla's Python
 code and its own dependencies (`empaquetado/flatpak/`) are installed as
 source on top, no compiling, no PyInstaller.
 
+Updating: `flatpak install --user -y Ancla-Linux.flatpak` overwrites the
+previous version on its own. Close Ancla first if it's still open, or
+`pkill -f com.danielvegarosado.Ancla` if the window has stopped responding
+— otherwise the running copy keeps holding the port and you'd still be
+looking at the old version.
+
 Windows and macOS builds aren't code-signed yet, so both will warn you the
 first time you open them. That's expected and doesn't mean anything is wrong.
 On the regular SmartScreen prompt, click through ("more info" → "run anyway"
