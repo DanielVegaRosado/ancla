@@ -232,13 +232,21 @@ every build with
 rather than committed, so they can never drift out of sync with
 `requirements.txt`.
 
-Windows and macOS carry `canva-templates/` and `html-templates/` as plain folders
-next to the executable, so adding your own template there is just dropping files
-in (see [html-templates/README.md](html-templates/README.md)) — no rebuild needed.
-The Flatpak installs both as read-only, alongside Ancla's own code inside the
-sandbox, the same trade-off as any Flatpak app that ships bundled data: the
-templates it ships with work out of the box, but adding your own means
-rebuilding the Flatpak rather than dropping a file in.
+Your profile, saved CVs and settings live in your user data folder, not next to
+the app, so updating or moving it never touches them: `%APPDATA%\Ancla` on
+Windows, `~/Library/Application Support/Ancla` on macOS, and
+`~/.var/app/com.danielvegarosado.Ancla/data/Ancla` for the Flatpak. If an older
+version kept them next to the executable, the first launch copies them over
+and leaves the originals where they were.
+
+Windows carries `canva-templates/` and `html-templates/` as plain folders next
+to `Ancla.exe`, so adding your own template there is just dropping files in
+(see [html-templates/README.md](html-templates/README.md)) — no rebuild needed.
+The `.app` and the Flatpak ship both inside the app, read-only: a folder next to
+`Ancla.app` would be left behind as soon as macOS runs the app from a temporary
+copy (which it does with unsigned apps opened straight from Downloads) or you
+drag just the `.app` to Applications. The templates they ship with work out of
+the box, but adding your own means running from source or rebuilding.
 
 ## License
 

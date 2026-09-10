@@ -22,7 +22,7 @@ finish-args:
   - --device=dri
   # No `--filesystem=home`: the profile and settings live in the per-app
   # `$XDG_DATA_HOME` (~/.var/app/<app-id>/data), persistent without any
-  # extra permission (see desktop.py, `_flatpak_data_root`). Without that
+  # extra permission (see `data_root()` in ancla/web/routes.py). Without that
   # permission `$HOME` inside the sandbox is an in-memory directory that
   # is thrown away on exit, so nothing may be written there.
 
@@ -45,11 +45,10 @@ modules:
       - mkdir -p /app/lib/ancla
       - cp -r ancla /app/lib/ancla/ancla
       - cp desktop.py /app/lib/ancla/desktop.py
-      # Templates travel as plain sibling folders of desktop.py, exactly
-      # like the unfrozen/source case data_root() (ancla/web/routes.py)
-      # already resolves correctly — no override needed in desktop.py for
-      # these two, only for the profile and settings, which must be
-      # writable and /app is not.
+      # Templates travel as plain sibling folders of desktop.py, where
+      # templates_root() (ancla/web/routes.py) looks for them when not
+      # frozen. Only the profile and settings need a writable location,
+      # and data_root() already sends those to $XDG_DATA_HOME.
       - cp -r canva-templates /app/lib/ancla/canva-templates
       - cp -r html-templates /app/lib/ancla/html-templates
       - install -Dm755 empaquetado/flatpak/ancla-launcher /app/bin/ancla

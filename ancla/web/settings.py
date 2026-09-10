@@ -1,8 +1,8 @@
 """App settings: AI provider and API key.
 
 Distinct from `perfil/`: these are not user facts, they are local
-installation configuration. They live in `ajustes.json`, at the project
-root, and are **never** pushed to the repository (see `.gitignore`). The
+installation configuration. They live in `ajustes.json`, next to `perfil/` in
+`data_root()`, and are **never** pushed to the repository (see `.gitignore`). The
 key always belongs to the user.
 """
 from __future__ import annotations
@@ -13,9 +13,9 @@ from pathlib import Path
 from typing import Any
 
 from ancla.web.providers import PROVIDERS
-from ancla.web.routes import data_root
+from ancla.web.routes import SETTINGS_FILE_NAME, data_root
 
-RUTA_POR_DEFECTO = data_root() / "ajustes.json"
+RUTA_POR_DEFECTO = data_root() / SETTINGS_FILE_NAME
 
 PROVEEDOR_POR_DEFECTO = "groq"
 # Derived from the registry (`web/providers.py`), not maintained by hand:

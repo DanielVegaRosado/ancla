@@ -30,6 +30,17 @@ WINDOWS_ICON = f"{ICONS_FOLDER}/ancla.ico"
 MACOS_ICON = f"{ICONS_FOLDER}/ancla.icns"
 WINDOWS_VERSION_INFO = "empaquetado/version_info.txt"
 
+# canva-templates/ and html-templates/ are read-only content, never app
+# data. On Windows they ship as plain folders next to Ancla.exe (see
+# build-desktop.yml), so users can drop their own templates in without a
+# rebuild. On macOS that doesn't hold: App Translocation runs an unsigned
+# app from a randomized copy of the .app alone, and dragging Ancla.app to
+# Applications leaves any sibling folder behind — so there they are bundled
+# into the executable and found through sys._MEIPASS (see templates_root()
+# in ancla/web/routes.py). The trade-off: adding your own template on macOS
+# means running from source.
+TEMPLATE_FOLDERS = ["canva-templates", "html-templates"]
+
 a = Analysis(
     ["desktop.py"],
     pathex=[],
@@ -37,15 +48,8 @@ a = Analysis(
     datas=[
         ("ancla/web/templates", "ancla/web/templates"),
         ("ancla/web/static", "ancla/web/static"),
-        # docx-templates/, canva-templates/ and html-templates/ deliberately
-        # stay OUT of this list: they're user-editable content (see each
-        # folder's README — "drop the files here, no code change needed"),
-        # not app code, and a PyInstaller onefile bundle isn't a place users
-        # can add their own file to at runtime. They ship instead as sibling
-        # folders next to the built executable (see build-desktop.yml),
-        # which is also where data_root() (ancla/web/routes.py) looks for
-        # them once the app is frozen.
-    ],
+    ]
+    + ([(folder, folder) for folder in TEMPLATE_FOLDERS] if ES_MACOS else []),
     hiddenimports=[
         # pywebview picks its backend at runtime based on the operating system,
         # not through static imports, which is precisely what PyInstaller's

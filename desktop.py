@@ -13,48 +13,28 @@ import os
 import socket
 import threading
 import time
-from pathlib import Path
 
 HOST = "127.0.0.1"
 PORT = int(os.environ.get("ANCLA_PUERTO", "5000"))
 TITLE = "Ancla"
 
 
-def _flatpak_data_root() -> Path | None:
-    """Where the profile and settings must live inside a Flatpak sandbox,
-    or `None` outside one.
-
-    Flatpak's default `data_root()` (`ancla/web/routes.py`) only knows
-    about PyInstaller's `sys.frozen`; without it, it falls back to the
-    source tree, which under Flatpak is installed in `/app`, read-only at
-    runtime. `FLATPAK_ID` is set by Flatpak for every app running inside
-    its sandbox.
-
-    Not `Path.home()`: inside the sandbox `$HOME` keeps the host path, but
-    without a `--filesystem=home` permission it is an in-memory directory
-    that disappears when the app closes — writes there succeed and are
-    lost on the next launch. The only persistent, writable location is
-    the per-app directory Flatpak exposes as `$XDG_DATA_HOME`
-    (`~/.var/app/<app-id>/data` on the host). Template folders are not
-    included here: they are read-only in every packaging (see
-    `html-templates/README.md`), so the default resolved from the
-    installed source tree already points at the right place.
-    """
-    if "FLATPAK_ID" not in os.environ:
-        return None
-    return Path(os.environ["XDG_DATA_HOME"]) / "Ancla"
-
-
 def _start_server() -> None:
     from ancla.web import create_app
 
-    flatpak_root = _flatpak_data_root()
-    kwargs = {}
-    if flatpak_root is not None:
-        kwargs["raiz_perfil"] = flatpak_root / "perfil"
-        kwargs["settings_path"] = flatpak_root / "ajustes.json"
+    create_app().run(host=HOST, port=PORT, debug=False, use_reloader=False)
 
-    create_app(**kwargs).run(host=HOST, port=PORT, debug=False, use_reloader=False)
+
+def _copy_data_from_earlier_versions() -> None:
+    """Only PyInstaller builds ever kept data next to the executable; the
+    Flatpak never did, so there is nothing to bring over there. Must
+    finish before the server thread starts, or the first screen could
+    read an empty profile while the copy is still running."""
+    from ancla.web.legacy_data import copy_legacy_data
+    from ancla.web.routes import data_root, executable_dir, is_frozen
+
+    if is_frozen():
+        copy_legacy_data(executable_dir(), data_root())
 
 
 def _wait_for_server(host: str, port: int, attempts: int = 50, wait: float = 0.1) -> None:
@@ -73,6 +53,7 @@ def _wait_for_server(host: str, port: int, attempts: int = 50, wait: float = 0.1
 def main() -> None:
     import webview
 
+    _copy_data_from_earlier_versions()
     thread = threading.Thread(target=_start_server, daemon=True)
     thread.start()
     _wait_for_server(HOST, PORT)

@@ -38,24 +38,25 @@ jobs:
         if: runner.os != 'Linux'
         run: pyinstaller --noconfirm desktop.spec
 
-      # desktop.spec solo empaqueta ancla/web/templates y static (código de
-      # la app) dentro del ejecutable a propósito: canva-templates/ y
-      # html-templates/ siguen el mismo patrón de "añadir una plantilla es
-      # dejar sus ficheros en una carpeta" que ya tienen en el repo (ver
-      # cada README), así que viajan como carpetas sueltas junto al
-      # ejecutable en vez de incrustadas de forma no editable. data_root()
-      # (ancla/web/routes.py) ya las busca ahí cuando la app está congelada.
-      - name: Preparar carpeta de publicación (ejecutable + plantillas editables, Windows/macOS)
+      # canva-templates/ y html-templates/ son de solo lectura, nunca datos
+      # del usuario (esos van a %APPDATA%\Ancla o ~/Library/Application
+      # Support/Ancla, ver ancla/web/routes.py). En Windows viajan como
+      # carpetas sueltas junto al .exe, editables sin recompilar;
+      # templates_root() las busca ahí. En macOS NO: desktop.spec ya las
+      # mete dentro del ejecutable, porque una carpeta al lado de Ancla.app
+      # se pierde con App Translocation o al arrastrar solo el .app a
+      # Aplicaciones.
+      - name: Preparar carpeta de publicación (Windows/macOS)
         if: runner.os != 'Linux'
         shell: bash
         run: |
           mkdir -p dist/paquete
           if [ "$RUNNER_OS" = "Windows" ]; then
             cp dist/Ancla.exe dist/paquete/
+            cp -r canva-templates html-templates dist/paquete/
           else
             cp -r dist/Ancla.app dist/paquete/
           fi
-          cp -r canva-templates html-templates dist/paquete/
 
       # Linux: Flatpak, no PyInstaller/AppImage (ver
       # bitácora/build-escritorio-linux.md, entradas del 2026-09-09, para

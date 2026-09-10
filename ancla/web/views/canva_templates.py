@@ -23,7 +23,6 @@ is not always next to the source PDF.
 """
 from __future__ import annotations
 
-import os
 from pathlib import Path
 
 import pypdfium2 as pdfium
@@ -33,6 +32,7 @@ from ancla.design import gallery
 from ancla.design.gallery import DesignTemplate
 from ancla.web import context
 from ancla.web.blueprint import bp
+from ancla.web.routes import is_packaged
 
 _RESOLUCION_VISTA_PREVIA = 150
 
@@ -79,11 +79,11 @@ def _ensure_preview(plantilla: DesignTemplate) -> Path:
 
 
 def _preview_cache_dir(plantilla_path: Path) -> Path:
-    """Next to the source PDF everywhere except inside a Flatpak sandbox,
-    where that directory is installed read-only. `FLATPAK_ID`, set by
-    Flatpak inside every sandboxed app, is the same signal `desktop.py`
-    already uses to reroute writable paths there.
+    """Next to the source PDF only when running from source. A packaged
+    app's templates folder is read-only (the Flatpak's `/app`, the macOS
+    bundle) or may be (`Program Files` on Windows), so the cache goes to
+    the writable data folder instead.
     """
-    if "FLATPAK_ID" not in os.environ:
+    if not is_packaged():
         return plantilla_path.parent
     return context.root().parent / "cache" / "plantillas"

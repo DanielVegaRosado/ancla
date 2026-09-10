@@ -1,11 +1,11 @@
-"""Tests for the desktop launcher. Only covers `_wait_for_server`: it's the
-only part that isn't directly opening a native window, so it's the only
-thing that can really be tested without a graphical environment (same as
-`run.py`, which also has no tests — what opens the window itself isn't
-tested here)."""
+"""Tests for the desktop launcher: the parts that don't open a native
+window (waiting for the server, bringing data over from earlier builds).
+What opens the window itself can't be tested without a graphical
+environment, same as `run.py`."""
 from __future__ import annotations
 
 import socket
+import sys
 import threading
 import time
 
@@ -54,20 +54,31 @@ def test_lanza_un_error_claro_si_nunca_arranca():
         _wait_for_server("127.0.0.1", puerto, attempts=3, wait=0.01)
 
 
-def test_fuera_de_flatpak_no_cambia_donde_se_guarda_el_perfil(monkeypatch):
-    from desktop import _flatpak_data_root
+def test_empaquetada_trae_los_datos_de_junto_al_ejecutable(monkeypatch, tmp_path):
+    from desktop import _copy_data_from_earlier_versions
 
-    monkeypatch.delenv("FLATPAK_ID", raising=False)
-    assert _flatpak_data_root() is None
+    junto_al_exe = tmp_path / "descarga"
+    (junto_al_exe / "perfil").mkdir(parents=True)
+    (junto_al_exe / "ajustes.json").write_text("{}")
+    monkeypatch.setattr(sys, "frozen", True, raising=False)
+    monkeypatch.setattr(sys, "executable", str(junto_al_exe / "Ancla.exe"))
+    monkeypatch.setattr(sys, "platform", "win32")
+    monkeypatch.setenv("APPDATA", str(tmp_path / "AppData"))
+
+    _copy_data_from_earlier_versions()
+
+    assert (tmp_path / "AppData" / "Ancla" / "perfil").is_dir()
+    assert (tmp_path / "AppData" / "Ancla" / "ajustes.json").exists()
 
 
-def test_dentro_de_flatpak_el_perfil_va_a_xdg_data_home_no_a_home(monkeypatch, tmp_path):
-    """Dentro del sandbox `$HOME` es una carpeta en memoria que se tira al
-    cerrar la app; lo único persistente es `$XDG_DATA_HOME`."""
-    from desktop import _flatpak_data_root
+def test_desde_fuente_no_copia_nada(monkeypatch):
+    import ancla.web.legacy_data
+    from desktop import _copy_data_from_earlier_versions
 
-    monkeypatch.setenv("FLATPAK_ID", "com.danielvegarosado.Ancla")
-    monkeypatch.setenv("XDG_DATA_HOME", str(tmp_path / "data"))
-    monkeypatch.setenv("HOME", str(tmp_path / "home-efimero"))
+    llamadas = []
+    monkeypatch.setattr(ancla.web.legacy_data, "copy_legacy_data", lambda *args: llamadas.append(args))
+    monkeypatch.delattr(sys, "frozen", raising=False)
 
-    assert _flatpak_data_root() == tmp_path / "data" / "Ancla"
+    _copy_data_from_earlier_versions()
+
+    assert llamadas == []

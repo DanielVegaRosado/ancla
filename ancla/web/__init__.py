@@ -20,11 +20,11 @@ from flask import Flask, flash, redirect, render_template, request, url_for
 from flask_babel import Babel, get_locale
 from flask_babel import gettext as _
 
-from ancla.web.routes import data_root
+from ancla.web.routes import PROFILE_DIR_NAME, data_root, templates_root
 
-RAIZ_PERFIL_POR_DEFECTO = data_root() / "perfil"
-RAIZ_PLANTILLAS_CANVA_POR_DEFECTO = data_root() / "canva-templates"
-RAIZ_PLANTILLAS_HTML_POR_DEFECTO = data_root() / "html-templates"
+RAIZ_PERFIL_POR_DEFECTO = data_root() / PROFILE_DIR_NAME
+RAIZ_PLANTILLAS_CANVA_POR_DEFECTO = templates_root() / "canva-templates"
+RAIZ_PLANTILLAS_HTML_POR_DEFECTO = templates_root() / "html-templates"
 # Caps any single upload (CV import, profile zip restore). Flask enforces
 # this before the view even runs, so it protects the shared Render demo
 # from a stranger exhausting memory with an oversized request body.

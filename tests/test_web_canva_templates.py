@@ -3,6 +3,7 @@ in-app PDF preview — never a redirect out to canva.com."""
 from __future__ import annotations
 
 import os
+import sys
 from pathlib import Path
 
 import pytest
@@ -182,3 +183,16 @@ def test_la_vista_previa_no_escribe_junto_al_pdf_dentro_de_un_flatpak(
         assert len(cacheada) == 1
     finally:
         plantillas_canva_reales.chmod(0o755)
+
+
+def test_la_vista_previa_no_escribe_junto_al_pdf_en_la_app_empaquetada(
+    tmp_path: Path, plantillas_canva_reales: Path, monkeypatch
+):
+    """On Windows the templates sit next to the .exe, which may be under
+    Program Files and not writable."""
+    monkeypatch.setattr(sys, "frozen", True, raising=False)
+    cliente = _cliente(tmp_path, plantillas_canva_reales)
+    respuesta = cliente.get("/plantillas/calida/vista-previa.png")
+    assert respuesta.status_code == 200
+    assert not (plantillas_canva_reales / "calida.png").exists()
+    assert (tmp_path / "cache" / "plantillas" / "calida.png").exists()
