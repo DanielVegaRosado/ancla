@@ -71,10 +71,10 @@ MAX_SKILLS = 40
 # number costs nothing a real "About me" would ever need.
 RESERVED_TOKENS = 800
 
-SISTEMA = """\
-Señalas dónde van seis huecos dentro del «Sobre mí» que una persona ya ha escrito, en \
-español y en inglés. NO reescribes su texto: solo indicas qué trozos exactos se \
-sustituirán después por nombres de skills suyas.
+_INTRO = """\
+Señalas dónde van seis huecos dentro del «Sobre mí» que una persona ya ha escrito{idiomas}. \
+NO reescribes su texto: solo indicas qué trozos exactos se sustituirán después por \
+nombres de skills suyas.
 
 Los seis huecos son GROUP_A_1, GROUP_A_2 y GROUP_A_3, que se rellenan con conceptos o \
 dominios de trabajo (machine learning, backend, análisis de datos), y GROUP_B_1, \
@@ -82,30 +82,67 @@ GROUP_B_2 y GROUP_B_3, que se rellenan con lenguajes y tecnologías concretas (P
 Docker, PostgreSQL). Poner uno donde va el otro produce frases absurdas.
 
 Reglas:
-1. Cada fragmento se copia LITERAL del texto de esa persona, carácter por carácter, con \
-sus mismas mayúsculas, tildes y puntuación. Un fragmento que no esté tal cual en el \
-texto se descarta y ese hueco se queda sin colocar.
-2. Un fragmento son las pocas palabras que nombran el concepto o la tecnología, nunca la \
-frase entera: al sustituirlo por el nombre de una skill, la frase tiene que seguir \
-leyéndose bien.
-3. El mismo hueco en español y en inglés marca la MISMA idea en el mismo punto de la \
-frase. Los dos se rellenan con la misma skill, así que si no se corresponden el CV en \
-inglés queda incoherente.
-4. Los fragmentos no se solapan entre sí ni se repiten en dos huecos.
-5. Si el texto no da para los seis, deja vacíos los que no puedas. Es mejor un hueco sin \
-colocar que un trozo señalado a la fuerza.
-6. No devuelvas el texto reescrito, ni frases nuevas, ni explicaciones, ni las skills \
-que te paso: solo fragmentos copiados del texto.
+"""
 
+_REGLA_LITERAL = (
+    "Cada fragmento se copia LITERAL del texto de esa persona, carácter por carácter, con "
+    "sus mismas mayúsculas, tildes y puntuación. Un fragmento que no esté tal cual en el "
+    "texto se descarta y ese hueco se queda sin colocar."
+)
+_REGLA_CORTO = (
+    "Un fragmento son las pocas palabras que nombran el concepto o la tecnología, nunca la "
+    "frase entera: al sustituirlo por el nombre de una skill, la frase tiene que seguir "
+    "leyéndose bien."
+)
+# Only meaningful with both languages: `AboutMe.render` fills a gap with one
+# skill shared by the two (see module docstring), so with a single language
+# there is nothing to keep paired.
+_REGLA_PAREJA = (
+    "El mismo hueco en español y en inglés marca la MISMA idea en el mismo punto de la "
+    "frase. Los dos se rellenan con la misma skill, así que si no se corresponden el CV en "
+    "inglés queda incoherente."
+)
+_REGLA_SIN_SOLAPE = "Los fragmentos no se solapan entre sí ni se repiten en dos huecos."
+_REGLA_PARCIAL = (
+    "Si el texto no da para los seis, deja vacíos los que no puedas. Es mejor un hueco sin "
+    "colocar que un trozo señalado a la fuerza."
+)
+_REGLA_SIN_REESCRIBIR = (
+    "No devuelvas el texto reescrito, ni frases nuevas, ni explicaciones, ni las skills "
+    "que te paso: solo fragmentos copiados del texto."
+)
+
+_CIERRE = """
 Responde ÚNICAMENTE con este JSON, sin texto alrededor ni bloques de código:
-{
-  "GROUP_A_1": {"es": "", "en": ""},
-  "GROUP_A_2": {"es": "", "en": ""},
-  "GROUP_A_3": {"es": "", "en": ""},
-  "GROUP_B_1": {"es": "", "en": ""},
-  "GROUP_B_2": {"es": "", "en": ""},
-  "GROUP_B_3": {"es": "", "en": ""}
-}"""
+{esquema}"""
+
+
+def _system_prompt(idiomas: tuple[Language, ...], huecos: tuple[str, ...]) -> str:
+    """Built for one or two languages: the pairing rule and the mention of
+    "español e inglés" only make sense when both are being asked for, and
+    the JSON schema asks for a plain fragment per gap instead of an
+    `{"es": ..., "en": ...}` pair when there is only one language to fill.
+
+    Never mentions a language that has nothing written in it — there is no
+    reason to point the model at an empty "Sobre mí" it was not asked to
+    touch.
+    """
+    reglas = [_REGLA_LITERAL, _REGLA_CORTO]
+    if len(idiomas) == 2:
+        reglas.append(_REGLA_PAREJA)
+    reglas += [_REGLA_SIN_SOLAPE, _REGLA_PARCIAL, _REGLA_SIN_REESCRIBIR]
+    cuerpo_reglas = "\n".join(f"{n}. {regla}" for n, regla in enumerate(reglas, start=1))
+    intro = _INTRO.format(idiomas=", en español y en inglés" if len(idiomas) == 2 else "")
+    return intro + cuerpo_reglas + _CIERRE.format(esquema=_esquema_json(idiomas, huecos))
+
+
+def _esquema_json(idiomas: tuple[Language, ...], huecos: tuple[str, ...]) -> str:
+    nombres = [hueco.strip("{}") for hueco in huecos]
+    if len(idiomas) == 2:
+        relleno: object = {"es": "", "en": ""}
+    else:
+        relleno = ""
+    return json.dumps({nombre: relleno for nombre in nombres}, indent=2)
 
 
 @dataclass(frozen=True)
@@ -121,20 +158,35 @@ class GapProposal:
 
 
 def suggest_gaps(cliente: AIClient, sobre_mi: AboutMe, skills: list[Skill]) -> GapProposal:
-    """One call for both languages. `skills` must be the technical catalog."""
-    if not any(sobre_mi.template[idioma].strip() for idioma in LANGUAGES):
+    """One call for whichever languages have text. `skills` must be the
+    technical catalog.
+
+    With both languages written, the model is asked for the ES and the EN
+    fragment of each gap together, in the same call (see module docstring:
+    asking twice would let a gap land on unrelated ideas). With only one
+    language written there is no pairing to ask for, so the request and the
+    prompt drop it — see `_system_prompt`.
+    """
+    idiomas = tuple(idioma for idioma in LANGUAGES if sobre_mi.template[idioma].strip())
+    if not idiomas:
         return GapProposal(sobre_mi, [_("Escribe primero tu «Sobre mí» en los dos idiomas.")])
     if not cliente.available():
         return GapProposal(
             sobre_mi, [_("No hay ninguna clave de API configurada. Ve a Ajustes.")]
         )
 
+    huecos = sobre_mi.gaps()
     try:
-        bruto = complete_with_budget(cliente, SISTEMA, _request(sobre_mi, skills), RESERVED_TOKENS)
+        bruto = complete_with_budget(
+            cliente,
+            _system_prompt(idiomas, huecos),
+            _request(sobre_mi, skills, idiomas),
+            RESERVED_TOKENS,
+        )
     except Exception as exc:
         return GapProposal(sobre_mi, [_("No se han podido proponer los huecos: %(error)s", error=exc)])
 
-    fragmentos = _fragments(bruto, sobre_mi.gaps())
+    fragmentos = _fragments(bruto, huecos, idiomas)
     if fragmentos is None:
         return GapProposal(
             sobre_mi,
@@ -240,10 +292,13 @@ def _tolerant_pattern(fragmento: str) -> re.Pattern[str]:
 # --------------------------------------------------------------------------
 
 
-def _request(sobre_mi: AboutMe, skills: list[Skill]) -> str:
+_ETIQUETA_IDIOMA = {"es": "ES", "en": "EN"}
+
+
+def _request(sobre_mi: AboutMe, skills: list[Skill], idiomas: tuple[Language, ...]) -> str:
     partes = [
-        f"Sobre mí (ES):\n{_trim(sobre_mi.template['es'])}",
-        f"Sobre mí (EN):\n{_trim(sobre_mi.template['en'])}",
+        f"Sobre mí ({_ETIQUETA_IDIOMA[idioma]}):\n{_trim(sobre_mi.template[idioma])}"
+        for idioma in idiomas
     ]
     nombres = _skill_names(skills)
     if nombres:
@@ -272,7 +327,9 @@ def _skill_names(skills: list[Skill]) -> list[str]:
     return nombres
 
 
-def _fragments(bruto: str, huecos: tuple[str, ...]) -> dict[str, Bilingual[str]] | None:
+def _fragments(
+    bruto: str, huecos: tuple[str, ...], idiomas: tuple[Language, ...]
+) -> dict[str, Bilingual[str]] | None:
     """The model's answer as `{gap: fragments}`, or `None` if it cannot be
     read at all. The gaps come from `AboutMe`, so anything the model made up
     on its own is ignored rather than trusted."""
@@ -289,14 +346,26 @@ def _fragments(bruto: str, huecos: tuple[str, ...]) -> dict[str, Bilingual[str]]
     # model that copies the gap as it appears in the text is answering the
     # question just as well.
     return {
-        hueco: _bilingual(datos.get(hueco.strip("{}"), datos.get(hueco)))
+        hueco: _bilingual(datos.get(hueco.strip("{}"), datos.get(hueco)), idiomas)
         for hueco in huecos
     }
 
 
-def _bilingual(datos: object) -> Bilingual[str]:
+def _bilingual(datos: object, idiomas: tuple[Language, ...]) -> Bilingual[str]:
+    """Reads one gap's answer in whatever shape `_system_prompt` asked for:
+    `{"es": ..., "en": ...}` for two languages, a plain fragment for one.
+    The language that was not asked for stays empty — `place()` never looks
+    at it, because that is exactly the language whose original text is
+    empty too."""
+    if len(idiomas) == 1:
+        fragmento = to_text(datos)
+        return Bilingual(**{idiomas[0]: fragmento, _other(idiomas[0]): ""})
     datos = datos if isinstance(datos, dict) else {}
     return Bilingual(es=to_text(datos.get("es")), en=to_text(datos.get("en")))
+
+
+def _other(idioma: Language) -> Language:
+    return "en" if idioma == "es" else "es"
 
 
 def _aviso_sin_colocar(idioma: Language, huecos: list[str]) -> str:

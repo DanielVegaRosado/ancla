@@ -84,12 +84,92 @@ def test_un_idioma_sin_escribir_no_avisa_de_huecos_sin_colocar():
     """Un idioma vacío no tiene nada donde colocar un fragmento — no es lo
     mismo que el modelo fallando sobre texto real, así que no avisa."""
     propuesta = gaps.suggest_gaps(
-        ClienteFalso(_respuesta_completa()), _sobre_mi(en=""), []
+        ClienteFalso(_respuesta_un_idioma()), _sobre_mi(en=""), []
     )
 
     assert propuesta.avisos == []
     assert propuesta.about_me.template["en"] == ""
     assert "{GROUP_A_1}" in propuesta.about_me.template["es"]
+
+
+def _respuesta_un_idioma() -> str:
+    """Como la devolvería el modelo cuando solo se le pide un idioma: un
+    fragmento por hueco, no la pareja `{"es": ..., "en": ...}`."""
+    return json.dumps(
+        {
+            "GROUP_A_1": "aprendizaje automático",
+            "GROUP_A_2": "backend",
+            "GROUP_A_3": "análisis de datos",
+            "GROUP_B_1": "Python",
+            "GROUP_B_2": "Docker",
+            "GROUP_B_3": "PostgreSQL",
+        }
+    )
+
+
+def test_solo_espanol_coloca_los_huecos_en_espanol_y_deja_el_ingles_vacio():
+    propuesta = gaps.suggest_gaps(
+        ClienteFalso(_respuesta_un_idioma()), _sobre_mi(en=""), []
+    )
+
+    assert propuesta.avisos == []
+    assert propuesta.about_me.template["en"] == ""
+    assert propuesta.about_me.template["es"] == (
+        "Desarrollador centrado en {GROUP_A_1} y en {GROUP_A_2}, "
+        "con experiencia en {GROUP_A_3} usando {GROUP_B_1}, {GROUP_B_2} y {GROUP_B_3}."
+    )
+
+
+def test_solo_ingles_coloca_los_huecos_en_ingles_y_deja_el_espanol_vacio():
+    respuesta = json.dumps(
+        {
+            "GROUP_A_1": "machine learning",
+            "GROUP_A_2": "backend",
+            "GROUP_A_3": "data analysis",
+            "GROUP_B_1": "Python",
+            "GROUP_B_2": "Docker",
+            "GROUP_B_3": "PostgreSQL",
+        }
+    )
+    propuesta = gaps.suggest_gaps(ClienteFalso(respuesta), _sobre_mi(es=""), [])
+
+    assert propuesta.avisos == []
+    assert propuesta.about_me.template["es"] == ""
+    assert propuesta.about_me.template["en"] == (
+        "Developer focused on {GROUP_A_1} and {GROUP_A_2}, "
+        "with experience in {GROUP_A_3} using {GROUP_B_1}, {GROUP_B_2} and {GROUP_B_3}."
+    )
+
+
+def test_un_solo_idioma_no_envia_el_texto_del_idioma_vacio_ni_la_regla_de_pareja():
+    cliente = ClienteFalso(_respuesta_un_idioma())
+    gaps.suggest_gaps(cliente, _sobre_mi(en=""), [])
+
+    peticion = cliente.peticiones[0]
+    assert SOBRE_MI_ES in peticion
+    assert "Sobre mí (EN)" not in peticion
+
+    sistema = gaps._system_prompt(("es",), _sobre_mi(en="").gaps())
+    assert "en español y en inglés" not in sistema
+    assert "MISMA idea" not in sistema
+    assert '"es": ""' not in sistema
+    assert '"GROUP_A_1": ""' in sistema
+
+
+def test_con_los_dos_idiomas_la_peticion_y_el_esquema_no_cambian():
+    """El comportamiento bilingüe no se toca: misma petición, misma regla de
+    pareja, mismo esquema JSON con `{"es": ..., "en": ...}` por hueco."""
+    cliente = ClienteFalso(_respuesta_completa())
+    gaps.suggest_gaps(cliente, _sobre_mi(), [])
+
+    peticion = cliente.peticiones[0]
+    assert "Sobre mí (ES)" in peticion
+    assert "Sobre mí (EN)" in peticion
+
+    sistema = gaps._system_prompt(("es", "en"), _sobre_mi().gaps())
+    assert "en español y en inglés" in sistema
+    assert "MISMA idea" in sistema
+    assert '"GROUP_A_1": {\n    "es": "",\n    "en": ""\n  }' in sistema
 
 
 def test_un_fragmento_que_no_esta_literal_se_descarta_y_se_avisa():
