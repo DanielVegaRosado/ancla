@@ -13,7 +13,7 @@ from ancla.web import settings as modulo_ajustes
 
 def _pdf_minimo() -> bytes:
     """A byte-for-byte valid, blank one-page PDF — real enough for
-    `pdftoppm` to render, unlike a `%PDF` prefix on arbitrary bytes."""
+    pypdfium2 to render, unlike a `%PDF` prefix on arbitrary bytes."""
     objetos = [
         b"<</Type/Catalog/Pages 2 0 R>>",
         b"<</Type/Pages/Kids[3 0 R]/Count 1>>",
@@ -161,3 +161,24 @@ def test_la_vista_previa_se_regenera_si_el_pdf_cambia(tmp_path: Path, plantillas
 
     cliente.get("/plantillas/calida/vista-previa.png")
     assert cacheada.stat().st_mtime > mtime_tras_primera
+
+
+def test_la_vista_previa_no_escribe_junto_al_pdf_dentro_de_un_flatpak(
+    tmp_path: Path, plantillas_canva_reales: Path, monkeypatch
+):
+    """Dentro de un Flatpak, canva-templates/ viaja instalada de solo
+    lectura — escribir ahí revienta la petición con un 500. FLATPAK_ID,
+    que Flatpak define siempre dentro del sandbox, desvía la caché a una
+    carpeta escribible en vez de intentarlo."""
+    plantillas_canva_reales.chmod(0o555)
+    monkeypatch.setenv("FLATPAK_ID", "com.danielvegarosado.Ancla")
+    try:
+        cliente = _cliente(tmp_path, plantillas_canva_reales)
+        respuesta = cliente.get("/plantillas/calida/vista-previa.png")
+        assert respuesta.status_code == 200
+        assert respuesta.mimetype == "image/png"
+        assert not (plantillas_canva_reales / "calida.png").exists()
+        cacheada = list((tmp_path / "cache" / "plantillas").glob("calida.png"))
+        assert len(cacheada) == 1
+    finally:
+        plantillas_canva_reales.chmod(0o755)

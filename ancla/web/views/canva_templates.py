@@ -13,20 +13,20 @@ embedded directly: `<embed>` follows Chrome/Acrobat's viewer conventions
 (fragment params like `#toolbar=0`, an implicit margin some viewers add
 around the page), which Firefox's own PDF viewer does not honour the same
 way. A rendered image has no viewer chrome to disagree about. It is built
-with `pdftoppm` (already used elsewhere in this project to measure template
-PDFs) the first time it is requested, then cached next to the source PDF in
-`canva-templates/` as `<id>.png` — regenerated only if the PDF is newer than
-the cached image, so replacing a template's PDF by hand is enough to refresh
-its preview without touching code. That folder is already the writable,
-user-editable home for these templates (including in the packaged desktop
-build, where it travels next to the executable), so it is also the natural
-place to keep a derived file that belongs to one specific PDF.
+with pypdfium2 (bundled with the app, no system dependency — an earlier
+version shelled out to `pdftoppm`, which a plain desktop install has no
+reason to have installed) the first time it is requested, then cached as
+`<id>.png` — regenerated only if the PDF is newer than the cached image, so
+replacing a template's PDF by hand is enough to refresh its preview without
+touching code. See `_preview_cache_dir` for where that cache lives, which
+is not always next to the source PDF.
 """
 from __future__ import annotations
 
-import subprocess
+import os
 from pathlib import Path
 
+import pypdfium2 as pdfium
 from flask import abort, render_template, send_file
 
 from ancla.design import gallery
@@ -68,13 +68,22 @@ def canva_template_preview(id: str):
 
 
 def _ensure_preview(plantilla: DesignTemplate) -> Path:
-    """Renders the PDF's first page to a cached PNG next to it, unless a
-    cached one already exists and is not older than the PDF itself."""
-    preview_path = plantilla.path.with_suffix(".png")
+    """Renders the PDF's first page to a cached PNG, unless a cached one
+    already exists and is not older than the PDF itself."""
+    preview_path = _preview_cache_dir(plantilla.path) / f"{plantilla.path.stem}.png"
     if not preview_path.exists() or preview_path.stat().st_mtime < plantilla.path.stat().st_mtime:
-        prefix = str(preview_path.with_suffix(""))
-        subprocess.run(
-            ["pdftoppm", "-png", "-singlefile", "-r", str(_RESOLUCION_VISTA_PREVIA), str(plantilla.path), prefix],
-            check=True,
-        )
+        preview_path.parent.mkdir(parents=True, exist_ok=True)
+        pagina = pdfium.PdfDocument(str(plantilla.path))[0]
+        pagina.render(scale=_RESOLUCION_VISTA_PREVIA / 72).to_pil().save(preview_path)
     return preview_path
+
+
+def _preview_cache_dir(plantilla_path: Path) -> Path:
+    """Next to the source PDF everywhere except inside a Flatpak sandbox,
+    where that directory is installed read-only. `FLATPAK_ID`, set by
+    Flatpak inside every sandboxed app, is the same signal `desktop.py`
+    already uses to reroute writable paths there.
+    """
+    if "FLATPAK_ID" not in os.environ:
+        return plantilla_path.parent
+    return context.root().parent / "cache" / "plantillas"

@@ -110,10 +110,12 @@ jobs:
           # los dos toolchains existe en el sandbox de flatpak-builder, y
           # sin --prefer-wheels el generador puede elegir el .tar.gz fuente
           # de cualquiera de los tres en vez de una rueda ya compilada.
+          # pypdfium2 ya trae rueda universal (py3-none-manylinux) para todo,
+          # pero se añade igual por si acaso: más barato que otra ronda de CI.
           python3 -m flatpak_pip_generator \
             --runtime='org.gnome.Sdk//50' \
             --requirements-file=/tmp/requirements-flatpak-aplanado.txt \
-            --prefer-wheels=pydantic-core,jiter,pillow \
+            --prefer-wheels=pydantic-core,jiter,pillow,pypdfium2 \
             --output empaquetado/flatpak/python3-requirements
 
       - name: Construir el Flatpak (solo Linux)
