@@ -113,6 +113,14 @@ def change_status(root: Path, id: str, estado: CVStatus) -> None:
     save(root, dataclasses.replace(cv, status=CVStatus(estado)))
 
 
+def update_meta(root: Path, id: str, company: str, position: str) -> None:
+    """Corrects the company/position of an already-saved CV. The id (and
+    the file name it is based on) is not recomputed: only the fields
+    change, so links and attachments to this CV stay valid."""
+    cv = read(_path(root, id))
+    save(root, dataclasses.replace(cv, company=company, position=position))
+
+
 def attach(root: Path, id: str, archivo: Path, nombre_original: str) -> Path:
     """Copies the user's final CV into `cvs/attachments/` and adds it to
     the CV's `attachments` list — it never replaces a previous one, since

@@ -319,6 +319,10 @@ class CVStatus(str, Enum):
     ACCEPTED = "accepted"
 
 
+MAX_COMPANY_LEN = 120
+MAX_POSITION_LEN = 120
+
+
 @dataclass(frozen=True)
 class SavedCV:
     """An archived adaptation, to look up, duplicate, or reuse.

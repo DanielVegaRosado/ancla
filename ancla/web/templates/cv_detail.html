@@ -2,7 +2,11 @@
 {% block titulo %}{{ cv.company }} · Ancla{% endblock %}
 {% block contenido %}
   <p><a href="{{ url_for('ancla.list_cvs') }}">← {{ _('Mis CVs') }}</a></p>
-  <h1>{{ cv.company }}{% if cv.position %} · {{ cv.position }}{% endif %}</h1>
+  <form class="en-linea campo-meta" method="post" action="{{ url_for('ancla.edit_cv_meta', id_=cv.id) }}">
+    <input type="text" name="empresa" value="{{ cv.company }}" maxlength="120" required aria-label="{{ _('Empresa') }}">
+    <input type="text" name="puesto" value="{{ cv.position }}" maxlength="120" aria-label="{{ _('Puesto') }}">
+    <button type="submit" class="boton-pequeno">{{ _('Guardar') }}</button>
+  </form>
   <p class="ayuda">
     {{ cv.date }}{% if cv.time %} · {{ cv.time.strftime('%H:%M') }}{% endif %}
     · {{ _("Español") if cv.proposal.language == "es" else _("Inglés") }}

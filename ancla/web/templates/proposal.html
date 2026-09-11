@@ -12,12 +12,11 @@
     <a href="{{ url_for('ancla.canva_templates') }}">{{ _('Mira las plantillas de partida →') }}</a>
   </p>
 
-  <!-- Vista previa maquetada en HTML: el PDF lo imprime el navegador -->
+  <!-- HTML-laid-out preview: the browser prints the PDF -->
   {% with accion = url_for('ancla.preview_proposal') %}
     {% include "_cv_preview_form.html" %}
   {% endwith %}
 
-  <!-- Sobre mí -->
   <section class="tarjeta">
     <div class="cabecera-bloque">
       <h2>{{ _('Sobre mí') }}</h2>
@@ -54,7 +53,6 @@
     </details>
   </section>
 
-  <!-- Skills -->
   <section class="tarjeta">
     <div class="cabecera-bloque">
       <h2>{{ _('Skills técnicas') }} ({{ skills|length }})</h2>
@@ -94,7 +92,6 @@
     {% if propuesta.skills_reason %}<p class="motivo">{{ _('Motivo:') }} {{ propuesta.skills_reason }}</p>{% endif %}
   </section>
 
-  <!-- Experiencia -->
   <section class="tarjeta">
     <div class="cabecera-bloque">
       <h2>{{ _('Experiencia relevante') }} ({{ experiencias|length }})</h2>
@@ -154,7 +151,7 @@
   </section>
 
   {% if perfil.personal_skills %}
-  <!-- Skills personales: sin selección de IA, siempre completas -->
+  <!-- Personal skills: no AI selection, always shown in full -->
   <section class="tarjeta">
     <div class="cabecera-bloque">
       <h2>{{ _('Skills personales') }} ({{ perfil.personal_skills|length }})</h2>
@@ -171,7 +168,7 @@
   {% endif %}
 
   {% if perfil.languages %}
-  <!-- Idiomas: sin selección de IA, siempre completos -->
+  <!-- Languages: no AI selection, always shown in full -->
   <section class="tarjeta">
     <div class="cabecera-bloque">
       <h2>{{ _('Idiomas') }} ({{ perfil.languages|length }})</h2>
@@ -187,7 +184,6 @@
   </section>
   {% endif %}
 
-  <!-- Huecos -->
   <section class="tarjeta">
     <h2>{{ _('Huecos detectados') }}</h2>
     <p class="ayuda">{{ _('Lo que pide la vacante y no está en tu perfil. No entra en el CV: es información para ti.') }}</p>
@@ -208,11 +204,11 @@
       <form class="pila" method="post" action="{{ url_for('ancla.save_proposal') }}">
         <div class="campo">
           <label for="empresa">{{ _('Empresa') }}</label>
-          <input type="text" id="empresa" name="empresa" value="{{ borrador.empresa }}" required>
+          <input type="text" id="empresa" name="empresa" value="{{ borrador.empresa }}" maxlength="120" required>
         </div>
         <div class="campo">
           <label for="puesto">{{ _('Puesto') }}</label>
-          <input type="text" id="puesto" name="puesto" value="{{ borrador.puesto }}">
+          <input type="text" id="puesto" name="puesto" value="{{ borrador.puesto }}" maxlength="120">
         </div>
         <div class="campo">
           <label for="notas">{{ _('Notas (opcional)') }}</label>

@@ -9,7 +9,7 @@ from flask_babel import gettext as _
 
 from ancla.archive import repository as archivo
 from ancla.export import html_templates as plantillas_html
-from ancla.profile.model import CVStatus, SavedCV
+from ancla.profile.model import MAX_COMPANY_LEN, MAX_POSITION_LEN, CVStatus, SavedCV
 from ancla.proposal.format import to_markdown
 from ancla.web import context
 from ancla.web.blueprint import bp
@@ -64,6 +64,19 @@ def _display_names(cv: SavedCV) -> list[tuple[str, str]]:
     needs to see."""
     prefijo = f"{cv.id}__"
     return [(nombre, nombre.removeprefix(prefijo)) for nombre in cv.attachments]
+
+
+@bp.route("/cvs/<id_>/meta", methods=["POST"])
+def edit_cv_meta(id_: str):
+    empresa = request.form.get("empresa", "").strip()[:MAX_COMPANY_LEN]
+    puesto = request.form.get("puesto", "").strip()[:MAX_POSITION_LEN]
+    if not empresa:
+        flash(_("La empresa no puede quedar vacía."))
+        return redirect(url_for("ancla.view_cv", id_=id_))
+
+    archivo.update_meta(context.root(), id_, empresa, puesto)
+    flash(_("Empresa y puesto actualizados."))
+    return redirect(url_for("ancla.view_cv", id_=id_))
 
 
 @bp.route("/cvs/<id_>/estado", methods=["POST"])

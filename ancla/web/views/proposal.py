@@ -11,6 +11,8 @@ from flask_babel import gettext as _
 from ancla.ai.client import AIError
 from ancla.export import html_templates as plantillas_html
 from ancla.profile.model import (
+    MAX_COMPANY_LEN,
+    MAX_POSITION_LEN,
     N_EXPERIENCES,
     N_SKILLS,
     CVStatus,
@@ -242,8 +244,8 @@ def save_proposal():
     if borrador is None:
         return redirect(url_for("ancla.adapt"))
 
-    empresa = request.form.get("empresa", "").strip() or borrador.empresa or "Empresa"
-    puesto = request.form.get("puesto", "").strip() or borrador.puesto
+    empresa = (request.form.get("empresa", "").strip() or borrador.empresa or "Empresa")[:MAX_COMPANY_LEN]
+    puesto = (request.form.get("puesto", "").strip() or borrador.puesto)[:MAX_POSITION_LEN]
     notas = request.form.get("notas", "").strip()
     # Both come from the same instant so a capture does not cross midnight
     # against the other if they were read separately.
