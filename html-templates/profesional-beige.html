@@ -1,0 +1,98 @@
+{#
+  Professional Beige, measured on `canva-templates/profesional-beige.pdf`:
+  mauve side panel on the right instead of the left (mirrors both other
+  templates), a full-width photo-and-name header with an accent band for
+  the headline, and education inside the main column rather than the
+  panel. Drawn in IBM Plex Sans rather than the original's script/serif
+  pairing, which is not bundled with the app.
+
+  Only "Skills" is shown in the panel — the original design has no
+  separate personal-skills block, and this template intentionally does
+  not add one: `skills_personales` is never rendered here, unlike the
+  other two templates. The original also has no photo inside the panel
+  (it sits in the header) and no bullets per experience (each one reads
+  as a single running paragraph), so `experiencia.bullets` is joined into
+  one paragraph rather than listed.
+#}
+<article class="cv">
+  <div class="cv-banda-lateral" aria-hidden="true"></div>
+
+  <div class="cv-cabecera">
+    {% if foto %}
+      <div class="cv-foto"><img src="{{ foto }}" alt=""></div>
+    {% endif %}
+    <div class="cv-identidad">
+      <h1 class="cv-nombre">{{ nombre_primero }}<strong>{{ nombre_resto }}</strong></h1>
+    </div>
+  </div>
+  {% if titular %}<p class="cv-titular">{{ titular }}</p>{% endif %}
+
+  <div class="cv-cuerpo">
+    <main class="cv-principal">
+      {% if experiencias %}
+        <section class="cv-seccion cv-seccion-experiencia">
+          <h2 class="cv-cabecera-principal">{{ etiqueta_experiencia_relevante }}</h2>
+          {% for experiencia in experiencias %}
+            <article class="cv-experiencia">
+              <h3 class="cv-puesto">{{ experiencia.puesto }}</h3>
+              <p class="cv-fechas">{{ experiencia.fechas }}</p>
+              {% if experiencia.bullets %}
+                <p class="cv-parrafo">{{ experiencia.bullets|join(". ") }}.</p>
+              {% endif %}
+              {% if experiencia.stack %}<p class="cv-stack">{{ experiencia.stack }}</p>{% endif %}
+            </article>
+            {% if not loop.last %}<div class="cv-espaciador" aria-hidden="true"></div>{% endif %}
+          {% endfor %}
+        </section>
+      {% endif %}
+
+      {% if educacion %}
+        <section class="cv-seccion">
+          <h2 class="cv-cabecera-principal">{{ etiqueta_educacion }}</h2>
+          {% for entrada in educacion %}
+            <div class="cv-educacion">
+              <p class="cv-educacion-titulo">{{ entrada.titulo }}</p>
+              <p class="cv-educacion-fechas">{{ entrada.fechas }}</p>
+            </div>
+          {% endfor %}
+        </section>
+      {% endif %}
+    </main>
+
+    <aside class="cv-lateral">
+      {% if contacto %}
+        <section class="cv-bloque">
+          <h2 class="cv-cabecera-lateral">{{ etiqueta_contacto }}</h2>
+          <ul class="cv-lista">
+            {% for linea in contacto %}<li>{{ linea }}</li>{% endfor %}
+          </ul>
+        </section>
+      {% endif %}
+
+      {% if sobre_mi %}
+        <section class="cv-bloque">
+          <h2 class="cv-cabecera-lateral">{{ etiqueta_sobre_mi }}</h2>
+          <p class="cv-sobre-mi">{{ sobre_mi }}</p>
+        </section>
+      {% endif %}
+
+      {% if skills %}
+        <section class="cv-bloque">
+          <h2 class="cv-cabecera-lateral">{{ etiqueta_skills }}</h2>
+          <ul class="cv-lista cv-lista-punteada">
+            {% for skill in skills %}<li>{{ skill }}</li>{% endfor %}
+          </ul>
+        </section>
+      {% endif %}
+
+      {% if idiomas %}
+        <section class="cv-bloque">
+          <h2 class="cv-cabecera-lateral">{{ etiqueta_idiomas }}</h2>
+          <ul class="cv-lista cv-lista-punteada">
+            {% for idioma in idiomas %}<li>{{ idioma }}</li>{% endfor %}
+          </ul>
+        </section>
+      {% endif %}
+    </aside>
+  </div>
+</article>

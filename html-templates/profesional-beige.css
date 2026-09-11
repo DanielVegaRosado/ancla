@@ -1,0 +1,314 @@
+/* Professional Beige — print stylesheet.
+
+   Panel width, colors and header proportions measured on
+   `canva-templates/profesional-beige.pdf` with Pillow (page render) and
+   pypdf (exact page size) — same method as the other two templates, but
+   applied by hand: the panel sits on the right here, and the automatic
+   measurement script only looks for one on the left.
+
+   Everything in the main column that has a vertical size is written as
+   `calc(<measured>pt * var(--cv-escala, 1))`, the knob `cv_fit.js` turns
+   until the CV fits one page — see `corporativa-clasica.css` for the full
+   rationale. The panel answers to its own knob, `--cv-escala-lateral`.
+   Neither column's own padding scales, nor does the header above them. */
+
+:root {
+  --cv-panel: #b08977;
+  --cv-banda: #c8b2ab;
+  --cv-fondo: #e9eaec;
+  --cv-pill: #85675d;
+  --cv-ink: #1a1a1a;
+  --cv-body: #333333;
+  --cv-muted: #5c5c5c;
+  --cv-panel-texto: #ffffff;
+  --cv-ancho-lateral: 263.5pt;
+  --cv-alto-cabecera: 175pt;
+  --cv-alto-pagina: 841.92pt;
+}
+
+@page {
+  size: A4;
+  margin: 0;
+}
+
+.cv {
+  position: relative;
+  width: 595.32pt;
+  min-height: var(--cv-alto-pagina);
+  display: flex;
+  flex-direction: column;
+  background: var(--cv-fondo);
+  color: var(--cv-body);
+  font-family: "IBM Plex Sans", Helvetica, Arial, sans-serif;
+  font-size: 10.5pt;
+  line-height: 1.35;
+}
+
+/* Painted by an empty element rather than by the aside itself, same
+   reason as the other two templates: the aside's own box ends where its
+   content ends, and this has to reach the bottom of every page. `.cv` is
+   a flex column, so every direct child (this included) paints in DOM
+   order regardless of its own `position` — see the flexbox spec's
+   painting-order rule — which is what lets the header and body painted
+   after this one cover it everywhere they are opaque. */
+.cv-banda-lateral {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: var(--cv-ancho-lateral);
+  height: 100%;
+  background: var(--cv-panel);
+}
+
+.cv-cabecera {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: stretch;
+  min-height: var(--cv-alto-cabecera);
+  background: var(--cv-fondo);
+}
+
+.cv-foto {
+  flex: 0 0 198pt;
+  width: 198pt;
+  height: var(--cv-alto-cabecera);
+}
+
+.cv-foto img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.cv-identidad {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 18pt;
+}
+
+.cv-nombre {
+  margin: 0;
+  text-align: center;
+  font-size: 21pt;
+  font-weight: 400;
+  line-height: 1.2;
+  color: var(--cv-muted);
+}
+
+.cv-nombre strong {
+  display: block;
+  font-size: 1.3em;
+  font-weight: 700;
+  letter-spacing: 1pt;
+  color: var(--cv-ink);
+}
+
+.cv-titular {
+  position: relative;
+  z-index: 1;
+  margin: 0;
+  padding: 9pt 20pt;
+  background: var(--cv-banda);
+  color: #ffffff;
+  text-align: center;
+  font-size: 13pt;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.5pt;
+}
+
+.cv-cuerpo {
+  position: relative;
+  z-index: 1;
+  flex: 1 1 auto;
+  display: flex;
+  align-items: stretch;
+}
+
+.cv-principal,
+.cv-lateral {
+  position: relative;
+  padding-top: 20pt;
+  padding-bottom: 24pt;
+}
+
+.cv-principal {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding-left: 24pt;
+  padding-right: 22pt;
+  display: flex;
+  flex-direction: column;
+}
+
+.cv-lateral {
+  flex: 0 0 var(--cv-ancho-lateral);
+  width: var(--cv-ancho-lateral);
+  padding-left: 20pt;
+  padding-right: 20pt;
+  color: var(--cv-panel-texto);
+}
+
+.cv-bloque {
+  margin-bottom: calc(16pt * var(--cv-escala-lateral, 1));
+}
+
+.cv-cabecera-lateral {
+  margin: 0 0 calc(8pt * var(--cv-escala-lateral, 1));
+  padding: calc(6pt * var(--cv-escala-lateral, 1)) calc(12pt * var(--cv-escala-lateral, 1));
+  border-radius: 999pt;
+  background: var(--cv-fondo);
+  color: var(--cv-ink);
+  text-align: center;
+  font-size: calc(10.5pt * var(--cv-escala-lateral, 1));
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5pt;
+  break-after: avoid;
+}
+
+.cv-lista {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: calc(10pt * var(--cv-escala-lateral, 1));
+}
+
+.cv-lista li {
+  margin-bottom: calc(6pt * var(--cv-escala-lateral, 1));
+}
+
+.cv-lista-punteada {
+  padding-left: 11pt;
+  list-style: disc;
+}
+
+.cv-lista-punteada li {
+  margin-bottom: calc(3pt * var(--cv-escala-lateral, 1));
+}
+
+.cv-sobre-mi {
+  margin: 0;
+  font-size: calc(10pt * var(--cv-escala-lateral, 1));
+  line-height: calc(1.4 * var(--cv-escala-lateral, 1));
+}
+
+.cv-seccion {
+  margin-top: calc(16pt * var(--cv-escala, 1));
+}
+
+.cv-seccion:first-child {
+  margin-top: 0;
+}
+
+.cv-cabecera-principal {
+  margin: 0 0 calc(10pt * var(--cv-escala, 1));
+  padding: calc(7pt * var(--cv-escala, 1)) calc(16pt * var(--cv-escala, 1));
+  border-radius: 999pt;
+  background: var(--cv-pill);
+  color: var(--cv-ink);
+  text-align: center;
+  font-size: calc(11pt * var(--cv-escala, 1));
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5pt;
+  break-after: avoid;
+}
+
+/* Same technique as `corporativa-clasica.css`: whatever room the header
+   leaves is shared out between the experience entries via their own
+   spacers, instead of collecting as one gap before education. */
+.cv-seccion-experiencia {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.cv-espaciador {
+  flex: 1 1 0;
+  max-height: calc(20pt * var(--cv-escala, 1));
+}
+
+.cv-experiencia {
+  margin-bottom: calc(10pt * var(--cv-escala, 1));
+  break-inside: avoid;
+}
+
+.cv-puesto {
+  margin: 0;
+  font-size: calc(11pt * var(--cv-escala, 1));
+  font-weight: 700;
+  color: var(--cv-ink);
+}
+
+.cv-fechas {
+  margin: calc(1pt * var(--cv-escala, 1)) 0 0;
+  font-size: calc(9.5pt * var(--cv-escala, 1));
+  font-weight: 700;
+  color: var(--cv-body);
+}
+
+.cv-parrafo {
+  margin: calc(4pt * var(--cv-escala, 1)) 0 0;
+  font-size: calc(9.5pt * var(--cv-escala, 1));
+  line-height: calc(1.35 * var(--cv-escala, 1));
+  color: var(--cv-body);
+}
+
+.cv-stack {
+  margin: calc(4pt * var(--cv-escala, 1)) 0 0;
+  font-size: calc(9pt * var(--cv-escala, 1));
+  font-style: italic;
+  color: var(--cv-muted);
+}
+
+.cv-educacion {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10pt;
+  margin-bottom: calc(6pt * var(--cv-escala, 1));
+  break-inside: avoid;
+}
+
+.cv-educacion p {
+  margin: 0;
+}
+
+.cv-educacion-titulo {
+  font-size: calc(10.5pt * var(--cv-escala, 1));
+  font-weight: 700;
+  color: var(--cv-ink);
+}
+
+.cv-educacion-fechas {
+  flex: none;
+  font-size: calc(9.5pt * var(--cv-escala, 1));
+  color: var(--cv-muted);
+}
+
+@media print {
+  .cv {
+    width: auto;
+    min-height: auto;
+  }
+
+  /* Same guard as `corporativa-clasica.css`: a few points short of the
+     full page, not exactly it, or a height that rounds up a hair on
+     paper wastes a sidebar-only second page. */
+  .cv-principal {
+    min-height: calc(var(--cv-alto-pagina) - 8pt);
+  }
+
+  .cv-banda-lateral {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    height: auto;
+  }
+}

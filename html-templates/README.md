@@ -153,3 +153,14 @@ to shorten their "About me" or to print two pages.
   catalog), so both are left out rather than invented, and the original
   has no "About me" section at all — one is kept here anyway since every
   profile in this app writes one.
+- **`profesional-beige`** — the mirror of the other two: a mauve panel on
+  the *right* instead of the left, a full-width photo-and-name header
+  with an accent band for the headline, and education inside the main
+  column rather than the panel. Measured by hand on
+  `canva-templates/profesional-beige.pdf` (`nueva-plantilla-html.py` only
+  looks for a panel on the left, so it could not generate this one).
+  Skills are shown as a single "Skills" section with no technical/personal
+  split — this design has no personal-skills block in the original, and
+  `skills_personales` is never rendered here, unlike the other two
+  templates. Drawn in IBM Plex Sans rather than the script/serif pairing
+  of the original, which is not bundled with the app.
