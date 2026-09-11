@@ -93,13 +93,15 @@ def test_el_nombre_sigue_el_idioma_de_la_interfaz(tmp_path: Path, plantillas_can
     assert "Warm Minimalist" in detalle
 
 
-def test_la_vista_de_una_plantilla_embebe_su_pdf(tmp_path: Path, plantillas_canva: Path):
+def test_la_vista_de_una_plantilla_muestra_su_imagen_sin_visor_de_pdf(tmp_path: Path, plantillas_canva: Path):
     cliente = _cliente(tmp_path, plantillas_canva)
     respuesta = cliente.get("/plantillas/calida")
     assert respuesta.status_code == 200
     html = respuesta.data.decode("utf-8")
-    assert 'src="/plantillas/calida/archivo"' in html
-    assert 'type="application/pdf"' in html
+    assert 'src="/plantillas/calida/vista-detalle.png"' in html
+    assert "<embed" not in html
+    # The original PDF stays reachable, just not embedded with viewer chrome.
+    assert 'href="/plantillas/calida/archivo"' in html
     # Must not redirect to Canva anywhere on this screen.
     assert "canva.com" not in html
 
@@ -136,6 +138,19 @@ def test_la_vista_previa_renderiza_la_primera_pagina_del_pdf_como_png(
     assert respuesta.status_code == 200
     assert respuesta.mimetype == "image/png"
     assert respuesta.data[:8] == b"\x89PNG\r\n\x1a\n"
+
+
+def test_la_vista_de_detalle_renderiza_a_mayor_resolucion_en_su_propia_cache(
+    tmp_path: Path, plantillas_canva_reales: Path
+):
+    cliente = _cliente(tmp_path, plantillas_canva_reales)
+    respuesta = cliente.get("/plantillas/calida/vista-detalle.png")
+    assert respuesta.status_code == 200
+    assert respuesta.mimetype == "image/png"
+    assert respuesta.data[:8] == b"\x89PNG\r\n\x1a\n"
+    assert (plantillas_canva_reales / "calida-detalle.png").exists()
+    # Does not share a cache file with the gallery thumbnail.
+    assert not (plantillas_canva_reales / "calida.png").exists()
 
 
 def test_la_vista_previa_se_cachea_junto_al_pdf(tmp_path: Path, plantillas_canva_reales: Path):
