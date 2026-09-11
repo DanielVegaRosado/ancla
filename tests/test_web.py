@@ -12,6 +12,7 @@ from pathlib import Path
 import pytest
 
 from ancla.ai.client import AIError
+from ancla.profile import store
 from ancla.profile.model import (
     Proposal,
     SelectedAboutMe,
@@ -41,6 +42,47 @@ def test_slugificar_quita_acentos_y_espacios():
 
 def test_slugificar_texto_vacio_da_un_valor_por_defecto():
     assert slugify("   ") == "sin-titulo"
+
+
+def test_slugificar_un_nombre_larguisimo_cabe_en_un_nombre_de_fichero():
+    """The id becomes `<id>.yaml.tmp`, and past 255 bytes the file system
+    refuses to create it — a 500 on the profile forms."""
+    id_ = slugify("Ingeniería " * 60)
+    assert len(f"{id_}.yaml.tmp".encode("utf-8")) <= 255
+    assert id_.startswith("ingenieria-ingenieria")
+
+
+def test_slugificar_dos_nombres_largos_que_empiezan_igual_no_colisionan():
+    comun = "Arquitectura de datos " * 10
+    assert slugify(comun + "en la nube") != slugify(comun + "en local")
+
+
+@pytest.mark.parametrize(
+    "a, b",
+    [
+        ("بايثون", "تعلم الآلة"),
+        ("数据分析", "机器学习"),
+        ("Анализ данных", "Машинное обучение"),
+        ("ניתוח נתונים", "למידת מכונה"),
+        ("Ανάλυση δεδομένων", "Μηχανική μάθηση"),
+        ("データ分析", "機械学習"),
+        ("🐍", "🚀"),
+        ("Python 数据分析", "Python 机器学习"),
+    ],
+)
+def test_slugificar_textos_distintos_no_latinos_no_colisionan(a, b):
+    """ASCII drops these alphabets entirely; they used to all become
+    "sin-titulo", so a profile in them could only hold one entry per
+    section."""
+    assert slugify(a) != slugify(b)
+    assert slugify(a) != "sin-titulo"
+
+
+def test_slugificar_un_texto_no_latino_da_siempre_el_mismo_id():
+    """Stable, so a real duplicate is still caught; and valid for the store,
+    which only accepts `[a-z0-9._-]`."""
+    assert slugify("تعلم الآلة") == slugify("  تعلم   الآلة ")
+    assert re.fullmatch(r"[a-z0-9][a-z0-9-]*", slugify("تعلم الآلة"))
 
 
 def test_lineas_a_lista_ignora_lineas_vacias():
@@ -790,3 +832,62 @@ def test_timeout_de_anthropic_dice_volver_a_generar(cliente_web):
         request=httpx.Request("POST", "https://api.anthropic.com/v1/messages")
     )
     assert "propuesta" in _explicacion_de_anthropic(cliente_web, error)
+
+
+# --------------------------------------------------------------------------
+# Ids of new profile entries (slugify through the real forms)
+# --------------------------------------------------------------------------
+
+
+_RUTAS_NUEVA_ENTRADA = [
+    ("/perfil/experiencias/nueva", "titulo", "experiences"),
+    ("/perfil/skills/nueva", "nombre", "skills"),
+    ("/perfil/skills-personales/nueva", "nombre", "personal_skills"),
+    ("/perfil/idiomas/nuevo", "nombre", "languages"),
+    ("/perfil/educacion/nueva", "titulo", "education"),
+]
+
+
+def _nueva_entrada(cliente_web, ruta: str, campo: str, nombre: str):
+    return cliente_web.post(
+        ruta,
+        data={
+            f"{campo}_es": nombre, f"{campo}_en": nombre,
+            "nivel_es": "B2", "nivel_en": "B2",
+            "categoria_es": "lenguaje", "categoria_en": "language",
+            "keywords": "x", "bullets_es": "Algo", "bullets_en": "Something",
+            "periodo_inicio": "2020", "periodo_fin": "2021", "stack": "Python", "centro": "UNED",
+        },
+    )
+
+
+@pytest.mark.parametrize("ruta, campo, seccion", _RUTAS_NUEVA_ENTRADA)
+def test_un_nombre_larguisimo_se_guarda_sin_error(cliente_web, tmp_path: Path, ruta, campo, seccion):
+    """Bug bash 2026-09-11: a name of 247+ characters made the temp file name
+    exceed 255 bytes and every profile form answered with a 500."""
+    respuesta = _nueva_entrada(cliente_web, ruta, campo, "Ingeniería de datos " * 20)
+
+    assert respuesta.status_code == 302
+    assert len(getattr(store.load_profile(tmp_path / "perfil"), seccion)) == 1
+
+
+@pytest.mark.parametrize("ruta, campo, seccion", _RUTAS_NUEVA_ENTRADA)
+def test_dos_entradas_distintas_en_arabe_no_se_toman_por_duplicado(cliente_web, tmp_path: Path, ruta, campo, seccion):
+    """Both names used to slugify to "sin-titulo", so the second one was
+    rejected as a duplicate of a name nobody had typed."""
+    _nueva_entrada(cliente_web, ruta, campo, "بايثون")
+    respuesta = _nueva_entrada(cliente_web, ruta, campo, "تعلم الآلة")
+
+    assert respuesta.status_code == 302
+    assert len(getattr(store.load_profile(tmp_path / "perfil"), seccion)) == 2
+
+
+@pytest.mark.parametrize("ruta, campo, seccion", _RUTAS_NUEVA_ENTRADA)
+def test_el_mismo_nombre_en_arabe_dos_veces_sigue_siendo_un_duplicado(cliente_web, tmp_path: Path, ruta, campo, seccion):
+    """The fix must not trade the false duplicate for a missed real one."""
+    _nueva_entrada(cliente_web, ruta, campo, "بايثون")
+    respuesta = _nueva_entrada(cliente_web, ruta, campo, "بايثون")
+
+    assert respuesta.status_code == 200
+    assert "Ya tienes".encode("utf-8") in respuesta.data
+    assert len(getattr(store.load_profile(tmp_path / "perfil"), seccion)) == 1
