@@ -294,7 +294,7 @@ def _check_photo_size(contenido: bytes) -> None:
     try:
         with Image.open(io.BytesIO(contenido)) as imagen:
             ancho, alto = imagen.size
-    except UnidentifiedImageError as exc:
+    except (UnidentifiedImageError, Image.DecompressionBombError) as exc:
         raise ProfileError(_("El fichero no es una imagen válida.")) from exc
 
     if ancho < MINIMO_PX_FOTO or alto < MINIMO_PX_FOTO:

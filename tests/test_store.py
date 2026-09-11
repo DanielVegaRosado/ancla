@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import io
 import zipfile
+import zlib
 from pathlib import Path
 
 import pytest
@@ -25,6 +26,21 @@ def _imagen_png(ancho: int, alto: int) -> bytes:
     buffer = io.BytesIO()
     Image.new("RGB", (ancho, alto), color="gray").save(buffer, format="PNG")
     return buffer.getvalue()
+
+
+def _imagen_png_bomba() -> bytes:
+    """A tiny PNG whose header lies about its own size, declaring
+    dimensions far beyond Pillow's decompression-bomb threshold —
+    `Image.open` raises `DecompressionBombError` from the declared
+    dimensions alone, before decoding any pixel data, so this stays
+    cheap to build and fast to run."""
+    contenido = bytearray(_imagen_png(1, 1))
+    ancho = alto = 200_000
+    contenido[16:20] = ancho.to_bytes(4, "big")
+    contenido[20:24] = alto.to_bytes(4, "big")
+    crc = zlib.crc32(bytes(contenido[12:29]))
+    contenido[29:33] = crc.to_bytes(4, "big")
+    return bytes(contenido)
 
 
 def _educacion(id: str = "grado") -> Education:
@@ -396,6 +412,12 @@ def test_guardar_una_foto_justo_en_el_minimo_no_da_error(tmp_path: Path):
 def test_guardar_un_fichero_que_no_es_una_imagen_da_error(tmp_path: Path):
     with pytest.raises(ProfileError):
         store.save_photo(tmp_path, "foto.png", b"esto no es una imagen")
+    assert store.photo_path(tmp_path) is None
+
+
+def test_guardar_una_foto_bomba_de_descompresion_da_error(tmp_path: Path):
+    with pytest.raises(ProfileError):
+        store.save_photo(tmp_path, "foto.png", _imagen_png_bomba())
     assert store.photo_path(tmp_path) is None
 
 
