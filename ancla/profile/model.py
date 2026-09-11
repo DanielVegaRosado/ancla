@@ -127,7 +127,10 @@ class Skill:
 
     id: str
     name: Bilingual[str]
-    category: str = ""
+    # Bilingual, unlike `stack`/`institution`: a free-text label the user
+    # writes ("Lenguaje de programación"), part of the CV's own language,
+    # not a proper noun that reads the same in any language.
+    category: Bilingual[str] = field(default_factory=lambda: Bilingual(es="", en=""))
     keywords: list[str] = field(default_factory=list)
 
 

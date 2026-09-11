@@ -16,6 +16,7 @@ from ancla.profile.model import (
     Bilingual,
     Education,
     Experience,
+    Profile,
     Skill,
     SpokenLanguage,
 )
@@ -51,7 +52,7 @@ def _experiencia(**cambios) -> Experience:
 
 def _skill(**cambios) -> Skill:
     base = dict(
-        id="python", name=Bilingual(es="Python", en=""), category="lenguaje", keywords=["py"]
+        id="python", name=Bilingual(es="Python", en=""), category=Bilingual(es="lenguaje", en=""), keywords=["py"]
     )
     return Skill(**{**base, **cambios})
 
@@ -107,7 +108,10 @@ def test_todo_el_lote_en_una_sola_llamada():
 
 
 def test_no_llama_si_no_falta_nada():
-    completa = _skill(name=Bilingual(es="Python", en="Python"))
+    completa = _skill(
+        name=Bilingual(es="Python", en="Python"),
+        category=Bilingual(es="lenguaje", en="language"),
+    )
     cliente = ClienteFalso()
 
     resultado = translation.translate(cliente, [completa], "en")
@@ -145,7 +149,14 @@ def test_una_lista_devuelta_como_texto_se_descarta():
 
 
 def test_pendientes_nombra_lo_que_saldria_en_blanco():
-    entradas = [_skill(), _skill(id="sql", name=Bilingual(es="SQL", en="SQL"))]
+    entradas = [
+        _skill(),
+        _skill(
+            id="sql",
+            name=Bilingual(es="SQL", en="SQL"),
+            category=Bilingual(es="lenguaje", en="language"),
+        ),
+    ]
 
     pendientes = translation.pending(entradas, "en")
 
@@ -196,3 +207,29 @@ def test_una_traduccion_que_pierde_un_hueco_se_descarta():
 
     assert resultado.entries[0].template["en"] == ""
     assert resultado.avisos
+
+
+def test_el_titular_del_perfil_se_traduce():
+    perfil = Profile(headline=Bilingual(es="Ingeniero Informático", en=""))
+    cliente = ClienteFalso(json.dumps({"0": {"headline": "Computer Engineer"}}))
+
+    resultado = translation.translate(cliente, [perfil], "en")
+
+    assert resultado.entries[0].headline["en"] == "Computer Engineer"
+    assert resultado.entries[0].headline["es"] == "Ingeniero Informático"
+
+
+def test_el_titular_vacio_no_pide_nada():
+    perfil = Profile(headline=Bilingual(es="", en=""))
+    cliente = ClienteFalso()
+
+    resultado = translation.translate(cliente, [perfil], "en")
+
+    assert resultado.entries[0] is perfil
+    assert cliente.llamadas == []
+
+
+def test_entry_name_del_titular_no_usa_el_nombre_de_la_persona():
+    perfil = Profile(name="Ada Lovelace", headline=Bilingual(es="Ingeniera", en=""))
+
+    assert translation.entry_name(perfil) != "Ada Lovelace"

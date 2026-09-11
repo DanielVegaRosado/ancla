@@ -82,8 +82,8 @@ def catalog(perfil: Profile, idioma: Language) -> str:
     if perfil.skills:
         for skill in perfil.skills:
             detalles = [f"id: {skill.id}", f"nombre: {skill.name[idioma]}"]
-            if skill.category:
-                detalles.append(f"categoría: {skill.category}")
+            if skill.category[idioma]:
+                detalles.append(f"categoría: {skill.category[idioma]}")
             if skill.keywords:
                 detalles.append(f"keywords: {', '.join(skill.keywords)}")
             lineas.append("- " + " | ".join(detalles))

@@ -55,7 +55,7 @@ def _skill(id: str = "python") -> Skill:
     return Skill(
         id=id,
         name=Bilingual(es="Python", en="Python"),
-        category="lenguaje",
+        category=Bilingual(es="lenguaje", en="lenguaje"),
         keywords=["python", "scripting"],
     )
 
@@ -236,7 +236,7 @@ def test_los_acentos_sobreviven_a_una_vuelta_completa(tmp_path: Path):
     skill = Skill(
         id="disenio",
         name=Bilingual(es="Diseño de sistemas", en="System design"),
-        category="ingeniería",
+        category=Bilingual(es="ingeniería", en="ingeniería"),
         keywords=["diseño", "arquitectura"],
     )
     store.save_skill(tmp_path, skill)

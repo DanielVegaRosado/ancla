@@ -145,7 +145,7 @@ def _to_skill(datos: dict) -> Skill:
     return Skill(
         id=datos["id"],
         name=Bilingual(**datos["name"]),
-        category=datos.get("category", ""),
+        category=Bilingual(**datos["category"]),
         keywords=list(datos.get("keywords", [])),
     )
 

@@ -91,6 +91,18 @@
           <p class="ayuda">{{ _('Tu nombre, titulación/rol, teléfono, email, ciudad, LinkedIn... Se muestra siempre completo.') }}</p>
         </div>
         <div class="acciones">
+          {% if perfil.headline.es or perfil.headline.en %}
+            {% for cod in idiomas %}
+              {% if sin_traducir_titular[cod] %}
+                <span class="insignia">{{ _('Falta en %(idioma)s', idioma=nombre_idioma(cod)) }}</span>
+                {% if ia_configurada %}
+                  <form class="en-linea" method="post" action="{{ url_for('ancla.translate_headline', idioma=cod) }}">
+                    <button type="submit" class="boton-pequeno">{{ _('Traducir') }}</button>
+                  </form>
+                {% endif %}
+              {% endif %}
+            {% endfor %}
+          {% endif %}
           <a class="boton" href="{{ url_for('ancla.edit_contact') }}">
             {{ _("Editar") if (perfil.name or perfil.contact or perfil.headline.es or perfil.headline.en) else _("Añadir contacto") }}
           </a>
@@ -131,7 +143,7 @@
      times: each press is a call and a wait on the per-minute quota, so
      doing them together is the difference between a minute and twelve. #}
   {% for cod in idiomas %}
-    {% set pendientes = sin_traducir.values()|map(attribute=cod)|map('length')|sum %}
+    {% set pendientes = sin_traducir.values()|map(attribute=cod)|map('length')|sum + (1 if sin_traducir_titular[cod] else 0) %}
     {% if pendientes and ia_configurada %}
       <section class="tarjeta">
         <div class="fila-tarjeta">

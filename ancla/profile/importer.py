@@ -599,7 +599,7 @@ def _to_skill(datos: dict, ids_usados: set[str], idioma: Language) -> Skill | No
     return Skill(
         id=id_,
         name=nombre,
-        category=to_text(datos.get("categoria")),
+        category=_bilingual(datos.get("categoria"), idioma),
         keywords=to_texts(datos.get("keywords")),
     )
 

@@ -227,16 +227,18 @@ def validate_skill(skill: Skill) -> Issues:
                 "fichero, por ejemplo «python.yaml»."
             )
         )
-    if not written_languages(skill.name):
+    escritos = written_languages(skill.name)
+    if not escritos:
         problemas.append(_("%(etiqueta)s: falta el nombre.", etiqueta=etiqueta))
-    if not skill.category.strip():
-        problemas.append(
-            _(
-                "%(etiqueta)s: no tiene categoría. Se usa para agrupar las skills del "
-                "CV y para repartirlas en el «Sobre mí».",
-                etiqueta=etiqueta,
+    for cod in escritos:
+        if not skill.category[cod].strip():
+            problemas.append(
+                _(
+                    "%(etiqueta)s: no tiene categoría en %(nombre)s. Se usa para agrupar "
+                    "las skills del CV y para repartirlas en el «Sobre mí».",
+                    etiqueta=etiqueta, nombre=language_name(cod),
+                )
             )
-        )
     avisos = _untranslated(etiqueta, missing_languages(skill.name))
     if not skill.keywords:
         avisos.append(

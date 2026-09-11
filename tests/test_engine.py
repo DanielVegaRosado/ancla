@@ -72,7 +72,7 @@ def _skill(id: str, nombre_es: str, nombre_en: str, keywords: list[str] | None =
     return Skill(
         id=id,
         name=Bilingual(es=nombre_es, en=nombre_en),
-        category="tecnica",
+        category=Bilingual(es="tecnica", en="tecnica"),
         keywords=keywords or [nombre_en],
     )
 

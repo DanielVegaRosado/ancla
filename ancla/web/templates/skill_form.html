@@ -26,9 +26,15 @@
     </div>
 
     <div class="campo">
-      <label for="categoria">{{ _('Categoría') }}</label>
-      <input type="text" id="categoria" name="categoria" placeholder="{{ _('lenguaje, cloud, dato...') }}"
-             value="{{ skill.category if skill else '' }}">
+      <label for="categoria_es">{{ _('Categoría (ES)') }}</label>
+      <input type="text" id="categoria_es" name="categoria_es" placeholder="{{ _('lenguaje, cloud, dato...') }}"
+             value="{{ skill.category['es'] if skill else '' }}">
+    </div>
+
+    <div class="campo">
+      <label for="categoria_en">{{ _('Categoría (EN)') }}</label>
+      <input type="text" id="categoria_en" name="categoria_en" placeholder="{{ _('language, cloud, data...') }}"
+             value="{{ skill.category['en'] if skill else '' }}">
     </div>
 
     <div class="campo">
@@ -41,7 +47,7 @@
         <button type="button" class="boton"
                 data-sugerir-keywords
                 data-tipo="skill"
-                data-campos="nombre_es,nombre_en,categoria"
+                data-campos="nombre_es,nombre_en,categoria_es,categoria_en"
                 data-destino="keywords">{{ _('Proponer con IA') }}</button>
       </div>
       <p class="ayuda" data-aviso-keywords hidden></p>

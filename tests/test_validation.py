@@ -39,7 +39,7 @@ def _skill(**cambios) -> Skill:
     base = dict(
         id="python",
         name=Bilingual(es="Python", en="Python"),
-        category="lenguaje",
+        category=Bilingual(es="lenguaje", en="language"),
         keywords=["python"],
     )
     return Skill(**{**base, **cambios})
@@ -193,10 +193,12 @@ def test_los_mensajes_van_en_castellano_y_sin_jerga():
 
 
 def test_detecta_una_skill_sin_categoria_ni_palabras_clave():
-    problemas = validation.validate_skill(_skill(category="", keywords=[]))
+    """Category is checked per language actually written, same as level in
+    `SpokenLanguage`: two languages with no category is two errors."""
+    problemas = validation.validate_skill(_skill(category=Bilingual(es="", en=""), keywords=[]))
 
-    assert len(problemas.messages()) == 2
-    assert any("categoría" in p for p in problemas.errors)
+    assert len(problemas.messages()) == 3
+    assert sum("categoría" in p for p in problemas.errors) == 2
     assert any("palabras clave" in p for p in problemas.warnings)
 
 
@@ -278,7 +280,7 @@ def test_detecta_ids_repetidos():
 def test_el_perfil_junta_los_problemas_de_cada_elemento():
     perfil = Profile(
         experiences=[_experiencia(keywords=[])],
-        skills=[_skill(category="")],
+        skills=[_skill(category=Bilingual(es="", en=""))],
         about_me=_sobre_mi(),
     )
 

@@ -168,7 +168,7 @@ def _skill() -> Skill:
     return Skill(
         id="python",
         name=Bilingual(es="Python", en="Python"),
-        category="lenguaje",
+        category=Bilingual(es="lenguaje", en="lenguaje"),
         keywords=["python", "scripting"],
     )
 

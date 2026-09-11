@@ -49,6 +49,7 @@ from ancla.profile.model import (
     Education,
     Experience,
     Language,
+    Profile,
     Skill,
     SpokenLanguage,
 )
@@ -62,9 +63,13 @@ from ancla.text import json_block, to_text, to_texts
 TRANSLATABLE_FIELDS: dict[type, tuple[str, ...]] = {
     AboutMe: ("template",),
     Experience: ("title", "bullets"),
-    Skill: ("name",),
+    Skill: ("name", "category"),
     SpokenLanguage: ("name", "level"),
     Education: ("title",),
+    # The headline under the name ("Data Engineer", "Ingeniero
+    # Informático...) — the whole profile, since it is the one bilingual
+    # field on it, not a list entry with its own id like the rest here.
+    Profile: ("headline",),
 }
 
 # Groq's free tier allows 8000 tokens per minute in total (checked against
@@ -190,6 +195,11 @@ def entry_name(entrada, idioma: Language | None = None) -> str:
     language it is written in."""
     if isinstance(entrada, AboutMe):
         return _("Sobre mí")
+    if isinstance(entrada, Profile):
+        # `Profile.name` is a plain string (a person's name reads the same
+        # in any language), not the bilingual field being translated here —
+        # naming the entry after it would misname what is actually changing.
+        return _("Titular")
     etiqueta = getattr(entrada, "title", None) or getattr(entrada, "name", None)
     if etiqueta is None:
         return getattr(entrada, "id", "")

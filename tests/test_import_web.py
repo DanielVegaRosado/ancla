@@ -33,7 +33,7 @@ def _experiencia(id: str = "ml-dev") -> Experience:
 
 
 def _skill(id: str = "python") -> Skill:
-    return Skill(id=id, name=Bilingual(es="Python", en="Python"), category="lenguaje", keywords=["py"])
+    return Skill(id=id, name=Bilingual(es="Python", en="Python"), category=Bilingual(es="lenguaje", en="language"), keywords=["py"])
 
 
 def _skill_personal(id: str = "equipo") -> Skill:
@@ -643,7 +643,7 @@ def test_la_pantalla_de_importar_avisa_de_que_analizar_puede_esperar(cliente_web
 
 
 def _skill_solo_en_espanol(id: str = "python") -> Skill:
-    return Skill(id=id, name=Bilingual(es="Python", en=""), category="lenguaje", keywords=["py"])
+    return Skill(id=id, name=Bilingual(es="Python", en=""), category=Bilingual(es="lenguaje", en=""), keywords=["py"])
 
 
 class _ClienteFalso:

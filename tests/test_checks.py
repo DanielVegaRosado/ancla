@@ -24,7 +24,7 @@ def _skill(id: str, nombre: str, keywords: list[str] | None = None) -> Skill:
     return Skill(
         id=id,
         name=Bilingual(es=nombre, en=nombre),
-        category="lenguaje",
+        category=Bilingual(es="lenguaje", en="lenguaje"),
         keywords=keywords or [],
     )
 

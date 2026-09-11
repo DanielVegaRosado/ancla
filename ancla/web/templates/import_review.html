@@ -150,9 +150,19 @@
               </div>
               {% endif %}
             </div>
-            <div class="campo">
-              <label>{{ _('Categoría') }}</label>
-              <input type="text" name="skill-{{ loop.index0 }}-categoria" value="{{ skill.category }}">
+            <div class="dos-columnas">
+              {% if 'es' in importacion.written %}
+              <div class="campo">
+                <label>{{ _('Categoría (ES)') }}</label>
+                <input type="text" name="skill-{{ loop.index0 }}-categoria_es" value="{{ skill.category['es'] }}">
+              </div>
+              {% endif %}
+              {% if 'en' in importacion.written %}
+              <div class="campo">
+                <label>{{ _('Categoría (EN)') }}</label>
+                <input type="text" name="skill-{{ loop.index0 }}-categoria_en" value="{{ skill.category['en'] }}">
+              </div>
+              {% endif %}
             </div>
           </div>
         {% endfor %}

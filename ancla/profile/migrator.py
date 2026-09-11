@@ -147,7 +147,9 @@ def _migrate_skills(
         skill = Skill(
             id=fichero.stem,
             name=_bilingual(campos, "NOMBRE"),
-            category=campos.get("CATEGORIA", "").strip(),
+            # The legacy format has one `CATEGORIA` key, not the `_ES`/`_EN`
+            # pair `_bilingual` expects — `Informacion/` is Spanish-only.
+            category=Bilingual(es=campos.get("CATEGORIA", "").strip(), en=""),
             keywords=_words(campos.get("KEYWORDS", "")),
         )
         try:

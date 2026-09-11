@@ -55,6 +55,7 @@ def view_profile():
         orden_perfil=ajustes.orden_perfil,
         ia_configurada=ajustes.configured(),
         sin_traducir=_untranslated_ids(perfil),
+        sin_traducir_titular=_untranslated_headline(perfil),
     )
 
 
@@ -68,6 +69,22 @@ _SECTIONS: dict[str, tuple] = {
     "skills-personales": (lambda perfil: perfil.personal_skills, store.save_personal_skill),
     "idiomas": (lambda perfil: perfil.languages, store.save_language),
     "educacion": (lambda perfil: perfil.education, store.save_education),
+}
+
+# The headline is not a `_SECTIONS` entry: it lives on `Profile` itself, one
+# field with no id of its own, not a list of interchangeable entries — see
+# `translation.TRANSLATABLE_FIELDS`. `_SAVERS` below folds its saver in
+# next to the list sections' so `_translate_and_save` can stay one lookup.
+_SECCION_TITULAR = "titular"
+
+
+def _save_headline(root, perfil) -> None:
+    store.save_contact(root, perfil.name, perfil.headline, perfil.contact)
+
+
+_SAVERS: dict[str, object] = {
+    **{seccion: guardar for seccion, (_entradas, guardar) in _SECTIONS.items()},
+    _SECCION_TITULAR: _save_headline,
 }
 
 
@@ -88,6 +105,16 @@ def _untranslated_ids(perfil) -> dict[str, dict[str, list[str]]]:
         }
         for seccion, (entradas, _guardar) in _SECTIONS.items()
     }
+
+
+def _untranslated_headline(perfil) -> dict[str, bool]:
+    """Whether the profile's headline is missing each language.
+
+    Boolean rather than a list of ids like `_untranslated_ids`: the
+    headline lives on `Profile` itself, one field, not a list of entries
+    with their own id to point at.
+    """
+    return {idioma: bool(translation.pending([perfil], idioma)) for idioma in LANGUAGES}
 
 
 def _translation_extras() -> dict:
@@ -112,14 +139,22 @@ def translate_missing(idioma: str):
     if idioma not in LANGUAGES:
         abort(404)
     perfil = context.current_profile()
-    _translate_and_save(
-        [
-            (seccion, entrada)
-            for seccion, (entradas, _saver) in _SECTIONS.items()
-            for entrada in translation.pending(entradas(perfil), idioma)
-        ],
-        idioma,
-    )
+    pares = [
+        (seccion, entrada)
+        for seccion, (entradas, _saver) in _SECTIONS.items()
+        for entrada in translation.pending(entradas(perfil), idioma)
+    ]
+    if translation.pending([perfil], idioma):
+        pares.append((_SECCION_TITULAR, perfil))
+    _translate_and_save(pares, idioma)
+    return redirect(url_for("ancla.view_profile"))
+
+
+@bp.route("/perfil/traducir/<idioma>/titular", methods=["POST"])
+def translate_headline(idioma: str):
+    if idioma not in LANGUAGES:
+        abort(404)
+    _translate_and_save([(_SECCION_TITULAR, context.current_profile())], idioma)
     return redirect(url_for("ancla.view_profile"))
 
 
@@ -161,7 +196,7 @@ def _translate_and_save(pares: list[tuple[str, object]], idioma: Language) -> No
     for (seccion, original), traducida in zip(pares, resultado.entries):
         if traducida is original:
             continue
-        _SECTIONS[seccion][1](context.root(), traducida)
+        _SAVERS[seccion](context.root(), traducida)
         traducidas += 1
 
     if traducidas:
@@ -318,7 +353,7 @@ def suggest_keywords():
             cliente,
             nombre_es=datos.get("nombre_es", ""),
             nombre_en=datos.get("nombre_en", ""),
-            categoria=datos.get("categoria", ""),
+            categoria=datos.get("categoria_es") or datos.get("categoria_en", ""),
         )
 
     return jsonify({"keywords": sugerencia.keywords, "aviso": sugerencia.motivo})
@@ -352,7 +387,7 @@ def _skill_from_form(id_: str) -> Skill:
     return Skill(
         id=id_,
         name=Bilingual(es=f.get("nombre_es", "").strip(), en=f.get("nombre_en", "").strip()),
-        category=f.get("categoria", "").strip(),
+        category=Bilingual(es=f.get("categoria_es", "").strip(), en=f.get("categoria_en", "").strip()),
         keywords=csv_to_list(f.get("keywords", "")),
     )
 

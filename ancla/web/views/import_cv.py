@@ -241,7 +241,7 @@ def _edited_skill(form, prefijo: str, original: Skill) -> Skill:
     """Used for both technical and personal skills: same fields, the only
     difference is the form prefix (`skill-N` / `skillpersonal-N`). A
     personal skill has no category field in the template — `form.get`
-    simply falls back to the original value (an empty string), same as in
+    simply falls back to the original value (an empty pair), same as in
     the manual "New personal skill" form."""
     return replace(
         original,
@@ -249,7 +249,10 @@ def _edited_skill(form, prefijo: str, original: Skill) -> Skill:
             es=form.get(f"{prefijo}-nombre_es", original.name["es"]).strip(),
             en=form.get(f"{prefijo}-nombre_en", original.name["en"]).strip(),
         ),
-        category=form.get(f"{prefijo}-categoria", original.category).strip(),
+        category=Bilingual(
+            es=form.get(f"{prefijo}-categoria_es", original.category["es"]).strip(),
+            en=form.get(f"{prefijo}-categoria_en", original.category["en"]).strip(),
+        ),
     )
 
 

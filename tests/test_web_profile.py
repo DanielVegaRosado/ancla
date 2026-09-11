@@ -744,7 +744,7 @@ def test_proponer_huecos_no_le_ensena_al_modelo_skills_personales_ni_idiomas(
     )
     cliente_web.post(
         "/perfil/skills/nueva",
-        data={"nombre_es": "Python", "nombre_en": "Python", "categoria": "lenguaje", "keywords": "python"},
+        data={"nombre_es": "Python", "nombre_en": "Python", "categoria_es": "lenguaje", "categoria_en": "language", "keywords": "python"},
     )
     cliente_web.post("/ajustes", data={"proveedor": "groq", "clave_api": "gsk_test123"})
 
@@ -896,7 +896,7 @@ def test_con_datos_el_perfil_ofrece_importar_sin_incrustar_el_formulario(
     _configure_key(tmp_path)
     store.save_skill(
         tmp_path / "perfil",
-        Skill(id="python", name=Bilingual(es="Python", en="Python"), category="lenguaje"),
+        Skill(id="python", name=Bilingual(es="Python", en="Python"), category=Bilingual(es="lenguaje", en="lenguaje")),
     )
 
     html = cliente_web.get("/perfil").data.decode("utf-8")
@@ -973,7 +973,8 @@ def test_un_alta_saca_el_identificador_del_titulo(cliente_web, tmp_path: Path):
         data={
             "nombre_es": "Python Avanzado",
             "nombre_en": "Advanced Python",
-            "categoria": "lenguaje",
+            "categoria_es": "lenguaje",
+            "categoria_en": "language",
             "keywords": "python",
         },
     )
@@ -982,12 +983,29 @@ def test_un_alta_saca_el_identificador_del_titulo(cliente_web, tmp_path: Path):
     assert perfil.skill("python-avanzado").name["es"] == "Python Avanzado"
 
 
+def test_la_categoria_de_una_skill_se_guarda_por_idioma(cliente_web, tmp_path: Path):
+    cliente_web.post(
+        "/perfil/skills/nueva",
+        data={
+            "nombre_es": "Python",
+            "nombre_en": "Python",
+            "categoria_es": "Lenguaje",
+            "categoria_en": "Language",
+            "keywords": "python",
+        },
+    )
+
+    categoria = store.load_profile(tmp_path / "perfil").skill("python").category
+    assert categoria["es"] == "Lenguaje"
+    assert categoria["en"] == "Language"
+
+
 def test_un_nombre_repetido_se_avisa_y_no_pisa_lo_guardado(cliente_web, tmp_path: Path):
     """A profile with the same skill twice is a mistake, not something to
     file away under a numbered identifier. The warning talks about the name,
     which is the only part the person can see, and what was already saved is
     left untouched."""
-    datos = {"nombre_es": "Python Avanzado", "categoria": "lenguaje", "keywords": "python"}
+    datos = {"nombre_es": "Python Avanzado", "categoria_es": "lenguaje", "categoria_en": "language", "keywords": "python"}
     cliente_web.post("/perfil/skills/nueva", data={**datos, "nombre_en": "Advanced Python"})
 
     respuesta = cliente_web.post(
@@ -1003,7 +1021,7 @@ def test_un_nombre_repetido_se_avisa_y_no_pisa_lo_guardado(cliente_web, tmp_path
 def test_al_editar_tampoco_se_ve_el_identificador(cliente_web, tmp_path: Path):
     cliente_web.post(
         "/perfil/skills/nueva",
-        data={"nombre_es": "Python", "nombre_en": "Python", "categoria": "lenguaje", "keywords": "py"},
+        data={"nombre_es": "Python", "nombre_en": "Python", "categoria_es": "lenguaje", "categoria_en": "language", "keywords": "py"},
     )
 
     html = cliente_web.get("/perfil/skills/python/editar").data.decode("utf-8")
@@ -1038,7 +1056,7 @@ def _con_clave(cliente_web):
 def test_mi_perfil_marca_las_entradas_sin_traducir(cliente_web, tmp_path: Path):
     store.save_skill(
         tmp_path / "perfil",
-        Skill(id="sql", name=Bilingual(es="SQL", en=""), category="dato", keywords=["sql"]),
+        Skill(id="sql", name=Bilingual(es="SQL", en=""), category=Bilingual(es="dato", en=""), keywords=["sql"]),
     )
 
     respuesta = cliente_web.get("/perfil")
@@ -1052,7 +1070,7 @@ def test_mi_perfil_ofrece_traducir_todo_lo_que_falte(cliente_web, tmp_path: Path
     for id_ in ("sql", "docker"):
         store.save_skill(
             tmp_path / "perfil",
-            Skill(id=id_, name=Bilingual(es=id_, en=""), category="dato", keywords=[id_]),
+            Skill(id=id_, name=Bilingual(es=id_, en=""), category=Bilingual(es="dato", en=""), keywords=[id_]),
         )
 
     respuesta = cliente_web.get("/perfil")
@@ -1068,7 +1086,7 @@ def test_traducir_una_entrada_no_toca_el_original(cliente_web, tmp_path: Path, m
 
     root = tmp_path / "perfil"
     store.save_skill(
-        root, Skill(id="sql", name=Bilingual(es="SQL avanzado", en=""), category="dato", keywords=["sql"])
+        root, Skill(id="sql", name=Bilingual(es="SQL avanzado", en=""), category=Bilingual(es="dato", en=""), keywords=["sql"])
     )
     _con_clave(cliente_web)
     monkeypatch.setattr(
@@ -1091,7 +1109,7 @@ def test_traducir_todo_lo_que_falte_es_una_sola_llamada(cliente_web, tmp_path: P
     import ancla.web.views.profile as vista
 
     root = tmp_path / "perfil"
-    store.save_skill(root, Skill(id="sql", name=Bilingual(es="SQL", en=""), category="dato", keywords=["sql"]))
+    store.save_skill(root, Skill(id="sql", name=Bilingual(es="SQL", en=""), category=Bilingual(es="dato", en=""), keywords=["sql"]))
     store.save_language(
         root,
         SpokenLanguage(
@@ -1116,6 +1134,64 @@ def test_traducir_todo_lo_que_falte_es_una_sola_llamada(cliente_web, tmp_path: P
     assert perfil.language("ingles").level["en"] == "C1"
 
 
+def test_mi_perfil_marca_el_titular_sin_traducir(cliente_web, tmp_path: Path):
+    store.save_contact(
+        tmp_path / "perfil", "Ada Lovelace", Bilingual(es="Ingeniera", en=""), ["ada@example.com"]
+    )
+    _con_clave(cliente_web)
+
+    respuesta = cliente_web.get("/perfil")
+
+    assert "Falta en inglés".encode("utf-8") in respuesta.data
+    assert b"/perfil/traducir/en/titular" in respuesta.data
+
+
+def test_traducir_el_titular_no_toca_el_espanol(cliente_web, tmp_path: Path, monkeypatch):
+    import json
+
+    import ancla.web.views.profile as vista
+
+    root = tmp_path / "perfil"
+    store.save_contact(root, "Ada Lovelace", Bilingual(es="Ingeniera", en=""), ["ada@example.com"])
+    _con_clave(cliente_web)
+    monkeypatch.setattr(
+        vista, "create_client",
+        lambda proveedor, clave, url_base="", modelo="": _ClienteFalsoTraductor(
+            json.dumps({"0": {"headline": "Engineer"}})
+        ),
+    )
+
+    cliente_web.post("/perfil/traducir/en/titular")
+
+    guardado = store.load_profile(root)
+    assert guardado.headline["es"] == "Ingeniera"
+    assert guardado.headline["en"] == "Engineer"
+    assert guardado.name == "Ada Lovelace"
+    assert guardado.contact == ["ada@example.com"]
+
+
+def test_traducir_todo_lo_que_falte_incluye_el_titular_en_la_misma_llamada(
+    cliente_web, tmp_path: Path, monkeypatch
+):
+    import json
+
+    import ancla.web.views.profile as vista
+
+    root = tmp_path / "perfil"
+    store.save_contact(root, "Ada Lovelace", Bilingual(es="Ingeniera", en=""), [])
+    _con_clave(cliente_web)
+    cliente = _ClienteFalsoTraductor(json.dumps({"0": {"headline": "Engineer"}}))
+    monkeypatch.setattr(
+        vista, "create_client",
+        lambda proveedor, clave, url_base="", modelo="": cliente,
+    )
+
+    cliente_web.post("/perfil/traducir/en")
+
+    assert len(cliente.llamadas) == 1
+    assert store.load_profile(root).headline["en"] == "Engineer"
+
+
 # --------------------------------------------------------------------------
 # The same mark and button, but inside the entry's own edit form (not just
 # in the "My profile" list rows).
@@ -1126,7 +1202,7 @@ def test_editar_una_skill_a_medias_ofrece_traducir_dentro_del_formulario(cliente
     _con_clave(cliente_web)
     store.save_skill(
         tmp_path / "perfil",
-        Skill(id="sql", name=Bilingual(es="SQL", en=""), category="dato", keywords=["sql"]),
+        Skill(id="sql", name=Bilingual(es="SQL", en=""), category=Bilingual(es="dato", en=""), keywords=["sql"]),
     )
 
     html = cliente_web.get("/perfil/skills/sql/editar").data.decode("utf-8")
@@ -1139,7 +1215,7 @@ def test_editar_una_skill_completa_no_ofrece_traducir(cliente_web, tmp_path: Pat
     _con_clave(cliente_web)
     store.save_skill(
         tmp_path / "perfil",
-        Skill(id="sql", name=Bilingual(es="SQL", en="SQL"), category="dato", keywords=["sql"]),
+        Skill(id="sql", name=Bilingual(es="SQL", en="SQL"), category=Bilingual(es="dato", en="dato"), keywords=["sql"]),
     )
 
     html = cliente_web.get("/perfil/skills/sql/editar").data.decode("utf-8")
@@ -1153,7 +1229,7 @@ def test_editar_una_skill_a_medias_sin_clave_marca_el_hueco_sin_boton(cliente_we
     to press, same as in the "My profile" list rows."""
     store.save_skill(
         tmp_path / "perfil",
-        Skill(id="sql", name=Bilingual(es="SQL", en=""), category="dato", keywords=["sql"]),
+        Skill(id="sql", name=Bilingual(es="SQL", en=""), category=Bilingual(es="dato", en=""), keywords=["sql"]),
     )
 
     html = cliente_web.get("/perfil/skills/sql/editar").data.decode("utf-8")
@@ -1210,11 +1286,15 @@ def test_vaciar_un_idioma_de_una_skill_ya_traducida_se_guarda(cliente_web, tmp_p
     raiz = tmp_path / "perfil"
     store.save_skill(
         raiz,
-        Skill(id="py", name=Bilingual(es="Python", en="Python"), category="Lenguajes", keywords=["python"]),
+        Skill(id="py", name=Bilingual(es="Python", en="Python"), category=Bilingual(es="Lenguajes", en="Lenguajes"), keywords=["python"]),
     )
     respuesta = cliente_web.post(
         "/perfil/skills/py/editar",
-        data={"nombre_es": "Python", "nombre_en": "", "categoria": "Lenguajes", "keywords": "python"},
+        data={
+            "nombre_es": "Python", "nombre_en": "",
+            "categoria_es": "Lenguajes", "categoria_en": "Lenguajes",
+            "keywords": "python",
+        },
         follow_redirects=True,
     )
 

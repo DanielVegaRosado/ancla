@@ -119,7 +119,7 @@ def parse_skill(datos: dict[str, Any], id: str, origen: str) -> Skill:
     return Skill(
         id=id,
         name=_bilingual_text(datos, "name", origen),
-        category=_text(datos.get("category")),
+        category=_bilingual_text(datos, "category", origen),
         keywords=_keywords(datos, origen),
     )
 
@@ -177,7 +177,7 @@ def dump_experience(experiencia: Experience) -> dict[str, Any]:
 def dump_skill(skill: Skill) -> dict[str, Any]:
     return {
         "name": _dump_bilingual(skill.name),
-        "category": skill.category,
+        "category": _dump_bilingual(skill.category),
         "keywords": list(skill.keywords),
     }
 

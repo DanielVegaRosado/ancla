@@ -190,7 +190,7 @@ def test_migra_la_skill_con_su_categoria(tmp_path: Path):
 
     assert skill.name["es"] == "Pipelines de Datos (ETL)"
     assert skill.name["en"] == "Data Pipelines (ETL)"
-    assert skill.category == "datos"
+    assert skill.category["es"] == "datos"
     assert "orquestación" in skill.keywords
 
 
@@ -263,7 +263,7 @@ def test_sobrescribir_pisa_lo_que_haya_solo_si_se_pide(tmp_path: Path):
     informe = migrator.migrate(origen, destino, sobrescribir=True)
 
     assert informe.skills == ["data-pipelines-etl"]
-    assert store.load_profile(destino).skill("data-pipelines-etl").category == "datos"
+    assert store.load_profile(destino).skill("data-pipelines-etl").category["es"] == "datos"
 
 
 # --------------------------------------------------------------------------
