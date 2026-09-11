@@ -20,7 +20,7 @@ def cliente_web(tmp_path: Path):
 
 
 def test_exportar_zip_descarga_un_zip_con_el_perfil(cliente_web, tmp_path: Path):
-    # Cualquier guardado crea la carpeta del perfil; el "Sobre mí" es el más simple.
+    # Any save creates the profile folder; "About me" is the simplest one.
     store.save_about_me(
         tmp_path / "perfil", AboutMe(template=Bilingual(es="Hola", en="Hello"))
     )
@@ -31,7 +31,7 @@ def test_exportar_zip_descarga_un_zip_con_el_perfil(cliente_web, tmp_path: Path)
     assert respuesta.mimetype == "application/zip"
     assert 'attachment; filename="ancla-perfil.zip"' in respuesta.headers["Content-Disposition"]
     with zipfile.ZipFile(BytesIO(respuesta.data)) as zip_:
-        assert zip_.namelist()  # no está vacío
+        assert zip_.namelist()  # not empty
 
 
 def test_boton_de_copia_de_seguridad_no_aparece_en_modo_demo(tmp_path: Path):

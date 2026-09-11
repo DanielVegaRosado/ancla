@@ -101,9 +101,9 @@ def test_un_formato_no_soportado_lanza_error_claro():
 
 
 def test_sin_pypdf_instalado_lo_dice_en_vez_de_culpar_al_pdf(monkeypatch):
-    """The real case that prompted this: Daniel had `pypdf` installed in a
-    different environment from the one running `run.py`. `ModuleNotFoundError`
-    is an `Exception` like any other, so the generic safety net caught it —
+    """`pypdf` can be installed in a different environment from the one
+    running `run.py`. `ModuleNotFoundError` is an `Exception` like any other,
+    so the generic safety net caught it —
     but with the "your PDF might be corrupted" message, which is actively
     misleading when the real problem is a missing dependency. It has to
     show the same actionable message `ai/groq.py` already uses for the same
@@ -153,8 +153,8 @@ def test_un_docx_invalido_lanza_error_en_vez_de_reventar():
 
 
 def test_un_pdf_sin_texto_real_avisa_de_que_puede_ser_una_imagen():
-    """Un PDF escaneado (imagen sin capa de texto) extrae vacío o casi vacío:
-    hay que decirlo, no fingir que se leyó un CV en blanco."""
+    """A scanned PDF (an image with no text layer) extracts empty or nearly
+    empty: that has to be reported, not disguised as a blank CV."""
     datos = _pdf_minimo("")
     with pytest.raises(ExtractionError, match="escaneado"):
         extract_text("cv.pdf", datos)

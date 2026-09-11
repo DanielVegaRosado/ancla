@@ -139,9 +139,9 @@ def test_el_menu_nombra_los_dos_pasos_del_mismo_recorrido(cliente_web):
 
 
 def test_el_menu_atenua_ultima_propuesta_sin_borrador(cliente_web):
-    """Atenuado, no oculto: el enlace sigue llevando a su destino (que a su
-    vez explica la relación paso 1 → paso 2), solo deja de leerse como una
-    sección con contenido propio."""
+    """Dimmed, not hidden: the link still leads to its destination (which in
+    turn explains the step 1 → step 2 relationship), it just stops reading as
+    a section with content of its own."""
     pagina = cliente_web.get("/adaptar").get_data(as_text=True)
     assert 'href="/propuesta" class="desactivado"' in pagina
 

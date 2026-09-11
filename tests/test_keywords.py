@@ -63,10 +63,10 @@ def test_sin_clave_no_llama_y_explica_que_falta_configurarla():
 
 
 def test_una_clave_invalida_no_revienta_el_formulario_y_dice_por_que():
-    """El caso real que motivó esto: una clave de xAI (Grok) usada contra Groq
-    devolvía «no se pudo» sin más, y el usuario no tenía forma de saber que el
-    problema era la clave. El motivo de `ErrorIA` ya viene pensado para
-    enseñarse tal cual, así que se propaga en vez de sustituirlo."""
+    """An xAI (Grok) key used against Groq returns a bare "couldn't do it"
+    with no way for the user to tell the key is the problem. `AIError`'s
+    message is already meant to be shown as-is, so it's propagated instead of
+    replaced."""
     error = AIError("Tu clave de Groq no es válida o ha caducado. Revísala en Ajustes.")
     sugerencia = keywords.suggest_for_skill(ClienteFalso(error=error), "Python", "Python")
     assert sugerencia.keywords == []

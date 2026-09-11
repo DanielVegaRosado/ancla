@@ -198,7 +198,7 @@ def test_solo_entran_en_la_hoja_las_experiencias_dentro_de_la_capacidad_pedida(t
 
 def test_las_que_quedan_fuera_no_se_imprimen_ni_se_nombran(tmp_path: Path):
     """Choosing how many fit is the user's own call, made on this very
-    screen (the capacity field) and on «Última propuesta» (drag to
+    screen (the capacity field) and on "Última propuesta" (drag to
     reorder) — the sheet does not repeat which ones that leaves out."""
     cliente = _cliente(tmp_path, n_experiencias=5)
 
@@ -318,7 +318,7 @@ def test_una_plantilla_sin_rango_declarado_hereda_el_estandar_de_tres_a_cinco(tm
 def test_no_se_ofrece_ni_docx_ni_copiar_todo(tmp_path: Path):
     html = _cliente(tmp_path, n_experiencias=1).get("/propuesta").data.decode("utf-8")
 
-    assert 'class="boton boton-primario"' in html  # el de «Ver el CV (PDF)»
+    assert 'class="boton boton-primario"' in html  # the "Ver el CV (PDF)" one
     assert "docx" not in html.lower()
     assert "Copiar todo" not in html
 

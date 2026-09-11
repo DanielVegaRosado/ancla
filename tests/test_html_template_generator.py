@@ -124,9 +124,8 @@ def test_detectar_acento_encuentra_un_color_saturado_que_no_es_el_panel():
 
 
 def test_detectar_acento_sin_color_propio_reutiliza_el_panel():
-    """Como Corporativa Clásica reutiliza su azul marino de fondo también
-    como acento: si no hay ningún color saturado distinto, el acento es el
-    propio panel."""
+    """Corporativa Clásica reuses its navy background as the accent too: if
+    there's no distinct saturated color, the accent is the panel itself."""
     color_panel = (12, 35, 63)
     imagen = _imagen_dos_columnas(color_panel=color_panel, color_acento=None)
     color_acento, _ = gen._detectar_acento(
@@ -186,9 +185,9 @@ def test_plantilla_generada_es_descubierta_por_html_templates(tmp_path: Path, ge
 
 @pytest.mark.parametrize("estilo", sorted(gen.ESTILOS))
 def test_plantilla_generada_declara_lo_que_el_ajuste_necesita(tmp_path: Path, geometria, estilo: str):
-    """Mismo contrato que exige `test_web_cv_preview.py` para las dos
-    plantillas reales: sin `--cv-alto-pagina` ni `var(--cv-escala` el
-    script de ajuste (`cv_fit.js`) no tiene nada que medir."""
+    """Same contract `test_web_cv_preview.py` requires for the two real
+    templates: without `--cv-alto-pagina` or `var(--cv-escala` the fitting
+    script (`cv_fit.js`) has nothing to measure."""
     contexto = gen.construir_contexto(geometria, estilo)
     _, css = gen.renderizar_archivos(
         contexto, id_plantilla="prueba", nombre_es="Prueba", nombre_en="Test", pdf_referencia="prueba.pdf"
@@ -221,9 +220,9 @@ def test_yaml_generado_se_lee_con_el_sidecar_compartido(tmp_path: Path, geometri
 
 
 def test_los_dos_estilos_difieren_en_la_estructura_del_html(geometria):
-    """Las dos combinaciones ya validadas a mano en la app (nombre en una
-    o dos líneas, viñetas o párrafo corrido) tienen que producir HTML
-    realmente distinto, no la misma plantilla con otro nombre."""
+    """The two combinations already validated by hand in the app (name on
+    one or two lines, bullets or running paragraph) have to produce genuinely
+    different HTML, not the same template under another name."""
     html_clasico, _ = gen.renderizar_archivos(
         gen.construir_contexto(geometria, "clasico"),
         id_plantilla="p",

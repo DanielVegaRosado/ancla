@@ -100,7 +100,7 @@ def test_la_vista_de_una_plantilla_embebe_su_pdf(tmp_path: Path, plantillas_canv
     html = respuesta.data.decode("utf-8")
     assert 'src="/plantillas/calida/archivo"' in html
     assert 'type="application/pdf"' in html
-    # No debe redirigir a Canva en ningún sitio de esta pantalla.
+    # Must not redirect to Canva anywhere on this screen.
     assert "canva.com" not in html
 
 
@@ -167,10 +167,10 @@ def test_la_vista_previa_se_regenera_si_el_pdf_cambia(tmp_path: Path, plantillas
 def test_la_vista_previa_no_escribe_junto_al_pdf_dentro_de_un_flatpak(
     tmp_path: Path, plantillas_canva_reales: Path, monkeypatch
 ):
-    """Dentro de un Flatpak, canva-templates/ viaja instalada de solo
-    lectura — escribir ahí revienta la petición con un 500. FLATPAK_ID,
-    que Flatpak define siempre dentro del sandbox, desvía la caché a una
-    carpeta escribible en vez de intentarlo."""
+    """Inside a Flatpak, canva-templates/ ships installed read-only — writing
+    there blows up the request with a 500. FLATPAK_ID, which Flatpak always
+    sets inside the sandbox, redirects the cache to a writable folder instead
+    of attempting it."""
     plantillas_canva_reales.chmod(0o555)
     monkeypatch.setenv("FLATPAK_ID", "com.danielvegarosado.Ancla")
     try:

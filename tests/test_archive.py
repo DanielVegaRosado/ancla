@@ -210,9 +210,9 @@ def test_attachment_path_apunta_al_archivo_ya_copiado(tmp_path: Path):
 
 
 def test_attachment_path_no_sirve_un_nombre_que_no_es_adjunto_de_ese_cv(tmp_path: Path):
-    """Guarda contra servir un fichero cualquiera de la carpeta compartida
-    de adjuntos, aunque el nombre exista de verdad en disco (adjunto de
-    otro CV)."""
+    """Guards against serving an arbitrary file from the shared attachments
+    folder, even when the name genuinely exists on disk (an attachment of
+    another CV)."""
     repository.save(tmp_path, _cv())
     origen = tmp_path / "temporal"
     origen.write_bytes(b"contenido")

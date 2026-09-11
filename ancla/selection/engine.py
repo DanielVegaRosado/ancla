@@ -64,8 +64,8 @@ AVISO_SOBRE_MI_INCOMPLETO = (
 # ids with a one- or two-sentence reason each, plus the "About me" names and
 # a handful of gap phrases — never the user's own text, which rule 2 (see
 # module docstring) already keeps out of its answer. Measured against the
-# real API (checked 2026-09-06) with a 15-item catalog and a realistic
-# posting: 737 completion tokens. The margin below is wide relative to that
+# real API with a 15-item catalog and a realistic posting: 737 completion
+# tokens. The margin below is wide relative to that
 # single measurement on purpose — this call is cheap enough that a generous
 # flat number costs nothing a real adaptation would ever need, and
 # under-reserving is what cuts the JSON before the last experience's reason.

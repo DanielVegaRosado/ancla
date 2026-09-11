@@ -168,7 +168,7 @@ def test_una_educacion_solo_en_ingles_se_traduce_al_espanol():
 
 
 # --------------------------------------------------------------------------
-# El «Sobre mí»
+# The "About me"
 # --------------------------------------------------------------------------
 
 
@@ -187,8 +187,8 @@ def test_el_sobre_mi_se_traduce_conservando_sus_huecos():
 
 
 def test_una_traduccion_que_pierde_un_hueco_se_descarta():
-    """Un hueco perdido deja ese idioma renderizando mal, y nada río abajo
-    puede detectarlo: mejor sin traducir que traducido y roto."""
+    """A lost gap leaves that language rendering wrong, and nothing downstream
+    can detect it: better untranslated than translated and broken."""
     original = _sobre_mi("Desarrollador de {GROUP_A_1} con {GROUP_B_1}.")
     respuesta = json.dumps({"0": {"template": "Developer working with {GROUP_B_1}."}})
 

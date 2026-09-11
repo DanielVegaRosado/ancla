@@ -233,8 +233,8 @@ def test_un_sobre_mi_escrito_en_un_solo_idioma_solo_avisa():
 
 
 def test_un_sobre_mi_vacio_en_los_dos_idiomas_no_bloquea_el_guardado():
-    """Vaciar los dos idiomas es una decisión válida del usuario, no un
-    error — y `missing_languages` no avisa cuando no hay nada escrito."""
+    """Clearing both languages is a valid user decision, not an error — and
+    `missing_languages` doesn't warn when there's nothing written at all."""
     problemas = validation.validate_about_me(_sobre_mi(es="", en=""))
 
     assert problemas.errors == []
@@ -350,14 +350,14 @@ def test_detecta_que_falta_el_centro_de_una_educacion():
 
 
 def test_una_educacion_no_necesita_palabras_clave():
-    """A diferencia de skills/idiomas: la educación nunca se compara contra
-    los huecos de una vacante, así que no necesita keywords."""
+    """Unlike skills/languages: education is never matched against a job
+    posting's gaps, so it doesn't need keywords."""
     assert validation.validate_education(_educacion()).messages() == []
 
 
 def test_una_educacion_con_inicio_posterior_al_fin_es_un_error():
-    """Misma regla que en experiencia: la coherencia del periodo se
-    comparte, no se duplica."""
+    """Same rule as for experience: period-consistency validation is shared,
+    not duplicated."""
     problemas = validation.validate_education(
         _educacion(period_start="2027", period_end="2023")
     )

@@ -95,7 +95,7 @@ def build_context(
         **_etiquetas(idioma),
         "nombre": nombre,
         # Some templates set the first name and the rest in different styles
-        # ("**DANIEL** VEGA"), which a single tag cannot express: formatting
+        # ("**JOHN** DOE"), which a single tag cannot express: formatting
         # lives on the run, not on the text. Split on the first space; a
         # template that doesn't need it keeps using `nombre` whole.
         "nombre_primero": nombre_primero,

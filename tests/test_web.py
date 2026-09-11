@@ -230,9 +230,9 @@ def test_ajustes_enlaza_directo_a_conseguir_la_clave(cliente_web):
 
 
 def test_ajustes_explica_el_limite_diario_de_groq(cliente_web):
-    """Verified live on 2026-07-23: the quota-exhausted warning is almost
-    always the daily limit (200,000 tokens/day), not the per-minute one —
-    Settings has to say so with that figure, not just "wait a while"."""
+    """Verified live: the quota-exhausted warning is almost always the daily
+    limit (200,000 tokens/day), not the per-minute one — Settings has to say
+    so with that figure, not just "wait a while"."""
     respuesta = cliente_web.get("/ajustes")
     assert "200.000 tokens al día".encode("utf-8") in respuesta.data
     assert "una segunda cuenta".encode("utf-8") in respuesta.data
@@ -272,9 +272,9 @@ def test_una_clave_con_otro_prefijo_avisa_pero_no_bloquea(cliente_web, tmp_path:
 def test_guardar_la_clave_de_un_proveedor_no_pisa_la_de_otro_en_el_formulario(
     cliente_web, tmp_path: Path
 ):
-    """The bug this card exists to close: switching provider used to leave
-    the previous provider's key sitting in the field, so saving without
-    retyping it saved that key under the new provider's name."""
+    """Switching provider must not leave the previous provider's key sitting
+    in the field — saving without retyping it would save that key under the
+    new provider's name."""
     cliente_web.post(
         "/ajustes", data={"proveedor": "groq", "clave_api": "gsk_groq"}, follow_redirects=True
     )
@@ -609,11 +609,11 @@ def test_guardar_ajustes_con_anthropic_los_persiste(cliente_web, tmp_path: Path)
 
 @pytest.mark.parametrize("proveedor", ["openai", "anthropic", "mistral", "openrouter"])
 def test_pegar_solo_la_clave_deja_el_proveedor_configurado(cliente_web, tmp_path: Path, proveedor: str):
-    """The bug this card exists to close: for every known provider except
-    Groq, the model used to be required text with no value of its own — the
-    exact spot where someone types "Claude" instead of a real model id.
-    Posting only the provider and the key (no "modelo" field at all, same as
-    a form where the Model input was never touched) must be enough."""
+    """For every known provider except Groq, the model must not be required
+    text with no value of its own — that's the exact spot where someone types
+    "Claude" instead of a real model id. Posting only the provider and the
+    key (no "modelo" field at all, same as a form where the Model input was
+    never touched) must be enough."""
     from ancla.web.providers import PROVIDERS
 
     cliente_web.post(

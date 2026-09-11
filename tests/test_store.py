@@ -345,9 +345,9 @@ def test_guardar_y_cargar_contacto_hace_ida_y_vuelta(tmp_path: Path):
 
 
 def test_un_titular_viejo_sin_es_en_se_aplica_a_los_dos_idiomas(tmp_path: Path):
-    """`headline` era un texto plano antes de hacerse bilingüe — un perfil
-    real guardado con el formato viejo tiene que seguir cargando, con ese
-    mismo texto en los dos idiomas hasta que el usuario lo separe a mano."""
+    """`headline` was plain text before it became bilingual — a real profile
+    saved in the old format still has to load, with that same text in both
+    languages until the user splits it by hand."""
     (tmp_path / "contact.yaml").write_text("headline: Ingeniero Informático\n", encoding="utf-8")
     perfil = store.load_profile(tmp_path)
     assert perfil.headline == Bilingual(es="Ingeniero Informático", en="Ingeniero Informático")

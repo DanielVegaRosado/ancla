@@ -56,7 +56,7 @@ def test_el_resumen_por_estado_cuenta_cada_cv_una_vez(cliente_web, tmp_path: Pat
     html = respuesta.data.decode("utf-8")
     assert '<span class="bento-cifra">2</span>' in html  # Enviado
     assert '<span class="bento-cifra">1</span>' in html  # Entrevista
-    assert '<span class="bento-cifra">0</span>' in html  # el resto, en 0
+    assert '<span class="bento-cifra">0</span>' in html  # the rest, at 0
 
 
 def test_un_archivo_vacio_no_muestra_el_resumen(cliente_web):
