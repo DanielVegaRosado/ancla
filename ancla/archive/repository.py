@@ -158,15 +158,18 @@ def attach(root: Path, id: str, archivo: Path, nombre_original: str) -> Path:
     return destino
 
 
-def remove_attachment(root: Path, id: str, nombre_archivo: str) -> None:
+def remove_attachment(root: Path, id: str, nombre_archivo: str) -> bool:
     """Removes one attachment from a CV — the others stay. Missing from
     disk is not an error: the record is what matters, and this is also how
-    a broken reference (file deleted by hand outside the app) heals itself."""
+    a broken reference (file deleted by hand outside the app) heals itself.
+    Returns whether `nombre_archivo` was actually one of the CV's
+    attachments, so the caller can tell a real removal from a no-op."""
     cv = read(_path(root, id))
     if nombre_archivo not in cv.attachments:
-        return
+        return False
     (Path(root) / CARPETA_CVS / CARPETA_ADJUNTOS / nombre_archivo).unlink(missing_ok=True)
     save(root, dataclasses.replace(cv, attachments=[n for n in cv.attachments if n != nombre_archivo]))
+    return True
 
 
 def attachment_path(root: Path, cv: SavedCV, nombre_archivo: str) -> Path | None:

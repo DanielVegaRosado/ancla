@@ -115,6 +115,31 @@ def test_borrar_un_adjunto_no_borra_los_demas(cliente_web, tmp_path: Path):
     assert a_borrar not in adjuntos
 
 
+def test_borrar_un_adjunto_que_no_existe_no_dice_que_lo_ha_borrado(cliente_web, tmp_path: Path):
+    archivo.save(tmp_path / "perfil", _cv("cv-1"))
+
+    respuesta = cliente_web.post(
+        "/cvs/cv-1/adjunto/no-existe.pdf/borrar", follow_redirects=True
+    )
+
+    assert respuesta.status_code == 200
+    html = respuesta.data.decode("utf-8")
+    assert "Archivo borrado." not in html
+    assert "Ese adjunto ya no existe." in html
+
+
+def test_un_nombre_de_adjunto_larguisimo_no_deja_fichero_temporal_huerfano(
+    cliente_web, tmp_path: Path
+):
+    archivo.save(tmp_path / "perfil", _cv("cv-1"))
+
+    _adjuntar(cliente_web, "cv-1", b"contenido", "a" * 300 + ".pdf")
+
+    carpeta_adjuntos = tmp_path / "perfil" / "cvs" / "attachments"
+    assert list(carpeta_adjuntos.iterdir()) == []
+    assert archivo.list_all(tmp_path / "perfil")[0].attachments == []
+
+
 def test_el_archivo_de_un_cv_sin_adjunto_da_404(cliente_web, tmp_path: Path):
     archivo.save(tmp_path / "perfil", _cv("cv-1"))
     assert cliente_web.get("/cvs/cv-1/adjunto/cv.pdf").status_code == 404

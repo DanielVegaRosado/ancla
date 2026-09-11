@@ -229,17 +229,19 @@ def test_borrar_un_adjunto_deja_los_demas(tmp_path: Path):
     a = repository.attach(tmp_path, _cv().id, origen, "corporativa.docx")
     b = repository.attach(tmp_path, _cv().id, origen, "minimalista.pdf")
 
-    repository.remove_attachment(tmp_path, _cv().id, a.name)
+    borrado = repository.remove_attachment(tmp_path, _cv().id, a.name)
 
+    assert borrado is True
     cv = repository.list_all(tmp_path)[0]
     assert cv.attachments == [b.name]
     assert not a.exists()
     assert b.exists()
 
 
-def test_borrar_un_adjunto_que_no_existe_no_da_error(tmp_path: Path):
+def test_borrar_un_adjunto_que_no_existe_no_da_error_y_avisa_de_que_no_existia(tmp_path: Path):
     repository.save(tmp_path, _cv())
-    repository.remove_attachment(tmp_path, _cv().id, "no-existe.pdf")
+    borrado = repository.remove_attachment(tmp_path, _cv().id, "no-existe.pdf")
+    assert borrado is False
     assert repository.list_all(tmp_path)[0].attachments == []
 
 

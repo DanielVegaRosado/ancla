@@ -100,8 +100,10 @@ def attach_cv(id_: str):
     destino_temporal = context.root() / "cvs" / "attachments" / f"_subida_{uuid.uuid4().hex}"
     destino_temporal.parent.mkdir(parents=True, exist_ok=True)
     archivo_subido.save(destino_temporal)
-    archivo.attach(context.root(), id_, destino_temporal, archivo_subido.filename)
-    destino_temporal.unlink(missing_ok=True)
+    try:
+        archivo.attach(context.root(), id_, destino_temporal, archivo_subido.filename)
+    finally:
+        destino_temporal.unlink(missing_ok=True)
     flash(_("Archivo guardado."))
     return redirect(url_for("ancla.view_cv", id_=id_))
 
@@ -119,6 +121,8 @@ def cv_attachment_file(id_: str, nombre_archivo: str):
 
 @bp.route("/cvs/<id_>/adjunto/<nombre_archivo>/borrar", methods=["POST"])
 def remove_cv_attachment(id_: str, nombre_archivo: str):
-    archivo.remove_attachment(context.root(), id_, nombre_archivo)
-    flash(_("Archivo borrado."))
+    if archivo.remove_attachment(context.root(), id_, nombre_archivo):
+        flash(_("Archivo borrado."))
+    else:
+        flash(_("Ese adjunto ya no existe."))
     return redirect(url_for("ancla.view_cv", id_=id_))
