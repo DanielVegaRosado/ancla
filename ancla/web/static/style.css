@@ -219,6 +219,7 @@ section[id] { scroll-margin-top: 4.5rem; }
   position: relative;
   aspect-ratio: 1 / 1.414;
   background: var(--fondo-suave);
+  border-bottom: 1px solid var(--borde);
   overflow: hidden;
 }
 
@@ -227,7 +228,6 @@ section[id] { scroll-margin-top: 4.5rem; }
   inset: 0;
   width: 100%;
   height: 100%;
-  border: 1px solid #000;
   /* A rendered page image, same ratio as the container (A4) — cover only
      absorbs pixel rounding between the PNG and the container's
      aspect-ratio, not an actual viewer margin. */
