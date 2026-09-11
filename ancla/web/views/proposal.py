@@ -116,7 +116,19 @@ def adjust_about_me():
     )
     borrador.propuesta = replace(borrador.propuesta, about_me=nueva_seleccion)
     modulo_borrador.save_draft(context.root(), borrador)
-    flash(_("«Sobre mí» actualizado."))
+
+    # Shown after saving, never before it — same "warn, don't block" doctrine
+    # as `_flash_warnings` in `profile.py`: an empty gap is unfinished text,
+    # not an error that should stop the manual adjustment from saving.
+    if not all(grupo_a) or not all(grupo_b):
+        flash(
+            _(
+                "«Sobre mí» actualizado, pero se ha quedado con huecos vacíos "
+                "porque alguna caja no tenía texto."
+            )
+        )
+    else:
+        flash(_("«Sobre mí» actualizado."))
     return redirect(url_for("ancla.view_proposal"))
 
 

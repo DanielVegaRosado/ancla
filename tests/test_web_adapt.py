@@ -281,3 +281,60 @@ def test_un_perfil_completo_no_avisa_de_nada(cliente_web, monkeypatch):
     respuesta = cliente_web.post("/adaptar", data={"vacante": VACANTE, "idioma": "en"})
 
     assert respuesta.status_code == 302
+
+
+# --------------------------------------------------------------------------
+# "Ajuste directo" (direct adjustment) on About me with empty boxes
+# --------------------------------------------------------------------------
+
+
+def _adaptar(cliente_web, monkeypatch):
+    import ancla.web.views.adapt as vista_adaptar
+
+    monkeypatch.setattr(
+        vista_adaptar,
+        "create_client",
+        lambda proveedor, clave, url_base="", modelo="": _ClienteFalsoDisponible(_respuesta_ia()),
+    )
+    cliente_web.post("/adaptar", data={"vacante": VACANTE, "idioma": "es"})
+
+
+def test_ajustar_sobre_mi_con_huecos_vacios_avisa_pero_no_bloquea(cliente_web, monkeypatch):
+    """Emptying all six boxes and pressing "Update text" must not save
+    broken text silently: it has to warn without blocking the save, same as
+    the rest of the app never blocking over a half-finished field."""
+    _adaptar(cliente_web, monkeypatch)
+
+    respuesta = cliente_web.post(
+        "/propuesta/ajustar-sobre-mi",
+        data={
+            "grupo_a_1": "", "grupo_a_2": "", "grupo_a_3": "",
+            "grupo_b_1": "", "grupo_b_2": "", "grupo_b_3": "",
+        },
+        follow_redirects=True,
+    )
+
+    assert respuesta.status_code == 200
+    pagina = respuesta.get_data(as_text=True)
+    assert "huecos vacíos" in pagina
+
+    borrador = modulo_borrador.load_draft(cliente_web.application.config["RAIZ_PERFIL"])
+    assert borrador.propuesta.about_me.text == "Trabajo con ."
+
+
+def test_ajustar_sobre_mi_completo_no_avisa(cliente_web, monkeypatch):
+    _adaptar(cliente_web, monkeypatch)
+
+    respuesta = cliente_web.post(
+        "/propuesta/ajustar-sobre-mi",
+        data={
+            "grupo_a_1": "Python", "grupo_a_2": "FastAPI", "grupo_a_3": "SQL",
+            "grupo_b_1": "Docker", "grupo_b_2": "AWS", "grupo_b_3": "CI/CD",
+        },
+        follow_redirects=True,
+    )
+
+    assert respuesta.status_code == 200
+    pagina = respuesta.get_data(as_text=True)
+    assert "huecos vacíos" not in pagina
+    assert "«Sobre mí» actualizado." in pagina
