@@ -112,7 +112,7 @@ def test_una_skill_que_ya_esta_en_el_perfil_no_se_vuelve_a_proponer():
     """Real case that prompted this: importing the English CV after the
     Spanish one must not duplicate what the Spanish one already saved."""
     perfil = Profile(skills=[Skill(id="python", name=Bilingual(es="Python", en="Python"))])
-    resultado = analyze_cv(ClienteFalso(_respuesta()), "texto", perfil)
+    resultado = analyze_cv(ClienteFalso(_respuesta()), "ML Developer. Pipeline completo.", perfil)
     assert resultado.skills == []
     assert "1 elemento(s)" in resultado.avisos[0]
 
@@ -485,7 +485,7 @@ def test_una_educacion_que_ya_esta_en_el_perfil_no_se_vuelve_a_proponer():
             }
         ]
     )
-    resultado = analyze_cv(ClienteFalso(respuesta), "texto", perfil)
+    resultado = analyze_cv(ClienteFalso(respuesta), "ML Developer. Pipeline completo.", perfil)
     assert resultado.educacion == []
     assert "1 elemento(s)" in resultado.avisos[0]
 
@@ -947,3 +947,96 @@ def test_un_fallo_al_dividir_no_tumba_la_importacion():
     resultado = analyze_cv(cliente, "texto de un CV", Profile(), "es")
 
     assert resultado.experiencias[0].bullets["es"] == [_PARRAFO]
+
+
+# --------------------------------------------------------------------------
+# The user's own prose has to come back as written
+# --------------------------------------------------------------------------
+
+# Shape of a real import where the model rewrote the bullets: the CV says
+# "he diseñado y mantenido", the answer said "Diseñé y mantuve".
+_CV_EN_PRIMERA_PERSONA = """\
+Ingeniera de Datos Senior — Transportes Levante
+2021 - Actualidad
+En este puesto he diseñado y mantenido la plataforma de datos de la empresa sobre AWS. \
+He migrado más de 40 procesos ETL desde scripts cron a Airflow.
+
+Sobre mí
+Soy ingeniera de datos con seis años de experiencia construyendo plataformas analíticas."""
+
+
+def _cv_importado(bullets: list[str], sobre_mi: str = "") -> str:
+    return json.dumps(
+        {
+            "experiencias": [
+                {"titulo": "Ingeniera de Datos Senior", "periodo": "2021 - Actualidad", "bullets": bullets}
+            ],
+            "sobre_mi": sobre_mi,
+        },
+        ensure_ascii=False,
+    )
+
+
+def test_unos_bullets_reescritos_por_el_modelo_se_avisan_con_el_nombre_de_la_experiencia():
+    reescritos = ["Diseñé y mantuve la plataforma de datos de la empresa sobre AWS."]
+    cliente = ClienteFalso(_cv_importado(reescritos))
+
+    resultado = analyze_cv(cliente, _CV_EN_PRIMERA_PERSONA, Profile(), "es")
+
+    assert any("«Ingeniera de Datos Senior»" in aviso for aviso in resultado.avisos)
+    # Warned, not dropped: the review screen is where the user fixes it.
+    assert resultado.experiencias[0].bullets["es"] == reescritos
+
+
+def test_unos_bullets_copiados_tal_cual_no_avisan_aunque_el_pdf_los_parta_en_lineas():
+    cv = _CV_EN_PRIMERA_PERSONA.replace("plataforma de datos", "plata-\nforma de datos")
+    copiados = [
+        "En este puesto he diseñado y mantenido la plataforma de datos de la empresa sobre AWS.",
+        "He migrado más de 40 procesos ETL desde scripts cron a Airflow.",
+    ]
+
+    resultado = analyze_cv(ClienteFalso(_cv_importado(copiados)), cv, Profile(), "es")
+
+    assert resultado.avisos == []
+
+
+def test_un_sobre_mi_reescrito_por_el_modelo_se_avisa():
+    literal = ["He migrado más de 40 procesos ETL desde scripts cron a Airflow."]
+    cliente = ClienteFalso(
+        _cv_importado(literal, sobre_mi="Ingeniera de datos con seis años construyendo plataformas.")
+    )
+
+    resultado = analyze_cv(cliente, _CV_EN_PRIMERA_PERSONA, Profile(), "es")
+
+    assert len(resultado.avisos) == 1
+    assert "«Sobre mí»" in resultado.avisos[0]
+
+
+def test_los_bullets_que_corta_el_divisor_nunca_avisan_de_reescritura():
+    """The splitter only cuts the user's text, so what it returns is literal
+    by construction and must never trip the rewrite check."""
+    cliente = ClienteEncolado(
+        _cv_con_un_parrafo([_PARRAFO]),
+        _corte("Diseñé el pipeline", "Automaticé el despliegue", "Formé a dos"),
+    )
+
+    resultado = analyze_cv(cliente, "Ingeniero de datos\n" + _PARRAFO, Profile(), "es")
+
+    assert len(resultado.experiencias[0].bullets["es"]) == 3
+    assert resultado.avisos == []
+
+
+def test_el_prompt_pide_copiar_los_bullets_sin_partir_la_prosa():
+    """What actually kept imported bullets literal against the real API: the
+    main prompt used to split prose itself, and rewrote each piece while at
+    it. Splitting belongs to `profile/bullets.py`, which cannot rewrite."""
+    sistema, _usuario = _una_llamada(_CV_EN_PRIMERA_PERSONA)
+
+    assert "se copian TAL CUAL" in sistema
+    assert "devuelve el párrafo ENTERO como un único bullet" in sistema
+
+
+def _una_llamada(texto: str) -> tuple[str, str]:
+    cliente = ClienteFalso(_cv_importado([]))
+    analyze_cv(cliente, texto, Profile(), "es")
+    return cliente.llamadas[0]

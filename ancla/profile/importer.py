@@ -78,6 +78,7 @@ from flask_babel import gettext as _
 from ancla.ai.client import AIClient, AIError, complete_with_budget
 from ancla.profile import bullets as bullets_module
 from ancla.profile import extraction
+from ancla.profile.literal_match import locate
 from ancla.profile.serialization import split_period
 from ancla.profile.model import (
     AboutMe,
@@ -111,8 +112,10 @@ from ancla.text import to_text, to_texts, json_block, normalize, slugify
 TOKENS_RESPUESTA_POR_CARACTER = 1.2
 MIN_TOKENS_RESPUESTA = 1500
 
-# Groq's free tier admits a request only if the system prompt (~1070 tokens,
-# measured against the real API), the CV text (~1 token per 3.9 characters,
+# Groq's free tier admits a request only if the system prompt (~1460 tokens,
+# measured against the real API as the whole request's `prompt_tokens` with
+# a one-character user message — re-measure whenever a rule is added, the
+# prompt has grown past this number before without anyone noticing), the CV text (~1 token per 3.9 characters,
 # also measured) and the declared response budget together fit under its
 # 8000-tokens-per-minute ceiling. The response budget is
 # `TOKENS_RESPUESTA_POR_CARACTER` above, so this is computed from that same
@@ -120,7 +123,7 @@ MIN_TOKENS_RESPUESTA = 1500
 # that drift is exactly how the previous ceiling (8000 characters) ended up
 # built on a per-language factor of 0.5 that the response's actual worst
 # case had already outgrown by the time anyone measured it again.
-_TOKENS_PROMPT_SISTEMA = 1070
+_TOKENS_PROMPT_SISTEMA = 1460
 _CARACTERES_POR_TOKEN_ENTRADA = 3.9
 _TOKENS_POR_MINUTO_GRATIS = 8000
 MAX_CARACTERES_CV = int(
@@ -194,6 +197,12 @@ cópialo TAL CUAL, sin resumirlo, acortarlo ni reescribirlo con otras palabras: 
 única categoría que se copia entera en vez de estructurarse en campos. Si el CV no trae \
 ningún párrafo así, deja este campo vacío — no lo construyas a partir de la experiencia \
 ni de las skills.
+14. Los "bullets" de una experiencia se copian TAL CUAL del texto, con las mismas palabras, \
+sin cambiar la persona ni el tiempo verbal ("he diseñado" sigue siendo "he diseñado", nunca \
+"Diseñé" ni "Diseñó"), sin resumir, recortar ni unir frases. Si el CV trae esa experiencia \
+como una lista (guiones, viñetas o un logro por línea), cada elemento de la lista es un \
+bullet. Si la trae como un párrafo seguido de prosa, devuelve el párrafo ENTERO como un \
+único bullet, sin partirlo: dividirlo lo hace otro paso aparte.
 
 Responde ÚNICAMENTE con este JSON, sin texto alrededor ni bloques de código:
 {{
@@ -425,6 +434,7 @@ def analyze_cv(
     # because a "Contacto" with that name already exists.
     contacto = _to_contact(datos.get("contacto"), idioma)
     sobre_mi = _to_about_me(datos.get("sobre_mi"), idioma)
+    avisos += _rewritten_warnings(texto, experiencias, sobre_mi, idioma)
 
     if not any((experiencias, skills, skills_personales, idiomas, educacion, contacto, sobre_mi)):
         if duplicadas:
@@ -494,6 +504,46 @@ def _split_paragraph_bullets(
         )
         divididas.append(replace(experiencia, bullets=nuevos))
     return divididas
+
+
+def _rewritten_warnings(
+    texto: str, experiencias: list[Experience], sobre_mi: AboutMe | None, idioma: Language
+) -> list[str]:
+    """One warning per experience, and one for "About me", whose text the
+    model did not copy word for word from the CV.
+
+    Bullets and "About me" are the user's own prose, the part rule 14 and
+    rule 13 of the prompt tell the model to copy as written. Asking is what
+    keeps them literal in practice, but it is still a request, so this is
+    the check that a request cannot be: each piece has to be found in the
+    CV with `literal_match.locate`, the same tolerance the gaps and the
+    bullet splitter apply to what a model copies.
+
+    It warns instead of discarding or repairing. Repairing would need the
+    model to point at where the text is rather than hand it back, which the
+    extraction schema does not do; discarding would lose an experience's
+    content for a difference the user can fix in the review screen in a few
+    seconds, once told where to look. Titles, names and levels are not
+    checked: they are short labels a CV often writes in capitals or with
+    the company attached, and flagging those would bury this warning.
+    """
+    avisos = [
+        _(
+            "El texto de «%(titulo)s» no coincide palabra por palabra con tu CV: el "
+            "modelo lo ha reescrito. Corrígelo con tus propias palabras antes de guardarlo.",
+            titulo=experiencia.title[idioma],
+        )
+        for experiencia in experiencias
+        if any(locate(texto, bullet) is None for bullet in experiencia.bullets[idioma])
+    ]
+    if sobre_mi is not None and locate(texto, sobre_mi.template[idioma]) is None:
+        avisos.append(
+            _(
+                "El «Sobre mí» no coincide palabra por palabra con tu CV: el modelo lo ha "
+                "reescrito. Corrígelo con tus propias palabras antes de guardarlo."
+            )
+        )
+    return avisos
 
 
 # --------------------------------------------------------------------------

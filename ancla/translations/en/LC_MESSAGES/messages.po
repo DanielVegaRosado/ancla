@@ -3181,6 +3181,24 @@ msgstr ""
 msgid "Cuéntanos qué ha pasado, o qué se te ha ocurrido, antes de enviarlo."
 msgstr "Tell us what happened, or what came to mind, before sending it."
 
+#: ancla/profile/importer.py:532
+#, python-format
+msgid ""
+"El texto de «%(titulo)s» no coincide palabra por palabra con tu CV: el "
+"modelo lo ha reescrito. Corrígelo con tus propias palabras antes de "
+"guardarlo."
+msgstr ""
+"The text of \"%(titulo)s\" doesn't match your CV word for word: the model "
+"rewrote it. Fix it in your own words before saving."
+
+#: ancla/profile/importer.py:542
+msgid ""
+"El «Sobre mí» no coincide palabra por palabra con tu CV: el modelo lo ha "
+"reescrito. Corrígelo con tus propias palabras antes de guardarlo."
+msgstr ""
+"\"About me\" doesn't match your CV word for word: the model rewrote it. "
+"Fix it in your own words before saving."
+
 #~ msgid ""
 #~ "La clave es siempre tuya y se "
 #~ "guarda solo en este ordenador, fuera "
