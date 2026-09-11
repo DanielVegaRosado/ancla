@@ -10,10 +10,36 @@
   separate personal-skills block, and this template intentionally does
   not add one: `skills_personales` is never rendered here, unlike the
   other two templates. The original also has no photo inside the panel
-  (it sits in the header) and no bullets per experience (each one reads
-  as a single running paragraph), so `experiencia.bullets` is joined into
-  one paragraph rather than listed.
+  (it sits in the header).
+
+  The accent band is part of the design and not a container for the
+  headline, so it is drawn whether or not the profile has one: a profile
+  with an empty `titular` in the CV's language would otherwise lose the
+  band as well as the text, and the header would stop matching the
+  reference for a reason the reader cannot see.
 #}
+{#
+  The profile stores contact lines as plain text, with no field saying
+  what each one is, so which icon goes with which line is decided here by
+  shape: an address with a host part is mail, anything that looks like a
+  URL or a handle is a profile elsewhere, a line made only of digits and
+  phone punctuation is a phone, and whatever is left is where the person
+  lives. The line itself is never altered — only decorated.
+#}
+{% macro icono_contacto(linea) -%}
+  {%- set texto = linea|trim -%}
+  {%- set minusculas = texto|lower -%}
+  {%- set digitos = texto|replace(" ", "")|replace("+", "")|replace("-", "")|replace(".", "")|replace("(", "")|replace(")", "") -%}
+  {%- if "@" in texto and "." in texto.split("@")|last -%}
+    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3.2 6.6A1 1 0 0 1 4 6h16a1 1 0 0 1 .8.6L12 12.6zM3 8.4V17a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1V8.4l-8.4 5.8a1 1 0 0 1-1.2 0z"/></svg>
+  {%- elif minusculas.startswith("http") or minusculas.startswith("www.") or texto.startswith("@") -%}
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.6 2.9 2.6 15.1 0 18M12 3c-2.6 2.9-2.6 15.1 0 18"/></svg>
+  {%- elif digitos.isdigit() and digitos|length >= 7 -%}
+    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25c1.15.38 2.36.57 3.6.57a1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.24.19 2.45.57 3.6a1 1 0 0 1-.25 1z"/></svg>
+  {%- else -%}
+    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7m0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5"/></svg>
+  {%- endif -%}
+{%- endmacro %}
 <article class="cv">
   <div class="cv-banda-lateral" aria-hidden="true"></div>
 
@@ -24,11 +50,10 @@
     <div class="cv-identidad">
       <h1 class="cv-nombre">{{ nombre_primero }}<strong>{{ nombre_resto }}</strong></h1>
     </div>
+    <p class="cv-titular">{{ titular }}</p>
   </div>
-  {% if titular %}<p class="cv-titular">{{ titular }}</p>{% endif %}
 
-  <div class="cv-cuerpo">
-    <main class="cv-principal">
+  <main class="cv-principal">
       {% if experiencias %}
         <section class="cv-seccion cv-seccion-experiencia">
           <h2 class="cv-cabecera-principal">{{ etiqueta_experiencia_relevante }}</h2>
@@ -37,7 +62,9 @@
               <h3 class="cv-puesto">{{ experiencia.puesto }}</h3>
               <p class="cv-fechas">{{ experiencia.fechas }}</p>
               {% if experiencia.bullets %}
-                <p class="cv-parrafo">{{ experiencia.bullets|join(". ") }}.</p>
+                <ul class="cv-bullets">
+                  {% for bullet in experiencia.bullets %}<li>{{ bullet }}</li>{% endfor %}
+                </ul>
               {% endif %}
               {% if experiencia.stack %}<p class="cv-stack">{{ experiencia.stack }}</p>{% endif %}
             </article>
@@ -63,8 +90,13 @@
       {% if contacto %}
         <section class="cv-bloque">
           <h2 class="cv-cabecera-lateral">{{ etiqueta_contacto }}</h2>
-          <ul class="cv-lista">
-            {% for linea in contacto %}<li>{{ linea }}</li>{% endfor %}
+          <ul class="cv-lista cv-lista-contacto">
+            {% for linea in contacto %}
+              <li>
+                <span class="cv-icono">{{ icono_contacto(linea) }}</span>
+                <span class="cv-contacto-texto">{{ linea }}</span>
+              </li>
+            {% endfor %}
           </ul>
         </section>
       {% endif %}
@@ -94,5 +126,4 @@
         </section>
       {% endif %}
     </aside>
-  </div>
 </article>

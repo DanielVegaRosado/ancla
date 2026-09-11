@@ -12,17 +12,28 @@
    rationale. The panel answers to its own knob, `--cv-escala-lateral`.
    Neither column's own padding scales, nor does the header above them. */
 
+/* Colors and header geometry re-measured on the reference render at 2x
+   (Pillow, dominant color over each element's own box rather than a
+   single pixel): the section pills in the main column are the panel's
+   own mauve, not a darker shade of it; body type and headings are pure
+   black; the two halves of the name carry their own colors; and the
+   headline band is that same mauve at 58% over whatever is behind it —
+   solved from its rendered value over the known header background on
+   all three channels, which is why the photo shows through it. */
 :root {
   --cv-panel: #b08977;
-  --cv-banda: #c8b2ab;
+  --cv-banda: rgba(176, 137, 123, 0.58);
   --cv-fondo: #e9eaec;
-  --cv-pill: #85675d;
-  --cv-ink: #1a1a1a;
-  --cv-body: #333333;
+  --cv-pill: #b08977;
+  --cv-ink: #000000;
+  --cv-body: #000000;
   --cv-muted: #5c5c5c;
   --cv-panel-texto: #ffffff;
+  --cv-nombre-pila: #633058;
+  --cv-nombre-apellido: #b08977;
   --cv-ancho-lateral: 263.5pt;
-  --cv-alto-cabecera: 175pt;
+  --cv-alto-cabecera: 174pt;
+  --cv-alto-banda: 37pt;
   --cv-alto-pagina: 841.92pt;
 }
 
@@ -36,7 +47,7 @@
   width: 595.32pt;
   min-height: var(--cv-alto-pagina);
   display: flex;
-  flex-direction: column;
+  align-items: stretch;
   background: var(--cv-fondo);
   color: var(--cv-body);
   font-family: "IBM Plex Sans", Helvetica, Arial, sans-serif;
@@ -60,19 +71,29 @@
   background: var(--cv-panel);
 }
 
+
+/* The band overlaps the bottom of the photo instead of sitting under
+   it, so the header is one positioned box of its own rather than a row
+   of siblings: the photo fills its whole height (name area plus band)
+   and the band is laid over it. Stacking them in normal flow would put
+   the band's own background below the photo, and the photo's bottom
+   strip would never show through. */
 .cv-cabecera {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  align-items: stretch;
-  min-height: var(--cv-alto-cabecera);
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  z-index: 2;
+  min-height: calc(var(--cv-alto-cabecera) + var(--cv-alto-banda));
   background: var(--cv-fondo);
 }
 
 .cv-foto {
-  flex: 0 0 198pt;
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 198pt;
-  height: var(--cv-alto-cabecera);
+  height: 100%;
 }
 
 .cv-foto img {
@@ -83,57 +104,77 @@
 }
 
 .cv-identidad {
-  flex: 1 1 auto;
-  min-width: 0;
+  position: absolute;
+  top: 0;
+  left: 198pt;
+  right: 0;
+  height: var(--cv-alto-cabecera);
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 0 18pt;
 }
 
+/* A profile with no photo leaves no strip to the left of the name. */
+.cv-cabecera:not(:has(.cv-foto)) .cv-identidad {
+  left: 0;
+}
+
 .cv-nombre {
   margin: 0;
+  min-width: 0;
   text-align: center;
-  font-size: 21pt;
+  font-size: 32pt;
   font-weight: 400;
-  line-height: 1.2;
-  color: var(--cv-muted);
+  line-height: 1.15;
+  color: var(--cv-nombre-pila);
+  overflow-wrap: anywhere;
 }
 
 .cv-nombre strong {
   display: block;
-  font-size: 1.3em;
+  font-size: 0.94em;
   font-weight: 700;
-  letter-spacing: 1pt;
-  color: var(--cv-ink);
+  text-transform: uppercase;
+  letter-spacing: 4pt;
+  color: var(--cv-nombre-apellido);
 }
 
 .cv-titular {
-  position: relative;
-  z-index: 1;
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  min-height: var(--cv-alto-banda);
   margin: 0;
-  padding: 9pt 20pt;
+  padding: 5pt 20pt;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   background: var(--cv-banda);
   color: #ffffff;
   text-align: center;
-  font-size: 13pt;
+  font-size: 20pt;
   font-weight: 700;
+  line-height: 1.2;
   text-transform: uppercase;
-  letter-spacing: 1.5pt;
+  letter-spacing: 3pt;
 }
 
-.cv-cuerpo {
-  position: relative;
-  z-index: 1;
-  flex: 1 1 auto;
-  display: flex;
-  align-items: stretch;
-}
-
+/* The header runs the full width, across both columns, but `cv_fit.js`
+   sizes the CV by measuring the main column against the page height —
+   so a header laid out as a block above the columns would be height the
+   fitter never sees, and every CV would come out one header taller than
+   the page it was fitted to. Taking the header out of flow and paying
+   for it with padding at the top of both columns keeps each column's
+   own box equal to the whole page, which is the measurement the fitter
+   already makes. */
 .cv-principal,
 .cv-lateral {
   position: relative;
-  padding-top: 20pt;
+  z-index: 1;
+  padding-top: calc(var(--cv-alto-cabecera) + var(--cv-alto-banda) + 14pt);
   padding-bottom: 24pt;
 }
 
@@ -183,6 +224,40 @@
   margin-bottom: calc(6pt * var(--cv-escala-lateral, 1));
 }
 
+/* Icons are inline SVG in the template rather than an icon font or a
+   bundled sprite: four glyphs are not worth a second file to keep in
+   step with the markup, and nothing here may be fetched from a CDN. */
+.cv-lista-contacto li {
+  display: flex;
+  align-items: flex-start;
+  gap: calc(8pt * var(--cv-escala-lateral, 1));
+}
+
+.cv-icono {
+  flex: 0 0 calc(20pt * var(--cv-escala-lateral, 1));
+  width: calc(20pt * var(--cv-escala-lateral, 1));
+  height: calc(20pt * var(--cv-escala-lateral, 1));
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--cv-panel-texto);
+  color: var(--cv-panel);
+}
+
+.cv-icono svg {
+  width: 60%;
+  height: 60%;
+}
+
+/* Without `min-width: 0` this flex item refuses to shrink below the
+   width of its longest unbreakable run — a contact URL — and runs out
+   past the panel instead of wrapping. */
+.cv-contacto-texto {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
 .cv-lista-punteada {
   padding-left: 11pt;
   list-style: disc;
@@ -229,9 +304,15 @@
   flex-direction: column;
 }
 
+/* Unlike the other two templates, education sits below the experience
+   block in this same column, so whatever these spacers refuse to take
+   does not fall off the bottom of the page — it collects as one gap
+   between the last experience and "Education", which reads as a mistake.
+   The cap is the reference's own gap between entries rather than the
+   other templates' value. */
 .cv-espaciador {
   flex: 1 1 0;
-  max-height: calc(20pt * var(--cv-escala, 1));
+  max-height: calc(32pt * var(--cv-escala, 1));
 }
 
 .cv-experiencia {
@@ -253,11 +334,16 @@
   color: var(--cv-body);
 }
 
-.cv-parrafo {
+.cv-bullets {
   margin: calc(4pt * var(--cv-escala, 1)) 0 0;
+  padding-left: 12pt;
   font-size: calc(9.5pt * var(--cv-escala, 1));
   line-height: calc(1.35 * var(--cv-escala, 1));
   color: var(--cv-body);
+}
+
+.cv-bullets li {
+  margin-bottom: calc(1.5pt * var(--cv-escala, 1));
 }
 
 .cv-stack {
@@ -289,7 +375,7 @@
 .cv-educacion-fechas {
   flex: none;
   font-size: calc(9.5pt * var(--cv-escala, 1));
-  color: var(--cv-muted);
+  color: var(--cv-body);
 }
 
 @media print {
