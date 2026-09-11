@@ -8,7 +8,7 @@ from flask import Response, abort, flash, jsonify, redirect, render_template, re
 from flask_babel import gettext as _
 
 from ancla.ai.client import AIClient
-from ancla.profile import store, gaps, keywords, translation, validation
+from ancla.profile import bullets, store, gaps, keywords, translation, validation
 from ancla.profile.model import (
     LANGUAGES,
     N_ABOUT_ME_GROUP,
@@ -322,6 +322,29 @@ def suggest_keywords():
         )
 
     return jsonify({"keywords": sugerencia.keywords, "aviso": sugerencia.motivo})
+
+
+@bp.route("/perfil/experiencias/dividir-bullets", methods=["POST"])
+def split_experience_bullets():
+    """Proposes where to cut the bullets textarea into one bullet per idea.
+
+    One language per call: the textarea sent is the one whose button was
+    pressed, and the fragments the model points at come out of that same
+    text — unlike the "About me" gaps, there is nothing to keep paired
+    between Spanish and English here.
+
+    Always returns 200 with usable text — whatever came in, if nothing could
+    be proposed. Nothing is saved: what comes back goes into the textarea
+    for the user to accept, retouch or undo before saving the form.
+    """
+    datos = request.get_json(silent=True) or {}
+    texto = datos.get("bullets", "")
+    cliente, motivo = _ai_client()
+    if cliente is None:
+        return jsonify({"bullets": texto, "avisos": [motivo]})
+
+    propuesta = bullets.suggest_split(cliente, texto)
+    return jsonify({"bullets": "\n".join(propuesta.bullets), "avisos": propuesta.avisos})
 
 
 def _skill_from_form(id_: str) -> Skill:

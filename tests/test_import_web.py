@@ -95,7 +95,7 @@ def test_borrar_importacion_la_deja_indisponible(tmp_path: Path):
 
 
 def test_borrar_importacion_sin_fichero_no_falla(tmp_path: Path):
-    modulo_importacion.delete_import(tmp_path)  # no debe lanzar
+    modulo_importacion.delete_import(tmp_path)  # must not raise
 
 
 def test_un_fichero_de_importacion_corrupto_no_revienta(tmp_path: Path):
@@ -161,13 +161,13 @@ def test_guardar_solo_lo_marcado(cliente_web, tmp_path: Path):
             "exp-0-bullets_es": "Pipeline completo",
             "exp-0-bullets_en": "Full pipeline",
             "exp-0-stack": "Python",
-            # "exp-1" no viene en el formulario: no estaba marcado
+            # "exp-1" is absent from the form: it wasn't checked
         },
     )
     perfil = store.load_profile(root)
     assert perfil.experience("uno") is not None
     assert perfil.experience("dos") is None
-    assert perfil.skill("python") is None  # tampoco estaba marcado
+    assert perfil.skill("python") is None  # wasn't checked either
 
 
 def test_guardar_permite_editar_antes_de_confirmar(cliente_web, tmp_path: Path):
@@ -226,7 +226,7 @@ def test_guardar_una_skill_personal_importada_va_al_catalogo_correcto(cliente_we
     )
     perfil = store.load_profile(root)
     assert perfil.personal_skill("equipo") is not None
-    assert perfil.skill("equipo") is None  # nunca en el catálogo técnico
+    assert perfil.skill("equipo") is None  # never in the technical catalog
 
 
 def test_guardar_un_idioma_importado(cliente_web, tmp_path: Path):
@@ -480,7 +480,7 @@ def test_de_punta_a_punta_subir_analizar_revisar_y_guardar(cliente_web, tmp_path
     assert experiencias[0].bullets["es"] == ["Pipeline de ingesta con Airflow"]
     assert perfil.skill("sql") is None
     assert perfil.personal_skill("trabajo-en-equipo") is not None
-    assert perfil.skill("trabajo-en-equipo") is None  # nunca en el catálogo técnico
+    assert perfil.skill("trabajo-en-equipo") is None  # never in the technical catalog
     assert perfil.language("ingles") is None
     assert perfil.education_entry("grado-en-ingenieria-informatica") is not None
 
@@ -805,7 +805,7 @@ def test_traducir_conserva_lo_que_el_usuario_habia_corregido(cliente_web, tmp_pa
 
 
 # --------------------------------------------------------------------------
-# Importar la segunda parte de un CV recortado
+# Importing the second part of a CV that was split in two
 # --------------------------------------------------------------------------
 
 

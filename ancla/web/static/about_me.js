@@ -6,10 +6,10 @@
 // accelerator on top, and it goes through exactly the same field, so the
 // user carries on adjusting the proposal with the same buttons.
 //
-// Every edit goes through `replaceSelection`, which uses `execCommand` so
-// the browser records it in its own undo stack and Ctrl+Z works as anywhere
-// else. The explicit "undo" button is there because nobody expects Ctrl+Z to
-// undo something a button did.
+// Every edit goes through `text_field.js`, so the browser records it in its
+// own undo stack and Ctrl+Z works as anywhere else. The explicit "undo"
+// button is there because nobody expects Ctrl+Z to undo something a button
+// did.
 (() => {
   const form = document.querySelector("[data-sobre-mi]");
   if (!form) return;
@@ -21,24 +21,7 @@
   const fields = [...form.querySelectorAll("textarea")];
   let previousTexts = null;
 
-  // Replaces what is selected (or inserts at the caret) keeping the change
-  // in the browser's undo history. `execCommand` is deprecated with no
-  // replacement for this; without it the value is still written, only Ctrl+Z
-  // no longer reaches it.
-  const replaceSelection = (field, text) => {
-    field.focus();
-    if (!document.execCommand || !document.execCommand("insertText", false, text)) {
-      const { selectionStart: start, selectionEnd: end, value } = field;
-      field.value = value.slice(0, start) + text + value.slice(end);
-      field.setSelectionRange(start + text.length, start + text.length);
-    }
-    field.dispatchEvent(new Event("input", { bubbles: true }));
-  };
-
-  const replaceAll = (field, text) => {
-    field.setSelectionRange(0, field.value.length);
-    replaceSelection(field, text);
-  };
+  const { replaceSelection, replaceAll } = window.Ancla;
 
   // A gap already in the text would be placed twice, and the second one only
   // shows up as a stray token in the finished CV.

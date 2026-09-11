@@ -3,13 +3,13 @@ Proposal.
 
 The reason for all this: personal skills and languages never go through
 the selection engine, so the only way to really check that the interface
-keeps them out of "About me" and out of technical skills —just as Daniel
-asked— is to test it through the real routes, not only at the
-`formato.py` level.
+keeps them out of "About me" and out of technical skills is to test it
+through the real routes, not only at the `formato.py` level.
 """
 from __future__ import annotations
 
 import io
+import json
 from pathlib import Path
 
 import pytest
@@ -227,10 +227,10 @@ def test_crear_educacion_con_inicio_posterior_al_fin_muestra_el_error(cliente_we
 
 
 def test_nuevo_formulario_de_experiencia_no_trae_un_anio_ya_elegido(cliente_web):
-    """Regression: el desplegable era `required` y sin ningún `selected`, el
-    navegador marcaba el primero de la lista (el año actual) como si el
-    usuario lo hubiera elegido — una experiencia sin periodo detectado se
-    guardaba con un año inventado si nadie se fijaba."""
+    """Regression: the dropdown was `required` with no `selected` option, so
+    the browser marked the first entry in the list (the current year) as if
+    the user had chosen it — an experience with no detected period was saved
+    with a made-up year unless someone noticed."""
     respuesta = cliente_web.get("/perfil/experiencias/nueva")
     html = respuesta.data.decode("utf-8")
 
@@ -253,9 +253,9 @@ def test_crear_experiencia_con_inicio_posterior_al_fin_muestra_el_error(cliente_
 
 
 def test_editar_una_experiencia_con_periodo_ya_guardado_no_se_pelea(cliente_web, tmp_path: Path):
-    """Un perfil con un periodo posiblemente inventado por el bug anterior
-    (`period_start` ya puesto, sea el que sea) tiene que poder seguir
-    abriéndose y guardándose sin que el arreglo del punto 1 se lo impida."""
+    """A profile with a period possibly made up by the previous bug
+    (`period_start` already set, whatever the value) still has to open and
+    save without the fix above getting in the way."""
     root = tmp_path / "perfil"
     store.save_experience(
         root,
@@ -408,8 +408,8 @@ def test_borrar_todas_las_experiencias_las_quita_todas(cliente_web, tmp_path: Pa
 
 
 def test_editar_una_experiencia_no_contamina_otra(cliente_web, tmp_path: Path):
-    """Regression: two experiences in Daniel's real profile (ml-developer and
-    data-engineer) turned up with cross-contaminated content — one's
+    """Regression: two experiences in a real profile in production use
+    (ml-developer and data-engineer) turned up with cross-contaminated content — one's
     bullet/stack showing up inside the other. No path through the code was
     found that could cause it (the id always comes from the URL,
     `guardar_experiencia` only ever writes to that id's own file), so it was
@@ -700,9 +700,9 @@ def test_el_sobre_mi_escrito_siguiendo_la_ayuda_se_guarda(cliente_web, tmp_path:
 
 
 def test_la_pantalla_del_sobre_mi_trae_un_boton_por_hueco(cliente_web):
-    """La vía sin IA: los seis huecos se marcan seleccionando texto y pulsando
-    su botón, sin clave de API y sin ninguna llamada. Es lo que garantiza que
-    la pantalla se pueda completar aunque no haya proveedor."""
+    """The no-AI path: the six gaps are marked by selecting text and pressing
+    their button, no API key and no call involved. That's what guarantees the
+    screen can be completed even with no provider configured."""
     html = cliente_web.get("/perfil/sobre-mi").data.decode("utf-8")
 
     for hueco in AboutMe(template=Bilingual(es="", en="")).gaps():
@@ -724,8 +724,8 @@ def test_proponer_huecos_sin_clave_devuelve_el_texto_intacto_y_avisa(cliente_web
 def test_proponer_huecos_no_le_ensena_al_modelo_skills_personales_ni_idiomas(
     cliente_web, monkeypatch, tmp_path: Path
 ):
-    """Regla 7 comprobada en el camino real, no prometida: los dos catálogos
-    aparte no pueden llegar a ningún prompt."""
+    """Rule 7 checked on the real path, not just assumed: neither of the two
+    separate catalogs can reach any prompt."""
     import ancla.web.views.profile as vista_perfil
 
     cliente_web.post(
@@ -778,6 +778,84 @@ def test_proponer_huecos_no_le_ensena_al_modelo_skills_personales_ni_idiomas(
     assert "Python" in enviado
     for prohibido in ("Trabajo en equipo", "Teamwork", "Alemán", "German"):
         assert prohibido not in enviado
+
+
+# --------------------------------------------------------------------------
+# Splitting a paragraph of experience into bullets
+# --------------------------------------------------------------------------
+
+
+PARRAFO_EXPERIENCIA = (
+    "Diseñé el pipeline de datos del modelo de riesgo. "
+    "Automaticé el despliegue con Docker y GitHub Actions."
+)
+
+
+def test_el_formulario_de_experiencia_trae_un_boton_por_idioma(cliente_web):
+    html = cliente_web.get("/perfil/experiencias/nueva").data.decode("utf-8")
+
+    assert 'data-dividir-bullets data-destino="bullets_es"' in html
+    assert 'data-dividir-bullets data-destino="bullets_en"' in html
+
+
+def test_dividir_bullets_sin_clave_devuelve_el_texto_intacto_y_avisa(cliente_web):
+    respuesta = cliente_web.post(
+        "/perfil/experiencias/dividir-bullets", json={"bullets": PARRAFO_EXPERIENCIA}
+    )
+
+    assert respuesta.status_code == 200
+    datos = respuesta.get_json()
+    assert datos["bullets"] == PARRAFO_EXPERIENCIA
+    assert datos["avisos"]
+
+
+def _fake_split_client(monkeypatch, respuesta: str):
+    import ancla.web.views.profile as vista_perfil
+
+    class ClienteFalso:
+        def available(self):
+            return True
+
+        def complete(self, sistema, usuario):
+            return respuesta
+
+    monkeypatch.setattr(vista_perfil, "create_client", lambda *a, **k: ClienteFalso())
+
+
+def test_dividir_bullets_devuelve_un_bullet_por_linea(cliente_web, tmp_path: Path, monkeypatch):
+    _configure_key(tmp_path)
+    _fake_split_client(
+        monkeypatch,
+        json.dumps({"fragmentos": ["Diseñé el pipeline", "Automaticé el despliegue"]}),
+    )
+
+    datos = cliente_web.post(
+        "/perfil/experiencias/dividir-bullets", json={"bullets": PARRAFO_EXPERIENCIA}
+    ).get_json()
+
+    lineas = datos["bullets"].split("\n")
+    assert len(lineas) == 2
+    assert lineas[0].startswith("Diseñé el pipeline")
+    assert datos["avisos"] == []
+
+
+def test_dividir_bullets_con_un_corte_que_no_existe_no_parte_nada(
+    cliente_web, tmp_path: Path, monkeypatch
+):
+    """All-or-nothing: applying only the cuts that matched would swallow the
+    text between them into the wrong bullet."""
+    _configure_key(tmp_path)
+    _fake_split_client(
+        monkeypatch,
+        json.dumps({"fragmentos": ["Diseñé el pipeline", "Lideré la migración"]}),
+    )
+
+    datos = cliente_web.post(
+        "/perfil/experiencias/dividir-bullets", json={"bullets": PARRAFO_EXPERIENCIA}
+    ).get_json()
+
+    assert datos["bullets"] == PARRAFO_EXPERIENCIA
+    assert datos["avisos"]
 
 
 # --------------------------------------------------------------------------
@@ -1121,13 +1199,14 @@ def test_editar_un_idioma_a_medias_ofrece_traducir_dentro_del_formulario(cliente
 
 
 # --------------------------------------------------------------------------
-# Dejar una entrada en un solo idioma
+# Leaving an entry with only one language
 # --------------------------------------------------------------------------
 
 
 def test_vaciar_un_idioma_de_una_skill_ya_traducida_se_guarda(cliente_web, tmp_path: Path):
-    """Quitar la traducción es una decisión del usuario, no un error: quien
-    tradujo algo y se arrepiente tiene que poder quedarse solo con un idioma."""
+    """Removing a translation is the user's own decision, not an error: someone
+    who translated something and changed their mind must be able to keep only
+    one language."""
     raiz = tmp_path / "perfil"
     store.save_skill(
         raiz,
@@ -1154,8 +1233,8 @@ def test_vaciar_un_idioma_de_una_skill_ya_traducida_se_guarda(cliente_web, tmp_p
     ],
 )
 def test_ningun_idioma_es_obligatorio_en_el_formulario(cliente_web, ruta, campos):
-    """`required` en los dos lados bloquea en el navegador, antes de que la
-    validación del servidor —que solo pide un idioma— llegue a opinar."""
+    """`required` on both sides blocks in the browser before server-side
+    validation — which only asks for one language — gets a say."""
     html = cliente_web.get(ruta).data.decode("utf-8")
     for campo in campos:
         assert f'name="{campo}" required' not in html
@@ -1163,8 +1242,9 @@ def test_ningun_idioma_es_obligatorio_en_el_formulario(cliente_web, ruta, campos
 
 
 def test_el_sobre_mi_sin_ingles_se_marca_y_ofrece_traducirlo(cliente_web, tmp_path: Path):
-    """Lo mismo que ya hacía cada entrada del perfil: sin la marca, el usuario
-    descubre que falta al leer un CV en inglés con el bloque vacío."""
+    """Same as every other profile entry already did: without the flag, the
+    user only discovers it's missing when reading an English CV with an empty
+    block."""
     store.save_about_me(
         tmp_path / "perfil", AboutMe(template=Bilingual(es="Desarrollador de {GROUP_A_1}.", en=""))
     )
@@ -1175,8 +1255,9 @@ def test_el_sobre_mi_sin_ingles_se_marca_y_ofrece_traducirlo(cliente_web, tmp_pa
 
 
 def test_vaciar_los_puntos_en_ingles_de_una_experiencia_se_guarda(cliente_web, tmp_path: Path):
-    """Quedarse sin puntos en un idioma es cómo se quita esa mitad de la
-    entrada: avisa y la marca como sin traducir, pero no bloquea el guardado."""
+    """Ending up with no bullets in one language is how that half of the
+    entry gets removed: it warns and flags it as untranslated, but doesn't
+    block saving."""
     raiz = tmp_path / "perfil"
     store.save_experience(
         raiz,

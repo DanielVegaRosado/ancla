@@ -71,11 +71,12 @@ from __future__ import annotations
 
 import json
 import re
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 
 from flask_babel import gettext as _
 
 from ancla.ai.client import AIClient, AIError, complete_with_budget
+from ancla.profile import bullets as bullets_module
 from ancla.profile import extraction
 from ancla.profile.serialization import split_period
 from ancla.profile.model import (
@@ -99,7 +100,7 @@ from ancla.text import to_text, to_texts, json_block, normalize, slugify
 # "About me" gaps' six short fragments.
 #
 # Measured against the real API, single-language, across five real and
-# synthetic CVs on two separate days (2026-09-06): between 0.52 and 0.87
+# synthetic CVs on two separate days: between 0.52 and 0.87
 # completion tokens per character sent, depending on how densely the CV is
 # written — a CV that is mostly short bullet lists costs more per character
 # than one written in prose. A single sample was tried and wrong twice
@@ -412,6 +413,7 @@ def analyze_cv(
         datos.get("educacion"), _to_education, ids_usados, idioma,
         "title", _bilingual_names(perfil.education, "title"),
     )
+    experiencias = _split_paragraph_bullets(cliente, experiencias, idioma)
     duplicadas = (
         duplicadas_exp + duplicadas_skills + duplicadas_sp
         + duplicadas_idiomas + duplicadas_educacion
@@ -455,6 +457,43 @@ def analyze_cv(
         avisos=avisos,
         restante=restante,
     )
+
+
+def _split_paragraph_bullets(
+    cliente: AIClient, experiencias: list[Experience], idioma: Language
+) -> list[Experience]:
+    """Splits into bullets the experiences whose "what I did" came back as
+    one paragraph of prose — one extra call each, and only for those.
+
+    A CV written in prose extracts as a single long bullet per job, which is
+    not what a CV shows. Asking the main prompt to split as it extracts was
+    the other option and was rejected: that prompt copies fields out of the
+    text, and giving it a second job over the same text is what invites it
+    to paraphrase while it is at it. The splitter gets the paragraph on its
+    own and can only point at where to cut it (see `profile/bullets.py`).
+
+    Failures are silent here, unlike the manual button: this runs behind an
+    import the user did not ask to have reorganised, the text is already
+    kept whole as one bullet either way, and the review screen it lands on
+    is the place to split it by hand. A warning per experience about a
+    convenience nobody requested would bury the ones that do matter.
+    """
+    divididas: list[Experience] = []
+    for experiencia in experiencias:
+        lista = experiencia.bullets[idioma]
+        if not bullets_module.looks_unsplit(lista):
+            divididas.append(experiencia)
+            continue
+        propuesta = bullets_module.suggest_split(cliente, lista[0])
+        if len(propuesta.bullets) < 2:
+            divididas.append(experiencia)
+            continue
+        otro: Language = "en" if idioma == "es" else "es"
+        nuevos = Bilingual(
+            **{idioma: propuesta.bullets, otro: experiencia.bullets[otro]}
+        )
+        divididas.append(replace(experiencia, bullets=nuevos))
+    return divididas
 
 
 # --------------------------------------------------------------------------

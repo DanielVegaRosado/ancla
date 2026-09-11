@@ -1,10 +1,11 @@
-"""Tests para la propuesta de huecos del «Sobre mí».
+"""Tests for the "About me" gap-suggestion feature.
 
-Lo que se comprueba aquí no es que el modelo acierte —eso es cosa suya— sino
-las dos garantías que sostienen la regla de no reescribir al usuario: que el
-texto solo puede cambiar sustituyendo un fragmento que estaba **literal** en
-lo que él escribió, y que el mismo hueco cae en el mismo sitio semántico en
-español y en inglés, porque los dos se rellenan con la misma skill.
+What's checked here isn't whether the model gets it right — that's its own
+concern — but the two guarantees that back the rule against rewriting the
+user: the text can only change by substituting a fragment that was
+**literally** present in what they wrote, and the same gap lands on the same
+semantic spot in Spanish and English, since both are filled with the same
+skill.
 """
 from __future__ import annotations
 
@@ -59,14 +60,14 @@ def _respuesta_completa() -> str:
 
 
 # --------------------------------------------------------------------------
-# La sustitución literal
+# Literal substitution
 # --------------------------------------------------------------------------
 
 
 def test_los_seis_huecos_quedan_en_el_mismo_sitio_en_los_dos_idiomas():
-    """`AboutMe.render` rellena `{GROUP_A_1}` con la misma skill en español y
-    en inglés, así que si los huecos no marcan la misma idea el CV en inglés
-    queda hablando de otra cosa."""
+    """`AboutMe.render` fills `{GROUP_A_1}` with the same skill in Spanish and
+    English, so if the gaps don't mark the same idea, the English CV ends up
+    talking about something else."""
     propuesta = gaps.suggest_gaps(ClienteFalso(_respuesta_completa()), _sobre_mi(), [])
 
     assert propuesta.avisos == []
@@ -81,8 +82,8 @@ def test_los_seis_huecos_quedan_en_el_mismo_sitio_en_los_dos_idiomas():
 
 
 def test_un_idioma_sin_escribir_no_avisa_de_huecos_sin_colocar():
-    """Un idioma vacío no tiene nada donde colocar un fragmento — no es lo
-    mismo que el modelo fallando sobre texto real, así que no avisa."""
+    """An empty language has nowhere to place a fragment — that's not the
+    same as the model failing on real text, so it doesn't warn."""
     propuesta = gaps.suggest_gaps(
         ClienteFalso(_respuesta_un_idioma()), _sobre_mi(en=""), []
     )
@@ -93,8 +94,8 @@ def test_un_idioma_sin_escribir_no_avisa_de_huecos_sin_colocar():
 
 
 def _respuesta_un_idioma() -> str:
-    """Como la devolvería el modelo cuando solo se le pide un idioma: un
-    fragmento por hueco, no la pareja `{"es": ..., "en": ...}`."""
+    """As the model would return it when only one language is requested: a
+    single fragment per gap, not the `{"es": ..., "en": ...}` pair."""
     return json.dumps(
         {
             "GROUP_A_1": "aprendizaje automático",
@@ -157,8 +158,8 @@ def test_un_solo_idioma_no_envia_el_texto_del_idioma_vacio_ni_la_regla_de_pareja
 
 
 def test_con_los_dos_idiomas_la_peticion_y_el_esquema_no_cambian():
-    """El comportamiento bilingüe no se toca: misma petición, misma regla de
-    pareja, mismo esquema JSON con `{"es": ..., "en": ...}` por hueco."""
+    """Bilingual behavior stays untouched: same request, same pairing rule,
+    same JSON schema with `{"es": ..., "en": ...}` per gap."""
     cliente = ClienteFalso(_respuesta_completa())
     gaps.suggest_gaps(cliente, _sobre_mi(), [])
 
@@ -173,10 +174,10 @@ def test_con_los_dos_idiomas_la_peticion_y_el_esquema_no_cambian():
 
 
 def test_un_fragmento_que_no_esta_literal_se_descarta_y_se_avisa():
-    """La garantía de la regla 2: el modelo no puede meter texto propio, solo
-    señalar trozos del texto del usuario. Un fragmento reescrito («machine
-    learning» donde el usuario puso «aprendizaje automático») no encuentra
-    dónde encajar, así que no toca nada."""
+    """The guarantee behind rule 2: the model can't insert its own text, only
+    point at pieces of the user's text. A rewritten fragment («machine
+    learning» where the user wrote «aprendizaje automático») finds nowhere to
+    fit, so nothing gets touched."""
     respuesta = json.loads(_respuesta_completa())
     respuesta["GROUP_A_1"]["es"] = "machine learning aplicado"
     propuesta = gaps.suggest_gaps(ClienteFalso(json.dumps(respuesta)), _sobre_mi(), [])
@@ -187,8 +188,8 @@ def test_un_fragmento_que_no_esta_literal_se_descarta_y_se_avisa():
     assert "machine learning aplicado" not in texto_es
     assert len(propuesta.avisos) == 1
     assert "GROUP_A_1" in propuesta.avisos[0]
-    # El resto sí se coloca: descartar los cinco buenos por uno malo dejaría
-    # al usuario en el mismo muro que esta pantalla existe para quitar.
+    # The rest is placed regardless: discarding the five good ones over one bad
+    # one would leave the user at the exact wall this screen exists to remove.
     assert "{GROUP_B_3}" in texto_es
     assert "{GROUP_A_1}" in propuesta.about_me.template["en"]
 
@@ -210,8 +211,8 @@ def test_dos_huecos_que_se_pelean_por_el_mismo_trozo_no_se_solapan():
 
 
 def test_un_hueco_ya_escrito_a_mano_no_se_mueve():
-    """Marcar a mano y proponer con IA editan el mismo campo: lo que el
-    usuario ya decidió manda sobre lo que proponga el modelo."""
+    """Manual marking and the AI suggestion edit the same field: what the
+    user already decided wins over whatever the model proposes."""
     texto, sin_colocar = gaps.place(
         "trabajo con {GROUP_B_1} y Docker", {"{GROUP_B_1}": "Docker"}
     )
@@ -221,10 +222,10 @@ def test_un_hueco_ya_escrito_a_mano_no_se_mueve():
 
 
 def test_una_palabra_partida_por_guion_de_fin_de_linea_se_coloca_con_el_trozo_original():
-    """El modelo, al copiar «back-\\nend» de un párrafo justificado, lo devuelve
-    como «back‑end» (sin salto y con U+2011). Solo sirve para localizar: lo que
-    se sustituye es el trozo tal cual lo escribió el usuario, y el resto del
-    texto no cambia ni un carácter."""
+    """The model, when copying «back-\\nend» from a justified paragraph, returns
+    it as «back‑end» (no line break, with U+2011). That's only used to locate
+    it: what actually gets substituted is the piece exactly as the user wrote
+    it, and the rest of the text doesn't change a single character."""
     texto = "Trabajo en desarrollo back-\nend. Programo en Python."
     fragmento_del_modelo = "desarrollo back\u2011end"
 
@@ -257,8 +258,8 @@ def test_la_palabra_partida_sin_guion_en_el_fragmento_tambien_se_encuentra():
 
 
 def test_la_tolerancia_no_alcanza_a_mayusculas_ni_tildes():
-    """Relajar eso podría llevar el hueco a otras palabras del usuario, no a
-    las mismas escritas de otra forma."""
+    """Relaxing that could send the gap to other words of the user's, not the
+    same ones written differently."""
     texto, sin_colocar = gaps.place(
         "Análisis de datos", {"{GROUP_A_1}": "analisis de datos", "{GROUP_A_2}": "ANÁLISIS"}
     )
@@ -268,7 +269,7 @@ def test_la_tolerancia_no_alcanza_a_mayusculas_ni_tildes():
 
 
 def test_una_coincidencia_exacta_manda_sobre_una_aproximada_anterior():
-    """Un texto que ya se colocaba bien sigue cayendo en el mismo sitio."""
+    """Text that was already placed correctly keeps landing in the same spot."""
     texto, _ = gaps.place("back-\nend y luego back-end", {"{GROUP_A_1}": "back-end"})
 
     assert texto == "back-\nend y luego {GROUP_A_1}"
@@ -307,13 +308,13 @@ def test_suggest_gaps_coloca_el_hueco_del_diagnostico_de_extremo_a_extremo():
 
 
 # --------------------------------------------------------------------------
-# Qué llega al modelo
+# What reaches the model
 # --------------------------------------------------------------------------
 
 
 def test_al_modelo_le_llegan_los_dos_idiomas_en_una_sola_llamada():
-    """Una llamada por idioma costaría el doble y, sobre todo, dejaría de
-    garantizar que un hueco marque la misma idea en los dos."""
+    """One call per language would cost double and, more importantly, would
+    stop guaranteeing that a gap marks the same idea in both."""
     cliente = ClienteFalso(_respuesta_completa())
     gaps.suggest_gaps(cliente, _sobre_mi(), [])
 
@@ -331,7 +332,7 @@ def test_al_modelo_le_llegan_los_nombres_de_las_skills_tecnicas():
 
 
 # --------------------------------------------------------------------------
-# Nada de esto puede romper la pantalla
+# None of this can break the screen
 # --------------------------------------------------------------------------
 
 

@@ -126,8 +126,8 @@ def test_una_skill_que_ya_esta_en_el_perfil_solo_en_ingles_tampoco_se_repite():
 
 
 def test_una_experiencia_ya_en_el_perfil_no_se_repite_pero_las_skills_nuevas_si():
-    """Daniel's full scenario: two CVs for the same role, the second with a
-    couple of new skills. The experience is not duplicated; the new part is added."""
+    """Full scenario: two CVs for the same role, the second with a couple of
+    new skills. The experience is not duplicated; the new part is added."""
     perfil = Profile(
         skills=[Skill(id="python", name=Bilingual(es="Python", en="Python"))],
         experiences=[
@@ -861,3 +861,89 @@ def test_un_cv_con_letras_separadas_se_corta_antes_del_sobre_mi_no_dentro():
     assert resultado.restante.startswith(encabezado)
     assert resultado.restante.count(_espaciado_como_canva(sobre_mi).strip()) == 20
     assert any(encabezado in aviso for aviso in resultado.avisos)
+
+
+# --------------------------------------------------------------------------
+# Experiences imported as one paragraph of prose
+# --------------------------------------------------------------------------
+
+
+class ClienteEncolado:
+    """One answer per call, in order: splitting bullets is a second call over
+    the same CV, so a client that repeats one answer forever cannot tell the
+    two apart."""
+
+    def __init__(self, *respuestas: str):
+        self.respuestas = list(respuestas)
+        self.llamadas: list[tuple[str, str]] = []
+
+    def complete(self, sistema: str, usuario: str) -> str:
+        self.llamadas.append((sistema, usuario))
+        return self.respuestas.pop(0) if self.respuestas else "{}"
+
+    def available(self) -> bool:
+        return True
+
+
+_PARRAFO = (
+    "Diseñé el pipeline de datos que alimenta el modelo de riesgo del equipo. "
+    "Automaticé el despliegue con Docker y GitHub Actions, reduciendo a la mitad "
+    "el tiempo de publicación. Formé a dos compañeros nuevos en el stack de datos."
+)
+
+
+def _cv_con_un_parrafo(bullets: list[str]) -> str:
+    return json.dumps(
+        {"experiencias": [{"titulo": "Ingeniero de datos", "periodo": "2023", "bullets": bullets}]}
+    )
+
+
+def _corte(*fragmentos: str) -> str:
+    return json.dumps({"fragmentos": list(fragmentos)})
+
+
+def test_una_experiencia_escrita_como_parrafo_se_divide_en_bullets():
+    cliente = ClienteEncolado(
+        _cv_con_un_parrafo([_PARRAFO]),
+        _corte("Diseñé el pipeline", "Automaticé el despliegue", "Formé a dos"),
+    )
+
+    resultado = analyze_cv(cliente, "texto de un CV", Profile(), "es")
+
+    bullets = resultado.experiencias[0].bullets["es"]
+    assert len(bullets) == 3
+    assert "".join(bullets).replace(" ", "") == _PARRAFO.replace(" ", "")
+    assert resultado.experiencias[0].bullets["en"] == []
+
+
+def test_unos_bullets_ya_escritos_no_gastan_una_segunda_llamada():
+    cliente = ClienteEncolado(_cv_con_un_parrafo(["Diseñé el pipeline.", "Automaticé el despliegue."]))
+
+    analyze_cv(cliente, "texto de un CV", Profile(), "es")
+
+    assert len(cliente.llamadas) == 1
+
+
+def test_un_corte_que_no_se_localiza_deja_el_parrafo_como_un_solo_bullet():
+    cliente = ClienteEncolado(
+        _cv_con_un_parrafo([_PARRAFO]),
+        _corte("Diseñé el pipeline", "Lideré la migración a Kubernetes"),
+    )
+
+    resultado = analyze_cv(cliente, "texto de un CV", Profile(), "es")
+
+    assert resultado.experiencias[0].bullets["es"] == [_PARRAFO]
+
+
+def test_un_fallo_al_dividir_no_tumba_la_importacion():
+    class ClienteQueFallaAlDividir(ClienteEncolado):
+        def complete(self, sistema, usuario):
+            if self.llamadas:
+                raise AIError("cuota agotada")
+            return super().complete(sistema, usuario)
+
+    cliente = ClienteQueFallaAlDividir(_cv_con_un_parrafo([_PARRAFO]))
+
+    resultado = analyze_cv(cliente, "texto de un CV", Profile(), "es")
+
+    assert resultado.experiencias[0].bullets["es"] == [_PARRAFO]
