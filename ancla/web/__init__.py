@@ -130,4 +130,13 @@ def create_app(
         flash(str(error))
         return redirect(request.referrer or url_for("ancla.view_profile"))
 
+    @app.errorhandler(modulo_ajustes.SettingsError)
+    def _settings_error(error: modulo_ajustes.SettingsError):
+        # Same convention as ProfileError: a message ready to show, never a
+        # traceback — this is what "avisar con claridad" means when the
+        # encryption env var is missing or wrong, instead of failing
+        # silently or saving the key unencrypted.
+        flash(str(error))
+        return redirect(request.referrer or url_for("ancla.view_settings"))
+
     return app
