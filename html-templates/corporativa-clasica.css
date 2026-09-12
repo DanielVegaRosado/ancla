@@ -209,7 +209,7 @@
 }
 
 .cv-seccion {
-  margin-top: calc(16pt * var(--cv-escala, 1));
+  margin-top: calc(13pt * var(--cv-escala, 1));
 }
 
 .cv-cabecera-principal {
@@ -224,7 +224,7 @@
   margin: 0;
   text-align: justify;
   font-size: calc(10.5pt * var(--cv-escala, 1));
-  line-height: calc(1.35 * var(--cv-escala, 1));
+  line-height: calc(1.28 * var(--cv-escala, 1));
 }
 
 /* Whatever room the header and "About me" leave, the experience section
@@ -246,7 +246,7 @@
 
 /* An experience split across two pages reads as two different jobs. */
 .cv-experiencia {
-  margin-bottom: calc(11pt * var(--cv-escala, 1));
+  margin-bottom: calc(7pt * var(--cv-escala, 1));
   break-inside: avoid;
 }
 
@@ -274,18 +274,18 @@
 }
 
 .cv-bullets {
-  margin: calc(4pt * var(--cv-escala, 1)) 0 0;
+  margin: calc(3pt * var(--cv-escala, 1)) 0 0;
   padding-left: 12pt;
   font-size: calc(9.5pt * var(--cv-escala, 1));
-  line-height: calc(1.3 * var(--cv-escala, 1));
+  line-height: calc(1.22 * var(--cv-escala, 1));
 }
 
 .cv-bullets li {
-  margin-bottom: calc(1.5pt * var(--cv-escala, 1));
+  margin-bottom: calc(1pt * var(--cv-escala, 1));
 }
 
 .cv-stack {
-  margin: calc(4pt * var(--cv-escala, 1)) 0 0;
+  margin: calc(3pt * var(--cv-escala, 1)) 0 0;
   font-size: calc(9pt * var(--cv-escala, 1));
   font-style: italic;
   color: var(--cv-muted);
