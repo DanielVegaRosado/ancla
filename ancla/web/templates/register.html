@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block titulo %}{{ _('Crear cuenta') }} · Ancla{% endblock %}
+{% block contenido %}
+  <section class="tarjeta tarjeta-cuenta">
+    <h1>{{ _('Crear cuenta') }}</h1>
+    {% if errors %}
+      <div class="errores">
+        <ul>{% for error in errors.values() %}<li>{{ error }}</li>{% endfor %}</ul>
+      </div>
+    {% endif %}
+    <form class="pila" method="post">
+      <div class="campo">
+        <label for="first_name">{{ _('Nombre') }}</label>
+        <input type="text" id="first_name" name="first_name" value="{{ form.first_name or '' }}" maxlength="100" autocomplete="given-name" required>
+      </div>
+      <div class="campo">
+        <label for="last_name">{{ _('Apellidos') }}</label>
+        <input type="text" id="last_name" name="last_name" value="{{ form.last_name or '' }}" maxlength="200" autocomplete="family-name" required>
+      </div>
+      <div class="campo">
+        <label for="username">{{ _('Nombre de usuario') }}</label>
+        <input type="text" id="username" name="username" value="{{ form.username or '' }}" minlength="3" maxlength="100" autocomplete="username" required>
+      </div>
+      <div class="campo">
+        <label for="email">{{ _('Correo') }}</label>
+        <input type="email" id="email" name="email" value="{{ form.email or '' }}" maxlength="190" autocomplete="email" required>
+      </div>
+      <div class="campo">
+        <label for="password">{{ _('Contraseña') }}</label>
+        <input type="password" id="password" name="password" minlength="8" autocomplete="new-password" required>
+        <p class="ayuda">{{ _('Al menos 8 caracteres, con alguna letra y algún número.') }}</p>
+      </div>
+      <div class="campo">
+        <label for="password2">{{ _('Repite la contraseña') }}</label>
+        <input type="password" id="password2" name="password2" minlength="8" autocomplete="new-password" required>
+      </div>
+      <div class="barra-acciones">
+        <button type="submit" class="boton-primario">{{ _('Crear cuenta') }}</button>
+      </div>
+    </form>
+    <p class="ayuda">{{ _('¿Ya tienes cuenta?') }} <a href="{{ url_for('ancla.login') }}">{{ _('Inicia sesión') }}</a></p>
+  </section>
+{% endblock %}

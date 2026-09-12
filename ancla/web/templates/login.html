@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block titulo %}{{ _('Iniciar sesión') }} · Ancla{% endblock %}
+{% block contenido %}
+  <section class="tarjeta tarjeta-cuenta">
+    <h1>{{ _('Iniciar sesión') }}</h1>
+    <form class="pila" method="post">
+      <div class="campo">
+        <label for="username">{{ _('Nombre de usuario') }}</label>
+        <input type="text" id="username" name="username" value="{{ username }}" autocomplete="username" required>
+      </div>
+      <div class="campo">
+        <label for="password">{{ _('Contraseña') }}</label>
+        <input type="password" id="password" name="password" autocomplete="current-password" required>
+      </div>
+      <div class="barra-acciones">
+        <button type="submit" class="boton-primario">{{ _('Entrar') }}</button>
+      </div>
+    </form>
+    <p class="ayuda">{{ _('¿No tienes cuenta?') }} <a href="{{ url_for('ancla.register') }}">{{ _('Regístrate') }}</a></p>
+    {% if offer_resend %}
+      <p class="ayuda">{{ _('¿No te llegó el correo de verificación?') }} <a href="{{ url_for('ancla.resend_verification') }}">{{ _('Reenviar enlace') }}</a></p>
+    {% endif %}
+  </section>
+{% endblock %}

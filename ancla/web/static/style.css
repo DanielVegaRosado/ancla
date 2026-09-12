@@ -183,6 +183,9 @@ section[id] { scroll-margin-top: 4.5rem; }
 .tarjeta > :first-child { margin-top: 0; }
 .tarjeta > :last-child { margin-bottom: 0; }
 
+/* Login, registration: a short form reads better narrow and centred. */
+.tarjeta-cuenta { max-width: 28rem; margin-inline: auto; }
+
 .lista-tarjetas {
   display: flex;
   flex-direction: column;

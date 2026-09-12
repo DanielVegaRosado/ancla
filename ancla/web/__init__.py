@@ -2,8 +2,9 @@
 
 Five screens: My profile, Adapt, Proposal, My CVs, and Settings. Bilingual
 ES/EN interface (manual selector in the header, no auto-detection — see
-`ajustes.idioma`). Runs locally; there are no accounts or authentication
-because only the owner of the computer the profile lives on ever uses it.
+`ajustes.idioma`). User accounts (`ancla/auth/`, screens in
+`views/auth.py`) exist alongside the screens but gate none of them yet:
+every screen still works on the local profile without logging in.
 
 Each screen is a module under `ancla/web/views/`, with its routes
 registered on the single `Blueprint` in `ancla/web/blueprint.py`. This
@@ -19,6 +20,7 @@ from pathlib import Path
 from flask import Flask, flash, redirect, render_template, request, url_for
 from flask_babel import Babel, get_locale
 from flask_babel import gettext as _
+from flask_login import LoginManager
 
 from ancla.web.routes import PROFILE_DIR_NAME, data_root, templates_root
 
@@ -44,6 +46,7 @@ def create_app(
     canva_templates_root: Path | None = None,
     html_templates_root: Path | None = None,
 ) -> Flask:
+    from ancla.auth.db import mysql_configured
     from ancla.profile.errors import ProfileError
     from ancla.profile.model import LANGUAGES, period_text
     from ancla.profile.validation import language_name
@@ -69,6 +72,8 @@ def create_app(
     # package (`web/`), which is where Babel looks by default.
     app.config["BABEL_TRANSLATION_DIRECTORIES"] = str(Path(__file__).resolve().parent.parent / "translations")
     app.register_blueprint(bp)
+    _set_up_login(app)
+    cuentas_disponibles = mysql_configured()
     app.jinja_env.filters["lista_a_lineas"] = list_to_lines
     app.jinja_env.filters["lista_a_csv"] = list_to_csv
 
@@ -107,6 +112,9 @@ def create_app(
             # Lets the nav dim "Última propuesta" while there is nothing to
             # show there yet, without hiding the link (see base.html).
             "hay_borrador": modulo_borrador.load_draft(context.root()) is not None,
+            # Without MySQL (the desktop build) the account links would only
+            # lead to a "database unavailable" notice, so they are not shown.
+            "cuentas_disponibles": cuentas_disponibles,
         }
 
     @app.errorhandler(404)
@@ -140,3 +148,20 @@ def create_app(
         return redirect(request.referrer or url_for("ancla.view_settings"))
 
     return app
+
+
+def _set_up_login(app: Flask) -> None:
+    from ancla.web.views.auth import users
+
+    login_manager = LoginManager(app)
+    login_manager.login_view = "ancla.login"
+
+    @login_manager.user_loader
+    def _load_user(user_id: str):
+        # Only runs when the session carries a logged-in id. If the database
+        # is unreachable the visitor is treated as logged out rather than
+        # getting an error on a screen that does not even need an account.
+        try:
+            return users().by_id(int(user_id))
+        except Exception:
+            return None

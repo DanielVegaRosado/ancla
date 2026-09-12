@@ -28,6 +28,13 @@
         <a href="{{ url_for('ancla.canva_templates') }}" class="{{ 'activo' if request.endpoint == 'ancla.canva_templates' else '' }}">{{ _('Plantillas') }}</a>
         <a href="{{ url_for('ancla.support') }}" class="{{ 'activo' if request.endpoint == 'ancla.support' else '' }}">{{ _('Soporte') }}</a>
         <a href="{{ url_for('ancla.view_settings') }}" class="{{ 'activo' if request.endpoint == 'ancla.view_settings' else '' }}">{{ _('Ajustes') }}</a>
+        {% if cuentas_disponibles %}
+          {% if current_user.is_authenticated %}
+            <a href="{{ url_for('ancla.logout') }}" title="{{ current_user.username }}">{{ _('Cerrar sesión') }}</a>
+          {% else %}
+            <a href="{{ url_for('ancla.login') }}" class="{{ 'activo' if request.endpoint in ('ancla.login', 'ancla.register') else '' }}">{{ _('Entrar') }}</a>
+          {% endif %}
+        {% endif %}
       </nav>
     </div>
   </header>

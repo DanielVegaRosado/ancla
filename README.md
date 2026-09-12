@@ -174,6 +174,31 @@ version once v1.1 itself is done.
   *Status* above); restoring needs its own confirmation screen first, since
   it replaces whatever profile is already on that computer.
 
+## User accounts (in progress)
+
+Ancla is growing from a local tool into a hosted product with user accounts.
+The first piece is in: registration, login and logout (`/registro`, `/login`,
+`/logout`), in `ancla/auth/`. **It gates nothing yet** — every screen still works
+on the local profile without logging in, and without a database configured the
+app runs exactly as before (the account links simply don't show).
+
+Accounts live in MySQL. Set these in the environment or in a `.env` file next to
+`run.py` (it's in `.gitignore`; never commit it):
+
+| Variable | Meaning |
+| -------- | ------- |
+| `MYSQL_HOST`, `MYSQL_PORT`, `MYSQL_USER`, `MYSQL_PASSWORD`, `MYSQL_DATABASE` | The database. The `users` table is created on first use. |
+| `ANCLA_VERIFICACION_EMAIL` | `auto` (default): verify emails only if SMTP is configured. `on`: always. `off`: never. |
+| `ANCLA_SMTP_HOST`, `ANCLA_SMTP_PORT`, `ANCLA_SMTP_USER`, `ANCLA_SMTP_PASSWORD`, `ANCLA_SMTP_REMITENTE` | Outgoing mail for verification links (STARTTLS, port 587 by default). |
+| `ANCLA_URL_PUBLICA` | Public base URL for links sent by email (e.g. `https://ancla.example.com`). |
+
+Without SMTP credentials nothing is sent and nothing fails: in `auto` mode new
+accounts are created already verified. **Sending the verification email has not
+been tested end to end against a real SMTP server yet**; the token itself
+(generation, expiry, single use) is covered by the tests. Passwords are stored
+only as pbkdf2-sha256 hashes. `tests/test_auth.py` runs against the real
+database in `.env` and is skipped when none is configured.
+
 ## Desktop app
 
 The `.exe` and `.app` from *Getting started* above are built with

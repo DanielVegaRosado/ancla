@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block titulo %}{{ _('Reenviar enlace') }} · Ancla{% endblock %}
+{% block contenido %}
+  <section class="tarjeta tarjeta-cuenta">
+    <h1>{{ _('Reenviar enlace de verificación') }}</h1>
+    <form class="pila" method="post">
+      <div class="campo">
+        <label for="email">{{ _('Correo con el que te registraste') }}</label>
+        <input type="email" id="email" name="email" autocomplete="email" required>
+      </div>
+      <div class="barra-acciones">
+        <button type="submit" class="boton-primario">{{ _('Reenviar enlace') }}</button>
+        <a class="boton" href="{{ url_for('ancla.login') }}">{{ _('Cancelar') }}</a>
+      </div>
+    </form>
+  </section>
+{% endblock %}
