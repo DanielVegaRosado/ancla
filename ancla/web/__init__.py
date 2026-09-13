@@ -3,8 +3,9 @@
 Five screens: My profile, Adapt, Proposal, My CVs, and Settings. Bilingual
 ES/EN interface (manual selector in the header, no auto-detection — see
 `ajustes.idioma`). User accounts (`ancla/auth/`, screens in
-`views/auth.py`) exist alongside the screens but gate none of them yet:
-every screen still works on the local profile without logging in.
+`views/auth.py`) gate none of the screens: without logging in every screen
+works on the single local profile; once logged in, on that account's own
+folder under `perfiles/` (see `context.root()`).
 
 Each screen is a module under `ancla/web/views/`, with its routes
 registered on the single `Blueprint` in `ancla/web/blueprint.py`. This
@@ -22,9 +23,10 @@ from flask_babel import Babel, get_locale
 from flask_babel import gettext as _
 from flask_login import LoginManager
 
-from ancla.web.routes import PROFILE_DIR_NAME, data_root, templates_root
+from ancla.web.routes import PROFILE_DIR_NAME, PROFILES_DIR_NAME, data_root, templates_root
 
 RAIZ_PERFIL_POR_DEFECTO = data_root() / PROFILE_DIR_NAME
+RAIZ_PERFILES_POR_DEFECTO = data_root() / PROFILES_DIR_NAME
 RAIZ_PLANTILLAS_CANVA_POR_DEFECTO = templates_root() / "canva-templates"
 RAIZ_PLANTILLAS_HTML_POR_DEFECTO = templates_root() / "html-templates"
 # Caps any single upload (CV import, profile zip restore). Flask enforces
@@ -45,6 +47,7 @@ def create_app(
     demo_mode: bool | None = None,
     canva_templates_root: Path | None = None,
     html_templates_root: Path | None = None,
+    profiles_root: Path | None = None,
 ) -> Flask:
     from ancla.auth.db import mysql_configured
     from ancla.profile.errors import ProfileError
@@ -63,6 +66,10 @@ def create_app(
     app.config["MAX_CONTENT_LENGTH"] = TAMANO_MAXIMO_SUBIDA
     app.config["RAIZ_PERFIL"] = raiz_perfil or RAIZ_PERFIL_POR_DEFECTO
     app.config["RUTA_AJUSTES"] = settings_path or modulo_ajustes.RUTA_POR_DEFECTO
+    # One folder per account (`perfiles/<user id>/`, profile and settings
+    # together), used instead of the two above while someone is logged in
+    # (see `context.root()`).
+    app.config["RAIZ_PERFILES"] = profiles_root or RAIZ_PERFILES_POR_DEFECTO
     app.config["RAIZ_PLANTILLAS_CANVA"] = canva_templates_root or RAIZ_PLANTILLAS_CANVA_POR_DEFECTO
     app.config["RAIZ_PLANTILLAS_HTML"] = html_templates_root or RAIZ_PLANTILLAS_HTML_POR_DEFECTO
     app.config["MODO_DEMO"] = MODO_DEMO_POR_DEFECTO if demo_mode is None else demo_mode

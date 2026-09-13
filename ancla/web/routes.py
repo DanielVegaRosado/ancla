@@ -30,6 +30,7 @@ from pathlib import Path
 APP_NAME = "Ancla"
 FLATPAK_APP_ID = "com.danielvegarosado.Ancla"
 PROFILE_DIR_NAME = "perfil"
+PROFILES_DIR_NAME = "perfiles"
 SETTINGS_FILE_NAME = "ajustes.json"
 
 

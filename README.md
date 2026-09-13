@@ -180,7 +180,10 @@ Ancla is growing from a local tool into a hosted product with user accounts.
 The first piece is in: registration, login and logout (`/registro`, `/login`,
 `/logout`), in `ancla/auth/`. **It gates nothing yet** — every screen still works
 on the local profile without logging in, and without a database configured the
-app runs exactly as before (the account links simply don't show).
+app runs exactly as before (the account links simply don't show). Once logged
+in, each account works on its own folder, `perfiles/<user id>/` (profile,
+archived CVs and `ajustes.json`), fully separate from every other account and
+from the shared `perfil/` used without a session.
 
 Accounts live in MySQL. Set these in the environment or in a `.env` file next to
 `run.py` (it's in `.gitignore`; never commit it):

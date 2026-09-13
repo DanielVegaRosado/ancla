@@ -3,6 +3,7 @@
 # La barra inicial es imprescindible: sin ella la regla también tapa el paquete
 # de código `ancla/perfil/`, que sí tiene que ir al repositorio.
 /perfil/
+/perfiles/
 
 # Claves de API (siempre del usuario, nunca del repo)
 .env

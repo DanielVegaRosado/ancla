@@ -9,21 +9,41 @@ from __future__ import annotations
 from dataclasses import asdict
 from pathlib import Path
 
-from flask import current_app, session
+from flask import current_app, has_request_context, session
+from flask_login import current_user
 
 from ancla.profile import store
 from ancla.profile.model import Profile
 from ancla.web import settings as modulo_ajustes
+from ancla.web.routes import SETTINGS_FILE_NAME
 
 _CLAVE_SESION_AJUSTES = "ajustes_demo"
 
 
+def _user_dir() -> Path | None:
+    """The logged-in user's own folder under `perfiles/`, or None when no one
+    is logged in. Every view reaches the profile, the archived CVs (`cvs/`,
+    inside the profile folder) and the settings through `root()` and
+    `settings_path()`, so resolving the user here is what isolates one
+    account's data from another's without any view knowing about accounts.
+
+    Without a session (the desktop build, or a visitor who never logged in)
+    this returns None and the single shared folder keeps being used, exactly
+    as before accounts existed. Demo mode is left out on purpose: its
+    visitors share the example profile by design, logged in or not."""
+    if demo_mode() or not has_request_context() or not current_user.is_authenticated:
+        return None
+    return current_app.config["RAIZ_PERFILES"] / str(current_user.get_id())
+
+
 def root() -> Path:
-    return current_app.config["RAIZ_PERFIL"]
+    carpeta_usuario = _user_dir()
+    return carpeta_usuario if carpeta_usuario else current_app.config["RAIZ_PERFIL"]
 
 
 def settings_path() -> Path:
-    return current_app.config["RUTA_AJUSTES"]
+    carpeta_usuario = _user_dir()
+    return carpeta_usuario / SETTINGS_FILE_NAME if carpeta_usuario else current_app.config["RUTA_AJUSTES"]
 
 
 def canva_templates_root() -> Path:
