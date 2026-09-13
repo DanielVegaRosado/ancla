@@ -274,7 +274,7 @@
 }
 
 .cv-seccion {
-  margin-top: calc(16pt * var(--cv-escala, 1));
+  margin-top: calc(9pt * var(--cv-escala, 1));
 }
 
 .cv-seccion:first-child {
@@ -282,7 +282,7 @@
 }
 
 .cv-cabecera-principal {
-  margin: 0 0 calc(10pt * var(--cv-escala, 1));
+  margin: 0 0 calc(5pt * var(--cv-escala, 1));
   padding: calc(7pt * var(--cv-escala, 1)) calc(16pt * var(--cv-escala, 1));
   border-radius: 999pt;
   background: var(--cv-pill);
@@ -316,7 +316,7 @@
 }
 
 .cv-experiencia {
-  margin-bottom: calc(10pt * var(--cv-escala, 1));
+  margin-bottom: calc(5pt * var(--cv-escala, 1));
   break-inside: avoid;
 }
 
@@ -335,19 +335,19 @@
 }
 
 .cv-bullets {
-  margin: calc(4pt * var(--cv-escala, 1)) 0 0;
+  margin: calc(2pt * var(--cv-escala, 1)) 0 0;
   padding-left: 12pt;
   font-size: calc(9.5pt * var(--cv-escala, 1));
-  line-height: calc(1.35 * var(--cv-escala, 1));
+  line-height: calc(1.15 * var(--cv-escala, 1));
   color: var(--cv-body);
 }
 
 .cv-bullets li {
-  margin-bottom: calc(1.5pt * var(--cv-escala, 1));
+  margin-bottom: calc(0.5pt * var(--cv-escala, 1));
 }
 
 .cv-stack {
-  margin: calc(4pt * var(--cv-escala, 1)) 0 0;
+  margin: calc(2pt * var(--cv-escala, 1)) 0 0;
   font-size: calc(9pt * var(--cv-escala, 1));
   font-style: italic;
   color: var(--cv-muted);
@@ -358,7 +358,7 @@
   justify-content: space-between;
   align-items: baseline;
   gap: 10pt;
-  margin-bottom: calc(6pt * var(--cv-escala, 1));
+  margin-bottom: calc(3pt * var(--cv-escala, 1));
   break-inside: avoid;
 }
 
