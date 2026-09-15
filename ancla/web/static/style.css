@@ -361,6 +361,14 @@ form.pila { display: flex; flex-direction: column; gap: 0.9rem; }
 .campo { display: flex; flex-direction: column; gap: 0.3rem; }
 .campo label { font-weight: 600; font-size: 0.9rem; }
 
+.campo-telefono { display: flex; gap: 0.5rem; }
+.campo-telefono select { flex: 0 0 12rem; }
+.campo-telefono input { flex: 1 1 auto; min-width: 0; }
+@media (max-width: 480px) {
+  .campo-telefono { flex-direction: column; }
+  .campo-telefono select { flex-basis: auto; }
+}
+
 .dos-columnas {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -379,6 +387,7 @@ form.pila { display: flex; flex-direction: column; gap: 0.9rem; }
 input[type="text"],
 input[type="password"],
 input[type="email"],
+input[type="tel"],
 input[type="file"],
 select,
 textarea {

@@ -8,7 +8,7 @@
         <ul>{% for error in errors.values() %}<li>{{ error }}</li>{% endfor %}</ul>
       </div>
     {% endif %}
-    <form class="pila" method="post">
+    <form class="pila" method="post" novalidate>
       <div class="campo">
         <label for="first_name">{{ _('Nombre') }}</label>
         <input type="text" id="first_name" name="first_name" value="{{ form.first_name or '' }}" maxlength="100" autocomplete="given-name" required>
@@ -18,17 +18,24 @@
         <input type="text" id="last_name" name="last_name" value="{{ form.last_name or '' }}" maxlength="200" autocomplete="family-name" required>
       </div>
       <div class="campo">
-        <label for="username">{{ _('Nombre de usuario') }}</label>
-        <input type="text" id="username" name="username" value="{{ form.username or '' }}" minlength="3" maxlength="100" autocomplete="username" required>
-      </div>
-      <div class="campo">
         <label for="email">{{ _('Correo') }}</label>
         <input type="email" id="email" name="email" value="{{ form.email or '' }}" maxlength="190" autocomplete="email" required>
       </div>
       <div class="campo">
+        <label for="phone_number">{{ _('Teléfono (opcional)') }}</label>
+        <div class="campo-telefono">
+          <select id="phone_country" name="phone_country" autocomplete="tel-country-code">
+            {% for iso, name, code in countries %}
+              <option value="{{ iso }}" {% if (form.phone_country or default_country) == iso %}selected{% endif %}>{{ name }} ({{ code }})</option>
+            {% endfor %}
+          </select>
+          <input type="tel" id="phone_number" name="phone_number" value="{{ form.phone_number or '' }}" maxlength="15" autocomplete="tel-national" inputmode="numeric" placeholder="600000000">
+        </div>
+      </div>
+      <div class="campo">
         <label for="password">{{ _('Contraseña') }}</label>
         <input type="password" id="password" name="password" minlength="8" autocomplete="new-password" required>
-        <p class="ayuda">{{ _('Al menos 8 caracteres, con alguna letra y algún número.') }}</p>
+        <p class="ayuda">{{ _('Al menos 8 caracteres, con mínimo una letra y algún número.') }}</p>
       </div>
       <div class="campo">
         <label for="password2">{{ _('Repite la contraseña') }}</label>

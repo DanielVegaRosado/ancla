@@ -1,7 +1,8 @@
 """User persistence in MySQL.
 
 - Queries are always parameterized.
-- `initialize()` creates the table idempotently, so it can run on every start.
+- `initialize()` creates the table and applies pending migrations idempotently,
+  so it can run on every start.
 - Passwords are stored only as a hash (werkzeug, pbkdf2-sha256), never in clear.
 - `User` implements Flask-Login's interface, so it can be the session's
   authenticated user as is.
@@ -27,8 +28,8 @@ CREATE TABLE IF NOT EXISTS users (
     role                VARCHAR(16)  NOT NULL DEFAULT 'user',
     first_name          VARCHAR(100) NOT NULL,
     last_name           VARCHAR(200) NOT NULL,
-    username            VARCHAR(100) NOT NULL UNIQUE,
     email               VARCHAR(190) NOT NULL UNIQUE,
+    phone               VARCHAR(32)  NULL,
     password_hash       VARCHAR(255) NOT NULL,
     email_verified      TINYINT(1)   NOT NULL DEFAULT 0,
     verification_token  VARCHAR(64)  NULL,
@@ -40,7 +41,19 @@ CREATE TABLE IF NOT EXISTS users (
 ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci
 """
 
-_PUBLIC_COLUMNS = "id, role, first_name, last_name, username, email, deleted, email_verified"
+_PUBLIC_COLUMNS = "id, role, first_name, last_name, email, deleted, email_verified"
+
+ADD_PHONE = "ALTER TABLE users ADD COLUMN phone VARCHAR(32) NULL AFTER email"
+# The account used to be identified by `username`. Dropping the column is safe
+# now: Daniel confirmed on 2026-09-15 that the only production row left had it
+# already NULL (the account he re-registered through the new email-only form).
+DROP_USERNAME = "ALTER TABLE users DROP COLUMN username"
+
+
+def _text(value) -> str:
+    """information_schema values arrive as `bytes` with some connector
+    settings and as `str` with others."""
+    return value.decode() if isinstance(value, (bytes, bytearray)) else value
 
 
 class User(UserMixin):
@@ -48,13 +61,11 @@ class User(UserMixin):
     it is checked inside `UserRepository.authenticate()`."""
 
     def __init__(self, id: int, role: str, first_name: str, last_name: str,
-                 username: str, email: str, deleted: bool = False,
-                 email_verified: bool = True):
+                 email: str, deleted: bool = False, email_verified: bool = True):
         self.id = id
         self.role = role
         self.first_name = first_name
         self.last_name = last_name
-        self.username = username
         self.email = email
         self.deleted = deleted
         self.email_verified = email_verified
@@ -73,8 +84,8 @@ class User(UserMixin):
 
     @classmethod
     def _from_row(cls, row) -> User:
-        (uid, role, first_name, last_name, username, email, deleted, verified) = row
-        return cls(uid, role, first_name, last_name, username, email,
+        (uid, role, first_name, last_name, email, deleted, verified) = row
+        return cls(uid, role, first_name, last_name, email,
                    bool(deleted), bool(verified))
 
 
@@ -92,20 +103,42 @@ class UserRepository:
     def initialize(self) -> None:
         conn = self._connect()
         try:
-            conn.cursor().execute(CREATE_TABLE)
+            cur = conn.cursor()
+            cur.execute(CREATE_TABLE)
+            self._migrate(cur)
             conn.commit()
         finally:
             conn.close()
 
+    @staticmethod
+    def _migrate(cursor) -> None:
+        """Brings a table created before the email-identity change up to date.
+
+        `CREATE TABLE IF NOT EXISTS` does nothing on an existing table, so each
+        statement is applied only when its column is still in the old shape.
+        """
+        cursor.execute(
+            """SELECT column_name FROM information_schema.columns
+               WHERE table_schema = DATABASE() AND table_name = 'users'"""
+        )
+        columns = {_text(name) for (name,) in cursor.fetchall()}
+        if "phone" not in columns:
+            cursor.execute(ADD_PHONE)
+        if "username" in columns:
+            cursor.execute(DROP_USERNAME)
+
     # ── Writes ────────────────────────────────────────────────────────────────
 
-    def create(self, first_name: str, last_name: str, username: str, email: str,
-               password: str, role: str = ROLE_USER,
+    def create(self, first_name: str, last_name: str, email: str, password: str,
+               phone: str | None = None, role: str = ROLE_USER,
                email_verified: bool = True) -> int:
         """Creates an account and returns its id.
 
         `email_verified=False` creates it pending verification: the login
         route refuses it until the emailed link is opened.
+
+        `phone` is stored as given and read by nobody yet: it is there for a
+        later feature, so asking for it again would mean asking every account.
         """
         now = datetime.now()
         password_hash = generate_password_hash(password, method=PASSWORD_HASH_METHOD)
@@ -114,10 +147,10 @@ class UserRepository:
             cur = conn.cursor()
             cur.execute(
                 """INSERT INTO users
-                   (role, first_name, last_name, username, email, password_hash,
+                   (role, first_name, last_name, email, phone, password_hash,
                     email_verified, deleted, date_created, date_modified)
                    VALUES (%s, %s, %s, %s, %s, %s, %s, 0, %s, %s)""",
-                (role, first_name, last_name, username, email, password_hash,
+                (role, first_name, last_name, email, phone or None, password_hash,
                  int(bool(email_verified)), now, now),
             )
             conn.commit()
@@ -179,18 +212,11 @@ class UserRepository:
 
     # ── Reads ─────────────────────────────────────────────────────────────────
 
-    def username_exists(self, username: str) -> bool:
-        return self._exists("username", username)
-
     def email_exists(self, email: str) -> bool:
-        return self._exists("email", email)
-
-    def _exists(self, column: str, value: str) -> bool:
-        # `column` is never user input: only "username" or "email" above.
         conn = self._connect()
         try:
             cur = conn.cursor()
-            cur.execute(f"SELECT 1 FROM users WHERE {column} = %s LIMIT 1", (value,))
+            cur.execute("SELECT 1 FROM users WHERE email = %s LIMIT 1", (email,))
             return cur.fetchone() is not None
         finally:
             conn.close()
@@ -206,7 +232,7 @@ class UserRepository:
             conn.close()
         return User._from_row(row) if row else None
 
-    def authenticate(self, username: str, password: str) -> User | None:
+    def authenticate(self, email: str, password: str) -> User | None:
         """The account if the credentials are right and it is not deleted;
         None otherwise.
 
@@ -218,8 +244,8 @@ class UserRepository:
         try:
             cur = conn.cursor()
             cur.execute(
-                f"SELECT {_PUBLIC_COLUMNS}, password_hash FROM users WHERE username = %s",
-                (username,),
+                f"SELECT {_PUBLIC_COLUMNS}, password_hash FROM users WHERE email = %s",
+                (email,),
             )
             row = cur.fetchone()
         finally:

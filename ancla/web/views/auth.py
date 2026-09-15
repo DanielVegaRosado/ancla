@@ -22,12 +22,21 @@ from flask_login import current_user, login_user, logout_user
 from ancla.auth import mail
 from ancla.auth.users import VERIFICATION_HOURS, UserRepository
 from ancla.web.blueprint import bp
+from ancla.web.countries import COUNTRIES, DEFAULT_COUNTRY_ISO, dial_code_for
 
 MIN_PASSWORD_LENGTH = 8
-MIN_USERNAME_LENGTH = 3
-# Deliberately loose — no domain restriction, just the shape of an address.
-# Whether it really exists is what the verification link proves.
-_EMAIL_SHAPE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
+# The account is identified by its email, and only Gmail addresses are
+# accepted: the later social login is Google-first, so an account created here
+# must be the same account that arrives through it.
+_EMAIL_SHAPE = re.compile(r"^[^@\s]+@gmail\.com$")
+# The local part the user types next to the country dropdown: digits only,
+# no leading zero (that belongs to national dialing, not the E.164 number).
+_PHONE_NUMBER_SHAPE = re.compile(r"^[1-9]\d{5,13}$")
+
+
+def _register_form_context(form: dict, errors: dict) -> dict:
+    return {"form": form, "errors": errors, "countries": COUNTRIES,
+            "default_country": DEFAULT_COUNTRY_ISO}
 
 
 def verification_active() -> bool:
@@ -81,12 +90,13 @@ def _registration_errors(form: dict) -> dict[str, str]:
         errors["first_name"] = _("Escribe tu nombre.")
     if not form["last_name"]:
         errors["last_name"] = _("Escribe tus apellidos.")
-    if len(form["username"]) < MIN_USERNAME_LENGTH:
-        errors["username"] = _(
-            "El nombre de usuario debe tener al menos %(n)s caracteres.", n=MIN_USERNAME_LENGTH
-        )
     if not _EMAIL_SHAPE.match(form["email"]):
-        errors["email"] = _("Escribe un correo válido.")
+        errors["email"] = _("De momento solo se admiten correos de Gmail (@gmail.com).")
+    if form["phone_number"]:
+        if dial_code_for(form["phone_country"]) is None:
+            errors["phone_number"] = _("Elige un país de la lista.")
+        elif not _PHONE_NUMBER_SHAPE.match(form["phone_number"]):
+            errors["phone_number"] = _("Escribe el número sin el prefijo, solo dígitos.")
     password = form["password"]
     if len(password) < MIN_PASSWORD_LENGTH:
         errors["password"] = _(
@@ -104,28 +114,33 @@ def register():
     if current_user.is_authenticated:
         return redirect(url_for("ancla.view_profile"))
     if request.method == "GET":
-        return render_template("register.html", form={}, errors={})
+        return render_template("register.html", **_register_form_context({}, {}))
 
     form = {
         "first_name": request.form.get("first_name", "").strip(),
         "last_name": request.form.get("last_name", "").strip(),
-        "username": request.form.get("username", "").strip(),
         "email": request.form.get("email", "").strip().lower(),
+        "phone_country": request.form.get("phone_country", "").strip(),
+        # Spaces are how people naturally group digits ("600 111 222"), so
+        # collapse them instead of asking the user to type it a way nobody
+        # actually would.
+        "phone_number": re.sub(r"\s+", "", request.form.get("phone_number", "")),
         "password": request.form.get("password", ""),
         "password2": request.form.get("password2", ""),
     }
     errors = _registration_errors(form)
     try:
-        if "username" not in errors and users().username_exists(form["username"]):
-            errors["username"] = _("Ese nombre de usuario ya está cogido.")
         if "email" not in errors and users().email_exists(form["email"]):
             errors["email"] = _("Ya hay una cuenta con ese correo.")
         if errors:
-            return render_template("register.html", form=form, errors=errors)
+            return render_template("register.html", **_register_form_context(form, errors))
         verify = verification_active()
+        phone = None
+        if form["phone_number"]:
+            phone = dial_code_for(form["phone_country"]) + form["phone_number"]
         users().create(
-            form["first_name"], form["last_name"], form["username"], form["email"],
-            form["password"], email_verified=not verify,
+            form["first_name"], form["last_name"], form["email"], form["password"],
+            phone=phone, email_verified=not verify,
         )
         if not verify:
             flash(_("Cuenta creada. Ya puedes iniciar sesión."))
@@ -135,7 +150,7 @@ def register():
             flash(_("Cuenta creada, pero no hemos podido enviar el correo de verificación."))
     except Exception:
         _database_unavailable()
-        return render_template("register.html", form=form, errors=errors)
+        return render_template("register.html", **_register_form_context(form, errors))
     return redirect(url_for("ancla.login"))
 
 
@@ -144,23 +159,23 @@ def login():
     if current_user.is_authenticated:
         return redirect(url_for("ancla.view_profile"))
     if request.method == "GET":
-        return render_template("login.html", username="")
+        return render_template("login.html", email="")
 
-    username = request.form.get("username", "").strip()
+    email = request.form.get("email", "").strip().lower()
     try:
-        user = users().authenticate(username, request.form.get("password", ""))
+        user = users().authenticate(email, request.form.get("password", ""))
     except Exception:
         _database_unavailable()
-        return render_template("login.html", username=username)
+        return render_template("login.html", email=email)
     if user is None:
-        flash(_("Usuario o contraseña incorrectos."))
+        flash(_("Correo o contraseña incorrectos."))
     elif verification_active() and not user.email_verified:
         flash(_("Tu cuenta aún no está verificada. Abre el enlace que te enviamos por correo."))
-        return render_template("login.html", username=username, offer_resend=True)
+        return render_template("login.html", email=email, offer_resend=True)
     else:
         login_user(user)
         return redirect(url_for("ancla.view_profile"))
-    return render_template("login.html", username=username)
+    return render_template("login.html", email=email)
 
 
 @bp.route("/logout")

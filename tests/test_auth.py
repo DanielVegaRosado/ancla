@@ -1,7 +1,7 @@
 """Accounts against the real MySQL database in `.env` — no mocks.
 
-Every account a test creates gets a username starting with a per-run prefix,
-and the fixture deletes exactly those rows afterwards, so the suite leaves the
+Every account a test creates gets an email starting with a per-run prefix, and
+the fixture deletes exactly those rows afterwards, so the suite leaves the
 shared database as it found it. Skipped when no MySQL is configured (a
 checkout without `.env`), since there is nothing real to test against.
 """
@@ -29,7 +29,7 @@ def repository() -> UserRepository:
     yield repository
     conn = get_connection()
     try:
-        conn.cursor().execute("DELETE FROM users WHERE username LIKE %s", (RUN_PREFIX + "%",))
+        conn.cursor().execute("DELETE FROM users WHERE email LIKE %s", (RUN_PREFIX + "%",))
         conn.commit()
     finally:
         conn.close()
@@ -37,16 +37,15 @@ def repository() -> UserRepository:
 
 @pytest.fixture
 def new_account():
-    """Unique username/email for one account, so tests never collide with
-    each other or with a real user."""
+    """Unique email for one account, so tests never collide with each other or
+    with a real user. Gmail because registration accepts nothing else."""
     suffix = uuid.uuid4().hex[:10]
-    return {"username": RUN_PREFIX + suffix, "email": f"{RUN_PREFIX}{suffix}@example.com"}
+    return {"email": f"{RUN_PREFIX}{suffix}@gmail.com"}
 
 
 def _create(repository: UserRepository, account: dict, *, verified: bool) -> int:
     return repository.create(
-        "Ana", "Pérez", account["username"], account["email"], PASSWORD,
-        email_verified=verified,
+        "Ana", "Pérez", account["email"], PASSWORD, email_verified=verified,
     )
 
 
@@ -70,8 +69,7 @@ def _logged_in_id(client) -> str | None:
 
 def _register_form(account: dict, **overrides) -> dict:
     form = {
-        "first_name": "Ana", "last_name": "Pérez",
-        "username": account["username"], "email": account["email"],
+        "first_name": "Ana", "last_name": "Pérez", "email": account["email"],
         "password": PASSWORD, "password2": PASSWORD,
     }
     form.update(overrides)
@@ -84,7 +82,7 @@ def test_create_stores_a_hash_and_loads_by_id(repository, new_account):
     user_id = _create(repository, new_account, verified=True)
 
     user = repository.by_id(user_id)
-    assert user.username == new_account["username"]
+    assert user.email == new_account["email"]
     assert user.get_id() == str(user_id)
     assert user.is_active and user.email_verified
     conn = get_connection()
@@ -105,20 +103,20 @@ def test_by_id_of_a_missing_account_is_none(repository):
 def test_authenticate_with_right_and_wrong_password(repository, new_account):
     _create(repository, new_account, verified=True)
 
-    assert repository.authenticate(new_account["username"], PASSWORD).email == new_account["email"]
-    assert repository.authenticate(new_account["username"], "incorrecta123") is None
-    assert repository.authenticate(RUN_PREFIX + "nobody", PASSWORD) is None
+    assert repository.authenticate(new_account["email"], PASSWORD).email == new_account["email"]
+    assert repository.authenticate(new_account["email"], "incorrecta123") is None
+    assert repository.authenticate(RUN_PREFIX + "nobody@gmail.com", PASSWORD) is None
 
 
 def test_verification_token_is_single_use(repository, new_account):
     _create(repository, new_account, verified=False)
-    assert repository.authenticate(new_account["username"], PASSWORD).email_verified is False
+    assert repository.authenticate(new_account["email"], PASSWORD).email_verified is False
 
     token = repository.generate_verification_token(new_account["email"])
 
     assert token
     assert repository.verify_by_token(token) is True
-    assert repository.authenticate(new_account["username"], PASSWORD).email_verified is True
+    assert repository.authenticate(new_account["email"], PASSWORD).email_verified is True
     assert repository.verify_by_token(token) is False
 
 
@@ -126,7 +124,7 @@ def test_no_token_for_an_already_verified_or_unknown_account(repository, new_acc
     _create(repository, new_account, verified=True)
 
     assert repository.generate_verification_token(new_account["email"]) is None
-    assert repository.generate_verification_token(RUN_PREFIX + "nobody@example.com") is None
+    assert repository.generate_verification_token(RUN_PREFIX + "nobody@gmail.com") is None
 
 
 def test_an_expired_token_does_not_verify(repository, new_account):
@@ -140,40 +138,85 @@ def test_an_expired_token_does_not_verify(repository, new_account):
 
 # ── Web ───────────────────────────────────────────────────────────────────────
 
-def test_register_creates_an_unverified_account_with_any_email_domain(client, repository, new_account):
-    response = client.post("/registro", data=_register_form(new_account))
+def test_register_creates_an_unverified_account_and_stores_the_optional_phone(
+    client, repository, new_account
+):
+    response = client.post(
+        "/registro",
+        data=_register_form(new_account, phone_country="ES", phone_number="600111222"),
+    )
 
     assert response.status_code == 302
     assert response.headers["Location"].endswith("/login")
-    user = repository.authenticate(new_account["username"], PASSWORD)
+    user = repository.authenticate(new_account["email"], PASSWORD)
     assert user is not None and user.email_verified is False
+    conn = get_connection()
+    try:
+        cur = conn.cursor()
+        cur.execute("SELECT phone FROM users WHERE email = %s", (new_account["email"],))
+        assert cur.fetchone()[0] == "+34600111222"
+    finally:
+        conn.close()
 
 
-def test_register_rejects_a_taken_username_and_mismatched_passwords(client, repository, new_account):
-    _create(repository, new_account, verified=True)
-
-    taken = client.post("/registro", data=_register_form(new_account))
-    mismatch = client.post(
+def test_register_strips_spaces_the_user_typed_inside_the_phone_number(
+    client, repository, new_account
+):
+    client.post(
         "/registro",
-        data=_register_form(
-            {"username": new_account["username"] + "x", "email": "x" + new_account["email"]},
-            password2="otra123456",
-        ),
+        data=_register_form(new_account, phone_country="ES", phone_number="600 111 222"),
     )
 
-    assert "Ese nombre de usuario ya está cogido." in taken.get_data(as_text=True)
+    conn = get_connection()
+    try:
+        cur = conn.cursor()
+        cur.execute("SELECT phone FROM users WHERE email = %s", (new_account["email"],))
+        assert cur.fetchone()[0] == "+34600111222"
+    finally:
+        conn.close()
+
+
+def test_register_without_a_phone_stores_null(client, repository, new_account):
+    client.post("/registro", data=_register_form(new_account))
+
+    conn = get_connection()
+    try:
+        cur = conn.cursor()
+        cur.execute("SELECT phone FROM users WHERE email = %s", (new_account["email"],))
+        assert cur.fetchone()[0] is None
+    finally:
+        conn.close()
+
+
+def test_register_rejects_a_non_gmail_address(client, repository, new_account):
+    outside = "x" + new_account["email"].replace("@gmail.com", "@example.com")
+
+    response = client.post("/registro", data=_register_form(new_account, email=outside))
+
+    assert "solo se admiten correos de Gmail" in response.get_data(as_text=True)
+    assert not repository.email_exists(outside)
+
+
+def test_register_rejects_a_taken_email_and_mismatched_passwords(client, repository, new_account):
+    _create(repository, new_account, verified=True)
+    free = {"email": "x" + new_account["email"]}
+
+    taken = client.post("/registro", data=_register_form(new_account))
+    mismatch = client.post("/registro", data=_register_form(free, password2="otra123456"))
+
+    assert "Ya hay una cuenta con ese correo." in taken.get_data(as_text=True)
     assert "Las contraseñas no coinciden." in mismatch.get_data(as_text=True)
-    assert not repository.username_exists(new_account["username"] + "x")
+    assert not repository.email_exists(free["email"])
 
 
 def test_login_with_right_password_logs_in_and_wrong_one_does_not(client, repository, new_account):
     _create(repository, new_account, verified=True)
 
-    wrong = client.post("/login", data={"username": new_account["username"], "password": "incorrecta123"})
-    assert "Usuario o contraseña incorrectos." in wrong.get_data(as_text=True)
+    wrong = client.post("/login", data={"email": new_account["email"], "password": "incorrecta123"})
+    assert "Correo o contraseña incorrectos." in wrong.get_data(as_text=True)
     assert _logged_in_id(client) is None
 
-    right = client.post("/login", data={"username": new_account["username"], "password": PASSWORD})
+    right = client.post("/login", data={"email": new_account["email"], "password": PASSWORD})
     assert right.status_code == 302
     assert _logged_in_id(client) is not None
 
@@ -184,13 +227,13 @@ def test_login_with_right_password_logs_in_and_wrong_one_does_not(client, reposi
 def test_unverified_account_cannot_log_in_until_the_link_is_opened(client, repository, new_account):
     client.post("/registro", data=_register_form(new_account))
 
-    refused = client.post("/login", data={"username": new_account["username"], "password": PASSWORD})
+    refused = client.post("/login", data={"email": new_account["email"], "password": PASSWORD})
     assert "aún no está verificada" in refused.get_data(as_text=True)
     assert _logged_in_id(client) is None
 
     token = repository.generate_verification_token(new_account["email"])
     client.get(f"/verificar/{token}")
-    client.post("/login", data={"username": new_account["username"], "password": PASSWORD})
+    client.post("/login", data={"email": new_account["email"], "password": PASSWORD})
     assert _logged_in_id(client) is not None
 
 

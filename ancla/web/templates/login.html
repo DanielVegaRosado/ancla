@@ -5,8 +5,8 @@
     <h1>{{ _('Iniciar sesión') }}</h1>
     <form class="pila" method="post">
       <div class="campo">
-        <label for="username">{{ _('Nombre de usuario') }}</label>
-        <input type="text" id="username" name="username" value="{{ username }}" autocomplete="username" required>
+        <label for="email">{{ _('Correo') }}</label>
+        <input type="email" id="email" name="email" value="{{ email }}" maxlength="190" autocomplete="email" required>
       </div>
       <div class="campo">
         <label for="password">{{ _('Contraseña') }}</label>
