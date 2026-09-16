@@ -3,6 +3,11 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  {# Read by app.js/about_me.js/split_bullets.js before any fetch() that
+     POSTs JSON: those calls carry no HTML form to hold a hidden csrf_token
+     input, so the token travels as a header instead (see CSRFProtect's
+     `X-CSRFToken` convention in ancla/web/__init__.py). #}
+  <meta name="csrf-token" content="{{ csrf_token() }}">
   <title>{% block titulo %}Ancla{% endblock %}</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>

@@ -7,6 +7,7 @@
   </p>
 
   <form class="pila tarjeta" method="post">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <div class="campo">
       <label>{{ _('¿Qué es esto?') }}</label>
       <div class="opciones-tipo">

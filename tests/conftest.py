@@ -3,8 +3,27 @@ from __future__ import annotations
 
 import pytest
 from cryptography.fernet import Fernet
+from flask_wtf import CSRFProtect
 
 from ancla.web.settings import VARIABLE_ENTORNO_CLAVE_CIFRADO
+
+
+@pytest.fixture(autouse=True)
+def _csrf_disabled_for_tests(monkeypatch: pytest.MonkeyPatch) -> None:
+    """The suite posts forms straight through Flask's test client — there is
+    no browser to have fetched a page and carried its hidden `csrf_token`
+    field first, so every existing POST test would otherwise need to learn
+    about tokens. Same trusted-client reasoning as any test suite disabling
+    CSRF: the check itself, and that it actually blocks an unsigned request,
+    is exercised without this bypass in `test_csrf.py`, which overrides this
+    fixture to a no-op for that one file."""
+    original_init_app = CSRFProtect.init_app
+
+    def _init_app_without_csrf(self, app):
+        original_init_app(self, app)
+        app.config["WTF_CSRF_ENABLED"] = False
+
+    monkeypatch.setattr(CSRFProtect, "init_app", _init_app_without_csrf)
 
 
 @pytest.fixture(autouse=True)

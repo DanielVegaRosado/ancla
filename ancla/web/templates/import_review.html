@@ -19,6 +19,7 @@
   {% endif %}
 
   <form class="pila" method="post" action="{{ url_for('ancla.save_import') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     {% if importacion.has_contact() %}
       <h2>{{ _('Contacto') }}</h2>
       <div class="lista-tarjetas">
@@ -293,6 +294,7 @@
   </form>
 
   <form method="post" action="{{ url_for('ancla.discard_import') }}" data-confirmar="{{ _('¿Descartar toda la importación? No se guardará nada de esto.') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <button type="submit" class="boton-peligro">{{ _('Descartar todo') }}</button>
   </form>
 {% endblock %}

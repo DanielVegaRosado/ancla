@@ -15,6 +15,7 @@
       </div>
     {% endif %}
     <form class="pila" method="post" novalidate>
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <div class="campo">
         <label for="first_name">{{ _('Nombre') }}</label>
         <input type="text" id="first_name" name="first_name" value="{{ form.first_name or '' }}" maxlength="100" autocomplete="given-name" required>

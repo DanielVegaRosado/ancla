@@ -49,7 +49,7 @@
     try {
       const respuesta = await fetch("/perfil/experiencias/dividir-bullets", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "X-CSRFToken": csrfToken() },
         body: JSON.stringify({ bullets: target.value }),
       });
       const datos = await respuesta.json();

@@ -2,6 +2,16 @@
 // copy to clipboard, confirm deletions, show the fields the chosen provider
 // needs, and suggest keywords with AI.
 
+// Every fetch() that POSTs JSON needs this: there is no HTML form around
+// the request to carry a hidden csrf_token input, so CSRFProtect reads the
+// token from this header instead (see base.html's <meta name="csrf-token">).
+// Declared at the top level, not inside an IIFE, so about_me.js and
+// split_bullets.js — loaded earlier in the page but only calling this
+// inside a later click handler — can reach it too.
+function csrfToken() {
+  return document.querySelector('meta[name="csrf-token"]').content;
+}
+
 document.addEventListener("click", (event) => {
   const button = event.target.closest("[data-copiar]");
   if (!button) return;
@@ -49,7 +59,7 @@ document.addEventListener("click", async (event) => {
   try {
     const response = await fetch("/perfil/keywords", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", "X-CSRFToken": csrfToken() },
       body: JSON.stringify(payload),
     });
     const data = await response.json();
@@ -135,7 +145,7 @@ function activateDragToReorder(container, saveOrder) {
   activateDragToReorder(container, (order) => {
     fetch("/perfil/orden", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", "X-CSRFToken": csrfToken() },
       body: JSON.stringify({ orden: order }),
     }).catch(() => {});
   });
@@ -151,7 +161,7 @@ function activateDragToReorder(container, saveOrder) {
   activateDragToReorder(container, (order) => {
     fetch("/propuesta/orden-experiencias", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", "X-CSRFToken": csrfToken() },
       body: JSON.stringify({ orden: order }),
     }).catch(() => {});
   });

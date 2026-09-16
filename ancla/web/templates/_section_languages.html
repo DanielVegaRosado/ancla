@@ -11,6 +11,7 @@
       <a class="boton boton-primario" href="{{ url_for('ancla.new_language') }}">{{ _('Añadir idioma') }}</a>
       {% if perfil.languages %}
         <form class="en-linea" method="post" action="{{ url_for('ancla.delete_all_languages') }}" data-confirmar="{{ _('¿Borrar TODOS los %(cantidad)s idiomas? Esta acción no se puede deshacer.', cantidad=perfil.languages|length) }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
           <button type="submit" class="boton boton-pequeno boton-peligro">{{ _('Borrar todos') }}</button>
         </form>
       {% endif %}
@@ -30,6 +31,7 @@
               {% with seccion = "idiomas", entrada = idioma %}{% include "_untranslated.html" %}{% endwith %}
               <a class="boton boton-pequeno" href="{{ url_for('ancla.edit_language', id_=idioma.id) }}">{{ _('Editar') }}</a>
               <form class="en-linea" method="post" action="{{ url_for('ancla.delete_language', id_=idioma.id) }}" data-confirmar="{{ _('¿Borrar «%(nombre)s»? Esta acción no se puede deshacer.', nombre=idioma.name['es']) }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <button type="submit" class="boton-pequeno boton-peligro">{{ _('Borrar') }}</button>
               </form>
             </div>
