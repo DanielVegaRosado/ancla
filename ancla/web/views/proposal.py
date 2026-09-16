@@ -200,6 +200,23 @@ def reorder_experiences():
     return jsonify({"ok": True})
 
 
+@bp.route("/propuesta/actualizar-datos", methods=["POST"])
+def update_draft_company():
+    """Silently keeps company/position typed in the "Guardar en Mis CVs"
+    form inside the draft as the user types, so navigating away to another
+    screen and back does not lose it — those two fields otherwise only
+    reach the draft on that form's own submit."""
+    borrador = modulo_borrador.load_draft(context.root())
+    if borrador is None:
+        return jsonify({"ok": False}), 404
+
+    datos = request.get_json(silent=True) or {}
+    borrador.empresa = str(datos.get("empresa", "")).strip()[:MAX_COMPANY_LEN]
+    borrador.puesto = str(datos.get("puesto", "")).strip()[:MAX_POSITION_LEN]
+    modulo_borrador.save_draft(context.root(), borrador)
+    return jsonify({"ok": True})
+
+
 @bp.route("/propuesta/regenerar/<seccion>", methods=["POST"])
 def regenerate_section(seccion: str):
     borrador = _with_draft_or_redirect()

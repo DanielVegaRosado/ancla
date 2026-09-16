@@ -239,6 +239,31 @@ function activateDragToReorder(container, saveOrder) {
   });
 })();
 
+// Proposal: company/position get typed here but only reach the draft on
+// "Guardar en el archivo" — leaving the screen before that (the templates
+// link above, a nav link, another card's own form) used to throw away what
+// was typed, because the next render of this screen falls back to what the
+// posting text itself carried. Saved to the draft on blur, silently, so
+// coming back finds it there instead.
+(() => {
+  const form = document.querySelector("[data-guardar-datos-propuesta]");
+  if (!form) return;
+  const empresa = form.querySelector("#empresa");
+  const puesto = form.querySelector("#puesto");
+  if (!empresa || !puesto) return;
+
+  const guardar = () => {
+    fetch("/propuesta/actualizar-datos", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-CSRFToken": csrfToken() },
+      body: JSON.stringify({ empresa: empresa.value, puesto: puesto.value }),
+    }).catch(() => {});
+  };
+
+  empresa.addEventListener("blur", guardar);
+  puesto.addEventListener("blur", guardar);
+})();
+
 // My CVs: the stats panel doubles as a filter. Clicking a card (Sent,
 // Interview...) filters the list without reloading the page; every CV
 // stays in the HTML, only the ones that don't match get hidden.

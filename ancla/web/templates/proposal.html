@@ -17,9 +17,12 @@
     {% include "_cv_preview_form.html" %}
   {% endwith %}
 
-  <section class="tarjeta">
+  <section class="tarjeta" id="sobre-mi" data-acordeon>
     <div class="cabecera-bloque">
-      <h2>{{ _('Sobre mí') }}</h2>
+      <button type="button" class="cabecera-acordeon" data-acordeon-cabecera aria-expanded="false" aria-controls="contenido-sobre-mi">
+        <span class="icono-acordeon" aria-hidden="true">▸</span>
+        <h2>{{ _('Sobre mí') }}</h2>
+      </button>
       <div class="acciones">
         <button type="button" class="boton boton-pequeno" data-copiar="copia-sobre-mi">{{ _('Copiar') }}</button>
         <form class="en-linea" method="post" action="{{ url_for('ancla.regenerate_section', seccion='sobre-mi') }}">
@@ -29,35 +32,40 @@
       </div>
     </div>
     <textarea id="copia-sobre-mi" hidden>{{ propuesta.about_me.text }}</textarea>
-    <div class="bloque-texto">{{ propuesta.about_me.text }}</div>
-    {% if propuesta.about_me.reason %}<p class="motivo">{{ _('Motivo:') }} {{ propuesta.about_me.reason }}</p>{% endif %}
+    <div class="contenido-acordeon" id="contenido-sobre-mi" data-acordeon-contenido hidden>
+      <div class="bloque-texto">{{ propuesta.about_me.text }}</div>
+      {% if propuesta.about_me.reason %}<p class="motivo">{{ _('Motivo:') }} {{ propuesta.about_me.reason }}</p>{% endif %}
 
-    <details>
-      <summary>{{ _('Ajuste directo') }}</summary>
-      <form class="pila" method="post" action="{{ url_for('ancla.adjust_about_me') }}">
+      <details>
+        <summary>{{ _('Ajuste directo') }}</summary>
+        <form class="pila" method="post" action="{{ url_for('ancla.adjust_about_me') }}">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-        <p class="ayuda">{{ _('Conceptos y dominios (GRUPO A):') }}</p>
-        <div class="dos-columnas">
-          {% for n in (1, 2, 3) %}
-            <input type="text" name="grupo_a_{{ n }}" value="{{ propuesta.about_me.group_a[n-1] if propuesta.about_me.group_a|length >= n else '' }}">
-          {% endfor %}
-        </div>
-        <p class="ayuda">{{ _('Lenguajes y tecnologías (GRUPO B):') }}</p>
-        <div class="dos-columnas">
-          {% for n in (1, 2, 3) %}
-            <input type="text" name="grupo_b_{{ n }}" value="{{ propuesta.about_me.group_b[n-1] if propuesta.about_me.group_b|length >= n else '' }}">
-          {% endfor %}
-        </div>
-        <div class="barra-acciones">
-          <button type="submit" class="boton boton-pequeno boton-primario">{{ _('Actualizar texto') }}</button>
-        </div>
-      </form>
-    </details>
+          <p class="ayuda">{{ _('Conceptos y dominios (GRUPO A):') }}</p>
+          <div class="dos-columnas">
+            {% for n in (1, 2, 3) %}
+              <input type="text" name="grupo_a_{{ n }}" value="{{ propuesta.about_me.group_a[n-1] if propuesta.about_me.group_a|length >= n else '' }}">
+            {% endfor %}
+          </div>
+          <p class="ayuda">{{ _('Lenguajes y tecnologías (GRUPO B):') }}</p>
+          <div class="dos-columnas">
+            {% for n in (1, 2, 3) %}
+              <input type="text" name="grupo_b_{{ n }}" value="{{ propuesta.about_me.group_b[n-1] if propuesta.about_me.group_b|length >= n else '' }}">
+            {% endfor %}
+          </div>
+          <div class="barra-acciones">
+            <button type="submit" class="boton boton-pequeno boton-primario">{{ _('Actualizar texto') }}</button>
+          </div>
+        </form>
+      </details>
+    </div>
   </section>
 
-  <section class="tarjeta">
+  <section class="tarjeta" id="skills" data-acordeon>
     <div class="cabecera-bloque">
-      <h2>{{ _('Skills técnicas') }} ({{ skills|length }})</h2>
+      <button type="button" class="cabecera-acordeon" data-acordeon-cabecera aria-expanded="false" aria-controls="contenido-skills">
+        <span class="icono-acordeon" aria-hidden="true">▸</span>
+        <h2>{{ _('Skills técnicas') }} ({{ skills|length }})</h2>
+      </button>
       <div class="acciones">
         <button type="button" class="boton boton-pequeno" data-copiar="copia-skills">{{ _('Copiar') }}</button>
         <form class="en-linea" method="post" action="{{ url_for('ancla.regenerate_section', seccion='skills') }}">
@@ -68,138 +76,161 @@
     </div>
     <textarea id="copia-skills" hidden>{{ texto_skills }}</textarea>
 
-    <ol>
-      {% for id_, skill in skills %}
-        <li>
-          {% if skill %}
-            {{ skill.name[propuesta.language] }}
-          {% else %}
-            <span class="vacio">{{ _('«%(id)s» ya no existe en tu perfil', id=id_) }}</span>
-          {% endif %}
-          <details>
-            <summary>{{ _('Cambiar') }}</summary>
-            <form class="en-linea" method="post" action="{{ url_for('ancla.adjust_skill') }}">
+    <div class="contenido-acordeon" id="contenido-skills" data-acordeon-contenido hidden>
+      <ol>
+        {% for id_, skill in skills %}
+          <li>
+            {% if skill %}
+              {{ skill.name[propuesta.language] }}
+            {% else %}
+              <span class="vacio">{{ _('«%(id)s» ya no existe en tu perfil', id=id_) }}</span>
+            {% endif %}
+            <details>
+              <summary>{{ _('Cambiar') }}</summary>
+              <form class="en-linea" method="post" action="{{ url_for('ancla.adjust_skill') }}">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-              <input type="hidden" name="indice" value="{{ loop.index0 }}">
-              <select name="skill_id">
-                {% for candidata in perfil.skills %}
-                  <option value="{{ candidata.id }}" {{ "selected" if candidata.id == id_ else "" }}>{{ candidata.name["es"] }}</option>
-                {% endfor %}
-              </select>
-              <button type="submit" class="boton-pequeno">{{ _('Actualizar') }}</button>
-            </form>
-          </details>
-        </li>
-      {% endfor %}
-    </ol>
+                <input type="hidden" name="indice" value="{{ loop.index0 }}">
+                <select name="skill_id">
+                  {% for candidata in perfil.skills %}
+                    <option value="{{ candidata.id }}" {{ "selected" if candidata.id == id_ else "" }}>{{ candidata.name["es"] }}</option>
+                  {% endfor %}
+                </select>
+                <button type="submit" class="boton-pequeno">{{ _('Actualizar') }}</button>
+              </form>
+            </details>
+          </li>
+        {% endfor %}
+      </ol>
 
-    {% if propuesta.skills_reason %}<p class="motivo">{{ _('Motivo:') }} {{ propuesta.skills_reason }}</p>{% endif %}
+      {% if propuesta.skills_reason %}<p class="motivo">{{ _('Motivo:') }} {{ propuesta.skills_reason }}</p>{% endif %}
+    </div>
   </section>
 
-  <section class="tarjeta">
+  <section class="tarjeta" id="experiencias" data-acordeon>
     <div class="cabecera-bloque">
-      <h2>{{ _('Experiencia relevante') }} ({{ experiencias|length }})</h2>
+      <button type="button" class="cabecera-acordeon" data-acordeon-cabecera aria-expanded="false" aria-controls="contenido-experiencias">
+        <span class="icono-acordeon" aria-hidden="true">▸</span>
+        <h2>{{ _('Experiencia relevante') }} ({{ experiencias|length }})</h2>
+      </button>
       <form class="en-linea" method="post" action="{{ url_for('ancla.regenerate_section', seccion='experiencias') }}">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <button type="submit" class="boton boton-pequeno">{{ _('Regenerar') }}</button>
       </form>
     </div>
-    <p class="ayuda">
-      {{ _('Arrastra el asa') }} <span aria-hidden="true">⠿</span>
-      {{ _('para cambiar el orden. Cuando una plantilla admite menos experiencias de las que hay aquí, son las primeras las que entran en el CV maquetado.') }}
-    </p>
 
-    <div class="lista-tarjetas" data-experiencias-propuesta>
-      {% for seleccionada, experiencia, texto_bloque in experiencias %}
-        <div class="tarjeta arrastrable" data-arrastrable data-clave="{{ seleccionada.id }}">
-          {% if experiencia %}
-            <textarea id="copia-experiencia-{{ loop.index0 }}" hidden>{{ texto_bloque }}</textarea>
-            <div class="cabecera-bloque">
+    <div class="contenido-acordeon" id="contenido-experiencias" data-acordeon-contenido hidden>
+      <p class="ayuda">
+        {{ _('Arrastra el asa') }} <span aria-hidden="true">⠿</span>
+        {{ _('para cambiar el orden. Cuando una plantilla admite menos experiencias de las que hay aquí, son las primeras las que entran en el CV maquetado.') }}
+      </p>
+
+      <div class="lista-tarjetas" data-experiencias-propuesta>
+        {% for seleccionada, experiencia, texto_bloque in experiencias %}
+          <div class="tarjeta arrastrable" data-arrastrable data-clave="{{ seleccionada.id }}">
+            {% if experiencia %}
+              <textarea id="copia-experiencia-{{ loop.index0 }}" hidden>{{ texto_bloque }}</textarea>
+              <div class="cabecera-bloque">
+                <div class="titulo-panel">
+                  <span class="manija-arrastrar" title="{{ _('Arrastrar para reordenar') }}" aria-hidden="true">⠿</span>
+                  <h3>{{ experiencia.title[propuesta.language] }} · {{ periodo(experiencia, propuesta.language) }}</h3>
+                </div>
+                <button type="button" class="boton boton-pequeno" data-copiar="copia-experiencia-{{ loop.index0 }}">{{ _('Copiar') }}</button>
+              </div>
+              <ul>
+                {% for bullet in experiencia.bullets[propuesta.language] %}<li>{{ bullet }}</li>{% endfor %}
+              </ul>
+              <p class="ayuda">{{ experiencia.stack }}</p>
+            {% else %}
               <div class="titulo-panel">
                 <span class="manija-arrastrar" title="{{ _('Arrastrar para reordenar') }}" aria-hidden="true">⠿</span>
-                <h3>{{ experiencia.title[propuesta.language] }} · {{ periodo(experiencia, propuesta.language) }}</h3>
+                <p class="vacio">{{ _('«%(id)s» ya no existe en tu perfil.', id=seleccionada.id) }}</p>
               </div>
-              <button type="button" class="boton boton-pequeno" data-copiar="copia-experiencia-{{ loop.index0 }}">{{ _('Copiar') }}</button>
-            </div>
-            <ul>
-              {% for bullet in experiencia.bullets[propuesta.language] %}<li>{{ bullet }}</li>{% endfor %}
-            </ul>
-            <p class="ayuda">{{ experiencia.stack }}</p>
-          {% else %}
-            <div class="titulo-panel">
-              <span class="manija-arrastrar" title="{{ _('Arrastrar para reordenar') }}" aria-hidden="true">⠿</span>
-              <p class="vacio">{{ _('«%(id)s» ya no existe en tu perfil.', id=seleccionada.id) }}</p>
-            </div>
-          {% endif %}
-          {% if seleccionada.reason %}<p class="motivo">{{ _('Motivo:') }} {{ seleccionada.reason }}</p>{% endif %}
+            {% endif %}
+            {% if seleccionada.reason %}<p class="motivo">{{ _('Motivo:') }} {{ seleccionada.reason }}</p>{% endif %}
 
-          <details>
-            <summary>{{ _('Ajuste directo') }}</summary>
-            <form class="pila" method="post" action="{{ url_for('ancla.adjust_experience') }}">
+            <details>
+              <summary>{{ _('Ajuste directo') }}</summary>
+              <form class="pila" method="post" action="{{ url_for('ancla.adjust_experience') }}">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-              <input type="hidden" name="indice" value="{{ loop.index0 }}">
-              <div class="campo">
-                <label>{{ _('Experiencia') }}</label>
-                <select name="experiencia_id">
-                  {% for candidata in perfil.experiences %}
-                    <option value="{{ candidata.id }}" {{ "selected" if candidata.id == seleccionada.id else "" }}>{{ candidata.title["es"] }}</option>
-                  {% endfor %}
-                </select>
-              </div>
-              <div class="barra-acciones">
-                <button type="submit" class="boton boton-pequeno boton-primario">{{ _('Actualizar') }}</button>
-              </div>
-            </form>
-          </details>
-        </div>
-      {% endfor %}
+                <input type="hidden" name="indice" value="{{ loop.index0 }}">
+                <div class="campo">
+                  <label>{{ _('Experiencia') }}</label>
+                  <select name="experiencia_id">
+                    {% for candidata in perfil.experiences %}
+                      <option value="{{ candidata.id }}" {{ "selected" if candidata.id == seleccionada.id else "" }}>{{ candidata.title["es"] }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+                <div class="barra-acciones">
+                  <button type="submit" class="boton boton-pequeno boton-primario">{{ _('Actualizar') }}</button>
+                </div>
+              </form>
+            </details>
+          </div>
+        {% endfor %}
+      </div>
     </div>
   </section>
 
   {% if perfil.personal_skills %}
   <!-- Personal skills: no AI selection, always shown in full -->
-  <section class="tarjeta">
+  <section class="tarjeta" id="skills-personales" data-acordeon>
     <div class="cabecera-bloque">
-      <h2>{{ _('Skills personales') }} ({{ perfil.personal_skills|length }})</h2>
+      <button type="button" class="cabecera-acordeon" data-acordeon-cabecera aria-expanded="false" aria-controls="contenido-skills-personales">
+        <span class="icono-acordeon" aria-hidden="true">▸</span>
+        <h2>{{ _('Skills personales') }} ({{ perfil.personal_skills|length }})</h2>
+      </button>
       <button type="button" class="boton boton-pequeno" data-copiar="copia-skills-personales">{{ _('Copiar') }}</button>
     </div>
     <textarea id="copia-skills-personales" hidden>{{ texto_skills_personales }}</textarea>
-    <p class="ayuda">
-      {{ _('Se muestran siempre todas, sin selección de IA. Edítalas en «Mi perfil» si quieres cambiar cuáles aparecen.') }}
-    </p>
-    <ul>
-      {% for skill in perfil.personal_skills %}<li>{{ skill.name[propuesta.language] }}</li>{% endfor %}
-    </ul>
+    <div class="contenido-acordeon" id="contenido-skills-personales" data-acordeon-contenido hidden>
+      <p class="ayuda">
+        {{ _('Se muestran siempre todas, sin selección de IA. Edítalas en «Mi perfil» si quieres cambiar cuáles aparecen.') }}
+      </p>
+      <ul>
+        {% for skill in perfil.personal_skills %}<li>{{ skill.name[propuesta.language] }}</li>{% endfor %}
+      </ul>
+    </div>
   </section>
   {% endif %}
 
   {% if perfil.languages %}
   <!-- Languages: no AI selection, always shown in full -->
-  <section class="tarjeta">
+  <section class="tarjeta" id="idiomas" data-acordeon>
     <div class="cabecera-bloque">
-      <h2>{{ _('Idiomas') }} ({{ perfil.languages|length }})</h2>
+      <button type="button" class="cabecera-acordeon" data-acordeon-cabecera aria-expanded="false" aria-controls="contenido-idiomas">
+        <span class="icono-acordeon" aria-hidden="true">▸</span>
+        <h2>{{ _('Idiomas') }} ({{ perfil.languages|length }})</h2>
+      </button>
       <button type="button" class="boton boton-pequeno" data-copiar="copia-idiomas">{{ _('Copiar') }}</button>
     </div>
     <textarea id="copia-idiomas" hidden>{{ texto_idiomas }}</textarea>
-    <p class="ayuda">
-      {{ _('Se muestran siempre todos, sin selección de IA. Edítalos en «Mi perfil» si quieres cambiar cuáles aparecen.') }}
-    </p>
-    <ul>
-      {% for idioma in perfil.languages %}<li>{{ idioma.name[propuesta.language] }} · {{ idioma.level[propuesta.language] }}</li>{% endfor %}
-    </ul>
+    <div class="contenido-acordeon" id="contenido-idiomas" data-acordeon-contenido hidden>
+      <p class="ayuda">
+        {{ _('Se muestran siempre todos, sin selección de IA. Edítalos en «Mi perfil» si quieres cambiar cuáles aparecen.') }}
+      </p>
+      <ul>
+        {% for idioma in perfil.languages %}<li>{{ idioma.name[propuesta.language] }} · {{ idioma.level[propuesta.language] }}</li>{% endfor %}
+      </ul>
+    </div>
   </section>
   {% endif %}
 
-  <section class="tarjeta">
-    <h2>{{ _('Huecos detectados') }}</h2>
-    <p class="ayuda">{{ _('Lo que pide la vacante y no está en tu perfil. No entra en el CV: es información para ti.') }}</p>
-    {% if propuesta.gaps %}
-      {% for hueco in propuesta.gaps %}
-        <div class="hueco">{{ hueco }}</div>
-      {% endfor %}
-    {% else %}
-      <p class="vacio">{{ _('Ninguno: tu perfil cubre todo lo que pide la vacante.') }}</p>
-    {% endif %}
+  <section class="tarjeta" id="huecos" data-acordeon>
+    <button type="button" class="cabecera-acordeon" data-acordeon-cabecera aria-expanded="false" aria-controls="contenido-huecos">
+      <span class="icono-acordeon" aria-hidden="true">▸</span>
+      <h2>{{ _('Huecos detectados') }}</h2>
+    </button>
+    <div class="contenido-acordeon" id="contenido-huecos" data-acordeon-contenido hidden>
+      <p class="ayuda">{{ _('Lo que pide la vacante y no está en tu perfil. No entra en el CV: es información para ti.') }}</p>
+      {% if propuesta.gaps %}
+        {% for hueco in propuesta.gaps %}
+          <div class="hueco">{{ hueco }}</div>
+        {% endfor %}
+      {% else %}
+        <p class="vacio">{{ _('Ninguno: tu perfil cubre todo lo que pide la vacante.') }}</p>
+      {% endif %}
+    </div>
   </section>
 
   <hr class="separador">
@@ -207,7 +238,7 @@
   <div class="dos-columnas">
     <section class="tarjeta">
       <h2>{{ _('Guardar en Mis CVs') }}</h2>
-      <form class="pila" method="post" action="{{ url_for('ancla.save_proposal') }}">
+      <form class="pila" method="post" action="{{ url_for('ancla.save_proposal') }}" data-guardar-datos-propuesta>
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <div class="campo">
           <label for="empresa">{{ _('Empresa') }}</label>

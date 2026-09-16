@@ -69,9 +69,14 @@
     {% include "_cv_preview_form.html" %}
   {% endwith %}
 
-  <section class="tarjeta">
-    <h2>{{ _('Propuesta guardada') }}</h2>
-    <div class="bloque-texto">{{ texto_markdown }}</div>
+  <section class="tarjeta" id="propuesta-guardada" data-acordeon>
+    <button type="button" class="cabecera-acordeon" data-acordeon-cabecera aria-expanded="false" aria-controls="contenido-propuesta-guardada">
+      <span class="icono-acordeon" aria-hidden="true">▸</span>
+      <h2>{{ _('Propuesta guardada') }}</h2>
+    </button>
+    <div class="contenido-acordeon" id="contenido-propuesta-guardada" data-acordeon-contenido hidden>
+      <div class="bloque-texto">{{ texto_markdown }}</div>
+    </div>
   </section>
 
   <details>
