@@ -2822,6 +2822,31 @@ msgstr "File saved."
 msgid "Archivo borrado."
 msgstr "File deleted."
 
+#: ancla/web/views/cvs.py:112
+msgid "Ese adjunto ya no existe."
+msgstr "That attachment no longer exists."
+
+#: ancla/web/views/cvs.py:119
+msgid "CV borrado del archivo."
+msgstr "CV deleted from the archive."
+
+#: ancla/web/views/cvs.py:121
+msgid "Ese CV ya no existe."
+msgstr "That CV no longer exists."
+
+#: ancla/web/templates/cvs.html
+#, python-format
+msgid "¿Borrar el CV de «%(empresa)s»? Esta acción no se puede deshacer."
+msgstr "Delete the CV for “%(empresa)s”? This action cannot be undone."
+
+#: ancla/web/templates/cv_detail.html
+msgid "¿Borrar este CV del archivo? Esta acción no se puede deshacer."
+msgstr "Delete this CV from the archive? This action cannot be undone."
+
+#: ancla/web/templates/cv_detail.html
+msgid "Borrar CV"
+msgstr "Delete CV"
+
 #: ancla/web/views/import_cv.py:59
 msgid "Configura tu clave de API en Ajustes antes de importar un CV."
 msgstr "Set up your API key in Settings before importing a CV."

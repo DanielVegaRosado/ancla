@@ -31,6 +31,10 @@
             </div>
             <span class="insignia insignia-{{ cv.status.value }}">{{ etiquetas_estado[cv.status] }}</span>
           </div>
+          <form class="en-linea" method="post" action="{{ url_for('ancla.delete_cv', id_=cv.id) }}" data-confirmar="{{ _('¿Borrar el CV de «%(empresa)s»? Esta acción no se puede deshacer.', empresa=cv.company) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="boton-pequeno boton-peligro">{{ _('Borrar') }}</button>
+          </form>
         </div>
       {% endfor %}
     </div>

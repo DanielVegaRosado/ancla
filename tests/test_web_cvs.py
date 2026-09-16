@@ -128,6 +128,25 @@ def test_borrar_un_adjunto_que_no_existe_no_dice_que_lo_ha_borrado(cliente_web, 
     assert "Ese adjunto ya no existe." in html
 
 
+def test_borrar_un_cv_por_http_lo_quita_del_archivo(cliente_web, tmp_path: Path):
+    archivo.save(tmp_path / "perfil", _cv("cv-1"))
+
+    respuesta = cliente_web.post("/cvs/cv-1/borrar", follow_redirects=True)
+
+    assert respuesta.status_code == 200
+    assert archivo.list_all(tmp_path / "perfil") == []
+    assert "CV borrado del archivo." in respuesta.data.decode("utf-8")
+
+
+def test_borrar_un_cv_que_no_existe_no_dice_que_lo_ha_borrado(cliente_web):
+    respuesta = cliente_web.post("/cvs/no-existe/borrar", follow_redirects=True)
+
+    assert respuesta.status_code == 200
+    html = respuesta.data.decode("utf-8")
+    assert "CV borrado del archivo." not in html
+    assert "Ese CV ya no existe." in html
+
+
 def test_un_nombre_de_adjunto_larguisimo_no_deja_fichero_temporal_huerfano(
     cliente_web, tmp_path: Path
 ):

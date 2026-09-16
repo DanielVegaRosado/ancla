@@ -1,7 +1,13 @@
 {% extends "base.html" %}
 {% block titulo %}{{ cv.company }} · Ancla{% endblock %}
 {% block contenido %}
-  <p><a href="{{ url_for('ancla.list_cvs') }}">← {{ _('Mis CVs') }}</a></p>
+  <div class="fila-tarjeta">
+    <p><a href="{{ url_for('ancla.list_cvs') }}">← {{ _('Mis CVs') }}</a></p>
+    <form method="post" action="{{ url_for('ancla.delete_cv', id_=cv.id) }}" data-confirmar="{{ _('¿Borrar este CV del archivo? Esta acción no se puede deshacer.') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button type="submit" class="boton-pequeno boton-peligro">{{ _('Borrar CV') }}</button>
+    </form>
+  </div>
   <form class="en-linea campo-meta" method="post" action="{{ url_for('ancla.edit_cv_meta', id_=cv.id) }}">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <input type="text" name="empresa" value="{{ cv.company }}" maxlength="120" required aria-label="{{ _('Empresa') }}">

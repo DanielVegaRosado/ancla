@@ -172,6 +172,21 @@ def remove_attachment(root: Path, id: str, nombre_archivo: str) -> bool:
     return True
 
 
+def delete(root: Path, id: str) -> bool:
+    """Removes a CV from the archive for good: its `cvs/<id>.yaml` and every
+    attachment it owns in the shared `cvs/attachments/` folder (matched by
+    the `<id>__` prefix `_unique_attachment_path` gives them — there is no
+    per-CV folder to remove wholesale). `False`, not an exception, if the CV
+    is already gone, same as `remove_attachment`."""
+    ruta = _path(root, id)
+    if not ruta.is_file():
+        return False
+    for adjunto in (Path(root) / CARPETA_CVS / CARPETA_ADJUNTOS).glob(f"{id}__*"):
+        adjunto.unlink(missing_ok=True)
+    ruta.unlink()
+    return True
+
+
 def attachment_path(root: Path, cv: SavedCV, nombre_archivo: str) -> Path | None:
     """Where one of a CV's attachments actually lives, or `None` if
     `nombre_archivo` is not actually one of `cv.attachments` — checked

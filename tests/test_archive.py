@@ -245,6 +245,37 @@ def test_borrar_un_adjunto_que_no_existe_no_da_error_y_avisa_de_que_no_existia(t
     assert repository.list_all(tmp_path)[0].attachments == []
 
 
+def test_borrar_un_cv_quita_el_yaml_y_sus_adjuntos(tmp_path: Path):
+    repository.save(tmp_path, _cv())
+    origen = tmp_path / "temporal"
+    origen.write_bytes(b"contenido")
+    adjunto = repository.attach(tmp_path, _cv().id, origen, "cv.pdf")
+
+    borrado = repository.delete(tmp_path, _cv().id)
+
+    assert borrado is True
+    assert repository.list_all(tmp_path) == []
+    assert not adjunto.exists()
+
+
+def test_borrar_un_cv_no_toca_los_adjuntos_de_otro(tmp_path: Path):
+    repository.save(tmp_path, _cv())
+    otro = dataclasses.replace(_cv(), id="otro-cv")
+    repository.save(tmp_path, otro)
+    origen = tmp_path / "temporal"
+    origen.write_bytes(b"contenido")
+    adjunto_otro = repository.attach(tmp_path, otro.id, origen, "cv.pdf")
+
+    repository.delete(tmp_path, _cv().id)
+
+    assert [cv.id for cv in repository.list_all(tmp_path)] == [otro.id]
+    assert adjunto_otro.exists()
+
+
+def test_borrar_un_cv_que_no_existe_no_da_error(tmp_path: Path):
+    assert repository.delete(tmp_path, "no-existe") is False
+
+
 def test_un_id_con_travesia_de_rutas_no_escribe_fuera_del_perfil(tmp_path: Path):
     with pytest.raises(ProfileError):
         repository.save(tmp_path, _cv(id="../../fuera"))

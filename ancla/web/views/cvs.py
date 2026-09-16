@@ -126,3 +126,12 @@ def remove_cv_attachment(id_: str, nombre_archivo: str):
     else:
         flash(_("Ese adjunto ya no existe."))
     return redirect(url_for("ancla.view_cv", id_=id_))
+
+
+@bp.route("/cvs/<id_>/borrar", methods=["POST"])
+def delete_cv(id_: str):
+    if archivo.delete(context.root(), id_):
+        flash(_("CV borrado del archivo."))
+    else:
+        flash(_("Ese CV ya no existe."))
+    return redirect(url_for("ancla.list_cvs"))
