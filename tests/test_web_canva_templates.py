@@ -63,6 +63,7 @@ def _cliente(tmp_path: Path, canva_templates_root: Path, idioma: str = "es"):
         raiz_perfil=tmp_path / "perfil",
         settings_path=ruta_ajustes,
         canva_templates_root=canva_templates_root,
+        require_login=False,
     )
     app.config["TESTING"] = True
     return app.test_client()

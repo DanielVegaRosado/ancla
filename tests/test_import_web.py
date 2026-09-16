@@ -16,7 +16,7 @@ from ancla.web import import_batch as modulo_importacion
 
 @pytest.fixture
 def cliente_web(tmp_path: Path):
-    app = create_app(raiz_perfil=tmp_path / "perfil", settings_path=tmp_path / "ajustes.json")
+    app = create_app(raiz_perfil=tmp_path / "perfil", settings_path=tmp_path / "ajustes.json", require_login=False)
     app.config["TESTING"] = True
     return app.test_client()
 

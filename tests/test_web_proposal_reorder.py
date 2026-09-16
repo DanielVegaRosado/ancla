@@ -37,7 +37,7 @@ def cliente_web(tmp_path: Path):
                 stack="Python",
             ),
         )
-    app = create_app(raiz_perfil=root, settings_path=tmp_path / "ajustes.json")
+    app = create_app(raiz_perfil=root, settings_path=tmp_path / "ajustes.json", require_login=False)
     app.config["TESTING"] = True
 
     modulo_borrador.save_draft(
@@ -101,7 +101,7 @@ def test_un_id_omitido_del_nuevo_orden_se_queda_al_final(cliente_web):
 
 
 def test_sin_borrador_devuelve_404_en_vez_de_reventar(tmp_path: Path):
-    app = create_app(raiz_perfil=tmp_path / "perfil", settings_path=tmp_path / "ajustes.json")
+    app = create_app(raiz_perfil=tmp_path / "perfil", settings_path=tmp_path / "ajustes.json", require_login=False)
     app.config["TESTING"] = True
 
     respuesta = app.test_client().post("/propuesta/orden-experiencias", json={"orden": []})

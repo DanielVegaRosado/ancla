@@ -14,7 +14,7 @@ from ancla.web import create_app
 
 @pytest.fixture
 def cliente_web(tmp_path: Path):
-    app = create_app(raiz_perfil=tmp_path / "perfil", settings_path=tmp_path / "ajustes.json")
+    app = create_app(raiz_perfil=tmp_path / "perfil", settings_path=tmp_path / "ajustes.json", require_login=False)
     app.config["TESTING"] = True
     return app.test_client()
 
@@ -35,7 +35,7 @@ def test_exportar_zip_descarga_un_zip_con_el_perfil(cliente_web, tmp_path: Path)
 
 
 def test_boton_de_copia_de_seguridad_no_aparece_en_modo_demo(tmp_path: Path):
-    app = create_app(raiz_perfil=tmp_path / "perfil", settings_path=tmp_path / "ajustes.json", demo_mode=True)
+    app = create_app(raiz_perfil=tmp_path / "perfil", settings_path=tmp_path / "ajustes.json", demo_mode=True, require_login=False)
     app.config["TESTING"] = True
     cliente = app.test_client()
 

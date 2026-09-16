@@ -237,6 +237,11 @@ def test_unverified_account_cannot_log_in_until_the_link_is_opened(client, repos
     assert _logged_in_id(client) is not None
 
 
-def test_existing_screens_stay_open_without_logging_in(client):
-    assert client.get("/").status_code in (200, 302)
-    assert client.get("/ajustes").status_code == 200
+def test_existing_screens_now_require_logging_in(client):
+    """The gate is on by default everywhere (see `tests/test_login_gate.py`);
+    checked here too because this client is built the way the real app is,
+    with the MySQL-backed user loader rather than an in-memory stand-in."""
+    response = client.get("/ajustes")
+
+    assert response.status_code == 302
+    assert response.headers["Location"].endswith("/login")

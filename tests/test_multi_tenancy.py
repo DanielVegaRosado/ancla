@@ -32,6 +32,7 @@ def app(tmp_path: Path):
         settings_path=tmp_path / "ajustes.json",
         profiles_root=tmp_path / "perfiles",
         demo_mode=False,
+        require_login=False,
     )
     aplicacion.config["TESTING"] = True
     aplicacion.login_manager.user_loader(lambda user_id: _Usuario(int(user_id)))
@@ -186,6 +187,7 @@ def test_en_modo_demo_una_sesion_no_cambia_de_carpeta(tmp_path: Path):
         settings_path=tmp_path / "ajustes.json",
         profiles_root=tmp_path / "perfiles",
         demo_mode=True,
+        require_login=False,
     )
     app.config["TESTING"] = True
     app.login_manager.user_loader(lambda user_id: _Usuario(int(user_id)))

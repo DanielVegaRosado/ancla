@@ -51,7 +51,7 @@ def cliente_web(tmp_path: Path):
         AboutMe(template=Bilingual(es="Trabajo con {GROUP_A_1}.", en="I work with {GROUP_A_1}.")),
     )
 
-    app = create_app(raiz_perfil=root, settings_path=tmp_path / "ajustes.json")
+    app = create_app(raiz_perfil=root, settings_path=tmp_path / "ajustes.json", require_login=False)
     app.config["TESTING"] = True
     client = app.test_client()
     client.post("/ajustes", data={"proveedor": "groq", "clave_api": "gsk_test123"})

@@ -253,7 +253,7 @@ def test_modelo_inexistente_en_proveedor_openai_compatible_nombra_el_modelo(clie
 
 @pytest.fixture
 def cliente_web(tmp_path: Path):
-    app = create_app(raiz_perfil=tmp_path / "perfil", settings_path=tmp_path / "ajustes.json")
+    app = create_app(raiz_perfil=tmp_path / "perfil", settings_path=tmp_path / "ajustes.json", require_login=False)
     app.config["TESTING"] = True
     return app.test_client()
 
@@ -535,7 +535,8 @@ def test_el_pie_de_cualquier_pantalla_enlaza_a_terminos(cliente_web):
 @pytest.fixture
 def app_demo(tmp_path: Path):
     app = create_app(
-        raiz_perfil=tmp_path / "perfil", settings_path=tmp_path / "ajustes.json", demo_mode=True
+        raiz_perfil=tmp_path / "perfil", settings_path=tmp_path / "ajustes.json", demo_mode=True,
+        require_login=False,
     )
     app.config["TESTING"] = True
     return app

@@ -3,11 +3,13 @@
 Five screens: My profile, Adapt, Proposal, My CVs, and Settings. Bilingual
 ES/EN interface (manual selector in the header, no auto-detection — see
 `ajustes.idioma`). User accounts (`ancla/auth/`, screens in
-`views/auth.py`) gate none of the screens on the web: without logging in
-every screen works on the single local profile; once logged in, on that
-account's own folder under `perfiles/` (see `context.root()`). The desktop
-build is the exception — it asks for `require_login=True` and then nothing
-but the account screens is reachable without a session.
+`views/auth.py`) gate every screen, everywhere the app runs: a local
+browser, the hosted demo and the desktop build all start on the account
+screens, and nothing else is reachable until there is a session. Once
+logged in, each account works on its own folder under `perfiles/` (see
+`context.root()`). Building the app with `require_login=False` lifts the
+gate onto the single shared local profile — a deliberate opt-out, used by
+the tests that are checking one screen rather than the gate.
 
 Each screen is a module under `ancla/web/views/`, with its routes
 registered on the single `Blueprint` in `ancla/web/blueprint.py`. This
@@ -85,17 +87,19 @@ def create_app(
     canva_templates_root: Path | None = None,
     html_templates_root: Path | None = None,
     profiles_root: Path | None = None,
-    require_login: bool = False,
+    require_login: bool = True,
 ) -> Flask:
-    """`require_login` is what tells the desktop build apart from the web one.
+    """`require_login` gates every screen behind an account, and is on by
+    default wherever the app runs.
 
-    Only `desktop.py` passes it, so the packaged app shows the account screen
-    first and nothing else until there is a session, while `run.py` and the
-    hosted deployments keep working with no account at all. It is an explicit
-    argument rather than `routes.is_packaged()` on purpose: that one is false
-    when the desktop launcher runs from source (the Flatpak installs it
-    unpackaged), and whether an account is required is a product decision, not
-    a packaging detail.
+    Nobody uses Ancla without an account: not the packaged desktop build, not
+    `run.py` in a local browser, not the hosted demo. Passing `False` is the
+    explicit opt-out, and the only callers that do are the tests aimed at one
+    screen rather than at the gate itself.
+
+    It is an argument rather than something read from `routes.is_packaged()`
+    or from the environment on purpose: whether an account is required is a
+    product decision, not a packaging or deployment detail.
     """
     from ancla.auth.db import mysql_configured
     from ancla.profile.errors import ProfileError
@@ -175,8 +179,9 @@ def create_app(
             # Without MySQL the account links would only lead to a "database
             # unavailable" notice, so they are not shown.
             "cuentas_disponibles": cuentas_disponibles,
-            # Lets the account screens explain that this build cannot be used
-            # without an account, which is not true of the web app.
+            # Lets the account screens explain that the app cannot be used
+            # without an account. False only under the `require_login=False`
+            # opt-out, where the rest of the app is reachable anyway.
             "requiere_sesion": app.config["REQUIERE_SESION"],
         }
 
@@ -240,9 +245,9 @@ def _require_login_everywhere(app: Flask) -> None:
 
     A single `before_request` instead of decorating each view: there are
     dozens of routes across `views/`, and the rest of the app is written so
-    that no view knows accounts exist (see `context.root()`). Does nothing
-    unless the app was built with `require_login=True`, which only the
-    desktop launcher does.
+    that no view knows accounts exist (see `context.root()`). This is the
+    normal state of the app everywhere; it does nothing only when someone
+    built it with the explicit `require_login=False` opt-out.
     """
     if not app.config["REQUIERE_SESION"]:
         return

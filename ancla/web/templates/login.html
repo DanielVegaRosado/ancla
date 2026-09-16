@@ -2,9 +2,9 @@
 {% block titulo %}{{ _('Iniciar sesión') }} · Ancla{% endblock %}
 {% block contenido %}
   {% if requiere_sesion and not cuentas_disponibles %}
-    {# The desktop build needs an account, and this copy has no accounts
-       database configured: say so plainly instead of letting the form
-       fail on submit with no explanation. #}
+    {# The app needs an account, and this copy has no accounts database
+       configured: say so plainly instead of letting the form fail on
+       submit with no explanation. #}
     <p class="aviso">{{ _('Esta app necesita una cuenta para funcionar, y no hay ninguna base de datos de cuentas configurada. Revisa la configuración o vuelve a instalarla.') }}</p>
   {% endif %}
   <section class="tarjeta tarjeta-cuenta">

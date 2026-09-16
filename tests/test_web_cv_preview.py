@@ -104,6 +104,7 @@ def _cliente(tmp_path: Path, n_experiencias: int, plantillas_root: Path = PLANTI
         raiz_perfil=root,
         settings_path=tmp_path / "ajustes.json",
         html_templates_root=plantillas_root,
+        require_login=False,
     )
     app.config["TESTING"] = True
     modulo_borrador.save_draft(
@@ -379,6 +380,7 @@ def test_un_cv_guardado_tambien_se_puede_ver_maquetado(tmp_path: Path):
         raiz_perfil=root,
         settings_path=tmp_path / "ajustes.json",
         html_templates_root=PLANTILLAS_HTML,
+        require_login=False,
     )
     app.config["TESTING"] = True
     cv = SavedCV(

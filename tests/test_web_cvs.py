@@ -21,7 +21,7 @@ from ancla.web import settings as modulo_ajustes
 
 @pytest.fixture
 def cliente_web(tmp_path: Path):
-    app = create_app(raiz_perfil=tmp_path / "perfil", settings_path=tmp_path / "ajustes.json")
+    app = create_app(raiz_perfil=tmp_path / "perfil", settings_path=tmp_path / "ajustes.json", require_login=False)
     app.config["TESTING"] = True
     return app.test_client()
 
@@ -157,7 +157,7 @@ def test_las_etiquetas_de_estado_siguen_el_idioma_de_la_interfaz(tmp_path: Path)
     archivo.save(root, _cv("cv-1", CVStatus.SENT))
     ruta_ajustes = tmp_path / "ajustes.json"
     modulo_ajustes.save_settings(modulo_ajustes.Settings(idioma="en"), ruta_ajustes)
-    app = create_app(raiz_perfil=root, settings_path=ruta_ajustes)
+    app = create_app(raiz_perfil=root, settings_path=ruta_ajustes, require_login=False)
     app.config["TESTING"] = True
 
     html = app.test_client().get("/cvs").data.decode("utf-8")

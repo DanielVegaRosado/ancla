@@ -22,10 +22,10 @@ TITLE = "Ancla"
 def _start_server() -> None:
     from ancla.web import create_app
 
-    # require_login: the packaged app opens on the account screen and shows
-    # nothing else until someone logs in. The web app keeps working with no
-    # account, so the flag is set here and nowhere else.
-    create_app(require_login=True).run(host=HOST, port=PORT, debug=False, use_reloader=False)
+    # No `require_login` here: the login gate is `create_app`'s default, the
+    # same one `run.py` and the hosted demo get. The packaged app is not a
+    # special case any more.
+    create_app().run(host=HOST, port=PORT, debug=False, use_reloader=False)
 
 
 def _copy_data_from_earlier_versions() -> None:

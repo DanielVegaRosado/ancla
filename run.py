@@ -3,6 +3,11 @@
 Just opens the browser. To the user this is an application: they run a
 file and a window opens; they never see the terminal again.
 
+It builds the app with no arguments, so the login gate is on (see
+`create_app`): the browser opens on the account screens and nothing else is
+reachable until there is a session, exactly as in the packaged desktop build
+and in the hosted demo. Running locally is not an exception.
+
 **No `debug=True`.** Werkzeug's debugger shows a console that runs arbitrary
 Python code the moment an exception is raised, and this is going to be
 started by strangers on their own computer. To develop:

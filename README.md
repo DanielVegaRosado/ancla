@@ -10,11 +10,14 @@ instead of being invented.
 Every adaptation is saved. Your base of facts grows, and your archive of
 applications grows with it.
 
-**[Try it online](https://ancla.onrender.com)** with no install at all. It runs against a shared
-example profile. Free-tier hosting spins down after inactivity, so the first load can take up to
-a minute. For your own data, download the app or run it locally.
+**[Try it online](https://ancla.onrender.com)** with no install at all. Create a free account
+first — the app needs one wherever it runs — and you'll get your own empty profile to try it
+with, same as any account. Free-tier hosting spins down after inactivity, so the first load can
+take up to a minute. For your own data kept on your own machine instead, download the app or run
+it locally.
 
-- Runs **on your computer**. Your data never leaves it: no accounts, no cloud.
+- Runs **on your computer**. Your CV data stays there: an account is needed to sign
+  in, but nothing you write is uploaded anywhere.
 - Uses **your own AI key**. Groq has a free tier, and several paid providers
   (OpenAI, Anthropic, Mistral, OpenRouter, or any other with a compatible API) are
   also supported.
@@ -96,8 +99,9 @@ try the app without writing their whole profile first.
    `ancla/selection/engine.py` yourself and confirm that an ID missing from your profile is
    discarded no matter what the model returns.
 2. An explicit reason behind every choice, not just a score.
-3. Zero account, zero cloud. Also verifiable by reading the code, not a line like
-   "securely synced to the cloud."
+3. Your CV never goes to a cloud. An account signs you in; your profile, your
+   archived CVs and your settings stay in files on your own disk. Verifiable by
+   reading the code, not a line like "securely synced to the cloud."
 4. Free, no paywall, using your own key. Groq's free tier costs nothing to start with.
 5. Doesn't design a layout from scratch. It fills one of the [built-in
    templates](html-templates/README.md), never composing a page itself. Using your
@@ -176,23 +180,24 @@ version once v1.1 itself is done.
 
 ## User accounts (in progress)
 
-Ancla is growing from a local tool into a hosted product with user accounts.
-The first piece is in: registration, login and logout (`/registro`, `/login`,
-`/logout`), in `ancla/auth/`. **On the web it gates nothing** — every screen
-still works on the local profile without logging in, and without a database
-configured the app runs exactly as before (the account links simply don't
-show). Once logged in, each account works on its own folder,
-`perfiles/<user id>/` (profile, archived CVs and `ajustes.json`), fully
-separate from every other account and from the shared `perfil/` used without a
-session.
+Ancla is growing from a local tool into a hosted product with user accounts:
+registration, login and logout (`/registro`, `/login`, `/logout`), in
+`ancla/auth/`.
 
-**The desktop app is the exception:** `desktop.py` builds the app with
-`create_app(require_login=True)`, so it opens on the login screen and nothing
-but the account screens (and the terms) is reachable until there is a session.
-It is the same account as on the web, and the flag is passed only there — the
-gate can never turn itself on for a hosted deployment. Without a database
-configured the desktop app still starts, and says on the login screen that it
-needs an account it cannot reach.
+**An account is required wherever the app runs** — the packaged desktop build,
+`run.py` in a local browser, and the hosted demo alike. Each of them opens on
+the login screen, and nothing but the account screens (and the terms) is
+reachable until there is a session. This is `create_app`'s default
+(`require_login=True`); the only thing that lifts it is passing
+`require_login=False` explicitly, which nothing but the tests aimed at a single
+screen does.
+
+Once logged in, each account works on its own folder, `perfiles/<user id>/`
+(profile, archived CVs and `ajustes.json`), fully separate from every other
+account.
+
+Without a database configured the app still starts, and says on the login
+screen that it needs an account it cannot reach.
 
 Accounts live in MySQL. Set these in the environment or in a `.env` file next to
 `run.py` (it's in `.gitignore`; never commit it):

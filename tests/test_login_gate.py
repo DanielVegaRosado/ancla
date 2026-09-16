@@ -1,6 +1,7 @@
-"""The login gate of the desktop build (`create_app(require_login=True)`):
-nothing but the account screens is reachable without a session, while the
-same app built the usual way (the web) keeps working with no account at all.
+"""The login gate (`create_app(require_login=True)`, the default everywhere):
+nothing but the account screens is reachable without a session. The same app
+built with the explicit `require_login=False` opt-out — what the tests aimed
+at one screen use — keeps working with no account at all.
 
 The user loader is swapped for an in-memory one so these tests never touch
 MySQL: what is under test is the gate, not how an account is looked up."""
@@ -39,12 +40,12 @@ def _app(tmp_path: Path, *, require_login: bool):
 
 
 @pytest.fixture
-def app_escritorio(tmp_path: Path):
+def app_con_gate(tmp_path: Path):
     return _app(tmp_path, require_login=True)
 
 
 @pytest.fixture
-def app_web(tmp_path: Path):
+def app_sin_gate(tmp_path: Path):
     return _app(tmp_path, require_login=False)
 
 
@@ -58,63 +59,65 @@ def _cliente(app, user_id: int | None = None):
 
 
 @pytest.mark.parametrize("ruta", GATED_PATHS)
-def test_sin_sesion_toda_pantalla_lleva_al_login(app_escritorio, ruta):
-    respuesta = _cliente(app_escritorio).get(ruta)
+def test_sin_sesion_toda_pantalla_lleva_al_login(app_con_gate, ruta):
+    respuesta = _cliente(app_con_gate).get(ruta)
 
     assert respuesta.status_code == 302
     assert respuesta.headers["Location"].endswith("/login")
 
 
 @pytest.mark.parametrize("ruta", OPEN_PATHS)
-def test_las_pantallas_de_cuenta_siguen_abiertas(app_escritorio, ruta):
-    assert _cliente(app_escritorio).get(ruta).status_code == 200
+def test_las_pantallas_de_cuenta_siguen_abiertas(app_con_gate, ruta):
+    assert _cliente(app_con_gate).get(ruta).status_code == 200
 
 
-def test_una_ruta_inexistente_tambien_lleva_al_login(app_escritorio):
+def test_una_ruta_inexistente_tambien_lleva_al_login(app_con_gate):
     """Without a session there is nothing to show, not even the 404 screen,
     which extends base.html and links to every gated screen."""
-    respuesta = _cliente(app_escritorio).get("/no-existe")
+    respuesta = _cliente(app_con_gate).get("/no-existe")
 
     assert respuesta.status_code == 302
     assert respuesta.headers["Location"].endswith("/login")
 
 
 @pytest.mark.parametrize("ruta", RENDERED_PATHS)
-def test_con_sesion_se_ve_la_app_entera(app_escritorio, ruta):
-    assert _cliente(app_escritorio, user_id=7).get(ruta).status_code == 200
+def test_con_sesion_se_ve_la_app_entera(app_con_gate, ruta):
+    assert _cliente(app_con_gate, user_id=7).get(ruta).status_code == 200
 
 
 @pytest.mark.parametrize("ruta", RENDERED_PATHS)
-def test_la_web_sigue_funcionando_sin_cuenta(app_web, ruta):
-    assert _cliente(app_web).get(ruta).status_code == 200
+def test_el_opt_out_explicito_sigue_abriendo_toda_la_app(app_sin_gate, ruta):
+    """`require_login=False` is the only way left to reach a screen without an
+    account, and the tests aimed at one screen depend on it still working."""
+    assert _cliente(app_sin_gate).get(ruta).status_code == 200
 
 
-def test_la_web_es_el_comportamiento_por_defecto(tmp_path: Path):
-    """`create_app()` with no arguments is what `run.py`, the Dockerfile and
-    the tests use: the gate has to stay off unless it is asked for."""
+def test_el_gate_es_el_comportamiento_por_defecto(tmp_path: Path):
+    """`create_app()` with no arguments is what `run.py` and the Dockerfile
+    use: the gate has to be on unless someone explicitly opts out."""
     aplicacion = create_app(
         raiz_perfil=tmp_path / "perfil",
         settings_path=tmp_path / "ajustes.json",
         demo_mode=False,
     )
 
-    assert aplicacion.config["REQUIERE_SESION"] is False
+    assert aplicacion.config["REQUIERE_SESION"] is True
 
 
-def test_sin_sesion_la_cabecera_no_enlaza_a_las_pantallas_cerradas(app_escritorio):
-    html = _cliente(app_escritorio).get("/login").data.decode("utf-8")
+def test_sin_sesion_la_cabecera_no_enlaza_a_las_pantallas_cerradas(app_con_gate):
+    html = _cliente(app_con_gate).get("/login").data.decode("utf-8")
 
     assert "/adaptar" not in html
     assert "/perfil" not in html
 
 
-def test_sin_base_de_datos_avisa_en_vez_de_fallar(app_escritorio, monkeypatch):
+def test_sin_base_de_datos_avisa_en_vez_de_fallar(app_con_gate, monkeypatch):
     """Missing MySQL must not stop the desktop app from starting: it opens on
     the login screen with a clear notice, not on a raw error."""
     import ancla.auth.db
 
     monkeypatch.setattr(ancla.auth.db, "mysql_configured", lambda: False)
-    aplicacion = _app(Path(app_escritorio.config["RAIZ_PERFIL"]).parent, require_login=True)
+    aplicacion = _app(Path(app_con_gate.config["RAIZ_PERFIL"]).parent, require_login=True)
 
     respuesta = _cliente(aplicacion).get("/login")
 
