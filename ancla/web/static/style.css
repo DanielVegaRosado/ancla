@@ -337,6 +337,42 @@ section[id] { scroll-margin-top: 4.5rem; }
 
 .manija-arrastrar:hover { color: var(--texto); }
 
+/* Accordion headers: the same five draggable panels also collapse. The
+   button wraps only the title + help text, never the drag handle above or
+   `.acciones` beside it, so neither dragging nor the panel's own buttons
+   (Add, Delete all...) ever toggle the accordion by accident. */
+
+.cabecera-acordeon {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  flex: 1;
+  min-width: 0;
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.icono-acordeon {
+  flex-shrink: 0;
+  color: var(--texto-suave);
+  margin-top: 0.25rem;
+  transition: transform 0.15s ease;
+}
+
+.cabecera-acordeon[aria-expanded="true"] .icono-acordeon {
+  transform: rotate(90deg);
+}
+
+.contenido-acordeon {
+  margin-top: 0.75rem;
+}
+
 .arrastrable {
   transition: box-shadow 0.15s ease, transform 0.15s ease, opacity 0.15s ease;
 }

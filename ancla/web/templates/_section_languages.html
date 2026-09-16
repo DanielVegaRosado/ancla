@@ -1,11 +1,14 @@
-<section class="tarjeta arrastrable" id="idiomas" data-arrastrable data-clave="idiomas">
+<section class="tarjeta arrastrable" id="idiomas" data-arrastrable data-clave="idiomas" data-acordeon>
   <div class="fila-tarjeta">
     <div class="titulo-panel">
       <span class="manija-arrastrar" title="{{ _('Arrastrar para reordenar') }}" aria-hidden="true">⠿</span>
-      <div>
-        <h2>{{ _('Idiomas') }} ({{ perfil.languages|length }})</h2>
-        <p class="ayuda">{{ _('Siempre completos en la Propuesta, sin selección de IA.') }}</p>
-      </div>
+      <button type="button" class="cabecera-acordeon" data-acordeon-cabecera aria-expanded="false" aria-controls="contenido-idiomas">
+        <span class="icono-acordeon" aria-hidden="true">▸</span>
+        <div>
+          <h2>{{ _('Idiomas') }} ({{ perfil.languages|length }})</h2>
+          <p class="ayuda">{{ _('Siempre completos en la Propuesta, sin selección de IA.') }}</p>
+        </div>
+      </button>
     </div>
     <div class="acciones">
       <a class="boton boton-primario" href="{{ url_for('ancla.new_language') }}">{{ _('Añadir idioma') }}</a>
@@ -18,28 +21,30 @@
     </div>
   </div>
 
-  {% if perfil.languages %}
-    <div class="lista-tarjetas">
-      {% for idioma in perfil.languages %}
-        <div class="tarjeta">
-          <div class="fila-tarjeta">
-            <div>
-              <h3>{{ idioma.name["es"] or idioma.name["en"] }}</h3>
-              <p class="ayuda">{{ idioma.level["es"] or idioma.level["en"] }}</p>
-            </div>
-            <div class="acciones">
-              {% with seccion = "idiomas", entrada = idioma %}{% include "_untranslated.html" %}{% endwith %}
-              <a class="boton boton-pequeno" href="{{ url_for('ancla.edit_language', id_=idioma.id) }}">{{ _('Editar') }}</a>
-              <form class="en-linea" method="post" action="{{ url_for('ancla.delete_language', id_=idioma.id) }}" data-confirmar="{{ _('¿Borrar «%(nombre)s»? Esta acción no se puede deshacer.', nombre=idioma.name['es']) }}">
+  <div class="contenido-acordeon" id="contenido-idiomas" data-acordeon-contenido hidden>
+    {% if perfil.languages %}
+      <div class="lista-tarjetas">
+        {% for idioma in perfil.languages %}
+          <div class="tarjeta">
+            <div class="fila-tarjeta">
+              <div>
+                <h3>{{ idioma.name["es"] or idioma.name["en"] }}</h3>
+                <p class="ayuda">{{ idioma.level["es"] or idioma.level["en"] }}</p>
+              </div>
+              <div class="acciones">
+                {% with seccion = "idiomas", entrada = idioma %}{% include "_untranslated.html" %}{% endwith %}
+                <a class="boton boton-pequeno" href="{{ url_for('ancla.edit_language', id_=idioma.id) }}">{{ _('Editar') }}</a>
+                <form class="en-linea" method="post" action="{{ url_for('ancla.delete_language', id_=idioma.id) }}" data-confirmar="{{ _('¿Borrar «%(nombre)s»? Esta acción no se puede deshacer.', nombre=idioma.name['es']) }}">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                <button type="submit" class="boton-pequeno boton-peligro">{{ _('Borrar') }}</button>
-              </form>
+                  <button type="submit" class="boton-pequeno boton-peligro">{{ _('Borrar') }}</button>
+                </form>
+              </div>
             </div>
           </div>
-        </div>
-      {% endfor %}
-    </div>
-  {% else %}
-    <p class="vacio">{{ _('Todavía no has añadido ningún idioma.') }}</p>
-  {% endif %}
+        {% endfor %}
+      </div>
+    {% else %}
+      <p class="vacio">{{ _('Todavía no has añadido ningún idioma.') }}</p>
+    {% endif %}
+  </div>
 </section>
