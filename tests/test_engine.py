@@ -24,6 +24,7 @@ from ancla.profile.model import (
     SpokenLanguage,
 )
 from ancla.selection.engine import MOTIVO_AUSENTE, adapt
+from ancla.selection.prompt import _task_block, catalog
 
 VACANTE = """\
 Backend Engineer en Nubelia
@@ -68,12 +69,19 @@ def _experiencia(id: str, titulo_es: str, titulo_en: str, keywords: list[str]):
     )
 
 
-def _skill(id: str, nombre_es: str, nombre_en: str, keywords: list[str] | None = None):
+def _skill(
+    id: str,
+    nombre_es: str,
+    nombre_en: str,
+    keywords: list[str] | None = None,
+    nivel: str = "",
+):
     return Skill(
         id=id,
         name=Bilingual(es=nombre_es, en=nombre_en),
         category=Bilingual(es="tecnica", en="tecnica"),
         keywords=keywords or [nombre_en],
+        level=nivel,
     )
 
 
@@ -570,3 +578,34 @@ def test_una_vacante_vacia_no_llega_a_llamar_al_modelo():
     with pytest.raises(ValueError):
         adapt(_perfil(), "   \n ", "es", cliente)
     assert cliente.llamadas == []
+
+
+# --------------------------------------------------------------------------
+# Skill level: reaches the prompt's catalog, and the tie-break criterion is
+# spelled out to the model. The selection itself (which ids come back) is
+# still up to the model and covered above, not here.
+# --------------------------------------------------------------------------
+
+
+def test_el_nivel_de_una_skill_llega_al_catalogo_del_prompt():
+    perfil = Profile(
+        skills=[
+            _skill("python", "Python", "Python", nivel="expert"),
+            _skill("git", "Git", "Git"),  # sin nivel puesto
+        ]
+    )
+
+    texto = catalog(perfil, "es")
+
+    assert "nivel: experto" in texto
+    # Nothing invented: a skill with no level does not gain one in the catalog.
+    linea_git = next(linea for linea in texto.splitlines() if "id: git" in linea)
+    assert "nivel" not in linea_git
+
+
+def test_las_instrucciones_de_la_tarea_mencionan_el_criterio_de_desempate():
+    texto = _task_block(_perfil(), "es", n_experiencias=4, n_skills=7)
+
+    assert "experto" in texto and "intermedio" in texto and "principiante" in texto
+    assert "desempat" in texto
+    assert "motivo_skills" in texto

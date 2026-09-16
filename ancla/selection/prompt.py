@@ -16,7 +16,21 @@ into the catalog with no risk of ending up rewritten in the proposal.
 """
 from __future__ import annotations
 
-from ancla.profile.model import N_ABOUT_ME_GROUP, Language, Profile, period_text
+from ancla.profile.model import (
+    N_ABOUT_ME_GROUP,
+    SKILL_LEVEL_BEGINNER,
+    SKILL_LEVEL_EXPERT,
+    SKILL_LEVEL_INTERMEDIATE,
+    Language,
+    Profile,
+    period_text,
+)
+
+_NOMBRE_NIVEL: dict[str, str] = {
+    SKILL_LEVEL_EXPERT: "experto",
+    SKILL_LEVEL_INTERMEDIATE: "intermedio",
+    SKILL_LEVEL_BEGINNER: "principiante",
+}
 
 # A job posting is rarely more than a few thousand characters; if someone
 # pastes the whole page, menu and footer included, paying for it in tokens
@@ -86,6 +100,11 @@ def catalog(perfil: Profile, idioma: Language) -> str:
                 detalles.append(f"categoría: {skill.category[idioma]}")
             if skill.keywords:
                 detalles.append(f"keywords: {', '.join(skill.keywords)}")
+            # Absent when the user never set a level: the model must not
+            # treat a missing value as any particular level (see
+            # `_task_block`, that is also what makes it not count in a tie).
+            if skill.level:
+                detalles.append(f"nivel: {_NOMBRE_NIVEL.get(skill.level, skill.level)}")
             lineas.append("- " + " | ".join(detalles))
     else:
         lineas.append("(ninguna)")
@@ -140,7 +159,13 @@ El CV se va a escribir en {nombre_idioma}. Analiza los requisitos de la vacante
 - **{pide_experiencias} experiencias** del catálogo, de más a menos relevante. Si hay más
   candidatas claras que huecos, prioriza las que cubran requisitos distintos entre
   sí antes que repetir el mismo stack.
-- **{pide_skills} skills** del catálogo, de más a menos relevante.
+- **{pide_skills} skills** del catálogo. Ordénalas primero por qué tan bien encajan
+  con la vacante — ese es el criterio principal, igual que con las experiencias. Solo
+  para desempatar entre dos o más skills que encajen igual de bien, usa su nivel
+  (cuando lo tengan): experto antes que intermedio, intermedio antes que principiante.
+  Una skill sin nivel puesto no participa en el desempate: ni gana ni pierde por ello.
+  Si el nivel fue lo que decidió el orden entre dos skills igual de relevantes, dilo en
+  `motivo_skills`.
 - **Sobre mí**: {N_ABOUT_ME_GROUP} nombres para el grupo A (conceptos y dominios) y
   {N_ABOUT_ME_GROUP} para el grupo B (lenguajes y tecnologías concretas). Cada nombre tiene
   que ser, literalmente, el nombre de una skill del catálogo en {nombre_idioma}, y ser

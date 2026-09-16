@@ -855,6 +855,30 @@ msgstr ""
 msgid "Finalizado"
 msgstr ""
 
+#: ancla/web/presentation.py:71
+msgid "Principiante"
+msgstr ""
+
+#: ancla/web/presentation.py:72
+msgid "Intermedio"
+msgstr ""
+
+#: ancla/web/presentation.py:73
+msgid "Experto"
+msgstr ""
+
+#: ancla/web/templates/skill_form.html:42
+msgid "Nivel"
+msgstr ""
+
+#: ancla/web/templates/skill_form.html:44
+msgid "Sin especificar"
+msgstr ""
+
+#: ancla/web/templates/skill_form.html:50
+msgid "Solo se usa para desempatar entre skills que encajan igual de bien con una vacante concreta; nunca decide cuáles se eligen."
+msgstr ""
+
 #: ancla/web/providers.py:185
 msgid "Otro (URL manual)"
 msgstr ""

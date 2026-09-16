@@ -14,7 +14,6 @@ from ancla.profile import serialization
 from ancla.profile.errors import ProfileError
 from ancla.profile.model import AboutMe, Bilingual, Experience, Skill
 
-
 # --------------------------------------------------------------------------
 # YAML text -> dictionary
 # --------------------------------------------------------------------------
@@ -99,6 +98,21 @@ def test_los_campos_que_faltan_no_revientan():
     assert experiencia.keywords == []
 
 
+def test_una_skill_sin_nivel_se_queda_sin_nivel():
+    """Never a default: a skill nobody rated stays unrated, not "beginner"."""
+    skill = serialization.parse_skill({}, "python", "x.yaml")
+
+    assert skill.level == ""
+
+
+def test_un_nivel_desconocido_se_descarta_como_un_estado_desconocido():
+    """Same tolerance as `archive/serialization.py::_parse_status`: a value
+    from before this field existed, or a hand-edited typo, does not raise."""
+    skill = serialization.parse_skill({"level": "senior"}, "python", "x.yaml")
+
+    assert skill.level == ""
+
+
 # --------------------------------------------------------------------------
 # What is not accepted is explained
 # --------------------------------------------------------------------------
@@ -170,6 +184,7 @@ def _skill() -> Skill:
         name=Bilingual(es="Python", en="Python"),
         category=Bilingual(es="lenguaje", en="lenguaje"),
         keywords=["python", "scripting"],
+        level="expert",
     )
 
 

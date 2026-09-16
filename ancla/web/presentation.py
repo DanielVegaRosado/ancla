@@ -10,7 +10,14 @@ from datetime import date
 
 from flask_babel import gettext as _
 
-from ancla.profile.model import CVStatus, PERIOD_FINISHED, PERIOD_ONGOING
+from ancla.profile.model import (
+    PERIOD_FINISHED,
+    PERIOD_ONGOING,
+    SKILL_LEVEL_BEGINNER,
+    SKILL_LEVEL_EXPERT,
+    SKILL_LEVEL_INTERMEDIATE,
+    CVStatus,
+)
 
 
 def etiquetas_estado() -> dict[CVStatus, str]:
@@ -54,3 +61,14 @@ def period_marker_labels() -> list[tuple[str, str]]:
         (PERIOD_ONGOING, _("Actualidad")),
         (PERIOD_FINISHED, _("Finalizado")),
     ]
+
+
+def skill_level_labels() -> dict[str, str]:
+    # A dict, like `etiquetas_estado`, not a list: templates look a skill's
+    # stored level up by key for its badge, and iterate `.items()` for the
+    # form's `<select>` — insertion order is preserved either way.
+    return {
+        SKILL_LEVEL_BEGINNER: _("Principiante"),
+        SKILL_LEVEL_INTERMEDIATE: _("Intermedio"),
+        SKILL_LEVEL_EXPERT: _("Experto"),
+    }

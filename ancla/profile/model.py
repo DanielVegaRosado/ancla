@@ -44,7 +44,7 @@ class Bilingual(Generic[T]):
         return self.es if language == "es" else self.en
 
     @staticmethod
-    def from_sidecar(valor: object, fallback: T) -> "Bilingual[T]":
+    def from_sidecar(valor: object, fallback: T) -> Bilingual[T]:
         """Parses a YAML field that's either a plain scalar (applies to
         both languages) or an `{es: ..., en: ...}` mapping — the shape a
         template sidecar (`docx-templates/*.yaml`, `canva-templates/*.yaml`)
@@ -121,6 +121,24 @@ class Experience:
     status: str = ""
 
 
+# How well the user knows a skill. Used only to break a tie in
+# `selection/engine.py`/`selection/prompt.py` when two or more skills match a
+# job posting equally well — it never decides which skills get selected, only
+# their order among equals. Plain constants, not an `Enum`, same pattern as
+# `PERIOD_ONGOING`/`PERIOD_FINISHED` above: unlike `SpokenLanguage.level`
+# (which is `Bilingual`, e.g. "Nativo"/"Native" and prints on the CV), this
+# level is purely internal and never reaches the CV, so there is no text to
+# carry in two languages.
+SKILL_LEVEL_BEGINNER = "beginner"
+SKILL_LEVEL_INTERMEDIATE = "intermediate"
+SKILL_LEVEL_EXPERT = "expert"
+SKILL_LEVELS: tuple[str, ...] = (
+    SKILL_LEVEL_BEGINNER,
+    SKILL_LEVEL_INTERMEDIATE,
+    SKILL_LEVEL_EXPERT,
+)
+
+
 @dataclass(frozen=True)
 class Skill:
     """A technical skill from the personal base."""
@@ -132,6 +150,10 @@ class Skill:
     # not a proper noun that reads the same in any language.
     category: Bilingual[str] = field(default_factory=lambda: Bilingual(es="", en=""))
     keywords: list[str] = field(default_factory=list)
+    # "" means unset. Never defaults to `SKILL_LEVEL_BEGINNER` or any other
+    # value: a skill nobody has rated stays unrated, the same "never invent"
+    # rule that governs the rest of the profile.
+    level: str = ""
 
 
 @dataclass(frozen=True)

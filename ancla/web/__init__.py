@@ -28,7 +28,12 @@ from flask_babel import Babel, get_locale
 from flask_babel import gettext as _
 from flask_login import LoginManager, current_user
 
-from ancla.web.routes import PROFILE_DIR_NAME, PROFILES_DIR_NAME, data_root, templates_root
+from ancla.web.routes import (
+    PROFILE_DIR_NAME,
+    PROFILES_DIR_NAME,
+    data_root,
+    templates_root,
+)
 
 # Signs session cookies. Left unset, a single local process still works
 # (see `_secret_key()`) — but a production deployment with several gunicorn
@@ -101,19 +106,27 @@ def create_app(
     or from the environment on purpose: whether an account is required is a
     product decision, not a packaging or deployment detail.
     """
+    from flask_wtf import CSRFProtect
+    from flask_wtf.csrf import CSRFError
+
     from ancla.auth.db import mysql_configured
     from ancla.profile.errors import ProfileError
     from ancla.profile.model import LANGUAGES, period_text
     from ancla.profile.validation import language_name
+    from ancla.web import (
+        context,
+        views,  # noqa: F401 — registers the routes on bp when imported
+    )
     from ancla.web import draft as modulo_borrador
     from ancla.web import settings as modulo_ajustes
-    from ancla.web import context
-    from ancla.web import views  # noqa: F401 — registers the routes on bp when imported
     from ancla.web.blueprint import bp
-    from ancla.web.presentation import etiquetas_estado, period_marker_labels, years_for_period
+    from ancla.web.presentation import (
+        etiquetas_estado,
+        period_marker_labels,
+        skill_level_labels,
+        years_for_period,
+    )
     from ancla.web.util import list_to_csv, list_to_lines
-    from flask_wtf import CSRFProtect
-    from flask_wtf.csrf import CSRFError
 
     app = Flask(__name__)
     app.config["SECRET_KEY"] = _secret_key()
@@ -164,6 +177,7 @@ def create_app(
             "modo_demo": app.config["MODO_DEMO"],
             "anios": years_for_period(),
             "marcadores_periodo": period_marker_labels(),
+            "niveles_skill": skill_level_labels(),
             "periodo": _period_of,
             # Screens that talk about a missing translation name the
             # language ("Traducir al inglés"), and the name has to follow

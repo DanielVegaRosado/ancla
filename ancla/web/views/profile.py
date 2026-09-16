@@ -4,14 +4,25 @@ from __future__ import annotations
 import tempfile
 from pathlib import Path
 
-from flask import Response, abort, flash, jsonify, redirect, render_template, request, send_file, url_for
+from flask import (
+    Response,
+    abort,
+    flash,
+    jsonify,
+    redirect,
+    render_template,
+    request,
+    send_file,
+    url_for,
+)
 from flask_babel import gettext as _
 
 from ancla.ai.client import AIClient
-from ancla.profile import bullets, store, gaps, keywords, translation, validation
+from ancla.profile import bullets, gaps, keywords, store, translation, validation
 from ancla.profile.model import (
     LANGUAGES,
     N_ABOUT_ME_GROUP,
+    SKILL_LEVELS,
     AboutMe,
     Bilingual,
     Education,
@@ -20,11 +31,11 @@ from ancla.profile.model import (
     Skill,
     SpokenLanguage,
 )
-from ancla.web import settings as modulo_ajustes
+from ancla.text import slugify
 from ancla.web import context
+from ancla.web import settings as modulo_ajustes
 from ancla.web.blueprint import bp
 from ancla.web.providers import create_client
-from ancla.text import slugify
 from ancla.web.util import csv_to_list, lines_to_list
 
 
@@ -384,11 +395,16 @@ def split_experience_bullets():
 
 def _skill_from_form(id_: str) -> Skill:
     f = request.form
+    nivel = f.get("nivel", "").strip()
     return Skill(
         id=id_,
         name=Bilingual(es=f.get("nombre_es", "").strip(), en=f.get("nombre_en", "").strip()),
         category=Bilingual(es=f.get("categoria_es", "").strip(), en=f.get("categoria_en", "").strip()),
         keywords=csv_to_list(f.get("keywords", "")),
+        # An unknown value (or the personal-skill form, which has no "nivel"
+        # field at all) is dropped rather than kept, same tolerance as
+        # `archive/serialization.py::_parse_status` for an unknown status.
+        level=nivel if nivel in SKILL_LEVELS else "",
     )
 
 

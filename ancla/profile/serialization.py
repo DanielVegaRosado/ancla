@@ -28,16 +28,16 @@ from flask_babel import gettext as _
 
 from ancla.profile.errors import ProfileError
 from ancla.profile.model import (
+    PERIOD_FINISHED,
+    PERIOD_ONGOING,
+    SKILL_LEVELS,
     AboutMe,
     Bilingual,
     Education,
     Experience,
-    PERIOD_FINISHED,
-    PERIOD_ONGOING,
     Skill,
     SpokenLanguage,
 )
-
 
 # --------------------------------------------------------------------------
 # YAML text <-> dictionary
@@ -121,6 +121,7 @@ def parse_skill(datos: dict[str, Any], id: str, origen: str) -> Skill:
         name=_bilingual_text(datos, "name", origen),
         category=_bilingual_text(datos, "category", origen),
         keywords=_keywords(datos, origen),
+        level=_skill_level(datos.get("level")),
     )
 
 
@@ -179,6 +180,7 @@ def dump_skill(skill: Skill) -> dict[str, Any]:
         "name": _dump_bilingual(skill.name),
         "category": _dump_bilingual(skill.category),
         "keywords": list(skill.keywords),
+        "level": skill.level,
     }
 
 
@@ -304,6 +306,15 @@ def _keywords(datos: dict[str, Any], origen: str) -> list[str]:
         return [parte.strip() for parte in valor.split(",") if parte.strip()]
     elementos = (_text(x).strip() for x in _as_list(valor, "keywords", None, origen))
     return [palabra for palabra in elementos if palabra]
+
+
+def _skill_level(valor: Any) -> str:
+    """A level outside `SKILL_LEVELS` (a file edited by hand, or a value from
+    before this field existed) is dropped rather than raising — same
+    tolerance as `archive/serialization.py::_parse_status` for an unknown
+    CV status."""
+    texto = _text(valor)
+    return texto if texto in SKILL_LEVELS else ""
 
 
 def _dump_bilingual(dato: Bilingual[str]) -> dict[str, str]:

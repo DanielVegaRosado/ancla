@@ -39,6 +39,19 @@
     </div>
 
     <div class="campo">
+      <label for="nivel">{{ _('Nivel') }}</label>
+      <select id="nivel" name="nivel">
+        <option value="" {{ 'selected' if not skill or not skill.level else '' }}>{{ _('Sin especificar') }}</option>
+        {% for clave, etiqueta in niveles_skill.items() %}
+          <option value="{{ clave }}" {{ 'selected' if skill and skill.level == clave else '' }}>{{ etiqueta }}</option>
+        {% endfor %}
+      </select>
+      <p class="ayuda">
+        {{ _('Solo se usa para desempatar entre skills que encajan igual de bien con una vacante concreta; nunca decide cuáles se eligen.') }}
+      </p>
+    </div>
+
+    <div class="campo">
       <label for="keywords">{{ _('Keywords') }}</label>
       <input type="text" id="keywords" name="keywords" value="{{ skill.keywords|lista_a_csv if skill else '' }}">
       <p class="ayuda">

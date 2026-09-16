@@ -1005,6 +1005,30 @@ msgstr "Present"
 msgid "Finalizado"
 msgstr "Finished"
 
+#: ancla/web/presentation.py:71
+msgid "Principiante"
+msgstr "Beginner"
+
+#: ancla/web/presentation.py:72
+msgid "Intermedio"
+msgstr "Intermediate"
+
+#: ancla/web/presentation.py:73
+msgid "Experto"
+msgstr "Expert"
+
+#: ancla/web/templates/skill_form.html:42
+msgid "Nivel"
+msgstr "Level"
+
+#: ancla/web/templates/skill_form.html:44
+msgid "Sin especificar"
+msgstr "Not specified"
+
+#: ancla/web/templates/skill_form.html:50
+msgid "Solo se usa para desempatar entre skills que encajan igual de bien con una vacante concreta; nunca decide cuáles se eligen."
+msgstr "Only used to break a tie between skills that fit a job posting equally well; it never decides which skills get chosen."
+
 #: ancla/web/providers.py:185
 msgid "Otro (URL manual)"
 msgstr "Other (manual URL)"
