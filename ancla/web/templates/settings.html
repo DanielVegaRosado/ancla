@@ -4,6 +4,7 @@
   <h1>{{ _('Ajustes') }}</h1>
 
   <form class="pila tarjeta" method="post">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <div class="campo">
       <label for="proveedor">{{ _('Proveedor de IA') }}</label>
       <select id="proveedor" name="proveedor">

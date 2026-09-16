@@ -18,6 +18,7 @@
       <form class="en-linea" method="post"
             action="{{ url_for('ancla.translate_entry', idioma=cod, seccion=seccion, id_=entrada.id) }}"
             {% if en_formulario %}data-confirmar="{{ _('Traducir usa la última versión guardada. Los cambios sin guardar de este formulario se perderán. ¿Traducir de todas formas?') }}"{% endif %}>
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <button type="submit" class="boton-pequeno">{{ _('Traducir') }}</button>
       </form>
     {% endif %}

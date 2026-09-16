@@ -61,7 +61,7 @@
     try {
       const respuesta = await fetch("/perfil/sobre-mi/huecos", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "X-CSRFToken": csrfToken() },
         body: JSON.stringify({
           plantilla_es: fields[0].value,
           plantilla_en: fields[1].value,

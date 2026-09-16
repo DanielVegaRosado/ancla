@@ -17,6 +17,7 @@
   {% endif %}
 
   <form class="pila" method="post">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <div class="campo">
       <label for="titulo_es">{{ _('Titulación (ES)') }}</label>
       <input type="text" id="titulo_es" name="titulo_es"

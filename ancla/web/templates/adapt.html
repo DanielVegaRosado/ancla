@@ -18,6 +18,7 @@
     action="{{ url_for('ancla.adapt') }}"
     {% if hay_borrador %}data-confirmar="{{ _('Ya tienes una propuesta sin guardar. Si generas esta, se perderá. ¿Continuar?') }}"{% endif %}
   >
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <div class="campo">
       <label for="vacante">{{ _('Texto de la vacante') }}</label>
       <textarea id="vacante" name="vacante" class="alta" required>{{ vacante }}</textarea>

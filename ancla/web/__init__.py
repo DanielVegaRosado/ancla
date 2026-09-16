@@ -14,6 +14,7 @@ handling — it knows nothing about any particular screen.
 """
 from __future__ import annotations
 
+import logging
 import os
 import secrets
 from pathlib import Path
@@ -24,6 +25,16 @@ from flask_babel import gettext as _
 from flask_login import LoginManager
 
 from ancla.web.routes import PROFILE_DIR_NAME, PROFILES_DIR_NAME, data_root, templates_root
+
+# Signs session cookies. Left unset, a single local process still works
+# (see `_secret_key()`) — but a production deployment with several gunicorn
+# workers needs it fixed, or each worker signs cookies with a different
+# random key and a logged-in visitor bounces between "logged in" and
+# "logged out" depending on which worker answers the request, and any
+# server restart signs everyone out at once.
+VARIABLE_ENTORNO_SECRET_KEY = "ANCLA_SECRET_KEY"
+
+_log = logging.getLogger(__name__)
 
 RAIZ_PERFIL_POR_DEFECTO = data_root() / PROFILE_DIR_NAME
 RAIZ_PERFILES_POR_DEFECTO = data_root() / PROFILES_DIR_NAME
@@ -39,6 +50,30 @@ TAMANO_MAXIMO_SUBIDA = 20 * 1024 * 1024  # 20 MB
 # stores the API key in each visitor's session instead of in
 # `ajustes.json`, so no one sees a key another visitor tried out.
 MODO_DEMO_POR_DEFECTO = os.environ.get("ANCLA_DEMO") == "1"
+
+
+def _secret_key() -> str:
+    """Reads `ANCLA_SECRET_KEY` from the environment; falls back to a random
+    key, logging a warning, when it is unset. A single local process (the
+    desktop build, a lone dev server) never notices the difference — but a
+    deployment with more than one worker process needs the variable fixed,
+    or each worker signs session cookies with a different key (see the
+    module docstring above `VARIABLE_ENTORNO_SECRET_KEY`). Never raises:
+    unlike `ANCLA_CLAVE_CIFRADO`, this is not a case where an unset variable
+    should block startup, since the single-process case has no problem."""
+    clave = os.environ.get(VARIABLE_ENTORNO_SECRET_KEY, "").strip()
+    if clave:
+        return clave
+    _log.warning(
+        "Falta la variable de entorno %s: se ha generado una clave aleatoria para este "
+        "proceso. En un despliegue con varios workers (p. ej. gunicorn) cada worker "
+        "firmaría las cookies de sesión con una clave distinta, y cualquier reinicio "
+        "cerraría todas las sesiones activas. Define %s con un valor fijo antes de "
+        "desplegar con más de un worker.",
+        VARIABLE_ENTORNO_SECRET_KEY,
+        VARIABLE_ENTORNO_SECRET_KEY,
+    )
+    return secrets.token_hex(32)
 
 
 def create_app(
@@ -60,9 +95,11 @@ def create_app(
     from ancla.web.blueprint import bp
     from ancla.web.presentation import etiquetas_estado, period_marker_labels, years_for_period
     from ancla.web.util import list_to_csv, list_to_lines
+    from flask_wtf import CSRFProtect
+    from flask_wtf.csrf import CSRFError
 
     app = Flask(__name__)
-    app.config["SECRET_KEY"] = secrets.token_hex(32)
+    app.config["SECRET_KEY"] = _secret_key()
     app.config["MAX_CONTENT_LENGTH"] = TAMANO_MAXIMO_SUBIDA
     app.config["RAIZ_PERFIL"] = raiz_perfil or RAIZ_PERFIL_POR_DEFECTO
     app.config["RUTA_AJUSTES"] = settings_path or modulo_ajustes.RUTA_POR_DEFECTO
@@ -79,6 +116,7 @@ def create_app(
     # package (`web/`), which is where Babel looks by default.
     app.config["BABEL_TRANSLATION_DIRECTORIES"] = str(Path(__file__).resolve().parent.parent / "translations")
     app.register_blueprint(bp)
+    CSRFProtect(app)
     _set_up_login(app)
     cuentas_disponibles = mysql_configured()
     app.jinja_env.filters["lista_a_lineas"] = list_to_lines
@@ -153,6 +191,14 @@ def create_app(
         # silently or saving the key unencrypted.
         flash(str(error))
         return redirect(request.referrer or url_for("ancla.view_settings"))
+
+    @app.errorhandler(CSRFError)
+    def _csrf_error(_error: CSRFError):
+        # A missing or expired token (the usual cause: a form left open past
+        # the session's lifetime) — same convention as ProfileError/
+        # SettingsError: a flash the visitor can act on, never a raw 400.
+        flash(_("La sesión del formulario ha caducado. Inténtalo de nuevo."))
+        return redirect(request.referrer or url_for("ancla.view_profile"))
 
     return app
 

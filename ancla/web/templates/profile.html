@@ -97,6 +97,7 @@
                 <span class="insignia">{{ _('Falta en %(idioma)s', idioma=nombre_idioma(cod)) }}</span>
                 {% if ia_configurada %}
                   <form class="en-linea" method="post" action="{{ url_for('ancla.translate_headline', idioma=cod) }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <button type="submit" class="boton-pequeno">{{ _('Traducir') }}</button>
                   </form>
                 {% endif %}
@@ -128,11 +129,13 @@
         <img src="{{ url_for('ancla.photo_file') }}" alt="{{ _('Foto de perfil') }}" style="max-width: 8rem; border-radius: 50%; display: block; margin-bottom: 0.75rem;">
       {% endif %}
       <form class="en-linea" method="post" action="{{ url_for('ancla.upload_photo') }}" enctype="multipart/form-data">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <input type="file" name="foto" accept=".jpg,.jpeg,.png,.webp" required>
         <button type="submit" class="boton boton-pequeno">{{ _('Subir') if not perfil.photo else _('Reemplazar') }}</button>
       </form>
       {% if perfil.photo %}
         <form class="en-linea" method="post" action="{{ url_for('ancla.delete_photo') }}" data-confirmar="{{ _('¿Borrar la foto de perfil?') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
           <button type="submit" class="boton boton-pequeno boton-peligro">{{ _('Borrar foto') }}</button>
         </form>
       {% endif %}
@@ -153,6 +156,7 @@
           </div>
           <div class="acciones">
             <form class="en-linea" method="post" action="{{ url_for('ancla.translate_missing', idioma=cod) }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
               <button type="submit" class="boton boton-primario">{{ _('Traducir todo lo que falte') }}</button>
             </form>
           </div>

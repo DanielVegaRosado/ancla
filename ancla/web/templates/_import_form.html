@@ -9,6 +9,7 @@
    renders under two different URLs. #}
 {% if ia_configurada %}
   <form class="pila" method="post" action="{{ url_for('ancla.import_cv') }}" enctype="multipart/form-data">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <div class="campo">
       <label for="fichero">{{ _('Sube tu CV (PDF o .docx)') }}</label>
       <input type="file" id="fichero" name="fichero" accept=".pdf,.docx">

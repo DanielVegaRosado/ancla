@@ -4,6 +4,7 @@
   <section class="tarjeta tarjeta-cuenta">
     <h1>{{ _('Reenviar enlace de verificación') }}</h1>
     <form class="pila" method="post">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <div class="campo">
         <label for="email">{{ _('Correo con el que te registraste') }}</label>
         <input type="email" id="email" name="email" autocomplete="email" required>

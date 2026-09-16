@@ -23,6 +23,7 @@
       <div class="acciones">
         <button type="button" class="boton boton-pequeno" data-copiar="copia-sobre-mi">{{ _('Copiar') }}</button>
         <form class="en-linea" method="post" action="{{ url_for('ancla.regenerate_section', seccion='sobre-mi') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
           <button type="submit" class="boton boton-pequeno">{{ _('Regenerar') }}</button>
         </form>
       </div>
@@ -34,6 +35,7 @@
     <details>
       <summary>{{ _('Ajuste directo') }}</summary>
       <form class="pila" method="post" action="{{ url_for('ancla.adjust_about_me') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <p class="ayuda">{{ _('Conceptos y dominios (GRUPO A):') }}</p>
         <div class="dos-columnas">
           {% for n in (1, 2, 3) %}
@@ -59,6 +61,7 @@
       <div class="acciones">
         <button type="button" class="boton boton-pequeno" data-copiar="copia-skills">{{ _('Copiar') }}</button>
         <form class="en-linea" method="post" action="{{ url_for('ancla.regenerate_section', seccion='skills') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
           <button type="submit" class="boton boton-pequeno">{{ _('Regenerar') }}</button>
         </form>
       </div>
@@ -76,6 +79,7 @@
           <details>
             <summary>{{ _('Cambiar') }}</summary>
             <form class="en-linea" method="post" action="{{ url_for('ancla.adjust_skill') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
               <input type="hidden" name="indice" value="{{ loop.index0 }}">
               <select name="skill_id">
                 {% for candidata in perfil.skills %}
@@ -96,6 +100,7 @@
     <div class="cabecera-bloque">
       <h2>{{ _('Experiencia relevante') }} ({{ experiencias|length }})</h2>
       <form class="en-linea" method="post" action="{{ url_for('ancla.regenerate_section', seccion='experiencias') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <button type="submit" class="boton boton-pequeno">{{ _('Regenerar') }}</button>
       </form>
     </div>
@@ -131,6 +136,7 @@
           <details>
             <summary>{{ _('Ajuste directo') }}</summary>
             <form class="pila" method="post" action="{{ url_for('ancla.adjust_experience') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
               <input type="hidden" name="indice" value="{{ loop.index0 }}">
               <div class="campo">
                 <label>{{ _('Experiencia') }}</label>
@@ -202,6 +208,7 @@
     <section class="tarjeta">
       <h2>{{ _('Guardar en Mis CVs') }}</h2>
       <form class="pila" method="post" action="{{ url_for('ancla.save_proposal') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <div class="campo">
           <label for="empresa">{{ _('Empresa') }}</label>
           <input type="text" id="empresa" name="empresa" value="{{ borrador.empresa }}" maxlength="120" required>
@@ -224,6 +231,7 @@
       <h2>{{ _('Descartar') }}</h2>
       <p class="ayuda">{{ _('Borra esta propuesta sin guardarla en el archivo.') }}</p>
       <form method="post" action="{{ url_for('ancla.discard_proposal') }}" data-confirmar="{{ _('¿Descartar esta propuesta? No se guardará en el archivo.') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <button type="submit" class="boton-peligro">{{ _('Descartar propuesta') }}</button>
       </form>
     </section>
