@@ -1,11 +1,14 @@
-<section class="tarjeta arrastrable" id="experiencias" data-arrastrable data-clave="experiencias">
+<section class="tarjeta arrastrable" id="experiencias" data-arrastrable data-clave="experiencias" data-acordeon>
   <div class="fila-tarjeta">
     <div class="titulo-panel">
       <span class="manija-arrastrar" title="{{ _('Arrastrar para reordenar') }}" aria-hidden="true">⠿</span>
-      <div>
-        <h2>{{ _('Experiencia') }} ({{ perfil.experiences|length }})</h2>
-        <p class="ayuda">{{ _('Proyectos y puestos disponibles para elegir en cada adaptación.') }}</p>
-      </div>
+      <button type="button" class="cabecera-acordeon" data-acordeon-cabecera aria-expanded="false" aria-controls="contenido-experiencias">
+        <span class="icono-acordeon" aria-hidden="true">▸</span>
+        <div>
+          <h2>{{ _('Experiencia') }} ({{ perfil.experiences|length }})</h2>
+          <p class="ayuda">{{ _('Proyectos y puestos disponibles para elegir en cada adaptación.') }}</p>
+        </div>
+      </button>
     </div>
     <div class="acciones">
       <a class="boton boton-primario" href="{{ url_for('ancla.new_experience') }}">{{ _('Añadir experiencia') }}</a>
@@ -18,28 +21,30 @@
     </div>
   </div>
 
-  {% if perfil.experiences %}
-    <div class="lista-tarjetas">
-      {% for experiencia in perfil.experiences %}
-        <div class="tarjeta">
-          <div class="fila-tarjeta">
-            <div>
-              <h3>{{ experiencia.title["es"] or experiencia.title["en"] }}</h3>
-              <p class="ayuda">{{ periodo(experiencia, "es") }} · {{ experiencia.bullets["es"]|length }} {{ _('bullets') }}</p>
-            </div>
-            <div class="acciones">
-              {% with seccion = "experiencias", entrada = experiencia %}{% include "_untranslated.html" %}{% endwith %}
-              <a class="boton boton-pequeno" href="{{ url_for('ancla.edit_experience', id_=experiencia.id) }}">{{ _('Editar') }}</a>
-              <form class="en-linea" method="post" action="{{ url_for('ancla.delete_experience', id_=experiencia.id) }}" data-confirmar="{{ _('¿Borrar «%(titulo)s»? Esta acción no se puede deshacer.', titulo=experiencia.title['es']) }}">
+  <div class="contenido-acordeon" id="contenido-experiencias" data-acordeon-contenido hidden>
+    {% if perfil.experiences %}
+      <div class="lista-tarjetas">
+        {% for experiencia in perfil.experiences %}
+          <div class="tarjeta">
+            <div class="fila-tarjeta">
+              <div>
+                <h3>{{ experiencia.title["es"] or experiencia.title["en"] }}</h3>
+                <p class="ayuda">{{ periodo(experiencia, "es") }} · {{ experiencia.bullets["es"]|length }} {{ _('bullets') }}</p>
+              </div>
+              <div class="acciones">
+                {% with seccion = "experiencias", entrada = experiencia %}{% include "_untranslated.html" %}{% endwith %}
+                <a class="boton boton-pequeno" href="{{ url_for('ancla.edit_experience', id_=experiencia.id) }}">{{ _('Editar') }}</a>
+                <form class="en-linea" method="post" action="{{ url_for('ancla.delete_experience', id_=experiencia.id) }}" data-confirmar="{{ _('¿Borrar «%(titulo)s»? Esta acción no se puede deshacer.', titulo=experiencia.title['es']) }}">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                <button type="submit" class="boton-pequeno boton-peligro">{{ _('Borrar') }}</button>
-              </form>
+                  <button type="submit" class="boton-pequeno boton-peligro">{{ _('Borrar') }}</button>
+                </form>
+              </div>
             </div>
           </div>
-        </div>
-      {% endfor %}
-    </div>
-  {% else %}
-    <p class="vacio">{{ _('Todavía no has añadido ninguna experiencia.') }}</p>
-  {% endif %}
+        {% endfor %}
+      </div>
+    {% else %}
+      <p class="vacio">{{ _('Todavía no has añadido ninguna experiencia.') }}</p>
+    {% endif %}
+  </div>
 </section>

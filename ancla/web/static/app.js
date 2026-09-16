@@ -151,6 +151,78 @@ function activateDragToReorder(container, saveOrder) {
   });
 })();
 
+// My profile: the five panels (Experience, Skills...) collapse to a
+// clickable header, collapsed by default — the point of this is a shorter
+// screen for a profile with a lot of content, so starting open would
+// undercut it. `[data-acordeon]` marks a panel as collapsible;
+// `[data-acordeon-cabecera]` is the header button (title + help text only,
+// never the drag handle or `.acciones`, so neither dragging nor the
+// panel's own buttons toggle it by accident) and `[data-acordeon-contenido]`
+// is the content it shows/hides via the `hidden` attribute.
+//
+// Two ways in still have to land expanded and scrolled into view: a
+// `#fragmento` link (the bento cards above, or any bookmarked URL), and
+// coming back from "Editar experiencia" after Guardar/Cancelar/Borrar —
+// the server redirects to a plain `/perfil` with no fragment (see
+// `views/profile.py`), so that path is covered instead by remembering the
+// section in `sessionStorage` at the moment a link or form inside it
+// navigates away, and reading it back once, here, on the next load.
+(() => {
+  const secciones = document.querySelectorAll("[data-acordeon]");
+  if (!secciones.length) return;
+
+  const CLAVE_SESSION = "ancla-perfil-seccion-abierta";
+
+  function abrirSeccion(id) {
+    const seccion = id && document.getElementById(id);
+    if (!seccion || !seccion.hasAttribute("data-acordeon")) return false;
+    const cabecera = seccion.querySelector("[data-acordeon-cabecera]");
+    const contenido = seccion.querySelector("[data-acordeon-contenido]");
+    if (cabecera) cabecera.setAttribute("aria-expanded", "true");
+    if (contenido) contenido.hidden = false;
+    seccion.scrollIntoView();
+    return true;
+  }
+
+  function abrirSegunNavegacion() {
+    const idFragmento = location.hash.slice(1);
+    if (idFragmento && abrirSeccion(idFragmento)) {
+      sessionStorage.removeItem(CLAVE_SESSION);
+      return;
+    }
+    const idRecordado = sessionStorage.getItem(CLAVE_SESSION);
+    if (idRecordado) {
+      sessionStorage.removeItem(CLAVE_SESSION);
+      abrirSeccion(idRecordado);
+    }
+  }
+
+  document.addEventListener("click", (event) => {
+    const cabecera = event.target.closest("[data-acordeon-cabecera]");
+    if (cabecera) {
+      const seccion = cabecera.closest("[data-acordeon]");
+      const contenido = seccion && seccion.querySelector("[data-acordeon-contenido]");
+      if (!contenido) return;
+      const expandido = cabecera.getAttribute("aria-expanded") === "true";
+      cabecera.setAttribute("aria-expanded", String(!expandido));
+      contenido.hidden = expandido;
+      return;
+    }
+
+    const enlace = event.target.closest("a[href]");
+    const seccionDeEnlace = enlace && enlace.closest("[data-acordeon]");
+    if (seccionDeEnlace) sessionStorage.setItem(CLAVE_SESSION, seccionDeEnlace.id);
+  });
+
+  document.addEventListener("submit", (event) => {
+    const seccion = event.target.closest("[data-acordeon]");
+    if (seccion) sessionStorage.setItem(CLAVE_SESSION, seccion.id);
+  });
+
+  window.addEventListener("hashchange", abrirSegunNavegacion);
+  abrirSegunNavegacion();
+})();
+
 // Proposal screen: drag the selected experiences to decide which ones fall
 // inside a template's maximum (see cv_preview.py) once there are more of
 // them than a chosen design has room for.
