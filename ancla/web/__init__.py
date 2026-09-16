@@ -3,9 +3,11 @@
 Five screens: My profile, Adapt, Proposal, My CVs, and Settings. Bilingual
 ES/EN interface (manual selector in the header, no auto-detection — see
 `ajustes.idioma`). User accounts (`ancla/auth/`, screens in
-`views/auth.py`) gate none of the screens: without logging in every screen
-works on the single local profile; once logged in, on that account's own
-folder under `perfiles/` (see `context.root()`).
+`views/auth.py`) gate none of the screens on the web: without logging in
+every screen works on the single local profile; once logged in, on that
+account's own folder under `perfiles/` (see `context.root()`). The desktop
+build is the exception — it asks for `require_login=True` and then nothing
+but the account screens is reachable without a session.
 
 Each screen is a module under `ancla/web/views/`, with its routes
 registered on the single `Blueprint` in `ancla/web/blueprint.py`. This
@@ -21,7 +23,7 @@ from pathlib import Path
 from flask import Flask, flash, redirect, render_template, request, url_for
 from flask_babel import Babel, get_locale
 from flask_babel import gettext as _
-from flask_login import LoginManager
+from flask_login import LoginManager, current_user
 
 from ancla.web.routes import PROFILE_DIR_NAME, PROFILES_DIR_NAME, data_root, templates_root
 
@@ -48,7 +50,18 @@ def create_app(
     canva_templates_root: Path | None = None,
     html_templates_root: Path | None = None,
     profiles_root: Path | None = None,
+    require_login: bool = False,
 ) -> Flask:
+    """`require_login` is what tells the desktop build apart from the web one.
+
+    Only `desktop.py` passes it, so the packaged app shows the account screen
+    first and nothing else until there is a session, while `run.py` and the
+    hosted deployments keep working with no account at all. It is an explicit
+    argument rather than `routes.is_packaged()` on purpose: that one is false
+    when the desktop launcher runs from source (the Flatpak installs it
+    unpackaged), and whether an account is required is a product decision, not
+    a packaging detail.
+    """
     from ancla.auth.db import mysql_configured
     from ancla.profile.errors import ProfileError
     from ancla.profile.model import LANGUAGES, period_text
@@ -73,6 +86,7 @@ def create_app(
     app.config["RAIZ_PLANTILLAS_CANVA"] = canva_templates_root or RAIZ_PLANTILLAS_CANVA_POR_DEFECTO
     app.config["RAIZ_PLANTILLAS_HTML"] = html_templates_root or RAIZ_PLANTILLAS_HTML_POR_DEFECTO
     app.config["MODO_DEMO"] = MODO_DEMO_POR_DEFECTO if demo_mode is None else demo_mode
+    app.config["REQUIERE_SESION"] = require_login
     app.config["LANGUAGES"] = modulo_ajustes.IDIOMAS_INTERFAZ
     app.config["BABEL_DEFAULT_LOCALE"] = modulo_ajustes.IDIOMA_POR_DEFECTO
     # The catalogs live in ancla/translations/, one level above this
@@ -80,6 +94,7 @@ def create_app(
     app.config["BABEL_TRANSLATION_DIRECTORIES"] = str(Path(__file__).resolve().parent.parent / "translations")
     app.register_blueprint(bp)
     _set_up_login(app)
+    _require_login_everywhere(app)
     cuentas_disponibles = mysql_configured()
     app.jinja_env.filters["lista_a_lineas"] = list_to_lines
     app.jinja_env.filters["lista_a_csv"] = list_to_csv
@@ -119,9 +134,12 @@ def create_app(
             # Lets the nav dim "Última propuesta" while there is nothing to
             # show there yet, without hiding the link (see base.html).
             "hay_borrador": modulo_borrador.load_draft(context.root()) is not None,
-            # Without MySQL (the desktop build) the account links would only
-            # lead to a "database unavailable" notice, so they are not shown.
+            # Without MySQL the account links would only lead to a "database
+            # unavailable" notice, so they are not shown.
             "cuentas_disponibles": cuentas_disponibles,
+            # Lets the account screens explain that this build cannot be used
+            # without an account, which is not true of the web app.
+            "requiere_sesion": app.config["REQUIERE_SESION"],
         }
 
     @app.errorhandler(404)
@@ -155,6 +173,41 @@ def create_app(
         return redirect(request.referrer or url_for("ancla.view_settings"))
 
     return app
+
+
+# Reachable without a session while the gate is on: the account screens
+# themselves, the static files they need, and the terms the login screen
+# links to in its footer.
+ENDPOINTS_SIN_SESION = frozenset({
+    "static",
+    "ancla.login",
+    "ancla.register",
+    "ancla.verify_email",
+    "ancla.resend_verification",
+    "ancla.terms",
+})
+
+
+def _require_login_everywhere(app: Flask) -> None:
+    """Sends anyone without a session to the login screen, for every screen
+    but the account ones.
+
+    A single `before_request` instead of decorating each view: there are
+    dozens of routes across `views/`, and the rest of the app is written so
+    that no view knows accounts exist (see `context.root()`). Does nothing
+    unless the app was built with `require_login=True`, which only the
+    desktop launcher does.
+    """
+    if not app.config["REQUIERE_SESION"]:
+        return
+
+    @app.before_request
+    def _gate():
+        if current_user.is_authenticated or request.endpoint in ENDPOINTS_SIN_SESION:
+            return None
+        # An unknown endpoint (request.endpoint is None on a 404) is sent to
+        # the login screen too: without a session there is nothing to show.
+        return redirect(url_for("ancla.login"))
 
 
 def _set_up_login(app: Flask) -> None:

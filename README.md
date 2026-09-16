@@ -178,12 +178,21 @@ version once v1.1 itself is done.
 
 Ancla is growing from a local tool into a hosted product with user accounts.
 The first piece is in: registration, login and logout (`/registro`, `/login`,
-`/logout`), in `ancla/auth/`. **It gates nothing yet** — every screen still works
-on the local profile without logging in, and without a database configured the
-app runs exactly as before (the account links simply don't show). Once logged
-in, each account works on its own folder, `perfiles/<user id>/` (profile,
-archived CVs and `ajustes.json`), fully separate from every other account and
-from the shared `perfil/` used without a session.
+`/logout`), in `ancla/auth/`. **On the web it gates nothing** — every screen
+still works on the local profile without logging in, and without a database
+configured the app runs exactly as before (the account links simply don't
+show). Once logged in, each account works on its own folder,
+`perfiles/<user id>/` (profile, archived CVs and `ajustes.json`), fully
+separate from every other account and from the shared `perfil/` used without a
+session.
+
+**The desktop app is the exception:** `desktop.py` builds the app with
+`create_app(require_login=True)`, so it opens on the login screen and nothing
+but the account screens (and the terms) is reachable until there is a session.
+It is the same account as on the web, and the flag is passed only there — the
+gate can never turn itself on for a hosted deployment. Without a database
+configured the desktop app still starts, and says on the login screen that it
+needs an account it cannot reach.
 
 Accounts live in MySQL. Set these in the environment or in a `.env` file next to
 `run.py` (it's in `.gitignore`; never commit it):

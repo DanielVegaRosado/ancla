@@ -19,15 +19,21 @@
 
   <header class="cabecera">
     <div class="ancho">
-      <a class="marca" href="{{ url_for('ancla.view_profile') }}">Ancla</a>
+      {# While the desktop gate is on and nobody is logged in, the screens
+         behind it are not reachable: linking to them would only bounce
+         back here. #}
+      {% set app_accesible = not requiere_sesion or current_user.is_authenticated %}
+      <a class="marca" href="{{ url_for('ancla.view_profile') if app_accesible else url_for('ancla.login') }}">Ancla</a>
       <nav class="nav">
-        <a href="{{ url_for('ancla.view_profile') }}" class="{{ 'activo' if request.endpoint == 'ancla.view_profile' else '' }}">{{ _('Mi perfil') }}</a>
-        <a href="{{ url_for('ancla.adapt') }}" class="{{ 'activo' if request.endpoint == 'ancla.adapt' else '' }}">{{ _('Adaptar a una vacante') }}</a>
-        <a href="{{ url_for('ancla.view_proposal') }}" class="{{ 'activo' if request.endpoint == 'ancla.view_proposal' else ('desactivado' if not hay_borrador else '') }}">{{ _('Última propuesta') }}</a>
-        <a href="{{ url_for('ancla.list_cvs') }}" class="{{ 'activo' if request.endpoint in ('ancla.list_cvs', 'ancla.view_cv') else '' }}">{{ _('Mis CVs') }}</a>
-        <a href="{{ url_for('ancla.canva_templates') }}" class="{{ 'activo' if request.endpoint == 'ancla.canva_templates' else '' }}">{{ _('Plantillas') }}</a>
-        <a href="{{ url_for('ancla.support') }}" class="{{ 'activo' if request.endpoint == 'ancla.support' else '' }}">{{ _('Soporte') }}</a>
-        <a href="{{ url_for('ancla.view_settings') }}" class="{{ 'activo' if request.endpoint == 'ancla.view_settings' else '' }}">{{ _('Ajustes') }}</a>
+        {% if app_accesible %}
+          <a href="{{ url_for('ancla.view_profile') }}" class="{{ 'activo' if request.endpoint == 'ancla.view_profile' else '' }}">{{ _('Mi perfil') }}</a>
+          <a href="{{ url_for('ancla.adapt') }}" class="{{ 'activo' if request.endpoint == 'ancla.adapt' else '' }}">{{ _('Adaptar a una vacante') }}</a>
+          <a href="{{ url_for('ancla.view_proposal') }}" class="{{ 'activo' if request.endpoint == 'ancla.view_proposal' else ('desactivado' if not hay_borrador else '') }}">{{ _('Última propuesta') }}</a>
+          <a href="{{ url_for('ancla.list_cvs') }}" class="{{ 'activo' if request.endpoint in ('ancla.list_cvs', 'ancla.view_cv') else '' }}">{{ _('Mis CVs') }}</a>
+          <a href="{{ url_for('ancla.canva_templates') }}" class="{{ 'activo' if request.endpoint == 'ancla.canva_templates' else '' }}">{{ _('Plantillas') }}</a>
+          <a href="{{ url_for('ancla.support') }}" class="{{ 'activo' if request.endpoint == 'ancla.support' else '' }}">{{ _('Soporte') }}</a>
+          <a href="{{ url_for('ancla.view_settings') }}" class="{{ 'activo' if request.endpoint == 'ancla.view_settings' else '' }}">{{ _('Ajustes') }}</a>
+        {% endif %}
         {% if cuentas_disponibles %}
           {% if current_user.is_authenticated %}
             <a href="{{ url_for('ancla.logout') }}" title="{{ current_user.email }}">{{ _('Cerrar sesión') }}</a>
