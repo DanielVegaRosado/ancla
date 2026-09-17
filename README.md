@@ -209,6 +209,27 @@ Accounts live in MySQL. Set these in the environment or in a `.env` file next to
 | `ANCLA_SMTP_HOST`, `ANCLA_SMTP_PORT`, `ANCLA_SMTP_USER`, `ANCLA_SMTP_PASSWORD`, `ANCLA_SMTP_REMITENTE` | Outgoing mail for verification links (STARTTLS, port 587 by default). |
 | `ANCLA_URL_PUBLICA` | Public base URL for links sent by email (e.g. `https://ancla.example.com`). |
 
+## AI keys
+
+The AI provider keys you paste in Settings are encrypted before they are saved
+to `ajustes.json`.
+
+**Packaged desktop build (`.exe`, `.app`, Flatpak): nothing to set up.** On the
+first save, the app generates its own encryption key and keeps it in the same
+per-user data folder as your profile, so keys saved today can still be read
+next time you open it.
+
+**Running from source (`python run.py`) or hosting it:** set the encryption key
+yourself, in the environment or in `.env`. Without it, saving an AI key fails
+with a message naming the variable. It must stay the same across restarts and
+be shared by every worker process — keys saved with one value cannot be read
+with another.
+
+| Variable | Meaning |
+| -------- | ------- |
+| `ANCLA_CLAVE_CIFRADO` | Fernet key that encrypts the saved AI keys. Generate one with `python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"`. |
+| `GROQ_API_KEY` | Optional development shortcut: used for Groq when no key has been saved in Settings. |
+
 Without SMTP credentials nothing is sent and nothing fails: in `auto` mode new
 accounts are created already verified. **Sending the verification email has not
 been tested end to end against a real SMTP server yet**; the token itself

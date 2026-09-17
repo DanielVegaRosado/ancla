@@ -26,14 +26,14 @@ from typing import Any
 from cryptography.fernet import Fernet, InvalidToken
 
 from ancla.web.providers import PROVIDERS
-from ancla.web.routes import SETTINGS_FILE_NAME, data_root
+from ancla.web.routes import SETTINGS_FILE_NAME, data_root, is_packaged, user_data_dir
 
 RUTA_POR_DEFECTO = data_root() / SETTINGS_FILE_NAME
 
 # The Fernet key that encrypts the API keys, distinct from the API keys
-# themselves. Never in the repo or in `ajustes.json` — an env var is the
-# only place it can live without becoming just another secret next to the
-# ones it protects. Generate one with:
+# themselves. Never in the repo or in `ajustes.json`, where it would be just
+# another secret next to the ones it protects: an env var, or, for a packaged
+# desktop build only, a file it generates itself (`_local_key()`). Generate one with:
 #   python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
 VARIABLE_ENTORNO_CLAVE_CIFRADO = "ANCLA_CLAVE_CIFRADO"
 # Marks a value in `claves_api` as Fernet-encrypted, so a file written before
@@ -41,6 +41,9 @@ VARIABLE_ENTORNO_CLAVE_CIFRADO = "ANCLA_CLAVE_CIFRADO"
 # it without needing a second field. A Fernet token is itself base64, so the
 # marker cannot collide with one.
 _PREFIJO_CIFRADO = "fernet:v1:"
+# Where a packaged desktop build keeps the Fernet key it generated for
+# itself, inside the OS's per-user data folder (see `_local_key()`).
+NOMBRE_FICHERO_CLAVE_CIFRADO = "clave-cifrado.key"
 
 
 class SettingsError(Exception):
@@ -49,8 +52,37 @@ class SettingsError(Exception):
     the web layer shows it as-is, never a Python traceback."""
 
 
+def _local_key() -> str:
+    """The encryption key of a packaged desktop build, generated on first use
+    and read back on every later launch.
+
+    Someone who downloads the executable has no way to set an environment
+    variable, so the build makes its own key. It has to persist: API keys
+    already saved with one key cannot be read with another, so a key that
+    changed on every launch would be worse than no key at all. It lives in
+    the same per-user data folder as the profile, never next to the
+    executable (see `routes`).
+
+    Only packaged builds get here. A hosted deployment runs from source, and
+    with several worker processes each one would generate its own key and
+    fail to read what another saved — there, a missing variable must keep
+    failing loudly."""
+    ruta = user_data_dir() / NOMBRE_FICHERO_CLAVE_CIFRADO
+    if not ruta.exists():
+        ruta.parent.mkdir(parents=True, exist_ok=True)
+        try:
+            with open(ruta, "x", encoding="utf-8") as fichero:
+                fichero.write(Fernet.generate_key().decode("ascii"))
+            ruta.chmod(0o600)
+        except FileExistsError:
+            pass
+    return ruta.read_text(encoding="utf-8").strip()
+
+
 def _cipher() -> Fernet:
     clave = os.environ.get(VARIABLE_ENTORNO_CLAVE_CIFRADO, "").strip()
+    if not clave and is_packaged():
+        clave = _local_key()
     if not clave:
         raise SettingsError(
             f"Falta la variable de entorno {VARIABLE_ENTORNO_CLAVE_CIFRADO}: es la clave que "
