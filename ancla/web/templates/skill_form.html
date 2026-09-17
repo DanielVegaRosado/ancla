@@ -46,9 +46,6 @@
           <option value="{{ clave }}" {{ 'selected' if skill and skill.level == clave else '' }}>{{ etiqueta }}</option>
         {% endfor %}
       </select>
-      <p class="ayuda">
-        {{ _('Solo se usa para desempatar entre skills que encajan igual de bien con una vacante concreta; nunca decide cuáles se eligen.') }}
-      </p>
     </div>
 
     <div class="campo">
