@@ -37,6 +37,7 @@ from ancla.profile.model import (
     Experience,
     Skill,
     SpokenLanguage,
+    strip_gaps,
 )
 
 # --------------------------------------------------------------------------
@@ -144,7 +145,14 @@ def parse_education(datos: dict[str, Any], id: str, origen: str) -> Education:
 
 
 def parse_about_me(datos: dict[str, Any], origen: str) -> AboutMe:
-    return AboutMe(template=_bilingual_text(datos, "template", origen))
+    """A file saved before `plain_text` existed gets one derived from the
+    template, so everything after loading can rely on it being there."""
+    template = _bilingual_text(datos, "template", origen)
+    if "plain_text" in datos:
+        plain_text = _bilingual_text(datos, "plain_text", origen)
+    else:
+        plain_text = Bilingual(es=strip_gaps(template.es), en=strip_gaps(template.en))
+    return AboutMe(template=template, plain_text=plain_text)
 
 
 def parse_contact(datos: dict[str, Any], origen: str) -> tuple[str, Bilingual[str], list[str]]:
@@ -202,7 +210,10 @@ def dump_education(educacion: Education) -> dict[str, Any]:
 
 
 def dump_about_me(sobre_mi: AboutMe) -> dict[str, Any]:
-    return {"template": _dump_bilingual(sobre_mi.template)}
+    return {
+        "plain_text": _dump_bilingual(sobre_mi.plain_text),
+        "template": _dump_bilingual(sobre_mi.template),
+    }
 
 
 def dump_contact(name: str, headline: Bilingual[str], lineas: list[str]) -> dict[str, Any]:

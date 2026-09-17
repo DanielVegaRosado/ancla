@@ -1,9 +1,9 @@
-"""Proposes where the six "About me" gaps go inside the text the user wrote.
+"""Derives the "About me" template from the plain text the user wrote.
 
-Writing the template by hand means typing `{GROUP_A_1}`…`{GROUP_B_3}`
-character for character in two languages before anything can be saved. That
-is the first wall for someone starting with an empty profile, so this module
-lets a model mark the positions instead.
+The user only ever writes and edits a normal paragraph
+(`AboutMe.plain_text`); they never see `{GROUP_A_1}`…`{GROUP_B_3}`. When
+they save, `derive_template` asks a model where the six gaps go and builds
+`AboutMe.template` from it, which is what the selection engine fills.
 
 **The model never returns rewritten text.** It answers with the fragments it
 proposes to replace in each language, and `place` swaps each one for its gap,
@@ -23,18 +23,19 @@ Two consequences worth knowing before changing anything here:
   a gap together, in one call. Asking twice, once per language, would let
   `{GROUP_A_1}` land on unrelated ideas and the English CV would read as a
   different text.
-- **Placing is partial, never all-or-nothing.** Whatever matches is placed;
-  the rest is reported so the user can mark it by hand. Discarding four good
-  positions because two fragments came back wrong would leave the person
-  exactly at the wall this exists to remove.
+- **Placing is partial, never all-or-nothing, and silent.** Whatever
+  matches is placed; a gap that does not is simply absent from the
+  template, so that skill is not inserted there and the user's own words
+  stay. There is no manual fallback to report it to: the user never sees
+  the gap syntax.
 
 Only the names of the *technical* skills travel in the prompt. Personal
 skills and spoken languages never do — same rule that keeps them out of the
 selection engine.
 
 Never raises: a missing key, a provider failure, or an unusable answer come
-back as the original template plus a warning. Marking gaps by hand works
-with no provider at all, and this is only the accelerator on top.
+back as the original text plus a warning, which is still a valid template —
+one with no gaps, that the CV shows exactly as written.
 """
 from __future__ import annotations
 
@@ -45,8 +46,7 @@ from flask_babel import gettext as _
 
 from ancla.ai.client import AIClient, complete_with_budget
 from ancla.profile.literal_match import locate
-from ancla.profile.model import AboutMe, Bilingual, Language, LANGUAGES, Skill
-from ancla.profile.validation import language_name
+from ancla.profile.model import LANGUAGES, AboutMe, Bilingual, Language, Skill
 from ancla.text import json_block, to_text
 
 # Groq's free tier allows 8000 tokens per minute in total (checked against
@@ -83,6 +83,35 @@ Docker, PostgreSQL). Poner uno donde va el otro produce frases absurdas.
 
 Reglas:
 """
+
+# A worked example: a concrete answer leaves the model far less to guess
+# than the rule alone, especially about how short a fragment is and which
+# words belong to each group. Written in both languages because the pairing
+# rule is the part models get wrong most often.
+_EJEMPLO_TEXTO: dict[Language, str] = {
+    "es": (
+        "Ingeniero de datos con experiencia en análisis de datos, machine learning y "
+        "arquitectura cloud. Trabajo a diario con Python, SQL y Docker para llevar modelos "
+        "a producción."
+    ),
+    "en": (
+        "Data engineer with experience in data analysis, machine learning and cloud "
+        "architecture. I work daily with Python, SQL and Docker to take models to production."
+    ),
+}
+_EJEMPLO_NOTA = (
+    "Fíjate: «Ingeniero de datos» no se señala (es su puesto, no una skill), y cada "
+    "fragmento son solo las palabras que nombran la idea, no la frase."
+)
+
+_EJEMPLO_RESPUESTA = {
+    "GROUP_A_1": {"es": "análisis de datos", "en": "data analysis"},
+    "GROUP_A_2": {"es": "machine learning", "en": "machine learning"},
+    "GROUP_A_3": {"es": "arquitectura cloud", "en": "cloud architecture"},
+    "GROUP_B_1": {"es": "Python", "en": "Python"},
+    "GROUP_B_2": {"es": "SQL", "en": "SQL"},
+    "GROUP_B_3": {"es": "Docker", "en": "Docker"},
+}
 
 _REGLA_LITERAL = (
     "Cada fragmento se copia LITERAL del texto de esa persona, carácter por carácter, con "
@@ -133,7 +162,30 @@ def _system_prompt(idiomas: tuple[Language, ...], huecos: tuple[str, ...]) -> st
     reglas += [_REGLA_SIN_SOLAPE, _REGLA_PARCIAL, _REGLA_SIN_REESCRIBIR]
     cuerpo_reglas = "\n".join(f"{n}. {regla}" for n, regla in enumerate(reglas, start=1))
     intro = _INTRO.format(idiomas=", en español y en inglés" if len(idiomas) == 2 else "")
-    return intro + cuerpo_reglas + _CIERRE.format(esquema=_esquema_json(idiomas, huecos))
+    return (
+        intro
+        + cuerpo_reglas
+        + _ejemplo(idiomas)
+        + _CIERRE.format(esquema=_esquema_json(idiomas, huecos))
+    )
+
+
+def _ejemplo(idiomas: tuple[Language, ...]) -> str:
+    """Shown for the same languages and in the same answer shape the model
+    is asked for: a bilingual example would contradict a one-language
+    schema."""
+    textos = "\n".join(
+        f"Sobre mí ({_ETIQUETA_IDIOMA[idioma]}):\n{_EJEMPLO_TEXTO[idioma]}" for idioma in idiomas
+    )
+    if len(idiomas) == 2:
+        respuesta: dict = _EJEMPLO_RESPUESTA
+    else:
+        respuesta = {hueco: pareja[idiomas[0]] for hueco, pareja in _EJEMPLO_RESPUESTA.items()}
+    return (
+        f"\n\nEjemplo. Con este texto:\n{textos}\n"
+        f"la respuesta correcta es:\n{json.dumps(respuesta, ensure_ascii=False, indent=2)}\n"
+        f"{_EJEMPLO_NOTA}\n"
+    )
 
 
 def _esquema_json(idiomas: tuple[Language, ...], huecos: tuple[str, ...]) -> str:
@@ -149,8 +201,8 @@ def _esquema_json(idiomas: tuple[Language, ...], huecos: tuple[str, ...]) -> str
 class GapProposal:
     """The template with whatever could be placed, plus what to tell the user.
 
-    `about_me` is always usable: on any failure it is the text that came in,
-    untouched.
+    `about_me` is always usable: on any failure its template is the plain
+    text that came in, untouched.
     """
 
     about_me: AboutMe
@@ -167,9 +219,9 @@ def suggest_gaps(cliente: AIClient, sobre_mi: AboutMe, skills: list[Skill]) -> G
     language written there is no pairing to ask for, so the request and the
     prompt drop it — see `_system_prompt`.
     """
-    idiomas = tuple(idioma for idioma in LANGUAGES if sobre_mi.template[idioma].strip())
+    idiomas = tuple(idioma for idioma in LANGUAGES if sobre_mi.plain_text[idioma].strip())
     if not idiomas:
-        return GapProposal(sobre_mi, [_("Escribe primero tu «Sobre mí» en los dos idiomas.")])
+        return GapProposal(sobre_mi)
     if not cliente.available():
         return GapProposal(
             sobre_mi, [_("No hay ninguna clave de API configurada. Ve a Ajustes.")]
@@ -194,22 +246,59 @@ def suggest_gaps(cliente: AIClient, sobre_mi: AboutMe, skills: list[Skill]) -> G
         )
 
     textos: dict[Language, str] = {}
-    avisos: list[str] = []
     for idioma in LANGUAGES:
-        original = sobre_mi.template[idioma]
-        # An empty language has nowhere to place a fragment — not the same
-        # as the model failing to find one in real text.
-        if not original.strip():
-            textos[idioma] = original
-            continue
-        texto, sin_colocar = place(
-            original,
+        # An unplaced gap needs no handling: it is just not in the template.
+        textos[idioma], _sin_colocar = place(
+            sobre_mi.plain_text[idioma],
             {hueco: pareja[idioma] for hueco, pareja in fragmentos.items()},
         )
-        textos[idioma] = texto
-        if sin_colocar:
-            avisos.append(_aviso_sin_colocar(idioma, sin_colocar))
-    return GapProposal(AboutMe(template=Bilingual(es=textos["es"], en=textos["en"])), avisos)
+    return GapProposal(
+        AboutMe(template=Bilingual(es=textos["es"], en=textos["en"]), plain_text=sobre_mi.plain_text)
+    )
+
+
+def derive_template(
+    cliente: AIClient | None,
+    texto: Bilingual[str],
+    anterior: AboutMe | None,
+    skills: list[Skill],
+) -> GapProposal:
+    """The `AboutMe` to save for the plain text the user submitted.
+
+    Text identical to what was already saved keeps its template and costs
+    no call. That also protects a profile saved before `plain_text` existed:
+    its plain text is a stand-in (`model.strip_gaps`), and saving it
+    unchanged must not replace a template the user built by hand with one
+    derived from a text full of ellipses.
+
+    A template that never got its gaps (no provider at the time, or a
+    failed call) is retried on the next save even if the text is the same.
+    Without a client the text itself is the template: a CV with the user's
+    own words and no skills inserted, never a broken gap.
+    """
+    if anterior is not None and anterior.plain_text == texto and _has_gaps(anterior):
+        return GapProposal(anterior)
+    sin_huecos = AboutMe(template=texto, plain_text=texto)
+    if not any(texto[idioma].strip() for idioma in LANGUAGES):
+        return GapProposal(sin_huecos)
+    if cliente is None:
+        return GapProposal(
+            sin_huecos,
+            [
+                _(
+                    "Tu «Sobre mí» se ha guardado tal cual, sin skills de la vacante dentro, "
+                    "porque no hay ningún proveedor de IA disponible. Cuando lo configures en "
+                    "Ajustes, vuelve a guardarlo."
+                )
+            ],
+        )
+    return suggest_gaps(cliente, sin_huecos, skills)
+
+
+def _has_gaps(sobre_mi: AboutMe) -> bool:
+    return any(
+        hueco in sobre_mi.template[idioma] for hueco in sobre_mi.gaps() for idioma in LANGUAGES
+    )
 
 
 def place(texto: str, fragmentos: dict[str, str]) -> tuple[str, list[str]]:
@@ -226,9 +315,8 @@ def place(texto: str, fragmentos: dict[str, str]) -> tuple[str, list[str]]:
     that retyped a hyphen or dropped a line break still cannot put a single
     character of its own into the result.
 
-    A gap already present in the text is left where the user put it: this
-    screen's manual marking and this proposal edit the same field, and the
-    proposal never moves what has already been decided by hand.
+    A gap already present in the text is left where it is and not placed a
+    second time.
     """
     resultado = texto
     sin_colocar: list[str] = []
@@ -252,7 +340,7 @@ _ETIQUETA_IDIOMA = {"es": "ES", "en": "EN"}
 
 def _request(sobre_mi: AboutMe, skills: list[Skill], idiomas: tuple[Language, ...]) -> str:
     partes = [
-        f"Sobre mí ({_ETIQUETA_IDIOMA[idioma]}):\n{_trim(sobre_mi.template[idioma])}"
+        f"Sobre mí ({_ETIQUETA_IDIOMA[idioma]}):\n{_trim(sobre_mi.plain_text[idioma])}"
         for idioma in idiomas
     ]
     nombres = _skill_names(skills)
@@ -322,11 +410,3 @@ def _bilingual(datos: object, idiomas: tuple[Language, ...]) -> Bilingual[str]:
 def _other(idioma: Language) -> Language:
     return "en" if idioma == "es" else "es"
 
-
-def _aviso_sin_colocar(idioma: Language, huecos: list[str]) -> str:
-    return _(
-        "En %(idioma)s no se han podido colocar estos huecos: %(huecos)s. "
-        "Márcalos tú: selecciona las palabras y pulsa el botón del hueco.",
-        idioma=language_name(idioma),
-        huecos=", ".join(huecos),
-    )

@@ -15,7 +15,7 @@ from flask import flash, redirect, render_template, request, url_for
 from flask_babel import gettext as _
 
 from ancla.ai.client import AIError
-from ancla.profile import store, importer, gaps, translation, validation
+from ancla.profile import gaps, importer, store, translation, validation
 from ancla.profile.extraction import ExtractionError, extract_text
 from ancla.profile.model import (
     LANGUAGES,
@@ -66,15 +66,15 @@ def import_cv():
     sobre_mi = resultado.sobre_mi
     avisos = list(resultado.avisos)
     if sobre_mi is not None:
-        # Same accelerator as the manual "About me" editor
-        # (`suggest_about_me_gaps`), called automatically here so the
-        # review screen shows the huecos already placed instead of a raw
-        # paragraph. Both the profile's existing technical skills and the
-        # ones this same CV just proposed are offered: a paragraph copied
-        # from the CV can equally reference a skill already saved from a
-        # previous import or one this one is proposing for the first time,
-        # and `gaps.py` already deduplicates names on its own.
-        propuesta = gaps.suggest_gaps(cliente, sobre_mi, resultado.skills + perfil.skills)
+        # Derived now, with the client already at hand, so saving the
+        # review unchanged reuses this template instead of calling again
+        # (`gaps.derive_template`). Both the profile's existing technical
+        # skills and the ones this same CV just proposed are offered: a
+        # paragraph copied from the CV can equally reference either, and
+        # `gaps.py` already deduplicates names on its own.
+        propuesta = gaps.derive_template(
+            cliente, sobre_mi.plain_text, None, resultado.skills + perfil.skills
+        )
         sobre_mi = propuesta.about_me
         avisos += propuesta.avisos
 
@@ -149,15 +149,40 @@ def _contact_from_form(form, importacion: modulo_importacion.ImportBatch) -> tup
 
 def _about_me_from_form(form, importacion: modulo_importacion.ImportBatch) -> AboutMe | None:
     """`None` when nothing was proposed — there is no card and no fields on
-    the review screen to read edits from."""
-    if importacion.sobre_mi is None:
+    the review screen to read edits from.
+
+    The template derived at import time is kept if the text was not edited;
+    an edited text gets its gaps placed again, the same as in the "About
+    me" editor.
+    """
+    anterior = importacion.sobre_mi
+    if anterior is None:
         return None
-    return AboutMe(
-        template=Bilingual(
-            es=form.get("sobre-mi-plantilla_es", importacion.sobre_mi.template["es"]),
-            en=form.get("sobre-mi-plantilla_en", importacion.sobre_mi.template["en"]),
-        )
+    texto = Bilingual(
+        es=form.get("sobre-mi-texto_es", anterior.plain_text["es"]),
+        en=form.get("sobre-mi-texto_en", anterior.plain_text["en"]),
     )
+    cliente = None
+    if texto != anterior.plain_text:
+        cliente = _profile_ai_client()
+    perfil = context.current_profile()
+    derivado = gaps.derive_template(cliente, texto, anterior, importacion.skills + perfil.skills)
+    for aviso in derivado.avisos:
+        flash(aviso)
+    return derivado.about_me
+
+
+def _profile_ai_client():
+    """The configured provider, or `None` — saving the review must go
+    through even if it is gone by now (`gaps.derive_template` explains the
+    consequence to the user)."""
+    ajustes = context.current_settings()
+    if not ajustes.configured():
+        return None
+    try:
+        return create_client(ajustes.proveedor, ajustes.clave_api, ajustes.url_base, ajustes.modelo)
+    except AIError:
+        return None
 
 
 @bp.route("/perfil/importar/guardar", methods=["POST"])

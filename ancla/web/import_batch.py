@@ -21,6 +21,7 @@ from ancla.profile.model import (
     Language,
     Skill,
     SpokenLanguage,
+    strip_gaps,
 )
 
 NOMBRE_FICHERO = ".importacion.json"
@@ -161,7 +162,16 @@ def _to_education(datos: dict) -> Education:
 
 
 def _to_about_me(datos: dict | None) -> AboutMe | None:
-    return AboutMe(template=Bilingual(**datos["template"])) if datos else None
+    """A batch written before `plain_text` existed falls back the same way
+    a profile file does (`serialization.parse_about_me`)."""
+    if not datos:
+        return None
+    template = Bilingual(**datos["template"])
+    if "plain_text" in datos:
+        plain_text = Bilingual(**datos["plain_text"])
+    else:
+        plain_text = Bilingual(es=strip_gaps(template.es), en=strip_gaps(template.en))
+    return AboutMe(template=template, plain_text=plain_text)
 
 
 def _to_language(datos: dict) -> SpokenLanguage:

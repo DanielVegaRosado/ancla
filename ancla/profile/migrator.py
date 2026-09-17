@@ -34,7 +34,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from ancla.profile import store, validation
-from ancla.profile.model import AboutMe, Bilingual, Experience, Skill
+from ancla.profile.model import AboutMe, Bilingual, Experience, Skill, strip_gaps
 from ancla.profile.serialization import split_period
 
 CARPETA_EXPERIENCIA_ORIGEN = "relevant_experience"
@@ -185,8 +185,12 @@ def _migrate_about_me(
     # The file opens with a paragraph of instructions that is not a field;
     # it is ignored on its own, because none of its lines look like "KEY: value".
     campos = _read_fields(fichero)
+    # The legacy file already has its gaps written in, so the plain text is
+    # the same stand-in a profile saved before `plain_text` gets on load.
+    es, en = campos.get("ES", ""), campos.get("EN", "")
     sobre_mi = AboutMe(
-        template=Bilingual(es=campos.get("ES", ""), en=campos.get("EN", ""))
+        template=Bilingual(es=es, en=en),
+        plain_text=Bilingual(es=strip_gaps(es), en=strip_gaps(en)),
     )
     ruta = store.about_me_path(destino)
     if not _can_write(ruta, sobrescribir, informe, fichero):

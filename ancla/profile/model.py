@@ -13,6 +13,7 @@ system selects and orders; it never invents new content.
 """
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass, field
 from datetime import date, time
 from enum import Enum
@@ -198,9 +199,16 @@ class AboutMe:
     specific technologies) gaps. It is the only part of the CV where the
     system composes text, and even then it is limited to inserting existing
     skill names.
+
+    `plain_text` is what the user wrote and the only thing they ever see or
+    edit. `template` is derived from it (`profile/gaps.derive_template`) by
+    swapping a few of its fragments for gaps, and is what `render` fills.
+    Both are stored because a gap cannot be turned back into the words it
+    replaced.
     """
 
     template: Bilingual[str]
+    plain_text: Bilingual[str] = field(default_factory=lambda: Bilingual(es="", en=""))
 
     # There is only ever one "About me", but the screens and routes that
     # flag and translate a bilingual entry address it by id like any other.
@@ -226,6 +234,17 @@ class AboutMe:
         for n, value in enumerate(group_b, start=1):
             text = text.replace(f"{{GROUP_B_{n}}}", value)
         return text
+
+
+GAP_PATTERN = re.compile(r"\{GROUP_[A-Z]_\d+\}")
+
+
+def strip_gaps(template: str) -> str:
+    """A readable stand-in for the words a gap replaced, for profiles saved
+    before `AboutMe.plain_text` existed. The words themselves are lost, so
+    each gap becomes an ellipsis: it reads as "something goes here", where
+    simply deleting it leaves sentences like "expert in  and ,"."""
+    return GAP_PATTERN.sub("…", template)
 
 
 @dataclass(frozen=True)

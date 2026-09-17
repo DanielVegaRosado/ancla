@@ -21,7 +21,6 @@ from ancla.ai.client import AIClient
 from ancla.profile import bullets, gaps, keywords, store, translation, validation
 from ancla.profile.model import (
     LANGUAGES,
-    N_ABOUT_ME_GROUP,
     SKILL_LEVELS,
     AboutMe,
     Bilingual,
@@ -796,18 +795,14 @@ def photo_file():
     return send_file(ruta)
 
 
-def _render_about_me_form(sobre_mi: AboutMe | None, errors: list[str]):
-    """The six gaps reach the screen from `AboutMe` itself, never written
-    out again here: they are typed character for character, and a help text
-    naming them differently from what the system accepts leaves the user
-    unable to save."""
-    huecos = (sobre_mi or AboutMe(template=Bilingual(es="", en=""))).gaps()
+def _render_about_me_form(texto: Bilingual[str] | None, errors: list[str]):
+    """Only ever shows the plain text: the template with its gaps is an
+    internal detail the user never sees (`profile/gaps.py`)."""
     return render_template(
         "about_me_form.html",
-        sobre_mi=sobre_mi,
+        sobre_mi=context.current_profile().about_me,
+        texto=texto,
         errors=errors,
-        huecos_a=huecos[:N_ABOUT_ME_GROUP],
-        huecos_b=huecos[N_ABOUT_ME_GROUP:],
         **_translation_extras(),
     )
 
@@ -816,46 +811,24 @@ def _render_about_me_form(sobre_mi: AboutMe | None, errors: list[str]):
 def edit_about_me():
     perfil = context.current_profile()
     if request.method == "GET":
-        return _render_about_me_form(perfil.about_me, [])
+        return _render_about_me_form(perfil.about_me.plain_text if perfil.about_me else None, [])
 
     f = request.form
-    sobre_mi = AboutMe(template=Bilingual(es=f.get("plantilla_es", ""), en=f.get("plantilla_en", "")))
-    problemas = validation.validate_about_me(sobre_mi)
+    texto = Bilingual(es=f.get("texto_es", ""), en=f.get("texto_en", ""))
+    problemas = validation.validate_about_me(AboutMe(template=texto, plain_text=texto))
     if problemas.errors:
-        return _render_about_me_form(sobre_mi, problemas.errors)
+        return _render_about_me_form(texto, problemas.errors)
 
-    store.save_about_me(context.root(), sobre_mi)
-    flash(_("Plantilla de «Sobre mí» guardada."))
-    _flash_warnings(problemas.warnings)
+    # Only asked for when the text needs its gaps placed: saving an
+    # unchanged text should work even with the provider down.
+    cliente = None
+    if perfil.about_me is None or perfil.about_me.plain_text != texto:
+        cliente, _motivo = _ai_client()
+    derivado = gaps.derive_template(cliente, texto, perfil.about_me, perfil.skills)
+    store.save_about_me(context.root(), derivado.about_me)
+    flash(_("«Sobre mí» guardado."))
+    _flash_warnings(problemas.warnings + derivado.avisos)
     return redirect(url_for("ancla.view_profile"))
-
-
-@bp.route("/perfil/sobre-mi/huecos", methods=["POST"])
-def suggest_about_me_gaps():
-    """Proposes where the six gaps go over the text already in the form.
-
-    Only the technical skills are passed on: personal skills and spoken
-    languages never reach a prompt. Always returns 200 with a usable
-    template — the one that came in, if nothing could be proposed — because
-    marking the gaps by hand is the way this screen is completed, and this
-    is only the accelerator on top of it.
-    """
-    datos = request.get_json(silent=True) or {}
-    sobre_mi = AboutMe(
-        template=Bilingual(es=datos.get("plantilla_es", ""), en=datos.get("plantilla_en", ""))
-    )
-    cliente, motivo = _ai_client()
-    if cliente is None:
-        return jsonify({"plantilla_es": sobre_mi.template["es"], "plantilla_en": sobre_mi.template["en"], "avisos": [motivo]})
-
-    propuesta = gaps.suggest_gaps(cliente, sobre_mi, context.current_profile().skills)
-    return jsonify(
-        {
-            "plantilla_es": propuesta.about_me.template["es"],
-            "plantilla_en": propuesta.about_me.template["en"],
-            "avisos": propuesta.avisos,
-        }
-    )
 
 
 @bp.route("/perfil/exportar-zip")

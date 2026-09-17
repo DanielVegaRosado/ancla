@@ -670,64 +670,98 @@ def test_la_propuesta_enlaza_a_plantillas_junto_a_copiar_todo(cliente_web, tmp_p
 # --------------------------------------------------------------------------
 
 
-def test_la_ayuda_del_sobre_mi_nombra_los_huecos_que_el_sistema_reconoce(cliente_web):
-    """The gaps are written in two places —`modelo.py` and this form's help
-    text— and the user has to type them by hand, character for character.
-    They drifted apart once (the help said `{GRUPO_A_1}`, the system only
-    accepted `{GROUP_A_1}`), which left anyone following the on-screen
-    instructions unable to save. This ties the two together."""
+def test_la_pantalla_del_sobre_mi_no_ensena_ningun_hueco(cliente_web):
+    """The user writes a normal paragraph; the gap syntax is internal and
+    must not appear anywhere on the screen, not even in the help."""
     html = cliente_web.get("/perfil/sobre-mi").data.decode("utf-8")
 
-    for hueco in AboutMe(template=Bilingual(es="", en="")).gaps():
-        assert hueco in html
+    assert "GROUP_" not in html
+    assert "data-hueco" not in html
+    assert "about_me.js" not in html
 
 
-def test_el_sobre_mi_escrito_siguiendo_la_ayuda_se_guarda(cliente_web, tmp_path: Path):
-    """The path of someone starting with an empty profile: they read the
-    help, copy the gaps as shown, and save."""
-    plantilla = (
-        "Desarrollador con base en {GROUP_A_1}, {GROUP_A_2} y {GROUP_A_3}, "
-        "que trabaja con {GROUP_B_1}, {GROUP_B_2} y {GROUP_B_3}."
+def test_un_perfil_antiguo_ve_su_texto_sin_marcadores(cliente_web, tmp_path: Path):
+    """A profile saved before plain text existed only has the template: the
+    form shows it with each gap turned into an ellipsis."""
+    raiz = tmp_path / "perfil"
+    raiz.mkdir(parents=True, exist_ok=True)
+    store.about_me_path(raiz).write_text(
+        "template:\n  es: Experto en {GROUP_A_1} con {GROUP_B_1}.\n  en: Expert in {GROUP_A_1}.\n",
+        encoding="utf-8",
+    )
+
+    html = cliente_web.get("/perfil/sobre-mi").data.decode("utf-8")
+
+    assert "GROUP_" not in html
+    assert "Experto en … con …." in html
+
+
+def _cliente_ia(monkeypatch, cliente_web, respuesta: str, peticiones: list[str]):
+    import ancla.web.views.profile as vista_perfil
+
+    class ClienteEspia:
+        def available(self):
+            return True
+
+        def complete(self, sistema, usuario):
+            peticiones.append(sistema + "\n" + usuario)
+            return respuesta
+
+    cliente_web.post("/ajustes", data={"proveedor": "groq", "clave_api": "gsk_test123"})
+    monkeypatch.setattr(vista_perfil, "create_client", lambda *args, **kwargs: ClienteEspia())
+
+
+def test_guardar_texto_plano_deriva_la_plantilla(cliente_web, monkeypatch, tmp_path: Path):
+    peticiones: list[str] = []
+    _cliente_ia(
+        monkeypatch,
+        cliente_web,
+        json.dumps({"GROUP_B_1": {"es": "Python", "en": "Python"}}),
+        peticiones,
     )
 
     respuesta = cliente_web.post(
         "/perfil/sobre-mi",
-        data={"plantilla_es": plantilla, "plantilla_en": plantilla},
+        data={"texto_es": "Trabajo con Python.", "texto_en": "I work with Python."},
     )
 
     assert respuesta.status_code == 302
-    assert store.load_profile(tmp_path / "perfil").about_me.template["es"] == plantilla
+    sobre_mi = store.load_profile(tmp_path / "perfil").about_me
+    assert sobre_mi.plain_text == Bilingual(es="Trabajo con Python.", en="I work with Python.")
+    assert sobre_mi.template == Bilingual(es="Trabajo con {GROUP_B_1}.", en="I work with {GROUP_B_1}.")
+    assert len(peticiones) == 1
 
-
-def test_la_pantalla_del_sobre_mi_trae_un_boton_por_hueco(cliente_web):
-    """The no-AI path: the six gaps are marked by selecting text and pressing
-    their button, no API key and no call involved. That's what guarantees the
-    screen can be completed even with no provider configured."""
+    # Opening the form again shows the words, never the gap.
     html = cliente_web.get("/perfil/sobre-mi").data.decode("utf-8")
+    assert "Trabajo con Python." in html
+    assert "GROUP_" not in html
 
-    for hueco in AboutMe(template=Bilingual(es="", en="")).gaps():
-        assert f'data-hueco="{hueco}"' in html
+    # Saving the same text again does not call the model a second time.
+    cliente_web.post(
+        "/perfil/sobre-mi",
+        data={"texto_es": "Trabajo con Python.", "texto_en": "I work with Python."},
+    )
+    assert len(peticiones) == 1
+    assert store.load_profile(tmp_path / "perfil").about_me.template == sobre_mi.template
 
 
-def test_proponer_huecos_sin_clave_devuelve_el_texto_intacto_y_avisa(cliente_web):
+def test_guardar_sin_clave_guarda_el_texto_tal_cual_y_avisa(cliente_web, tmp_path: Path):
     respuesta = cliente_web.post(
-        "/perfil/sobre-mi/huecos",
-        json={"plantilla_es": "Trabajo con Python.", "plantilla_en": "I work with Python."},
+        "/perfil/sobre-mi",
+        data={"texto_es": "Trabajo con Python.", "texto_en": "I work with Python."},
+        follow_redirects=True,
     )
 
-    assert respuesta.status_code == 200
-    datos = respuesta.get_json()
-    assert datos["plantilla_es"] == "Trabajo con Python."
-    assert datos["avisos"]
+    sobre_mi = store.load_profile(tmp_path / "perfil").about_me
+    assert sobre_mi.template == sobre_mi.plain_text
+    assert "Ajustes".encode() in respuesta.data
 
 
-def test_proponer_huecos_no_le_ensena_al_modelo_skills_personales_ni_idiomas(
+def test_guardar_el_sobre_mi_no_le_ensena_al_modelo_skills_personales_ni_idiomas(
     cliente_web, monkeypatch, tmp_path: Path
 ):
     """Rule 7 checked on the real path, not just assumed: neither of the two
     separate catalogs can reach any prompt."""
-    import ancla.web.views.profile as vista_perfil
-
     cliente_web.post(
         "/perfil/skills-personales/nueva",
         data={"nombre_es": "Trabajo en equipo", "nombre_en": "Teamwork", "keywords": "team"},
@@ -746,38 +780,24 @@ def test_proponer_huecos_no_le_ensena_al_modelo_skills_personales_ni_idiomas(
         "/perfil/skills/nueva",
         data={"nombre_es": "Python", "nombre_en": "Python", "categoria_es": "lenguaje", "categoria_en": "language", "keywords": "python"},
     )
-    cliente_web.post("/ajustes", data={"proveedor": "groq", "clave_api": "gsk_test123"})
-
     perfil = store.load_profile(tmp_path / "perfil")
     assert perfil.personal_skills and perfil.languages and perfil.skills
 
     peticiones: list[str] = []
-
-    class ClienteEspia:
-        def available(self):
-            return True
-
-        def complete(self, sistema, usuario):
-            peticiones.append(sistema + "\n" + usuario)
-            return "{}"
-
-    monkeypatch.setattr(
-        vista_perfil, "create_client", lambda *args, **kwargs: ClienteEspia()
-    )
+    _cliente_ia(monkeypatch, cliente_web, "{}", peticiones)
 
     cliente_web.post(
-        "/perfil/sobre-mi/huecos",
-        json={
-            "plantilla_es": "Trabajo con Python.",
-            "plantilla_en": "I work with Python.",
-        },
+        "/perfil/sobre-mi",
+        data={"texto_es": "Trabajo con Python.", "texto_en": "I work with Python."},
     )
 
     assert peticiones, "no se ha llegado a llamar al modelo"
-    enviado = peticiones[0]
+    # The worked example in the system prompt mentions Python too, so look
+    # at the request part only.
+    enviado = peticiones[0].split("Skills técnicas de esta persona:")[-1]
     assert "Python" in enviado
     for prohibido in ("Trabajo en equipo", "Teamwork", "Alemán", "German"):
-        assert prohibido not in enviado
+        assert prohibido not in peticiones[0]
 
 
 # --------------------------------------------------------------------------
@@ -1326,7 +1346,10 @@ def test_el_sobre_mi_sin_ingles_se_marca_y_ofrece_traducirlo(cliente_web, tmp_pa
     user only discovers it's missing when reading an English CV with an empty
     block."""
     store.save_about_me(
-        tmp_path / "perfil", AboutMe(template=Bilingual(es="Desarrollador de {GROUP_A_1}.", en=""))
+        tmp_path / "perfil", AboutMe(
+            template=Bilingual(es="Desarrollador de {GROUP_A_1}.", en=""),
+            plain_text=Bilingual(es="Desarrollador de backend.", en=""),
+        )
     )
 
     for ruta in ("/perfil", "/perfil/sobre-mi"):

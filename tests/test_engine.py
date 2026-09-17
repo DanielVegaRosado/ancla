@@ -116,7 +116,11 @@ def _perfil() -> Profile:
                     "Engineer interested in {GROUP_A_1}, {GROUP_A_2} and {GROUP_A_3}. "
                     "I work with {GROUP_B_1}, {GROUP_B_2} and {GROUP_B_3}."
                 ),
-            )
+            ),
+            plain_text=Bilingual(
+                es="Ingeniero con interés en datos y backend. Trabajo con Python.",
+                en="Engineer interested in data and backend. I work with Python.",
+            ),
         ),
     )
 
@@ -310,7 +314,7 @@ def test_el_sobre_mi_usa_el_nombre_en_el_idioma_del_cv():
     assert "Machine learning" not in propuesta.about_me.text
 
 
-def test_sin_skills_suficientes_deja_la_plantilla_a_la_vista():
+def test_sin_skills_suficientes_deja_el_texto_del_usuario_sin_huecos():
     base = _perfil()
     perfil = Profile(
         experiences=base.experiences,
@@ -318,7 +322,10 @@ def test_sin_skills_suficientes_deja_la_plantilla_a_la_vista():
         about_me=base.about_me,
     )
     propuesta, _ = _adaptar(perfil=perfil)
-    assert "{GROUP_A_3}" in propuesta.about_me.text
+    # The user never sees gap syntax, so none can reach the CV either: their
+    # own words go out as written.
+    assert "{GROUP_" not in propuesta.about_me.text
+    assert propuesta.about_me.text == perfil.about_me.plain_text["es"]
     assert "skills" in propuesta.about_me.reason
 
 

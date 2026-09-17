@@ -65,17 +65,17 @@
           {% if 'es' in importacion.written %}
           <div class="campo">
             <label>{{ _('Sobre mí (ES)') }}</label>
-            <textarea name="sobre-mi-plantilla_es" class="alta">{{ importacion.sobre_mi.template['es'] }}</textarea>
+            <textarea name="sobre-mi-texto_es" class="alta">{{ importacion.sobre_mi.plain_text['es'] }}</textarea>
           </div>
           {% endif %}
           {% if 'en' in importacion.written %}
           <div class="campo">
             <label>{{ _('Sobre mí (EN)') }}</label>
-            <textarea name="sobre-mi-plantilla_en" class="alta">{{ importacion.sobre_mi.template['en'] }}</textarea>
+            <textarea name="sobre-mi-texto_en" class="alta">{{ importacion.sobre_mi.plain_text['en'] }}</textarea>
           </div>
           {% endif %}
           <p class="ayuda">
-            {{ _('El texto es tal cual lo escribiste en el CV, con los huecos de skills que se hayan podido colocar. Si a alguno le falta un hueco, termínalo a mano después desde «Editar Sobre mí», donde puedes seleccionar palabras y marcarlas.') }}
+            {{ _('El texto es tal cual lo escribiste en el CV. Puedes retocarlo aquí o más tarde desde «Sobre mí».') }}
           </p>
         </div>
       </div>

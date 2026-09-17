@@ -46,7 +46,7 @@ from ancla.profile.model import (
     Skill,
 )
 from ancla.selection.prompt import build_messages
-from ancla.text import to_text, json_block, normalize
+from ancla.text import json_block, normalize, to_text
 
 # Text the user sees when the model leaves something half-done. Stated
 # plainly instead of glossed over: the proposal is there to be reviewed,
@@ -326,8 +326,8 @@ def _compose_about_me(
         texto = perfil.about_me.render(grupo_a, grupo_b, idioma)
     else:
         # Without enough skills there is nothing honest to put in the gaps,
-        # so the template is left as-is and the reason says why.
-        texto = perfil.about_me.template[idioma]
+        # so the user's own text goes out as written and the reason says why.
+        texto = perfil.about_me.plain_text[idioma]
         motivo = f"{motivo} {AVISO_SOBRE_MI_INCOMPLETO}"
     return SelectedAboutMe(
         group_a=grupo_a, group_b=grupo_b, text=texto, reason=motivo

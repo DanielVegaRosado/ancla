@@ -27,7 +27,6 @@ CONTRACT — implemented by agent A.
 """
 from __future__ import annotations
 
-import re
 from dataclasses import dataclass, field
 
 from flask_babel import gettext as _
@@ -50,9 +49,6 @@ def language_name(idioma: Language) -> str:
     # call (the current request's language), not once at import time.
     return {"es": _("español"), "en": _("inglés")}[idioma]
 
-
-# Any {THING} written in the "About me" template.
-_HUECO = re.compile(r"\{[^{}]*\}")
 
 
 
@@ -79,7 +75,7 @@ class Issues:
         """Everything found, for a report that only lists and never blocks."""
         return [*self.errors, *self.warnings]
 
-    def __add__(self, otros: "Issues") -> "Issues":
+    def __add__(self, otros: Issues) -> Issues:
         return Issues(self.errors + otros.errors, self.warnings + otros.warnings)
 
 
@@ -351,50 +347,20 @@ def validate_education(educacion: Education) -> Issues:
 
 
 def validate_about_me(sobre_mi: AboutMe) -> Issues:
-    """Checks that the template has all 6 gaps in each language it is written in."""
-    problemas: list[str] = []
-    huecos = set(sobre_mi.gaps())
-    escritos = written_languages(sobre_mi.template)
-
-    # Empty in both languages is not an error: the user clearing it on
-    # purpose (there is no "cancel" on this form, only "save") has to
-    # go through — the missing-language warning below already covers it.
-    for idioma in escritos:
-        nombre = language_name(idioma)
-        texto = sobre_mi.template[idioma]
-
-        faltan = [hueco for hueco in sobre_mi.gaps() if hueco not in texto]
-        if faltan:
-            problemas.append(
-                _(
-                    "Al «Sobre mí» en %(nombre)s le faltan estos huecos: %(huecos)s. "
-                    "Escríbelos tal cual donde quieras que entren las skills elegidas.",
-                    nombre=nombre, huecos=", ".join(faltan),
-                )
-            )
-        # A {GROUP_A_4} or a {GROUP_C_1} would be left in the final CV as
-        # written, and the user would only ever see that by reading the output.
-        desconocidos = sorted(set(_HUECO.findall(texto)) - huecos)
-        if desconocidos:
-            problemas.append(
-                _(
-                    "El «Sobre mí» en %(nombre)s tiene huecos que el sistema no sabe "
-                    "rellenar: %(desconocidos)s. Los válidos son: %(validos)s.",
-                    nombre=nombre,
-                    desconocidos=", ".join(desconocidos),
-                    validos=", ".join(sobre_mi.gaps()),
-                )
-            )
-
+    """Never an error: the user writes plain text, and the gaps are placed
+    for them (`profile/gaps.py`) — one that could not be placed just leaves
+    that skill out. Empty in both languages is allowed too: the user
+    clearing it on purpose (there is no "cancel" on this form, only "save")
+    has to go through, and the warning below already covers it."""
     avisos = [
         _(
             "El «Sobre mí» todavía no está en %(nombre)s. Escríbelo cuando vayas a "
             "generar un CV en ese idioma.",
             nombre=language_name(idioma),
         )
-        for idioma in missing_languages(sobre_mi.template)
+        for idioma in missing_languages(sobre_mi.plain_text)
     ]
-    return Issues(problemas, avisos)
+    return Issues([], avisos)
 
 
 def validate_profile(perfil: Profile) -> Issues:

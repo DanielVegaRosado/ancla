@@ -43,7 +43,8 @@ class ClienteFalso:
 
 
 def _sobre_mi(es: str = SOBRE_MI_ES, en: str = SOBRE_MI_EN) -> AboutMe:
-    return AboutMe(template=Bilingual(es=es, en=en))
+    texto = Bilingual(es=es, en=en)
+    return AboutMe(template=texto, plain_text=texto)
 
 
 def _respuesta_completa() -> str:
@@ -173,7 +174,7 @@ def test_con_los_dos_idiomas_la_peticion_y_el_esquema_no_cambian():
     assert '"GROUP_A_1": {\n    "es": "",\n    "en": ""\n  }' in sistema
 
 
-def test_un_fragmento_que_no_esta_literal_se_descarta_y_se_avisa():
+def test_un_fragmento_que_no_esta_literal_se_descarta_sin_avisar():
     """The guarantee behind rule 2: the model can't insert its own text, only
     point at pieces of the user's text. A rewritten fragment («machine
     learning» where the user wrote «aprendizaje automático») finds nowhere to
@@ -186,10 +187,9 @@ def test_un_fragmento_que_no_esta_literal_se_descarta_y_se_avisa():
     assert "aprendizaje automático" in texto_es
     assert "{GROUP_A_1}" not in texto_es
     assert "machine learning aplicado" not in texto_es
-    assert len(propuesta.avisos) == 1
-    assert "GROUP_A_1" in propuesta.avisos[0]
-    # The rest is placed regardless: discarding the five good ones over one bad
-    # one would leave the user at the exact wall this screen exists to remove.
+    # The user never sees gaps, so there is nothing to tell them: that skill
+    # is just not inserted there. The rest is placed regardless.
+    assert propuesta.avisos == []
     assert "{GROUP_B_3}" in texto_es
     assert "{GROUP_A_1}" in propuesta.about_me.template["en"]
 
@@ -400,3 +400,114 @@ def test_un_cliente_que_no_entiende_el_presupuesto_se_llama_igual():
     propuesta = gaps.suggest_gaps(cliente, _sobre_mi(), [])
 
     assert propuesta.about_me.template["es"] != SOBRE_MI_ES
+
+
+# --------------------------------------------------------------------------
+# Worked example in the prompt
+# --------------------------------------------------------------------------
+
+
+def test_el_prompt_trae_un_ejemplo_resuelto_con_los_seis_huecos():
+    sistema = gaps._system_prompt(("es", "en"), _sobre_mi().gaps())
+    assert "Ejemplo" in sistema
+    assert '"es": "arquitectura cloud"' in sistema
+    assert '"en": "cloud architecture"' in sistema
+    for hueco in _sobre_mi().gaps():
+        assert f'"{hueco.strip("{}")}"' in sistema
+
+
+def test_con_un_solo_idioma_el_ejemplo_tiene_la_forma_de_un_solo_idioma():
+    sistema = gaps._system_prompt(("en",), _sobre_mi().gaps())
+    assert '"GROUP_A_3": "cloud architecture"' in sistema
+    assert "arquitectura cloud" not in sistema
+
+
+def test_cada_fragmento_del_ejemplo_esta_literal_en_su_texto():
+    """An example whose fragments do not match its own text would teach the
+    model exactly what the literal rule forbids."""
+    for idioma, texto in gaps._EJEMPLO_TEXTO.items():
+        _colocado, sin_colocar = gaps.place(
+            texto, {h: p[idioma] for h, p in gaps._EJEMPLO_RESPUESTA.items()}
+        )
+        assert sin_colocar == []
+
+
+# --------------------------------------------------------------------------
+# derive_template: plain text in, template out
+# --------------------------------------------------------------------------
+
+TEXTO = Bilingual(es=SOBRE_MI_ES, en=SOBRE_MI_EN)
+
+
+def test_derivar_desde_texto_plano_coloca_los_huecos_y_conserva_el_texto():
+    propuesta = gaps.derive_template(ClienteFalso(_respuesta_completa()), TEXTO, None, [])
+
+    assert propuesta.about_me.plain_text == TEXTO
+    assert "{GROUP_A_1}" in propuesta.about_me.template["es"]
+    assert "{GROUP_B_3}" in propuesta.about_me.template["en"]
+    assert "aprendizaje automático" not in propuesta.about_me.template["es"]
+    assert propuesta.avisos == []
+
+
+def test_guardar_el_mismo_texto_no_vuelve_a_llamar_a_la_ia():
+    anterior = gaps.derive_template(ClienteFalso(_respuesta_completa()), TEXTO, None, []).about_me
+    cliente = ClienteFalso(_respuesta_completa())
+
+    propuesta = gaps.derive_template(cliente, TEXTO, anterior, [])
+
+    assert cliente.peticiones == []
+    assert propuesta.about_me is anterior
+
+
+def test_cambiar_el_texto_vuelve_a_derivar():
+    anterior = gaps.derive_template(ClienteFalso(_respuesta_completa()), TEXTO, None, []).about_me
+    cliente = ClienteFalso(_respuesta_completa())
+    nuevo = Bilingual(es=SOBRE_MI_ES + " Me gusta enseñar.", en=SOBRE_MI_EN)
+
+    propuesta = gaps.derive_template(cliente, nuevo, anterior, [])
+
+    assert len(cliente.peticiones) == 1
+    assert propuesta.about_me.plain_text == nuevo
+    assert propuesta.about_me.template["es"].endswith("Me gusta enseñar.")
+
+
+def test_sin_cliente_se_guarda_el_texto_tal_cual_y_se_reintenta_despues():
+    sin_ia = gaps.derive_template(None, TEXTO, None, [])
+    assert sin_ia.about_me.template == TEXTO
+    assert sin_ia.avisos
+    assert not any("{" in aviso for aviso in sin_ia.avisos)
+
+    # Same text, provider now configured: the template never got its gaps,
+    # so this save is the one that places them.
+    cliente = ClienteFalso(_respuesta_completa())
+    propuesta = gaps.derive_template(cliente, TEXTO, sin_ia.about_me, [])
+    assert len(cliente.peticiones) == 1
+    assert "{GROUP_A_1}" in propuesta.about_me.template["es"]
+
+
+def test_un_texto_vacio_no_llama_ni_avisa():
+    cliente = ClienteFalso(_respuesta_completa())
+    vacio = Bilingual(es="", en="")
+    propuesta = gaps.derive_template(cliente, vacio, None, [])
+    assert cliente.peticiones == []
+    assert propuesta.avisos == []
+    assert propuesta.about_me.template == vacio
+
+
+def test_un_perfil_antiguo_guardado_sin_cambios_conserva_su_plantilla():
+    """A profile saved before `plain_text` existed shows its template with
+    the gaps turned into ellipses. Saving that unchanged must keep the
+    template the user built by hand, not re-derive from the ellipses."""
+    plantilla = Bilingual(
+        es="Experto en {GROUP_A_1} con {GROUP_B_1}.", en="Expert in {GROUP_A_1} with {GROUP_B_1}."
+    )
+    antiguo = AboutMe(
+        template=plantilla,
+        plain_text=Bilingual(es="Experto en … con ….", en="Expert in … with …."),
+    )
+    cliente = ClienteFalso(_respuesta_completa())
+
+    propuesta = gaps.derive_template(cliente, antiguo.plain_text, antiguo, [])
+
+    assert cliente.peticiones == []
+    assert propuesta.about_me.template == plantilla

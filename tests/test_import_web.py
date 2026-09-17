@@ -922,8 +922,12 @@ def _sobre_mi_con_huecos(idioma: str = "es") -> AboutMe:
     """A template with all six gaps already placed in the language it was
     imported in — the shape `analyze_cv` + `gaps.place` hand to the review
     screen when every fragment could be matched."""
+    otro = "en" if idioma == "es" else "es"
     huecos = " ".join(AboutMe(template=Bilingual(es="", en="")).gaps())
-    return AboutMe(template=Bilingual(**{idioma: f"Perfil con {huecos}.", "en" if idioma == "es" else "es": ""}))
+    return AboutMe(
+        template=Bilingual(**{idioma: f"Perfil con {huecos}.", otro: ""}),
+        plain_text=Bilingual(**{idioma: "Perfil con Python y Docker.", otro: ""}),
+    )
 
 
 def test_guardar_y_cargar_contacto_y_sobre_mi_hace_ida_y_vuelta(tmp_path: Path):
@@ -964,7 +968,8 @@ def test_revisar_muestra_el_contacto_y_el_sobre_mi(cliente_web, tmp_path: Path):
     html = respuesta.data.decode("utf-8")
     assert "Ana Ejemplo" in html
     assert "ana@ejemplo.com" in html
-    assert "Perfil con" in html
+    assert "Perfil con Python y Docker." in html
+    assert "GROUP_" not in html
 
 
 def test_revisar_sin_contacto_ni_sobre_mi_no_muestra_esas_tarjetas(cliente_web, tmp_path: Path):
@@ -1010,38 +1015,40 @@ def test_el_contacto_no_marcado_no_se_guarda(cliente_web, tmp_path: Path):
     assert store.load_profile(root).name == ""
 
 
-def test_guardar_el_sobre_mi_importado_con_los_huecos_ya_colocados(cliente_web, tmp_path: Path):
+def test_guardar_el_sobre_mi_importado_sin_tocar_reutiliza_su_plantilla(cliente_web, tmp_path: Path):
+    """The template was derived at import time: saving the review unchanged
+    keeps it, with no provider needed."""
     root = tmp_path / "perfil"
     sobre_mi = _sobre_mi_con_huecos()
     modulo_importacion.save_import(root, modulo_importacion.ImportBatch(sobre_mi=sobre_mi))
 
     cliente_web.post(
         "/perfil/importar/guardar",
-        data={"sobre-mi": "1", "sobre-mi-plantilla_es": sobre_mi.template["es"]},
+        data={"sobre-mi": "1", "sobre-mi-texto_es": sobre_mi.plain_text["es"]},
     )
 
     perfil = store.load_profile(root)
     assert perfil.about_me is not None
     assert perfil.about_me.template["es"] == sobre_mi.template["es"]
+    assert perfil.about_me.plain_text["es"] == sobre_mi.plain_text["es"]
 
 
-def test_un_sobre_mi_con_huecos_sin_colocar_no_se_guarda_pero_avisa(cliente_web, tmp_path: Path):
-    """Same treatment as the five list categories: a candidate that fails
-    validation is rejected, not written half-finished — here that means
-    finishing it by hand later from «Editar Sobre mí», which can mark the
-    remaining gaps over the same text."""
+def test_un_sobre_mi_importado_y_editado_sin_ia_se_guarda_tal_cual(cliente_web, tmp_path: Path):
+    """Editing the text drops the old template (it no longer matches); with
+    no provider to place the gaps again, the text itself is saved, never a
+    half-built template and never a validation error."""
     root = tmp_path / "perfil"
-    incompleto = AboutMe(template=Bilingual(es="Perfil con experiencia variada.", en=""))
-    modulo_importacion.save_import(root, modulo_importacion.ImportBatch(sobre_mi=incompleto))
+    modulo_importacion.save_import(root, modulo_importacion.ImportBatch(sobre_mi=_sobre_mi_con_huecos()))
 
-    respuesta = cliente_web.post(
+    cliente_web.post(
         "/perfil/importar/guardar",
-        data={"sobre-mi": "1", "sobre-mi-plantilla_es": incompleto.template["es"]},
+        data={"sobre-mi": "1", "sobre-mi-texto_es": "Perfil con experiencia variada."},
         follow_redirects=True,
     )
 
-    assert store.load_profile(root).about_me is None
-    assert "no se pudieron guardar".encode("utf-8") in respuesta.data
+    perfil = store.load_profile(root)
+    assert perfil.about_me.plain_text["es"] == "Perfil con experiencia variada."
+    assert perfil.about_me.template["es"] == "Perfil con experiencia variada."
 
 
 def test_el_sobre_mi_no_marcado_no_se_guarda(cliente_web, tmp_path: Path):

@@ -79,7 +79,6 @@ from ancla.ai.client import AIClient, AIError, complete_with_budget
 from ancla.profile import bullets as bullets_module
 from ancla.profile import extraction
 from ancla.profile.literal_match import locate
-from ancla.profile.serialization import split_period
 from ancla.profile.model import (
     AboutMe,
     Bilingual,
@@ -90,7 +89,8 @@ from ancla.profile.model import (
     Skill,
     SpokenLanguage,
 )
-from ancla.text import to_text, to_texts, json_block, normalize, slugify
+from ancla.profile.serialization import split_period
+from ancla.text import json_block, normalize, slugify, to_text, to_texts
 
 # How much room to declare for the response Groq is asked to admit — see
 # `ai.client.complete_with_budget`. This module reserves its own number
@@ -231,12 +231,10 @@ Responde ÚNICAMENTE con este JSON, sin texto alrededor ni bloques de código:
 # because the text is compared through `normalize`.
 _PISTAS_IDIOMA: dict[Language, frozenset[str]] = {
     "es": frozenset(
-        "de la el los las del que para con una por su y en como mas donde "
-        "experiencia formacion idiomas anos actualidad".split()
+        ["de", "la", "el", "los", "las", "del", "que", "para", "con", "una", "por", "su", "y", "en", "como", "mas", "donde", "experiencia", "formacion", "idiomas", "anos", "actualidad"]
     ),
     "en": frozenset(
-        "the of and to for with in on at from as experience skills education "
-        "languages years present".split()
+        ["the", "of", "and", "to", "for", "with", "in", "on", "at", "from", "as", "experience", "skills", "education", "languages", "years", "present"]
     ),
 }
 
@@ -536,7 +534,7 @@ def _rewritten_warnings(
         for experiencia in experiencias
         if any(locate(texto, bullet) is None for bullet in experiencia.bullets[idioma])
     ]
-    if sobre_mi is not None and locate(texto, sobre_mi.template[idioma]) is None:
+    if sobre_mi is not None and locate(texto, sobre_mi.plain_text[idioma]) is None:
         avisos.append(
             _(
                 "El «Sobre mí» no coincide palabra por palabra con tu CV: el modelo lo ha "
@@ -701,7 +699,9 @@ def _to_about_me(datos: object, idioma: Language) -> AboutMe | None:
     module never asks for the `{GROUP_A_*}`/`{GROUP_B_*}` gaps, that is
     `gaps.py`'s job once this text is back (see the module docstring)."""
     texto = _single_text(datos)
-    return AboutMe(template=_only(texto, idioma)) if texto.strip() else None
+    if not texto.strip():
+        return None
+    return AboutMe(template=_only(texto, idioma), plain_text=_only(texto, idioma))
 
 
 def _bilingual(datos: object, idioma: Language) -> Bilingual[str]:

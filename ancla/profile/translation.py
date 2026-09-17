@@ -61,7 +61,9 @@ from ancla.text import json_block, to_text, to_texts
 # purpose (technology and institution names are proper nouns), and
 # `keywords` are how a job posting names a skill, not prose to translate.
 TRANSLATABLE_FIELDS: dict[type, tuple[str, ...]] = {
-    AboutMe: ("template",),
+    # Both at once: the template keeps its gaps in place (rule 5 below), so
+    # the new language gets a paired template without deriving it again.
+    AboutMe: ("plain_text", "template"),
     Experience: ("title", "bullets"),
     Skill: ("name", "category"),
     SpokenLanguage: ("name", "level"),

@@ -66,7 +66,7 @@ def _educacion(**cambios) -> Education:
 
 
 def _sobre_mi(es: str = PLANTILLA, en: str = PLANTILLA) -> AboutMe:
-    return AboutMe(template=Bilingual(es=es, en=en))
+    return AboutMe(template=Bilingual(es=es, en=en), plain_text=Bilingual(es=es, en=en))
 
 
 def _perfil_completo() -> Profile:
@@ -207,23 +207,13 @@ def test_detecta_una_skill_sin_categoria_ni_palabras_clave():
 # --------------------------------------------------------------------------
 
 
-def test_detecta_que_falta_un_hueco_en_el_sobre_mi():
-    problemas = validation.validate_about_me(
-        _sobre_mi(es=PLANTILLA.replace("{GROUP_B_3}", "Java"))
-    ).messages()
+def test_el_sobre_mi_no_exige_huecos_porque_el_usuario_no_los_escribe():
+    """Gaps are placed for the user (`profile/gaps.py`); plain text with
+    none of them is a perfectly valid "About me"."""
+    texto = Bilingual(es="Desarrollador de backend.", en="Backend developer.")
+    problemas = validation.validate_about_me(AboutMe(template=texto, plain_text=texto))
 
-    assert len(problemas) == 1
-    assert "{GROUP_B_3}" in problemas[0]
-    assert "español" in problemas[0]
-
-
-def test_detecta_un_hueco_inventado_que_nadie_va_a_rellenar():
-    """A {GROUP_C_1} would be left in the final CV exactly as written."""
-    problemas = validation.validate_about_me(
-        _sobre_mi(en=PLANTILLA + " Además {GROUP_C_1}.")
-    ).messages()
-
-    assert any("{GROUP_C_1}" in p for p in problemas)
+    assert problemas.messages() == []
 
 
 def test_un_sobre_mi_escrito_en_un_solo_idioma_solo_avisa():
