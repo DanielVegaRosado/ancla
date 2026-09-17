@@ -4,6 +4,9 @@
 - `initialize()` creates the table and applies pending migrations idempotently,
   so it can run on every start.
 - Passwords are stored only as a hash (werkzeug, pbkdf2-sha256), never in clear.
+  An account created through Google has no password at all: `password_hash`
+  is NULL rather than a placeholder hash, so the login form can tell such an
+  account apart and say how to get in instead of "wrong password".
 - `User` implements Flask-Login's interface, so it can be the session's
   authenticated user as is.
 """
@@ -30,7 +33,7 @@ CREATE TABLE IF NOT EXISTS users (
     last_name           VARCHAR(200) NOT NULL,
     email               VARCHAR(190) NOT NULL UNIQUE,
     phone               VARCHAR(32)  NULL,
-    password_hash       VARCHAR(255) NOT NULL,
+    password_hash       VARCHAR(255) NULL,
     email_verified      TINYINT(1)   NOT NULL DEFAULT 0,
     verification_token  VARCHAR(64)  NULL,
     token_expires       DATETIME     NULL,
@@ -48,6 +51,11 @@ ADD_PHONE = "ALTER TABLE users ADD COLUMN phone VARCHAR(32) NULL AFTER email"
 # now: Daniel confirmed on 2026-09-15 that the only production row left had it
 # already NULL (the account he re-registered through the new email-only form).
 DROP_USERNAME = "ALTER TABLE users DROP COLUMN username"
+PASSWORD_NULLABLE = "ALTER TABLE users MODIFY COLUMN password_hash VARCHAR(255) NULL"
+
+
+class PasswordlessAccount(Exception):
+    """The account exists but was created through Google and has no password."""
 
 
 def _text(value) -> str:
@@ -118,18 +126,20 @@ class UserRepository:
         statement is applied only when its column is still in the old shape.
         """
         cursor.execute(
-            """SELECT column_name FROM information_schema.columns
+            """SELECT column_name, is_nullable FROM information_schema.columns
                WHERE table_schema = DATABASE() AND table_name = 'users'"""
         )
-        columns = {_text(name) for (name,) in cursor.fetchall()}
-        if "phone" not in columns:
+        nullable = {_text(name): _text(flag) == "YES" for (name, flag) in cursor.fetchall()}
+        if "phone" not in nullable:
             cursor.execute(ADD_PHONE)
-        if "username" in columns:
+        if "username" in nullable:
             cursor.execute(DROP_USERNAME)
+        if not nullable.get("password_hash", True):
+            cursor.execute(PASSWORD_NULLABLE)
 
     # ── Writes ────────────────────────────────────────────────────────────────
 
-    def create(self, first_name: str, last_name: str, email: str, password: str,
+    def create(self, first_name: str, last_name: str, email: str, password: str | None,
                phone: str | None = None, role: str = ROLE_USER,
                email_verified: bool = True) -> int:
         """Creates an account and returns its id.
@@ -139,9 +149,12 @@ class UserRepository:
 
         `phone` is stored as given and read by nobody yet: it is there for a
         later feature, so asking for it again would mean asking every account.
+
+        `password=None` creates an account that can only enter through Google.
         """
         now = datetime.now()
-        password_hash = generate_password_hash(password, method=PASSWORD_HASH_METHOD)
+        password_hash = (generate_password_hash(password, method=PASSWORD_HASH_METHOD)
+                         if password is not None else None)
         conn = self._connect()
         try:
             cur = conn.cursor()
@@ -155,6 +168,30 @@ class UserRepository:
             )
             conn.commit()
             return cur.lastrowid
+        finally:
+            conn.close()
+
+    def confirm_email_through_google(self, id: int) -> None:
+        """Marks the account verified because Google vouched for its email.
+
+        If it was still unverified, its password is also dropped: nobody ever
+        proved that whoever chose it owns the address, so keeping it would let
+        someone register a victim's Gmail in advance and get in once the
+        victim signs in with Google.
+        """
+        now = datetime.now()
+        conn = self._connect()
+        try:
+            cur = conn.cursor()
+            cur.execute(
+                """UPDATE users
+                   SET password_hash = NULL, email_verified = 1,
+                       verification_token = NULL, token_expires = NULL,
+                       date_modified = %s
+                   WHERE id = %s AND email_verified = 0""",
+                (now, id),
+            )
+            conn.commit()
         finally:
             conn.close()
 
@@ -232,13 +269,24 @@ class UserRepository:
             conn.close()
         return User._from_row(row) if row else None
 
+    def by_email(self, email: str) -> User | None:
+        conn = self._connect()
+        try:
+            cur = conn.cursor()
+            cur.execute(f"SELECT {_PUBLIC_COLUMNS} FROM users WHERE email = %s", (email,))
+            row = cur.fetchone()
+        finally:
+            conn.close()
+        return User._from_row(row) if row else None
+
     def authenticate(self, email: str, password: str) -> User | None:
         """The account if the credentials are right and it is not deleted;
         None otherwise.
 
         An unverified account is still returned, with `email_verified=False`:
         refusing it is the login route's decision, so it can say why instead
-        of pretending the password was wrong.
+        of pretending the password was wrong. For the same reason an account
+        with no password raises `PasswordlessAccount`.
         """
         conn = self._connect()
         try:
@@ -254,6 +302,10 @@ class UserRepository:
             return None
         *public, password_hash = row
         user = User._from_row(public)
-        if user.deleted or not check_password_hash(password_hash, password):
+        if user.deleted:
+            return None
+        if password_hash is None:
+            raise PasswordlessAccount(email)
+        if not check_password_hash(password_hash, password):
             return None
         return user

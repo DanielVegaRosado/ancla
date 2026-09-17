@@ -9,18 +9,27 @@ Email verification follows `ANCLA_VERIFICACION_EMAIL`: "auto" (default) turns
 it on only when SMTP is configured, "on" always, "off" never. With it off,
 accounts are created already verified, since nobody could ever receive the
 link.
+
+"Continue with Google" (OpenID Connect through Authlib) is an alternative way
+into the same accounts: the account is its Gmail address, whichever way it
+arrives. It is offered only when `GOOGLE_CLIENT_ID` and
+`GOOGLE_CLIENT_SECRET` are set.
 """
 from __future__ import annotations
 
 import os
 import re
 
+from authlib.integrations.base_client import OAuthError
+from authlib.integrations.flask_client import OAuth
+from dotenv import load_dotenv
 from flask import current_app, flash, redirect, render_template, request, url_for
 from flask_babel import gettext as _
 from flask_login import current_user, login_user, logout_user
 
 from ancla.auth import mail
-from ancla.auth.users import VERIFICATION_HOURS, UserRepository
+from ancla.auth.db import ENV_FILE
+from ancla.auth.users import VERIFICATION_HOURS, PasswordlessAccount, UserRepository
 from ancla.web.blueprint import bp
 from ancla.web.countries import COUNTRIES, DEFAULT_COUNTRY_ISO, dial_code_for
 
@@ -32,6 +41,7 @@ _EMAIL_SHAPE = re.compile(r"^[^@\s]+@gmail\.com$")
 # The local part the user types next to the country dropdown: digits only,
 # no leading zero (that belongs to national dialing, not the E.164 number).
 _PHONE_NUMBER_SHAPE = re.compile(r"^[1-9]\d{5,13}$")
+GOOGLE_METADATA_URL = "https://accounts.google.com/.well-known/openid-configuration"
 
 
 def _register_form_context(form: dict, errors: dict) -> dict:
@@ -53,6 +63,32 @@ def users() -> UserRepository:
         repository.initialize()
         current_app.extensions["ancla_users"] = repository
     return repository
+
+
+def google_configured() -> bool:
+    load_dotenv(ENV_FILE, override=False)
+    return bool(os.getenv("GOOGLE_CLIENT_ID") and os.getenv("GOOGLE_CLIENT_SECRET"))
+
+
+def _google():
+    """The app's Google client, registered the first time it is needed, like
+    `users()`, so the app starts the same with or without credentials."""
+    oauth = current_app.extensions.get("authlib.integrations.flask_client")
+    if oauth is None:
+        oauth = OAuth(current_app)
+        oauth.register(
+            "google",
+            client_id=os.getenv("GOOGLE_CLIENT_ID"),
+            client_secret=os.getenv("GOOGLE_CLIENT_SECRET"),
+            server_metadata_url=GOOGLE_METADATA_URL,
+            client_kwargs={"scope": "openid email profile"},
+        )
+    return oauth.google
+
+
+@bp.app_context_processor
+def _google_login_offered() -> dict:
+    return {"google_login": google_configured()}
 
 
 def _database_unavailable() -> None:
@@ -164,6 +200,9 @@ def login():
     email = request.form.get("email", "").strip().lower()
     try:
         user = users().authenticate(email, request.form.get("password", ""))
+    except PasswordlessAccount:
+        flash(_("Esta cuenta se creó con Google: entra con «Continuar con Google»."))
+        return render_template("login.html", email=email)
     except Exception:
         _database_unavailable()
         return render_template("login.html", email=email)
@@ -176,6 +215,59 @@ def login():
         login_user(user)
         return redirect(url_for("ancla.view_profile"))
     return render_template("login.html", email=email)
+
+
+@bp.route("/login/google")
+def login_google():
+    if current_user.is_authenticated:
+        return redirect(url_for("ancla.view_profile"))
+    if not google_configured():
+        flash(_("El acceso con Google no está configurado en esta copia de la app."))
+        return redirect(url_for("ancla.login"))
+    return _google().authorize_redirect(_public_link("ancla.login_google_callback"))
+
+
+def _google_identity() -> dict | None:
+    """The verified profile Google sent back, or None if the round trip failed
+    (the user cancelled, the state did not match, the token was invalid).
+    Authlib validates the ID token's signature, audience and nonce."""
+    try:
+        token = _google().authorize_access_token()
+    except OAuthError:
+        return None
+    return token.get("userinfo")
+
+
+@bp.route("/login/google/callback")
+def login_google_callback():
+    if not google_configured():
+        return redirect(url_for("ancla.login"))
+    identity = _google_identity()
+    if identity is None:
+        flash(_("No se pudo completar el acceso con Google. Inténtalo de nuevo."))
+        return redirect(url_for("ancla.login"))
+    email = (identity.get("email") or "").strip().lower()
+    if not identity.get("email_verified") or not _EMAIL_SHAPE.match(email):
+        flash(_("De momento solo se admiten cuentas de Gmail (@gmail.com)."))
+        return redirect(url_for("ancla.login"))
+    try:
+        user = users().by_email(email)
+        if user is None:
+            users().create(
+                identity.get("given_name") or email.split("@")[0],
+                identity.get("family_name") or "",
+                email, None, email_verified=True,
+            )
+            user = users().by_email(email)
+        elif not user.email_verified:
+            users().confirm_email_through_google(user.id)
+    except Exception:
+        _database_unavailable()
+        return redirect(url_for("ancla.login"))
+    if not login_user(user):
+        flash(_("Esta cuenta está dada de baja."))
+        return redirect(url_for("ancla.login"))
+    return redirect(url_for("ancla.view_profile"))
 
 
 @bp.route("/logout")

@@ -13,7 +13,8 @@ from pathlib import Path
 import pytest
 
 from ancla.auth.db import get_connection, mysql_configured
-from ancla.auth.users import UserRepository
+from ancla.auth.users import PasswordlessAccount, UserRepository
+from ancla.web.views import auth as auth_views
 from ancla.web import create_app
 
 pytestmark = pytest.mark.skipif(not mysql_configured(), reason="MySQL not configured in .env")
@@ -235,6 +236,118 @@ def test_unverified_account_cannot_log_in_until_the_link_is_opened(client, repos
     client.get(f"/verificar/{token}")
     client.post("/login", data={"email": new_account["email"], "password": PASSWORD})
     assert _logged_in_id(client) is not None
+
+
+def test_an_account_created_through_google_has_no_password(repository, new_account):
+    repository.create("Ana", "Pérez", new_account["email"], None)
+
+    conn = get_connection()
+    try:
+        cur = conn.cursor()
+        cur.execute("SELECT password_hash FROM users WHERE email = %s", (new_account["email"],))
+        assert cur.fetchone()[0] is None
+    finally:
+        conn.close()
+    with pytest.raises(PasswordlessAccount):
+        repository.authenticate(new_account["email"], "")
+
+
+def test_password_login_to_a_google_account_says_to_use_google(client, repository, new_account):
+    repository.create("Ana", "Pérez", new_account["email"], None)
+
+    response = client.post("/login", data={"email": new_account["email"], "password": PASSWORD})
+
+    assert "se creó con Google" in response.get_data(as_text=True)
+    assert _logged_in_id(client) is None
+
+
+# ── Google ────────────────────────────────────────────────────────────────────
+# Only the round trip to Google is replaced: what comes back is what Authlib
+# hands over once it has validated the ID token.
+
+@pytest.fixture
+def google_returns(monkeypatch: pytest.MonkeyPatch):
+    monkeypatch.setenv("GOOGLE_CLIENT_ID", "test-client-id")
+    monkeypatch.setenv("GOOGLE_CLIENT_SECRET", "test-client-secret")
+
+    def _returns(identity: dict | None):
+        monkeypatch.setattr(auth_views, "_google_identity", lambda: identity)
+    return _returns
+
+
+def _google_profile(account: dict, **overrides) -> dict:
+    profile = {"email": account["email"], "email_verified": True,
+               "given_name": "Lucía", "family_name": "Gómez Ruiz"}
+    profile.update(overrides)
+    return profile
+
+
+def test_google_creates_a_verified_account_for_a_new_email_and_logs_in(
+    client, repository, new_account, google_returns
+):
+    google_returns(_google_profile(new_account))
+
+    response = client.get("/login/google/callback")
+
+    assert response.status_code == 302
+    assert response.headers["Location"].endswith("/perfil")
+    user = repository.by_email(new_account["email"])
+    assert (user.first_name, user.last_name) == ("Lucía", "Gómez Ruiz")
+    assert user.email_verified
+    assert _logged_in_id(client) == user.get_id()
+
+
+def test_google_logs_into_the_existing_account_with_that_email(
+    client, repository, new_account, google_returns
+):
+    user_id = _create(repository, new_account, verified=True)
+    google_returns(_google_profile(new_account, given_name="Otro"))
+
+    client.get("/login/google/callback")
+
+    assert _logged_in_id(client) == str(user_id)
+    assert repository.by_email(new_account["email"]).first_name == "Ana"
+    # The password it already had keeps working.
+    assert repository.authenticate(new_account["email"], PASSWORD) is not None
+
+
+def test_google_verifies_a_pending_account_and_drops_its_unproven_password(
+    client, repository, new_account, google_returns
+):
+    user_id = _create(repository, new_account, verified=False)
+    google_returns(_google_profile(new_account))
+
+    client.get("/login/google/callback")
+
+    assert _logged_in_id(client) == str(user_id)
+    assert repository.by_id(user_id).email_verified
+    with pytest.raises(PasswordlessAccount):
+        repository.authenticate(new_account["email"], PASSWORD)
+
+
+@pytest.mark.parametrize("overrides", [
+    {"email_verified": False},
+    {"email": "ana@example.com"},
+])
+def test_google_refuses_an_unverified_or_non_gmail_address(
+    client, repository, new_account, google_returns, overrides
+):
+    google_returns(_google_profile(new_account, **overrides))
+
+    response = client.get("/login/google/callback", follow_redirects=True)
+
+    assert "solo se admiten cuentas de Gmail" in response.get_data(as_text=True)
+    assert _logged_in_id(client) is None
+    assert not repository.email_exists(new_account["email"])
+
+
+def test_a_failed_google_round_trip_logs_nobody_in(client, google_returns):
+    google_returns(None)
+
+    response = client.get("/login/google/callback", follow_redirects=True)
+
+    assert "No se pudo completar el acceso con Google" in response.get_data(as_text=True)
+    assert _logged_in_id(client) is None
 
 
 def test_existing_screens_now_require_logging_in(client):

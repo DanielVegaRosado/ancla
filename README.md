@@ -182,7 +182,11 @@ version once v1.1 itself is done.
 
 Ancla is growing from a local tool into a hosted product with user accounts:
 registration, login and logout (`/registro`, `/login`, `/logout`), in
-`ancla/auth/`.
+`ancla/auth/`, plus **"Continue with Google"** (`/login/google`) as an
+alternative to the password form. An account is its Gmail address, whichever
+way it arrives: signing in with Google into an email that already has an
+account opens that account; otherwise a new, already verified one is created
+from the Google profile. An account created through Google has no password.
 
 **An account is required wherever the app runs** — the packaged desktop build,
 `run.py` in a local browser, and the hosted demo alike. Each of them opens on
@@ -207,7 +211,8 @@ Accounts live in MySQL. Set these in the environment or in a `.env` file next to
 | `MYSQL_HOST`, `MYSQL_PORT`, `MYSQL_USER`, `MYSQL_PASSWORD`, `MYSQL_DATABASE` | The database. The `users` table is created on first use. |
 | `ANCLA_VERIFICACION_EMAIL` | `auto` (default): verify emails only if SMTP is configured. `on`: always. `off`: never. |
 | `ANCLA_SMTP_HOST`, `ANCLA_SMTP_PORT`, `ANCLA_SMTP_USER`, `ANCLA_SMTP_PASSWORD`, `ANCLA_SMTP_REMITENTE` | Outgoing mail for verification links (STARTTLS, port 587 by default). |
-| `ANCLA_URL_PUBLICA` | Public base URL for links sent by email (e.g. `https://ancla.example.com`). |
+| `ANCLA_URL_PUBLICA` | Public base URL for links sent by email and for the Google return URL (e.g. `https://ancla.example.com`). |
+| `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | OAuth client from Google Cloud Console. Without them the Google button is not shown. Its authorized redirect URI must be `<base URL>/login/google/callback`; locally, open the app at `http://127.0.0.1:5000`, not `localhost`, if that is the URI registered. |
 
 Without SMTP credentials nothing is sent and nothing fails: in `auto` mode new
 accounts are created already verified. **Sending the verification email has not

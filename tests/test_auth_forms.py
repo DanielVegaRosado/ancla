@@ -58,3 +58,37 @@ def test_the_login_form_asks_for_the_email(client):
 
     assert 'name="email"' in page
     assert 'name="username"' not in page
+
+
+@pytest.mark.parametrize("path", ["/login", "/registro"])
+def test_continue_with_google_is_offered_next_to_the_form_when_configured(
+    client, path, monkeypatch
+):
+    monkeypatch.setenv("GOOGLE_CLIENT_ID", "test-client-id")
+    monkeypatch.setenv("GOOGLE_CLIENT_SECRET", "test-client-secret")
+
+    page = client.get(path).get_data(as_text=True)
+
+    assert 'href="/login/google"' in page
+    assert "Continuar con Google" in page
+    assert 'method="post"' in page
+
+
+@pytest.mark.parametrize("path", ["/login", "/registro"])
+def test_continue_with_google_is_hidden_without_credentials(client, path, monkeypatch):
+    # Blank rather than unset: load_dotenv never overrides a variable that
+    # is already there, so the real `.env` cannot fill them back in.
+    monkeypatch.setenv("GOOGLE_CLIENT_ID", "")
+    monkeypatch.setenv("GOOGLE_CLIENT_SECRET", "")
+
+    assert "Continuar con Google" not in client.get(path).get_data(as_text=True)
+
+
+def test_google_login_is_reachable_without_a_session(client, monkeypatch):
+    monkeypatch.setenv("GOOGLE_CLIENT_ID", "")
+    monkeypatch.setenv("GOOGLE_CLIENT_SECRET", "")
+
+    response = client.get("/login/google")
+
+    assert response.status_code == 302
+    assert response.headers["Location"].endswith("/login")

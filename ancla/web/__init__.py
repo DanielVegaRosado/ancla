@@ -247,6 +247,8 @@ ENDPOINTS_SIN_SESION = frozenset({
     "static",
     "ancla.login",
     "ancla.register",
+    "ancla.login_google",
+    "ancla.login_google_callback",
     "ancla.verify_email",
     "ancla.resend_verification",
     "ancla.terms",

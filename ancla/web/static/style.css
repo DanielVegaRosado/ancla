@@ -186,6 +186,61 @@ section[id] { scroll-margin-top: 4.5rem; }
 /* Login, registration: a short form reads better narrow and centred. */
 .tarjeta-cuenta { max-width: 28rem; margin-inline: auto; }
 
+/* Login and registration share one layout: title, the sign-in providers,
+   an "or" divider, then the form with a full-width submit. The card takes
+   the header's dark tone so the account screens read as their own step. */
+.tarjeta-cuenta {
+  background: var(--texto);
+  border-color: var(--texto);
+  color: #fff;
+  padding: 2rem 1.75rem;
+}
+.tarjeta-cuenta h1 { font-size: 2.2rem; margin-bottom: 1.4rem; }
+.tarjeta-cuenta .ayuda { color: #c9ced6; }
+.tarjeta-cuenta a:not(.boton-proveedor) { color: #fff; }
+.tarjeta-cuenta input[type], .tarjeta-cuenta select {
+  background: transparent;
+  color: #fff;
+  border-color: #3a424e;
+}
+.tarjeta-cuenta select option { color: var(--texto); }
+.tarjeta-cuenta input::placeholder { color: var(--nav-atenuado); }
+.cuenta-continuar { margin: 0 0 0.6rem; }
+.proveedores {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(7rem, 1fr));
+  gap: 0.6rem;
+}
+.boton-proveedor {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  padding: 0.75rem 1rem;
+  border-radius: var(--radio-tarjeta);
+  background: #fff;
+  color: var(--texto);
+  font-size: 1.05rem;
+  text-decoration: none;
+}
+.boton-proveedor:hover { background: var(--fondo-suave); }
+.icono-proveedor { width: 1.3rem; height: 1.3rem; }
+.separador-o {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  margin: 1.2rem 0;
+  color: #fff;
+}
+.separador-o::before, .separador-o::after {
+  content: "";
+  flex: 1;
+  border-top: 1px solid #3a424e;
+}
+.boton-ancho { width: 100%; justify-content: center; text-align: center; padding-block: 0.8rem; font-size: 1.05rem; }
+.tarjeta-cuenta .barra-acciones { margin-top: 1.4rem; }
+.cuenta-pie { text-align: center; }
+
 .lista-tarjetas {
   display: flex;
   flex-direction: column;
